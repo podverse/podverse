@@ -46,3 +46,31 @@
 - Change: `v4CopyAccountLibrary` counts one v4 library against the local v5 catalog. `--dry-run` is required. It does not write library rows or set `v4_library_copied_at`.
 - Who notices: operators rehearsing the v4 account migration
 - Operator steps: set `V4_DATABASE_URL`, build workers, then run `npm run v4_copy_account_library -w apps/workers -- --v4-id <id> --dry-run`
+
+## Archiver keeps items a channel merge points at
+
+- Surfaces: workers (`archiveAll`), orm
+- Change: when an episode leaves its feed, the archiver now also keeps the item as Archived while an `item_merge_map` row points at it, alongside the existing clip and playlist retention. Before, such an item was deleted, and the merge map's foreign key (no ON DELETE) made the delete fail, which stopped the archive run. Old item URLs from a merged show keep redirecting.
+- Who notices: operators running `archiveAll` after a show merge; listeners following an old merged episode link
+- Operator steps: none
+
+## v4 library dry run splits clip outcomes
+
+- Surfaces: workers
+- Change: `v4CopyAccountLibrary --dry-run` reads v4 episode and podcast visibility and reports `archivedItem` (episode left its feed; the copy will create an Archived item), `snapshot` (no v5 show or episode; the clip keeps its v4 titles in `removed_source`), and `notSeeded` (subscription to a podcast the seed skips), replacing `keptWithoutItem`. User clips are never counted as dropped. Queue, history, and now playing for episodes that left their feed count as dropped, because v5 keeps those only for Active items.
+- Who notices: operators rehearsing the v4 account migration
+- Operator steps: rerun the dry run for the rehearsal account and record the new counts
+
+## v4 catalog seed dry run
+
+- Surfaces: workers
+- Change: `v4SeedAccountCatalog` counts the public shows one v4 account needs (subscriptions, clips, playlist members, history, queue, and now playing) and which already have a local feed. `--dry-run` is required. It does not create feeds or queue a parse.
+- Who notices: operators rehearsing the v4 account migration
+- Operator steps: set `V4_DATABASE_URL`, build workers, then run `npm run v4_seed_account_catalog -w apps/workers -- --v4-id <id> --dry-run`
+
+## v4 catalog seed apply
+
+- Surfaces: workers
+- Change: `v4SeedAccountCatalog` without `--dry-run` creates each missing local feed and a channel whose `id_text` is the v4 podcast id, then queues a parse on `rss-slow`. `--dry-run` still writes nothing. The command refuses unless `DB_HOST` is localhost. Episodes that left the feed are not copied.
+- Who notices: operators rehearsing the v4 account migration
+- Operator steps: run it only against the local database, with the parser workers already up

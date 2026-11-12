@@ -33,10 +33,15 @@ Flags:
 Requires V4_DATABASE_URL plus the Base and ORM worker env. The v5 account must
 already exist and v4_library_copied_at must be null.
 
-The log is the id and counts. resolved means a local row already matches, or
-a playlist whose owner account is already local. unresolved means the catalog
-row is not local yet. keptWithoutItem is a clip whose episode is already gone.
-dropped is a row the copy will not keep. No email, url, or title is logged.
+The log is the id and counts. No email, url, or title is logged.
+  resolved      a local row already matches, or the playlist owner is local
+  unresolved    waits on a show the seed parses, or on another account's copy
+  archivedItem  the episode left its feed; the copy creates an Archived item
+  snapshot      no v5 show or episode will exist; the clip or playlist row
+                keeps the v4 titles and dates in removed_source
+  notSeeded     a subscription to a podcast the seed skips
+  dropped       not copied. Queue, history, and now playing keep only
+                episodes still in a feed, so the rest are dropped
 `;
 
 const USER_SQL = `
@@ -100,7 +105,8 @@ SELECT id,
        guid,
        "mediaUrl" AS media_url,
        title,
-       "pubDate" AS pub_date
+       "pubDate" AS pub_date,
+       ("isPublic" IS TRUE) AS is_public
 FROM episodes
 WHERE id = ANY($1::varchar[])
 `;
@@ -110,7 +116,9 @@ SELECT DISTINCT ON (p.id)
        p.id,
        p."podcastIndexId" AS podcast_index_id,
        p."podcastGuid"::text AS podcast_guid,
-       NULLIF(btrim(f.url), '') AS authority_url
+       NULLIF(btrim(f.url), '') AS authority_url,
+       (p."isPublic" IS TRUE) AS is_public,
+       p.flag_status::text AS flag_status
 FROM podcasts p
 LEFT JOIN "feedUrls" f
   ON f."podcastId" = p.id AND f."isAuthority" IS TRUE
@@ -208,7 +216,10 @@ async function queryV4(
   return result.rows;
 }
 
-async function queryV5(sql: string, values: readonly unknown[]): Promise<Record<string, unknown>[]> {
+async function queryV5(
+  sql: string,
+  values: readonly unknown[]
+): Promise<Record<string, unknown>[]> {
   const result: unknown = await getDataSourceReadWrite().query(sql, [...values]);
   return rowsOf(result);
 }
@@ -301,9 +312,10 @@ async function readV4Snapshot(connectionString: string, v4Id: string): Promise<V
         id,
         episodeId: textOrNull(row.episode_id),
         official: flag(row.official),
+        owned: flag(row.owned),
       };
       mediaRefs.push(key);
-      if (flag(row.owned)) {
+      if (key.owned) {
         clips.push(key);
       }
     }
@@ -321,6 +333,7 @@ async function readV4Snapshot(connectionString: string, v4Id: string): Promise<V
         mediaUrl: textOrNull(row.media_url),
         title: textOrNull(row.title),
         pubDate: pubDateIso(row.pub_date),
+        isPublic: flag(row.is_public),
       });
     }
 
@@ -335,6 +348,8 @@ async function readV4Snapshot(connectionString: string, v4Id: string): Promise<V
         podcastIndexId: textOrNull(row.podcast_index_id),
         podcastGuid: textOrNull(row.podcast_guid),
         authorityUrl: textOrNull(row.authority_url),
+        isPublic: flag(row.is_public),
+        flagStatus: textOrNull(row.flag_status),
       });
     }
 
@@ -541,11 +556,7 @@ async function readLocalCatalog(snapshot: V4LibrarySnapshot): Promise<LocalCatal
         continue;
       }
       addToChannelSet(itemGuidsByChannel, channelIdText, textOrNull(row.guid));
-      addToChannelSet(
-        itemEnclosuresByChannel,
-        channelIdText,
-        textOrNull(row.guid_enclosure_url)
-      );
+      addToChannelSet(itemEnclosuresByChannel, channelIdText, textOrNull(row.guid_enclosure_url));
       const title = textOrNull(row.title);
       const pubDate = pubDateIso(row.pub_date);
       if (title !== null && pubDate !== null) {
@@ -612,11 +623,7 @@ async function readLocalCatalog(snapshot: V4LibrarySnapshot): Promise<LocalCatal
   };
 }
 
-function logFinished(
-  v4Id: string,
-  action: string,
-  report: LibraryCopyReport | null
-): void {
+function logFinished(v4Id: string, action: string, report: LibraryCopyReport | null): void {
   getLogger().info('v4 library dry run finished', {
     dryRun: true,
     v4Id,
@@ -650,9 +657,11 @@ export const v4CopyAccountLibrary = async (args: CommandLineArgs) => {
     throw new Error('Missing V4_DATABASE_URL.');
   }
 
-  const account = await getDataSourceReadWrite().getRepository(Account).findOne({
-    where: { id_text: v4Id },
-  });
+  const account = await getDataSourceReadWrite()
+    .getRepository(Account)
+    .findOne({
+      where: { id_text: v4Id },
+    });
   if (account === null) {
     logFinished(v4Id, 'skip_missing_account', null);
     return;

@@ -292,6 +292,10 @@ batch and the active gift accounts, are not capped.
    **after** accounts exist.
 6. **Scale-up** — larger batches until timing supports lazy-login SLOs and
    end-of-grace batch windows ([07](07-account-and-data-migration-model.md)).
+7. **Launch queue timing** — queue the subscribed and viewed public shows
+   from the [launch queue](05-id-mapping-and-catalog-seeding.md#launch-queue),
+   about 89,000 on this snapshot, on `rss-slow`. Record how long it takes to
+   drain and how many parses fail.
 
 ### Tooling shape (later plan sets)
 

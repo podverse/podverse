@@ -119,23 +119,59 @@ more than five years ahead is already capped in that file.
 `billingImportLegacyMembershipExpiry` writes the grant and the expiry only.
 The account copy sets Premium or Trial, and it writes a carried trial grant.
 
-- [x] Identity seed for the rehearsal account on the local database. The v4
-      id is `account.id_text` (`eFv5NFx`), the verified flag is true, and the
-      bcrypt hash and name are stored. `v4_library_copied_at` is null. No
-      membership row, no grant, and no signup trial. Repeat runs use
-      `v4SeedAccountIdentity` with `--v4-id` and `--dry-run`.
-- [ ] Library copy for that one account, through the legacy map. The dry run
-      `v4CopyAccountLibrary --v4-id eFv5NFx --dry-run` wrote nothing.
-      Subscriptions 173 (resolved 4, unresolved 169). The unresolved 169 are
-      the 14 non-public, the 6 missing podcasts, and the 149 with no local
-      feed. Add by RSS 11, all unresolved. Follows: 0 playlists, 2 users, both
-      unresolved. Playlists 5, all resolved because the account is local.
-      Playlist members 19 (resolved 1, unresolved 18). Order ids dropped: 2.
-      Clips 925 (resolved 16, unresolved 909), official skipped 0. Queue 0.
-      History 710 (resolved 59, unresolved 651). Now playing 1, unresolved.
+Do these in order. Each worker command is one chunk: dry run first, then a
+local apply after the operator says yes. Never write to alpha. The clip and
+playlist rules for an episode that left its feed are in
+[05](05-id-mapping-and-catalog-seeding.md#episodes-that-left-the-feed). A user
+clip is never dropped.
+
+- [x] Identity seed for the rehearsal account on the local database.
+      `v4SeedAccountIdentity` is built. The v4 id is `account.id_text`
+      (`eFv5NFx`), the verified flag is true, and the bcrypt hash and name
+      are stored. `v4_library_copied_at` is null. No membership row, no grant,
+      and no signup trial. Repeat runs use `--v4-id` and `--dry-run`.
+- [x] Library dry run command. `v4CopyAccountLibrary` is built and still
+      requires `--dry-run`. It writes nothing, including
+      `v4_library_copied_at`. Counts are `resolved`, `unresolved` (waiting on
+      a seeded parse or another account's copy), `archivedItem` (create an
+      Archived item), `snapshot` (keep `removed_source`, no item),
+      `notSeeded` (subscription the seed skips), and `dropped`.
+- [x] Rerun that dry run and replace the counts below. Ran
+      `v4CopyAccountLibrary --dry-run` for `eFv5NFx` at `2026-11-11T21:16:19Z`.
+      It wrote nothing. Subscriptions 173 (resolved 4, unresolved 149,
+      notSeeded 20). The notSeeded 20 are the 14 non-public and the 6 missing
+      podcasts. The unresolved 149 have no local feed. Add by RSS 11, all
+      unresolved. Follows: 0 playlists, 2 users, both unresolved. Playlists 5,
+      all resolved because the account is local. Playlist members 19 (resolved
+      1, unresolved 18). Order ids dropped: 2. Clips 925 (resolved 16,
+      unresolved 113, archivedItem 716, snapshot 80, dropped 0), official
+      skipped 0. Queue 0. History 710 (resolved 59, unresolved 618, dropped
+      33). Now playing 1, unresolved.
+- [x] Catalog seed dry run. Ran `v4SeedAccountCatalog --dry-run` for
+      `eFv5NFx` at `2026-11-11T22:27:22Z`. It wrote nothing. Subscriptions
+      173 (already local 4, not local 149, non-public 14, missing 6). Clips
+      115 (already local 3, not local 104, non-public 8). Playlist members
+      18 (already local 1, not local 17). History 104 (already local 4, not
+      local 93, non-public 7). Queue 0. Now playing 1, not local. Combined
+      260 (already local 4, not local 228, non-public 22, missing 6). Beyond
+      subscriptions 87 (not local 79, non-public 8). Spam and takedown are 0.
+- [ ] Apply that seed on the local database and let those feeds finish
+      parsing. Ran `v4SeedAccountCatalog` for `eFv5NFx` at
+      `2026-11-11T22:37:13Z`. Created 227 channels, queued 227 parses on
+      `rss-slow`, and skipped 1 show with no authority URL. The parses have
+      not finished. Episodes v4 hid stay out of the parse.
+- [ ] Rerun `v4CopyAccountLibrary --dry-run` after the parses finish.
+      `unresolved` should fall to rows still waiting on a parse.
+- [ ] Library write. Same command, `v4CopyAccountLibrary`, without requiring
+      `--dry-run`. Not built. Follow the four results in doc 05: attach to a
+      matched item, wait for a parse, create an Archived item, or keep a
+      snapshot. Set `v4_library_copied_at` only after the copy finishes.
+      Queue, history, and now playing copy only for Active items.
 - [ ] Sign in on local web and mobile with the v4 password.
-- [ ] Copied group counts match the step 2 trace.
-- [ ] `billingImportLegacyMembershipExpiry` dry run against the seeded account.
+- [ ] Copied group counts match the step 2 trace, with the dropped history
+      and queue rows for episodes that left their feed counted separately.
+- [ ] `billingImportLegacyMembershipExpiry` dry run against the seeded
+      account. The command exists. This rehearsal has not run it.
 
 ## Not blockers for this list
 

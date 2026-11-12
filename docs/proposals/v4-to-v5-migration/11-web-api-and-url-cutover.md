@@ -26,12 +26,12 @@ Draft. Needs operator review.
 
 ### During grace period
 
-| Host                                    | Role                                                                 |
-| --------------------------------------- | -------------------------------------------------------------------- |
-| `api.podverse.fm` (or current prod API) | **Stay on v4** so un-upgraded apps keep working                      |
-| `api-prod.podverse.fm`                  | v5 API during grace. After the block, `api.podverse.fm` points here  |
-| Public web (`podverse.fm`)              | Operator chooses. Likely the first store approval. Redirects stay    |
-| Beta hosts                              | Separate hostnames. After launch, the production database            |
+| Host                                    | Role                                                                |
+| --------------------------------------- | ------------------------------------------------------------------- |
+| `api.podverse.fm` (or current prod API) | **Stay on v4** so un-upgraded apps keep working                     |
+| `api-prod.podverse.fm`                  | v5 API during grace. After the block, `api.podverse.fm` points here |
+| Public web (`podverse.fm`)              | Operator chooses. Likely the first store approval. Redirects stay   |
+| Beta hosts                              | Separate hostnames. After launch, the production database           |
 
 v5 mobile and web talk to `api-prod.podverse.fm` during grace, not to the
 v4 API. When public v4 requests are blocked, `api.podverse.fm` points at v5.
@@ -44,6 +44,12 @@ redirect to the v5 page. Do not reuse that path for a different page. An id
 with no row gets a friendly not-found, not a new resource that happens to
 share the string.
 
+A `/podcast/:id` with no channel under that id asks the
+[legacy podcast lookup](05-id-mapping-and-catalog-seeding.md#legacy-podcast-lookup).
+When a channel exists for the same Podcast Index id, redirect there.
+Otherwise show the friendly not-found page. A page view never queues a
+parse.
+
 Reset-password and membership links from old emails must either keep working
 on a compatibility path or be clearly expired with instructions.
 
@@ -53,23 +59,23 @@ the new path is that same `mediaRefs.id`. Ids of length 7 or 8 fit once
 `nano_id_v2` accepts 7 characters. That minimum is decided and is not in the
 schema yet. See [05](05-id-mapping-and-catalog-seeding.md).
 
-| v4 URL                           | v5 page                                           | What changes                           |
-| -------------------------------- | ------------------------------------------------- | -------------------------------------- |
-| `/podcast/:id`                   | `/podcast/:id`                                    | Same id and path                       |
-| `/album/:id`                     | `/album/:id`                                      | Same id and path                       |
-| `/episode/:id`                   | `/episode/:id`                                    | Same id and path. Live page may differ |
-| `/track/:id`                     | `/track/:id`                                      | Same id and path                       |
-| `/clip/:id` (user clip)          | `/clip/:id`                                       | Same id and path                       |
-| `/clip/:id` (official chapter)   | `/chapter/:id`                                    | Same id. Path changes. Not a v5 clip   |
-| `/clip/:id` (official soundbite) | `/official-clip/:id`                              | Same id. Path changes. Not a v5 clip   |
-| `/playlist/:id`                  | `/playlist/:id`                                   | Same id and path                       |
-| `/profile/:id`                   | `/profile/:id`                                    | Same id and path                       |
-| `/embed/player?...`              | Typed `/embed/<kind>/:id`                         | Query string becomes a typed path      |
-| `/miniplayer/clip/:id`           | Clip, chapter, or official-clip page              | No v5 miniplayer route                 |
-| `/miniplayer/episode/:id`        | `/episode/:id`                                    | No v5 miniplayer route                 |
-| `/videoplayer/clip/:id`          | Clip, chapter, or official-clip page              | No v5 videoplayer route                |
-| `/videoplayer/episode/:id`       | `/episode/:id`                                    | No v5 videoplayer route                |
-| `/account-claim-token/:id`       | No v5 page. Tokens are not imported               | URL is not reserved                    |
+| v4 URL                           | v5 page                              | What changes                           |
+| -------------------------------- | ------------------------------------ | -------------------------------------- |
+| `/podcast/:id`                   | `/podcast/:id`                       | Same id and path                       |
+| `/album/:id`                     | `/album/:id`                         | Same id and path                       |
+| `/episode/:id`                   | `/episode/:id`                       | Same id and path. Live page may differ |
+| `/track/:id`                     | `/track/:id`                         | Same id and path                       |
+| `/clip/:id` (user clip)          | `/clip/:id`                          | Same id and path                       |
+| `/clip/:id` (official chapter)   | `/chapter/:id`                       | Same id. Path changes. Not a v5 clip   |
+| `/clip/:id` (official soundbite) | `/official-clip/:id`                 | Same id. Path changes. Not a v5 clip   |
+| `/playlist/:id`                  | `/playlist/:id`                      | Same id and path                       |
+| `/profile/:id`                   | `/profile/:id`                       | Same id and path                       |
+| `/embed/player?...`              | Typed `/embed/<kind>/:id`            | Query string becomes a typed path      |
+| `/miniplayer/clip/:id`           | Clip, chapter, or official-clip page | No v5 miniplayer route                 |
+| `/miniplayer/episode/:id`        | `/episode/:id`                       | No v5 miniplayer route                 |
+| `/videoplayer/clip/:id`          | Clip, chapter, or official-clip page | No v5 videoplayer route                |
+| `/videoplayer/episode/:id`       | `/episode/:id`                       | No v5 videoplayer route                |
+| `/account-claim-token/:id`       | No v5 page. Tokens are not imported  | URL is not reserved                    |
 
 `/embed/<kind>` is `podcast`, `episode`, `clip`, `chapter`, `official-clip`,
 `playlist`, or `album`.

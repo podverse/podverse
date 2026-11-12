@@ -20,6 +20,7 @@
     "billing_import_legacy_membership_expiry": "node ./dist/index.js billingImportLegacyMembershipExpiry",
     "v4_copy_account_library": "node ./dist/index.js v4CopyAccountLibrary",
     "v4_seed_account_identity": "node ./dist/index.js v4SeedAccountIdentity",
+    "v4_seed_account_catalog": "node ./dist/index.js v4SeedAccountCatalog",
     "billing_reconcile": "node ./dist/index.js billingReconcile",
     "billing_checkout_channel_enable": "node ./dist/index.js billingCheckoutChannelEnable",
     "billing_processor_product_add": "node ./dist/index.js billingProcessorProductAdd",

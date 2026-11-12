@@ -51,6 +51,16 @@ const WORKER_COMMAND_DEFS: readonly WorkerCommandDef[] = [
       'npm run v4_seed_account_identity -w apps/workers -- --v4-id abcd123 --dry-run',
   },
   {
+    name: 'v4SeedAccountCatalog',
+    label: 'v4: seed one account catalog',
+    description:
+      'Count the public shows one v4 account needs. A dry run writes nothing. Without --dry-run, create each missing local feed with the v4 podcast id and queue a parse on rss-slow. Refuses a non-local database.',
+    category: 'orm',
+    risk: 'normal',
+    example_cli:
+      'npm run v4_seed_account_catalog -w apps/workers -- --v4-id abcd123 --dry-run',
+  },
+  {
     name: 'billingImportLegacyMembershipExpiry',
     label: 'Billing: import legacy membership expiry',
     description:

@@ -27,7 +27,7 @@ A failed env or module-config check at startup exits with code **78** (`EX_CONFI
 | Base + ORM + Billing                                  | Base, ORM, Billing                                      | billingReconcile, billingStrikeEnsureWebhook                                                                                                                                                                                                                                                                                           |
 | Base + Podcast Index                                  | Base, PodcastIndex                                      | podcastIndexTrendingPodcastsGet, podcastIndexValueUpdateAll                                                                                                                                                                                                                                                                            |
 | Base + ORM + Podcast Index                            | Base, ORM, PodcastIndex                                 | podcastIndexDeadFeedsFlagAndMerge                                                                                                                                                                                                                                                                                                      |
-| Base + ORM + MQ                                       | Base, ORM, MQ                                           | mqRSSRunDlqConsumer, mqRSSAddAll                                                                                                                                                                                                                                                                                                       |
+| Base + ORM + MQ                                       | Base, ORM, MQ                                           | mqRSSRunDlqConsumer, mqRSSAddAll, v4SeedAccountCatalog                                                                                                                                                                                                                                                                                 |
 | Base + MQ                                             | Base, MQ                                                | devPiBulkFeedsAddFromFile                                                                                                                                                                                                                                                                                                              |
 | Base + ORM + MQ + Podcast Index                       | Base, ORM, MQ, PodcastIndex                             | mqRSSAdd                                                                                                                                                                                                                                                                                                                               |
 | Base + ORM + MQ + Parser + KeyValDB + PI + Add by RSS | Base, ORM, MQ, Parser, KeyValDB, PodcastIndex, AddByRSS | mqAddByRSSRunParser                                                                                                                                                                                                                                                                                                                    |
@@ -206,6 +206,15 @@ Base + ORM, plus `V4_DATABASE_URL` read by this command only. `--v4-id` and
 `--dry-run` are required. The v5 account must already exist and
 `v4_library_copied_at` must be null. The log is the id and counts per group.
 It writes nothing.
+
+### v4 catalog seed (`v4SeedAccountCatalog`)
+
+Base + ORM + MQ, plus `V4_DATABASE_URL` read by this command only. `--v4-id`
+is required. `--dry-run` counts shows and writes nothing. Without `--dry-run`,
+the command creates each missing local feed and a channel whose `id_text` is
+the v4 podcast id, then queues a parse on `rss-slow`. It refuses unless
+`DB_HOST` is localhost. The v5 account must already exist. The log is the id
+and counts. Episodes that left the feed are not copied.
 
 ### v4 identity seed (`v4SeedAccountIdentity`)
 

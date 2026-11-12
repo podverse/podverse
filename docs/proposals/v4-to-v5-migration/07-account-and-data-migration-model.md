@@ -61,7 +61,16 @@ operator. Counts only in automated logs. The worker command is
 and writes the v5 identity rows. It does not copy a library. The library dry
 run is `v4CopyAccountLibrary` (`--v4-id`, `--dry-run`). It counts each group
 against rows already in v5 and writes nothing, including
-`v4_library_copied_at`.
+`v4_library_copied_at`. The catalog command is `v4SeedAccountCatalog`
+(`--v4-id`). `--dry-run` counts the public shows that account needs and which
+already have a local feed. Without `--dry-run` it creates each missing local
+feed, keeps the v4 podcast id as `channel.id_text`, and queues a parse. It
+refuses a non-local database.
+
+Before accounts are invited to migrate, queue the subscribed and viewed
+public shows on `rss-slow`. A show already stored is left alone. Other
+shows wait for the account that needs them. The rules are the launch
+queue in [05](05-id-mapping-and-catalog-seeding.md#launch-queue).
 
 The v4 API keeps serving that person until the library copy finishes. The
 rejection from the earlier decision happens at copy, not at seed.

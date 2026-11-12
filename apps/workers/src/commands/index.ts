@@ -47,6 +47,7 @@ import { notificationsPlatformPurge } from './orm/notifications/platformPurge.js
 import { deleteOutdatedOnDemandParserEvent } from './orm/onDemandParserEvent/deleteOutdatedOnDemandParserEvent.js';
 import { generateOnDemandParserEventReports } from './orm/onDemandParserEvent/generateOnDemandParserEventReports.js';
 import { scheduledJobsRunDue } from './orm/scheduledJob/runDue.js';
+import { v4SeedAccountCatalog } from './orm/v4Catalog/seedAccountCatalog.js';
 import { v4SeedAccountIdentity } from './orm/v4Identity/seedAccountIdentity.js';
 import { v4CopyAccountLibrary } from './orm/v4Library/copyAccountLibrary.js';
 import { ormVerifiedPublisherLinksBackfill } from './orm/verifiedPublisherLinks/backfill.js';
@@ -84,6 +85,7 @@ export default {
   billingCheckoutChannelEnable,
   billingImportLegacyMembershipExpiry,
   v4SeedAccountIdentity,
+  v4SeedAccountCatalog,
   v4CopyAccountLibrary,
   billingProcessorProductAdd,
   billingReconcile,

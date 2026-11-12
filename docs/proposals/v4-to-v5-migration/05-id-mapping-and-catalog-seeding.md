@@ -68,9 +68,7 @@ these ids is 7–12 characters, and none are longer than 15. Ids shorter than 9:
 | `mediaRefs` | 295            |
 | `episodes`  | 21,099         |
 
-The shortest id in each of those tables is 7, except playlists, where it is
-8. `nano_id_v2` accepts 7–15 characters, and `generateRandomIdText` stays at
-10. The app migration is `0005_v4_rehearsal_schema.sql`. The management
+The shortest id in each of those tables is 7, except playlists, where it is 8. `nano_id_v2` accepts 7–15 characters, and `generateRandomIdText` stays at 10. The app migration is `0005_v4_rehearsal_schema.sql`. The management
 migration is `0002_nano_id_v2_min_7.sql`. Do not mint a replacement id for a
 short row.
 
@@ -116,6 +114,71 @@ v4 already has one podcast per Podcast Index id and one authority feed URL.
 The migration does not run a second duplicate match. After the seed exists,
 the normal channel merge moves follows onto a survivor it finds later.
 
+### Launch queue
+
+Before accounts are invited to migrate, queue one slow parse for every
+podcast in either set below, when that podcast is still public, is not
+flagged `spam` or `takedown`, and has a numeric Podcast Index id:
+
+- Subscribed: at least one v4 account subscribes to it. About 64,000 on
+  this snapshot.
+- Viewed: it has a `stats_podcast` row with `play_count` above zero and no
+  account subscribes to it. 25,041 on this snapshot.
+
+The queue is `rss-slow` (slow priority on `rss-normal`). Operators run it.
+A show that already has a local channel is not queued again. The rest of
+the v4 catalog stays off this queue. A public show that appears only on a
+clip, playlist, history row, queue, or now playing item is parsed later,
+when the account that needs it is seeded.
+
+The viewed set exists for signed-out phones, which have no server record in
+v4. `stats_podcast` only chooses what to parse. It is not imported, so this
+does not copy v4 popularity.
+
+### Legacy podcast lookup
+
+Signed-out phones ([08](08-mobile-first-launch-migration.md)) and old
+`/podcast/:id` links ([11](11-web-api-and-url-cutover.md)) resolve v4
+podcast ids through one lookup.
+
+- The caller sends v4 podcast ids only, never a feed URL. No sign-in is
+  required. The lookup never queues a parse, so no signed-out path adds a
+  feed.
+- Before go-live, a worker writes one `podcast` legacy map row for every v4
+  podcast that is public, is not flagged `spam` or `takedown`, and has a
+  numeric Podcast Index id. `resolve_key` is that Podcast Index id. That is
+  4,784,967 rows on this snapshot, ids only. An id still resolves after v4
+  is shut down, and through a channel added later under the same Podcast
+  Index id.
+- The answer is the channel, or "not here". An unknown id, an id that is
+  not eligible, and a show not yet in v5 all get "not here". None of them
+  is an error.
+- At most 2,000 ids per request. The largest signed-in subscription list on
+  this snapshot is 4,314 podcasts and the next is 1,910. The 99.9th
+  percentile is 449.
+- Rate limits apply per IP address and per install. The install id is a
+  random value the phone keeps. It does not prove a v4 install.
+
+### Feed source
+
+v5 does not record how a feed entered the catalog. The on-demand add route
+carries the account id in the queue message only. Add:
+
+- `feed.added_via`, for example `launch_seed`, `account_add`,
+  `podcast_index`, or `opml_import`.
+- A `feed_add_event` table: `feed_id`, `source`, a nullable `account_id`
+  with `ON DELETE SET NULL`, and `created_at`.
+
+This finds every feed one account added that no other account follows, so
+those feeds can be removed. When an account is deleted, its feeds stay,
+because they are public catalog data, and the link to the account is
+erased. Do not store IP addresses, hashed install ids, or other
+pseudonymous ids. No signed-out path writes feeds.
+
+When an account adds a show that has a `podcast` legacy map row, the
+channel takes the v4 shortid as `id_text`. Old links and phones then
+resolve to it.
+
 ### Crosswalk chain (episode / item)
 
 ```text
@@ -153,13 +216,58 @@ v4 mediaRefs.id
 ```
 
 `ownerId` is NOT NULL, including official chapters. That owner is not a reason
-to copy official chapters into `clip`. `episodeId` is nullable on the snapshot.
-A user clip with no episode cannot attach to an item. v5 `clip.item_id` is
-nullable and can keep `removed_source` instead. Prefer that over dropping the
-clip when the owner is known and the episode is gone.
+to copy official chapters into `clip`. A user clip is never dropped. Its title,
+description, and times are copied even when the episode cannot be found; see
+[Episodes that left the feed](#episodes-that-left-the-feed).
 
 v4 `startTime` and `endTime` are integers. v5 `clip.start_time` and `end_time`
-are decimals. Copy the integer as a whole number of seconds.
+are decimals. Copy the integer as a whole number of seconds. v4
+`mediaRefs.isPublic` sets the clip's sharable status.
+
+### Episodes that left the feed
+
+v4 does not delete an episode that leaves its feed. The parser sets
+`episodes.isPublic = false` and keeps `guid`, `mediaUrl`, `title`, `pubDate`,
+and `podcastId`. A feed that caps its item count drops old episodes this way,
+so many clips point at hidden episodes. On the rehearsal account most of the
+925 clips do.
+
+v5 handles the same case for a live feed. The parser marks an item it no
+longer sees `PendingArchive`. The archiver keeps an item as `Archived` while a
+clip, a playlist row (on the item or one of its soundbites), or a channel
+merge map points at it, and deletes it otherwise. Archiving removes detail
+rows but keeps `item_enclosure`, so the clip still plays when the media url
+still works. When the episode returns, the parse matches the archived item by
+`guid` or `guid_enclosure_url` and makes it Active again. Clip and item detail
+pages load Archived items.
+
+The copy gives a v4 clip or playlist member the same result:
+
+1. **Matched.** A local item matches through the episode chain. Attach to it.
+2. **Waiting.** The podcast is local or will be seeded, and v4 still lists the
+   episode. Attach after the seeded feed's parse finishes.
+3. **Archived item.** The podcast is local or will be seeded, but the episode
+   is hidden in v4, or a finished parse did not produce it. Create an
+   `Archived` item on that channel with `id_text` = `episodes.id`, `guid`,
+   `guid_enclosure_url` = `formatGuidEnclosureUrl(mediaUrl)`, `title`,
+   `pub_date`, and one `item_enclosure` from `mediaUrl`. A later parse that
+   sees the episode again reactivates this item. Needs a `guid` or a
+   `mediaUrl`, which the item CHECK requires.
+4. **Snapshot.** No v5 show will exist (missing, non-public, spam, or
+   takedown podcast), the episode row is missing, the episode has neither a
+   `guid` nor a `mediaUrl`, or its `id_text` is already used by another item.
+   Write the clip or playlist row with no item and fill `removed_source`
+   (`kind: 'item'`, the v4 episode and podcast titles, and `pubDate`) and
+   `source_removed_at`. The owner keeps the clip page, title, times, and
+   delete button. Others see that the episode was removed.
+
+A snapshot clip whose podcast is later seeded can be re-attached: match the
+legacy map row, set `item_id`, and clear `removed_source`. Do not create an
+archived item on a spam or takedown channel.
+
+A playlist member that is another user's clip waits until that account is
+copied. At the forced migration every account is copied, and the retry pass
+attaches it.
 
 ### Crosswalk chain (playlist)
 
@@ -252,18 +360,24 @@ now-playing through `userNowPlayingItems.ownerId`. Order for these rows is the
 v4 playback positions are integers. Copy them as whole seconds. Rows with both
 `episodeId` and `mediaRefId` null are **dropped**.
 
+v5 keeps queue, history, and now playing only for Active items.
+`pruneNonActiveItemBackedQueueResourceRows` deletes rows whose item, clip
+item, or soundbite item is not Active. A playback row whose episode left the
+feed (results 3 and 4 above) is therefore **dropped** and counted, not copied
+onto an archived item. The clip itself survives through the rules above.
+
 ### Durable legacy map
 
 Keep a permanent table (exact schema in a later plan):
 
-| Column        | Contents                                                                            |
-| ------------- | ----------------------------------------------------------------------------------- |
-| `legacy_kind` | `podcast`, `episode`, `mediaRef`, `playlist`, `user`                                |
-| `legacy_id`   | v4 `varchar(14)` or uuid                                                            |
-| `v5_kind`     | `channel`, `item`, `clip`, `item_chapter`, `item_soundbite`, `playlist`, `account`  |
-| `v5_id_text`  | Nullable until resolved                                                             |
-| `resolve_key` | Numeric Podcast Index id, feed URL, `podcastGuid`, episode `guid`, or `mediaUrl`    |
-| `status`      | `mapped`, `unresolved`, `dropped`                                                   |
+| Column        | Contents                                                                           |
+| ------------- | ---------------------------------------------------------------------------------- |
+| `legacy_kind` | `podcast`, `episode`, `mediaRef`, `playlist`, `user`                               |
+| `legacy_id`   | v4 `varchar(14)` or uuid                                                           |
+| `v5_kind`     | `channel`, `item`, `clip`, `item_chapter`, `item_soundbite`, `playlist`, `account` |
+| `v5_id_text`  | Nullable until resolved                                                            |
+| `resolve_key` | Numeric Podcast Index id, feed URL, `podcastGuid`, episode `guid`, or `mediaUrl`   |
+| `status`      | `mapped`, `unresolved`, `dropped`                                                  |
 
 Uses: login migration, web redirects ([11](11-web-api-and-url-cutover.md)),
 mobile first-launch remap ([08](08-mobile-first-launch-migration.md)), and
@@ -289,8 +403,10 @@ database and no map file.
    listen events.
 5. Build the legacy map as feeds and items become available. Retry
    `unresolved` rows. A row stays `unresolved` until a finished parse still
-   cannot match it. Only then is it marked `dropped`. There is no calendar
-   cutoff. A dropped id keeps the friendly not-found page.
+   cannot match it. An episode a user clip or playlist member needs then
+   becomes an archived item or a snapshot, never `dropped`. Other rows are
+   marked `dropped`. There is no calendar cutoff. A dropped id keeps the
+   friendly not-found page.
 
 ## Honest limits and risks
 
@@ -300,8 +416,13 @@ database and no map file.
 - `liveItems.start` is `timestamptz` while most other v4 timestamps are
   `timestamp without time zone`. Do not mix them in one comparison without a
   cast.
-- Seeding every feed that user data touches is still a large parse. Measure it
-  in [06](06-database-migration-rehearsal.md).
+- The launch queue is the subscribed and viewed public shows, about 89,000
+  on this snapshot, not the 7.7 million podcasts in v4. Measure how long
+  that queue takes in [06](06-database-migration-rehearsal.md).
+- `stats_podcast` is Matomo page views from the website, and from the v4 app
+  only when tracking was enabled. iOS needed tracking permission. Most
+  signed-out app listeners are missing from it. A less common show they
+  followed stays "not here" until a member adds it.
 - Redirects for unmapped ids should land on a friendly not-found page.
 - A re-derived chapter or soundbite still needs its `mediaRefs.id` in the
   legacy map. Without that row, `/clip/:id` cannot redirect to `/chapter/`
@@ -310,5 +431,11 @@ database and no map file.
 ## Future plan sets
 
 - Schema and worker commands for the legacy map.
-- Parse-queue sizing for the selective seed.
+- Worker command that queues the subscribed and viewed public shows on
+  `rss-slow` at go-live, and a measurement of how long that queue takes.
+- Worker command that writes the `podcast` legacy map rows.
+- Read-only API route for the [legacy podcast lookup](#legacy-podcast-lookup),
+  with its OpenAPI entry and integration tests.
+- [Feed source](#feed-source) column and `feed_add_event` table: a linear
+  migration, and writers in the parser and the add routes.
 - Redirect handler design for [11](11-web-api-and-url-cutover.md).

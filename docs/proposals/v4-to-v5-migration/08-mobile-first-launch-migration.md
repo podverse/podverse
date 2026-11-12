@@ -46,6 +46,14 @@ users who have no server graph.
      device first. Resolve them through the legacy map when the network is
      available. Do not hold the first screen for that request. An offline
      open still keeps the raw ids.
+   - Send the subscription ids in one batch to the
+     [legacy podcast lookup](05-id-mapping-and-catalog-seeding.md#legacy-podcast-lookup),
+     as a queued sync job after first paint. The lookup is read-only and
+     needs no sign-in. An id that comes back "not here" stays on the device
+     and is checked again on later syncs.
+   - Keep the Add by RSS addresses. They refresh only for a signed-in
+     member, the same as other v5 Add by RSS feeds. They never go through
+     the lookup.
    - Import queue / history / now playing best-effort.
    - Attempt to reattach download files when paths and names still match;
      otherwise mark for re-download.
@@ -75,6 +83,11 @@ users who have no server graph.
 - If AsyncStorage is not readable from the Expo app, signed-out users reset to
   empty local state. Be honest in release notes and emails.
 - Custom Android download locations may be invisible to the new app.
+- A show that no account subscribed to and that nobody viewed in v4 is not
+  parsed at launch. It shows as unavailable on a signed-out phone until a
+  member adds it. Signed-out phones never add feeds.
+- Signed-out Add by RSS feeds carried over from v4 do not refresh without a
+  membership. In v4 they refreshed for anyone.
 - Episode ids in filenames are v4 shortids; without a successful map, files are
   orphans.
 - Beta installs under the prod id replace v4 before production messaging ships;

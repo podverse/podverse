@@ -37,6 +37,7 @@ commits them.
 | v5 website goes live at operator discretion, likely first store approval | Decided |
 | Legacy id map lives in the app database; workers write it                | Decided |
 | Unmatched ids stay unresolved until a finished parse cannot match them   | Decided |
+| User clips are never dropped; see doc 05 for hidden episodes             | Decided |
 | Do not import v4 stats; v5 popularity starts from its own listens        | Decided |
 | Refresh the practice copy when a run starts and before the seed          | Decided |
 | Library copy shows its groups and keeps running after the app closes     | Decided |
@@ -45,7 +46,7 @@ commits them.
 | Signed-out phone carryover bar is subscriptions and Add by RSS           | Decided |
 | First store version is the app version; Android code stays above 5280    | Decided |
 | v5 reuses Firebase project podverse-app; v4 tokens stay out              | Decided |
-| Next alpha, beta, and prod send with podverse-next-fcm; v4 admin stays  | Decided |
+| Next alpha, beta, and prod send with podverse-next-fcm; v4 admin stays   | Decided |
 | Ask once per device if the account had a v4 podcast notification         | Decided |
 | Live v4 iOS app is App Store Connect 1390888454, not 6823398032          | Decided |
 | Apple Team ID DF9KG8H54B signs the live v4 app and Podverse Next         | Decided |
@@ -56,6 +57,11 @@ commits them.
 | Playlist members come from the joins; `itemsOrder` only sorts            | Decided |
 | A follow uses the survivor when an absorb merge is already applied       | Decided |
 | The selective seed skips spam, takedown, and non-public podcasts         | Decided |
+| At go-live, queue subscribed and viewed public shows on rss-slow         | Decided |
+| Signed-out v4 ids use a read-only lookup; signed-out never adds feeds    | Decided |
+| The legacy podcast lookup accepts at most 2,000 ids per request          | Decided |
+| Signed-out Add by RSS addresses are kept; refresh needs a membership     | Decided |
+| Feeds record their source; the account link clears on account deletion   | Decided |
 | Copied list order uses the ORM step of `0.00000001`                      | Decided |
 | Phone-storage spike is written in doc 08 and has not been run            | Decided |
 | F-Droid is a placeholder until later                                     | Decided |

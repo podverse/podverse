@@ -4,7 +4,9 @@ export type LibraryCount = {
   total: number;
   resolved: number;
   unresolved: number;
-  keptWithoutItem: number;
+  archivedItem: number;
+  snapshot: number;
+  notSeeded: number;
   dropped: number;
 };
 
@@ -28,6 +30,8 @@ export type V4PodcastKey = {
   podcastIndexId: string | null;
   podcastGuid: string | null;
   authorityUrl: string | null;
+  isPublic: boolean;
+  flagStatus: string | null;
 };
 
 export type V4EpisodeKey = {
@@ -37,12 +41,14 @@ export type V4EpisodeKey = {
   mediaUrl: string | null;
   title: string | null;
   pubDate: string | null;
+  isPublic: boolean;
 };
 
 export type V4MediaRefKey = {
   id: string;
   episodeId: string | null;
   official: boolean;
+  owned: boolean;
 };
 
 export type V4PlaylistKey = {
@@ -88,12 +94,33 @@ export type LocalCatalog = {
   feedUrls: ReadonlySet<string>;
 };
 
-type CountKind = 'resolved' | 'unresolved' | 'keptWithoutItem' | 'dropped';
+type CountKind = Exclude<keyof LibraryCount, 'total'>;
 
-type EpisodeMatch = 'resolved' | 'missing' | 'unresolved';
+/**
+ * What the copy can do with one v4 episode reference.
+ * - resolved: a local item matches.
+ * - waiting: the show is local or will be seeded and v4 still lists the episode, so the
+ *   seeded parse should create the item.
+ * - archive: the show is local or will be seeded but v4 hid the episode because it left the
+ *   feed. The copy creates an Archived item with the v4 id, guid, and enclosure, so a later
+ *   parse reactivates it if the episode returns.
+ * - gone: no v5 show will exist (missing, hidden, spam, or takedown podcast), the v4 episode
+ *   row is missing, or it has neither a guid nor a media url.
+ */
+type EpisodeOutcome = 'resolved' | 'waiting' | 'archive' | 'gone';
+
+const UNSEEDED_FLAG_STATUSES: ReadonlySet<string> = new Set(['spam', 'takedown']);
 
 function emptyCount(): LibraryCount {
-  return { total: 0, resolved: 0, unresolved: 0, keptWithoutItem: 0, dropped: 0 };
+  return {
+    total: 0,
+    resolved: 0,
+    unresolved: 0,
+    archivedItem: 0,
+    snapshot: 0,
+    notSeeded: 0,
+    dropped: 0,
+  };
 }
 
 function tally(count: LibraryCount, kind: CountKind): void {
@@ -140,10 +167,7 @@ export function pubDateSecond(value: string | null): string | null {
 /**
  * The local channel a v4 podcast attaches to. An applied absorb merge wins.
  */
-export function podcastChannelIdText(
-  podcast: V4PodcastKey,
-  catalog: LocalCatalog
-): string | null {
+export function podcastChannelIdText(podcast: V4PodcastKey, catalog: LocalCatalog): string | null {
   const podcastIndexId = parsePodcastIndexId(podcast.podcastIndexId);
   if (podcastIndexId !== null) {
     const survivor = catalog.absorbSurvivorByPodcastIndexId.get(podcastIndexId);
@@ -178,6 +202,21 @@ export function podcastChannelIdText(
 }
 
 /**
+ * True when the catalog seed creates a v5 show for this podcast: public, not spam or
+ * takedown, with a Podcast Index id that fits the v5 feed column.
+ */
+export function isSeedablePodcast(podcast: V4PodcastKey): boolean {
+  if (!podcast.isPublic) {
+    return false;
+  }
+  const flagStatus = blankToNull(podcast.flagStatus);
+  if (flagStatus !== null && UNSEEDED_FLAG_STATUSES.has(flagStatus)) {
+    return false;
+  }
+  return parsePodcastIndexId(podcast.podcastIndexId) !== null;
+}
+
+/**
  * Channel ids the snapshot can already see. Item lookup uses this list.
  */
 export function matchedChannelIdTexts(
@@ -194,94 +233,136 @@ export function matchedChannelIdTexts(
   return [...channelIds];
 }
 
-function episodeMatch(
-  episodeId: string | null,
-  episodes: ReadonlyMap<string, V4EpisodeKey>,
-  podcastChannels: ReadonlyMap<string, string>,
+type ClassifyContext = {
+  podcasts: ReadonlyMap<string, V4PodcastKey>;
+  episodes: ReadonlyMap<string, V4EpisodeKey>;
+  mediaRefs: ReadonlyMap<string, V4MediaRefKey>;
+  podcastChannels: ReadonlyMap<string, string>;
+  catalog: LocalCatalog;
+};
+
+function hasLocalItem(
+  episode: V4EpisodeKey,
+  channelIdText: string | null,
   catalog: LocalCatalog
-): EpisodeMatch {
-  const id = blankToNull(episodeId);
-  if (id === null) {
-    return 'missing';
-  }
-  const episode = episodes.get(id);
-  if (episode === undefined) {
-    return 'missing';
-  }
+): boolean {
   if (catalog.itemIdTexts.has(episode.id)) {
-    return 'resolved';
+    return true;
   }
-  const podcastId = blankToNull(episode.podcastId);
-  const channelIdText = podcastId === null ? null : (podcastChannels.get(podcastId) ?? null);
   if (channelIdText === null) {
-    return 'unresolved';
+    return false;
   }
   const guid = blankToNull(episode.guid);
   if (guid !== null && catalog.itemGuidsByChannel.get(channelIdText)?.has(guid) === true) {
-    return 'resolved';
+    return true;
   }
   const mediaUrl = blankToNull(episode.mediaUrl);
   if (
     mediaUrl !== null &&
     catalog.itemEnclosuresByChannel.get(channelIdText)?.has(mediaUrl) === true
   ) {
-    return 'resolved';
+    return true;
   }
   const title = blankToNull(episode.title);
   const pubSecond = pubDateSecond(episode.pubDate);
-  if (
+  return (
     title !== null &&
     pubSecond !== null &&
     catalog.itemTitlePubByChannel.get(channelIdText)?.has(`${title}\n${pubSecond}`) === true
-  ) {
-    return 'resolved';
-  }
-  return 'unresolved';
+  );
 }
 
-function classifyPlayback(
-  row: V4PlaybackKey,
-  mediaRefs: ReadonlyMap<string, V4MediaRefKey>,
-  episodes: ReadonlyMap<string, V4EpisodeKey>,
-  podcastChannels: ReadonlyMap<string, string>,
-  catalog: LocalCatalog
-): CountKind {
+function episodeOutcome(episodeId: string | null, context: ClassifyContext): EpisodeOutcome {
+  const id = blankToNull(episodeId);
+  const episode = id === null ? undefined : context.episodes.get(id);
+  if (episode === undefined) {
+    return 'gone';
+  }
+  const podcastId = blankToNull(episode.podcastId);
+  const channelIdText =
+    podcastId === null ? null : (context.podcastChannels.get(podcastId) ?? null);
+  if (hasLocalItem(episode, channelIdText, context.catalog)) {
+    return 'resolved';
+  }
+  const podcast = podcastId === null ? undefined : context.podcasts.get(podcastId);
+  const showWillExist =
+    channelIdText !== null || (podcast !== undefined && isSeedablePodcast(podcast));
+  if (!showWillExist) {
+    return 'gone';
+  }
+  if (episode.isPublic) {
+    return 'waiting';
+  }
+  if (blankToNull(episode.guid) === null && blankToNull(episode.mediaUrl) === null) {
+    return 'gone';
+  }
+  return 'archive';
+}
+
+/** A user clip or a playlist member is never dropped for a missing episode. */
+function keptRowKind(outcome: EpisodeOutcome): CountKind {
+  switch (outcome) {
+    case 'resolved':
+      return 'resolved';
+    case 'waiting':
+      return 'unresolved';
+    case 'archive':
+      return 'archivedItem';
+    case 'gone':
+      return 'snapshot';
+  }
+}
+
+/**
+ * v5 keeps queue, history, and now playing only for Active items
+ * (`pruneNonActiveItemBackedQueueResourceRows`), so an episode that left the feed is dropped.
+ */
+function playbackRowKind(outcome: EpisodeOutcome): CountKind {
+  switch (outcome) {
+    case 'resolved':
+      return 'resolved';
+    case 'waiting':
+      return 'unresolved';
+    case 'archive':
+    case 'gone':
+      return 'dropped';
+  }
+}
+
+function classifyPlayback(row: V4PlaybackKey, context: ClassifyContext): CountKind {
   const episodeId = blankToNull(row.episodeId);
   const mediaRefId = blankToNull(row.mediaRefId);
-  if (episodeId === null && mediaRefId === null) {
+  if (mediaRefId !== null) {
+    const mediaRef = context.mediaRefs.get(mediaRefId);
+    if (mediaRef === undefined || mediaRef.official) {
+      return episodeId === null ? 'dropped' : playbackRowKind(episodeOutcome(episodeId, context));
+    }
+    return playbackRowKind(episodeOutcome(mediaRef.episodeId ?? episodeId, context));
+  }
+  if (episodeId === null) {
     return 'dropped';
   }
-  if (
-    episodeId !== null &&
-    episodeMatch(episodeId, episodes, podcastChannels, catalog) === 'resolved'
-  ) {
-    return 'resolved';
-  }
-  if (mediaRefId === null) {
-    return 'unresolved';
-  }
-  const mediaRef = mediaRefs.get(mediaRefId);
-  if (mediaRef === undefined || mediaRef.official) {
-    return 'unresolved';
-  }
-  if (catalog.clipIdTexts.has(mediaRef.id)) {
-    return 'resolved';
-  }
-  const mediaEpisode = episodeMatch(mediaRef.episodeId, episodes, podcastChannels, catalog);
-  if (mediaEpisode === 'resolved') {
-    return 'resolved';
-  }
-  if (mediaEpisode === 'missing') {
-    return 'keptWithoutItem';
-  }
-  return 'unresolved';
+  return playbackRowKind(episodeOutcome(episodeId, context));
 }
 
-function classifyIdList(
-  ids: string[],
-  present: ReadonlySet<string>,
-  count: LibraryCount
-): void {
+/**
+ * A clip in a playlist. The owner's own clip follows the clip rules. Another user's clip
+ * exists in v5 only after that account is copied, so it waits for that copy.
+ */
+function classifyPlaylistClip(mediaRef: V4MediaRefKey, context: ClassifyContext): CountKind {
+  if (mediaRef.official) {
+    return 'dropped';
+  }
+  if (context.catalog.clipIdTexts.has(mediaRef.id)) {
+    return 'resolved';
+  }
+  if (!mediaRef.owned) {
+    return 'unresolved';
+  }
+  return keptRowKind(episodeOutcome(mediaRef.episodeId, context));
+}
+
+function classifyIdList(ids: string[], present: ReadonlySet<string>, count: LibraryCount): void {
   for (const id of ids) {
     const text = blankToNull(id);
     if (text === null) {
@@ -293,10 +374,14 @@ function classifyIdList(
 }
 
 /**
- * Counts one v4 library against rows already in v5. Resolved means a local row
- * matches, or the account that will own a created playlist is already local.
- * Unresolved means the catalog row is not local yet. A clip whose episode is
- * already gone is kept without an item. Dropped rows are not copied.
+ * Counts one v4 library against rows already in v5.
+ * - resolved: a local row matches, or the account that owns a created playlist is local.
+ * - unresolved: waits on a show the seed creates and parses, or on another account's copy.
+ * - archivedItem: the episode left its feed; the copy creates an Archived item for it.
+ * - snapshot: no v5 show or episode will exist; the clip or playlist row keeps
+ *   `removed_source` with the v4 titles and dates.
+ * - notSeeded: a subscription to a podcast the seed skips.
+ * - dropped: not copied.
  */
 export function classifyLibraryCopy(
   snapshot: V4LibrarySnapshot,
@@ -306,6 +391,7 @@ export function classifyLibraryCopy(
   const episodes = new Map(snapshot.episodes.map((episode) => [episode.id, episode]));
   const mediaRefs = new Map(snapshot.mediaRefs.map((mediaRef) => [mediaRef.id, mediaRef]));
   const podcastChannels = new Map<string, string>();
+  const context: ClassifyContext = { podcasts, episodes, mediaRefs, podcastChannels, catalog };
   for (const podcast of snapshot.podcasts) {
     const channelIdText = podcastChannelIdText(podcast, catalog);
     if (channelIdText !== null) {
@@ -336,10 +422,14 @@ export function classifyLibraryCopy(
     }
     const podcast = podcasts.get(text);
     if (podcast === undefined) {
-      tally(report.subscriptions, 'unresolved');
+      tally(report.subscriptions, 'notSeeded');
       continue;
     }
-    tally(report.subscriptions, podcastChannels.has(podcast.id) ? 'resolved' : 'unresolved');
+    if (podcastChannels.has(podcast.id)) {
+      tally(report.subscriptions, 'resolved');
+      continue;
+    }
+    tally(report.subscriptions, isSeedablePodcast(podcast) ? 'unresolved' : 'notSeeded');
   }
 
   for (const url of snapshot.addByRssUrls) {
@@ -364,8 +454,7 @@ export function classifyLibraryCopy(
         continue;
       }
       memberIds.add(text);
-      const match = episodeMatch(text, episodes, podcastChannels, catalog);
-      tally(report.playlistMembers, match === 'resolved' ? 'resolved' : 'unresolved');
+      tally(report.playlistMembers, keptRowKind(episodeOutcome(text, context)));
     }
     for (const mediaRefId of playlist.mediaRefIds) {
       const text = blankToNull(mediaRefId);
@@ -375,26 +464,10 @@ export function classifyLibraryCopy(
       }
       memberIds.add(text);
       const mediaRef = mediaRefs.get(text);
-      if (mediaRef === undefined) {
-        tally(report.playlistMembers, 'unresolved');
-        continue;
-      }
-      if (mediaRef.official) {
-        tally(report.playlistMembers, 'dropped');
-        continue;
-      }
-      if (catalog.clipIdTexts.has(mediaRef.id)) {
-        tally(report.playlistMembers, 'resolved');
-        continue;
-      }
-      const match = episodeMatch(mediaRef.episodeId, episodes, podcastChannels, catalog);
-      if (match === 'resolved') {
-        tally(report.playlistMembers, 'resolved');
-      } else if (match === 'missing') {
-        tally(report.playlistMembers, 'keptWithoutItem');
-      } else {
-        tally(report.playlistMembers, 'unresolved');
-      }
+      tally(
+        report.playlistMembers,
+        mediaRef === undefined ? 'dropped' : classifyPlaylistClip(mediaRef, context)
+      );
     }
     for (const orderId of playlist.orderIds) {
       const text = blankToNull(orderId);
@@ -413,33 +486,17 @@ export function classifyLibraryCopy(
       tally(report.clips, 'resolved');
       continue;
     }
-    const match = episodeMatch(clip.episodeId, episodes, podcastChannels, catalog);
-    if (match === 'resolved') {
-      tally(report.clips, 'resolved');
-    } else if (match === 'missing') {
-      tally(report.clips, 'keptWithoutItem');
-    } else {
-      tally(report.clips, 'unresolved');
-    }
+    tally(report.clips, keptRowKind(episodeOutcome(clip.episodeId, context)));
   }
 
   for (const row of snapshot.queue) {
-    tally(
-      report.queue,
-      classifyPlayback(row, mediaRefs, episodes, podcastChannels, catalog)
-    );
+    tally(report.queue, classifyPlayback(row, context));
   }
   for (const row of snapshot.history) {
-    tally(
-      report.history,
-      classifyPlayback(row, mediaRefs, episodes, podcastChannels, catalog)
-    );
+    tally(report.history, classifyPlayback(row, context));
   }
   for (const row of snapshot.nowPlaying) {
-    tally(
-      report.nowPlaying,
-      classifyPlayback(row, mediaRefs, episodes, podcastChannels, catalog)
-    );
+    tally(report.nowPlaying, classifyPlayback(row, context));
   }
 
   return report;

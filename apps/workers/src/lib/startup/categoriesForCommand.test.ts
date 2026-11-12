@@ -72,6 +72,12 @@ describe('getCategoriesForCommand', () => {
     );
   });
 
+  it('maps v4SeedAccountCatalog to Base, ORM, and MQ', () => {
+    expect(sortCategories(getCategoriesForCommand('v4SeedAccountCatalog'))).toEqual(
+      sortCategories(new Set([CATEGORY_BASE, CATEGORY_ORM, CATEGORY_MQ]))
+    );
+  });
+
   it('maps billingImportLegacyMembershipExpiry to Base and ORM', () => {
     expect(sortCategories(getCategoriesForCommand('billingImportLegacyMembershipExpiry'))).toEqual(
       sortCategories(new Set([CATEGORY_BASE, CATEGORY_ORM]))

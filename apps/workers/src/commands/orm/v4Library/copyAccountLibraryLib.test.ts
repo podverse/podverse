@@ -1,8 +1,14 @@
 import { describe, expect, it } from 'vitest';
 
-import type { LocalCatalog, V4LibrarySnapshot } from './copyAccountLibraryLib.js';
+import type {
+  LocalCatalog,
+  V4EpisodeKey,
+  V4LibrarySnapshot,
+  V4PodcastKey,
+} from './copyAccountLibraryLib.js';
 import {
   classifyLibraryCopy,
+  isSeedablePodcast,
   matchedChannelIdTexts,
   parsePodcastIndexId,
 } from './copyAccountLibraryLib.js';
@@ -44,6 +50,45 @@ function snapshot(overrides: Partial<V4LibrarySnapshot> = {}): V4LibrarySnapshot
   };
 }
 
+function podcast(id: string, overrides: Partial<V4PodcastKey> = {}): V4PodcastKey {
+  return {
+    id,
+    podcastIndexId: null,
+    podcastGuid: null,
+    authorityUrl: null,
+    isPublic: true,
+    flagStatus: 'none',
+    ...overrides,
+  };
+}
+
+function episode(
+  id: string,
+  podcastId: string,
+  overrides: Partial<V4EpisodeKey> = {}
+): V4EpisodeKey {
+  return {
+    id,
+    podcastId,
+    guid: `${id}-guid`,
+    mediaUrl: null,
+    title: null,
+    pubDate: null,
+    isPublic: true,
+    ...overrides,
+  };
+}
+
+const emptyCount = {
+  total: 0,
+  resolved: 0,
+  unresolved: 0,
+  archivedItem: 0,
+  snapshot: 0,
+  notSeeded: 0,
+  dropped: 0,
+};
+
 describe('parsePodcastIndexId', () => {
   it('keeps a decimal that fits the integer column', () => {
     expect(parsePodcastIndexId('920666')).toBe(920666);
@@ -52,8 +97,22 @@ describe('parsePodcastIndexId', () => {
   });
 });
 
+describe('isSeedablePodcast', () => {
+  it('seeds a public podcast with a Podcast Index id that is not spam or takedown', () => {
+    expect(isSeedablePodcast(podcast('a', { podcastIndexId: '1' }))).toBe(true);
+    expect(isSeedablePodcast(podcast('b', { podcastIndexId: '1', isPublic: false }))).toBe(false);
+    expect(isSeedablePodcast(podcast('c', { podcastIndexId: '1', flagStatus: 'spam' }))).toBe(
+      false
+    );
+    expect(isSeedablePodcast(podcast('d', { podcastIndexId: '1', flagStatus: 'takedown' }))).toBe(
+      false
+    );
+    expect(isSeedablePodcast(podcast('e'))).toBe(false);
+  });
+});
+
 describe('classifyLibraryCopy', () => {
-  it('resolves a subscription by public id, absorb survivor, or feed url, and leaves a missing podcast unresolved', () => {
+  it('resolves a subscription by public id, absorb survivor, or feed url, and counts unseeded podcasts', () => {
     const local = catalog({
       channelIdTexts: new Set(['podPublic']),
       channelByFeedUrl: new Map([['https://feeds.example/show', 'fromUrl']]),
@@ -62,51 +121,31 @@ describe('classifyLibraryCopy', () => {
     });
     const report = classifyLibraryCopy(
       snapshot({
-        podcastIds: ['podPublic', 'podAbsorbed', 'podUrl', 'missing', '  '],
+        podcastIds: ['podPublic', 'podAbsorbed', 'podUrl', 'podSeed', 'podHidden', 'missing', '  '],
         podcasts: [
-          { id: 'podPublic', podcastIndexId: null, podcastGuid: null, authorityUrl: null },
-          {
-            id: 'podAbsorbed',
-            podcastIndexId: '42',
-            podcastGuid: null,
-            authorityUrl: null,
-          },
-          {
-            id: 'podUrl',
-            podcastIndexId: 'nope',
-            podcastGuid: null,
-            authorityUrl: 'https://feeds.example/show',
-          },
+          podcast('podPublic'),
+          podcast('podAbsorbed', { podcastIndexId: '42' }),
+          podcast('podUrl', { podcastIndexId: 'nope', authorityUrl: 'https://feeds.example/show' }),
+          podcast('podSeed', { podcastIndexId: '7' }),
+          podcast('podHidden', { podcastIndexId: '8', isPublic: false }),
         ],
-        episodes: [
-          {
-            id: 'ep1',
-            podcastId: 'podAbsorbed',
-            guid: 'episode-guid',
-            mediaUrl: null,
-            title: null,
-            pubDate: null,
-          },
-        ],
+        episodes: [episode('ep1', 'podAbsorbed', { guid: 'episode-guid' })],
         history: [{ episodeId: 'ep1', mediaRefId: null }],
       }),
       local
     );
 
     expect(report.subscriptions).toEqual({
-      total: 5,
+      ...emptyCount,
+      total: 7,
       resolved: 3,
       unresolved: 1,
-      keptWithoutItem: 0,
+      notSeeded: 2,
       dropped: 1,
     });
     expect(
       matchedChannelIdTexts(
-        snapshot({
-          podcasts: [
-            { id: 'podAbsorbed', podcastIndexId: '42', podcastGuid: null, authorityUrl: null },
-          ],
-        }),
+        snapshot({ podcasts: [podcast('podAbsorbed', { podcastIndexId: '42' })] }),
         local
       )
     ).toEqual(['survivor']);
@@ -132,69 +171,103 @@ describe('classifyLibraryCopy', () => {
     expect(report.followsUser).toMatchObject({ total: 1, resolved: 1, unresolved: 0 });
   });
 
-  it('keeps a user clip whose episode is gone, skips an official clip, and drops a dangling order id', () => {
+  it('never drops a user clip: waits on a parse, recreates an archived item, or keeps a snapshot', () => {
     const report = classifyLibraryCopy(
       snapshot({
-        playlists: [
-          {
-            id: 'list1',
-            episodeIds: ['ep-missing-local'],
-            mediaRefIds: ['clip-user', 'clip-official'],
-            orderIds: ['ep-missing-local', 'not-a-member'],
-          },
-        ],
-        clips: [
-          { id: 'clip-user', episodeId: null, official: false },
-          { id: 'clip-official', episodeId: 'ep1', official: true },
-          { id: 'clip-waiting', episodeId: 'ep-missing-local', official: false },
-        ],
-        mediaRefs: [
-          { id: 'clip-user', episodeId: null, official: false },
-          { id: 'clip-official', episodeId: 'ep1', official: true },
+        podcasts: [
+          podcast('podSeed', { podcastIndexId: '7' }),
+          podcast('podSpam', { podcastIndexId: '9', flagStatus: 'spam' }),
         ],
         episodes: [
-          {
-            id: 'ep-missing-local',
-            podcastId: 'pod-missing',
-            guid: 'guid-1',
-            mediaUrl: null,
-            title: 'Show',
-            pubDate: '2020-01-01T00:00:00.000Z',
-          },
+          episode('epListed', 'podSeed'),
+          episode('epLeftFeed', 'podSeed', { isPublic: false }),
+          episode('epNoKeys', 'podSeed', { isPublic: false, guid: null }),
+          episode('epSpam', 'podSpam'),
         ],
-        queue: [
-          { episodeId: null, mediaRefId: null },
-          { episodeId: null, mediaRefId: 'clip-user' },
+        clips: [
+          { id: 'clipListed', episodeId: 'epListed', official: false, owned: true },
+          { id: 'clipLeftFeed', episodeId: 'epLeftFeed', official: false, owned: true },
+          { id: 'clipNoKeys', episodeId: 'epNoKeys', official: false, owned: true },
+          { id: 'clipSpam', episodeId: 'epSpam', official: false, owned: true },
+          { id: 'clipNoEpisode', episodeId: null, official: false, owned: true },
+          { id: 'clipOfficial', episodeId: 'epListed', official: true, owned: true },
         ],
-        nowPlaying: [],
       }),
       catalog()
     );
 
-    expect(report.playlists).toMatchObject({ total: 1, resolved: 1, unresolved: 0 });
-    expect(report.playlistMembers).toEqual({
-      total: 3,
-      resolved: 0,
+    expect(report.clips).toEqual({
+      ...emptyCount,
+      total: 5,
       unresolved: 1,
-      keptWithoutItem: 1,
+      archivedItem: 1,
+      snapshot: 3,
+    });
+    expect(report.clipsOfficialSkipped).toBe(1);
+  });
+
+  it('keeps playlist members the same way, waits on another user clip, and drops a dangling order id', () => {
+    const report = classifyLibraryCopy(
+      snapshot({
+        podcasts: [podcast('podSeed', { podcastIndexId: '7' })],
+        episodes: [
+          episode('epLeftFeed', 'podSeed', { isPublic: false }),
+          episode('epListed', 'podSeed'),
+        ],
+        playlists: [
+          {
+            id: 'list1',
+            episodeIds: ['epLeftFeed', 'epGone'],
+            mediaRefIds: ['clipMine', 'clipTheirs', 'clipOfficial'],
+            orderIds: ['epLeftFeed', 'not-a-member'],
+          },
+        ],
+        mediaRefs: [
+          { id: 'clipMine', episodeId: null, official: false, owned: true },
+          { id: 'clipTheirs', episodeId: 'epListed', official: false, owned: false },
+          { id: 'clipOfficial', episodeId: 'epListed', official: true, owned: false },
+        ],
+      }),
+      catalog()
+    );
+
+    expect(report.playlists).toMatchObject({ total: 1, resolved: 1 });
+    expect(report.playlistMembers).toEqual({
+      ...emptyCount,
+      total: 5,
+      unresolved: 1,
+      archivedItem: 1,
+      snapshot: 2,
       dropped: 1,
     });
     expect(report.playlistOrderDropped).toBe(1);
-    expect(report.clips).toEqual({
-      total: 2,
-      resolved: 0,
-      unresolved: 1,
-      keptWithoutItem: 1,
-      dropped: 0,
+  });
+
+  it('keeps playback rows only for episodes still in a feed', () => {
+    const report = classifyLibraryCopy(
+      snapshot({
+        podcasts: [podcast('podSeed', { podcastIndexId: '7' })],
+        episodes: [
+          episode('epListed', 'podSeed'),
+          episode('epLeftFeed', 'podSeed', { isPublic: false }),
+        ],
+        mediaRefs: [{ id: 'clipMine', episodeId: 'epListed', official: false, owned: true }],
+        history: [
+          { episodeId: 'epListed', mediaRefId: null },
+          { episodeId: 'epLeftFeed', mediaRefId: null },
+          { episodeId: 'epGone', mediaRefId: null },
+          { episodeId: null, mediaRefId: 'clipMine' },
+          { episodeId: null, mediaRefId: null },
+        ],
+      }),
+      catalog()
+    );
+
+    expect(report.history).toEqual({
+      ...emptyCount,
+      total: 5,
+      unresolved: 2,
+      dropped: 3,
     });
-    expect(report.clipsOfficialSkipped).toBe(1);
-    expect(report.queue).toEqual({
-      total: 2,
-      resolved: 0,
-      unresolved: 0,
-      keptWithoutItem: 1,
-      dropped: 1,
-    });
-    expect(report.nowPlaying.total).toBe(0);
   });
 });

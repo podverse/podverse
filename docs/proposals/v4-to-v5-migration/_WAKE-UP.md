@@ -5,7 +5,25 @@ were written into git.
 
 Resume from a new agent window with the guided prompt:
 [.cursor/prompts/v4-to-v5-migration-guided.md](/.cursor/prompts/v4-to-v5-migration-guided.md).
-One chunk, then stop and ask. Do not commit or push. The review questions in
+The current work is
+[15](15-near-term-rehearsal-checklist.md), section 5, in that order. One chunk,
+then stop and ask. Do not commit or push.
+
+Built on this branch: `v4SeedAccountIdentity` (rehearsal account `eFv5NFx` is
+seeded on the local database) and `v4CopyAccountLibrary` (dry run only). The
+fresh dry-run counts are in checklist 15. The catalog seed dry run counts
+are there too. The catalog apply created 227 channels and queued 227
+parses. One show had no authority URL and was skipped. Next unchecked item
+is letting those parses finish.
+
+The library write is the same
+`v4CopyAccountLibrary` command once `--dry-run` is no longer required, and it
+is not built. Its spec is
+[05](05-id-mapping-and-catalog-seeding.md#episodes-that-left-the-feed): a user
+clip is never dropped. An episode that left its feed becomes an Archived item
+when the show will exist in v5, and a snapshot otherwise. Queue, history, and
+now playing copy only for Active items. The archiver also keeps an item a
+channel merge map points at, so `archiveAll` does not fail on that foreign key. The review questions in
 [04](04-v4-data-inventory-and-scope.md) are decided. The account model in
 [07](07-account-and-data-migration-model.md) is hybrid. A future paid v4
 expiry sets Premium. A carried v4 trial stays Trial. Once v5 is live in one
@@ -54,6 +72,9 @@ the first store approves the mobile app. The questions in 11 are decided.
 The legacy id map lives in the application database. Workers write it. The
 website reads it from that same database. An unmatched id stays unresolved
 until a finished parse still cannot match it, and only then is it dropped.
+A user clip or playlist member is the exception: it becomes an Archived item
+or a snapshot, and it is never dropped
+([05](05-id-mapping-and-catalog-seeding.md#episodes-that-left-the-feed)).
 v4 stats tables are not imported. v5 popularity starts empty. Listening
 history, queue, and playback position still move. The questions in 05 are
 decided. The practice-run database is refreshed when a run starts, and once
@@ -139,11 +160,15 @@ relational tables.
 
 ## Deferred
 
-- No migration workers and no account import.
+- The library write is not built. The catalog apply has been run on the
+  local database (227 channels created, 227 parses queued). The order is
+  section 5 of
+  [15](15-near-term-rehearsal-checklist.md).
 - No membership CSV export (that file would contain email addresses).
 - v4 purchase receipts are not imported. An operator-held archive of those
   tables, outside git, is part of the later import. Not written in this pass.
-- No crosswalk against a v5 database. The v4-side gap counts are done.
+- The one-account library dry run is the crosswalk so far. A full-catalog
+  crosswalk is not done. The v4-side gap counts are done.
 - `freeTrialExpiration` is not in the expiry CSV. Decided. 406 future trials
   end within 90 days and become Trial grants. 4 later than that are not
   imported. Paid `membershipExpiration` keeps its date, with no 90-day cap.
