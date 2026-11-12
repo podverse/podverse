@@ -501,14 +501,19 @@ describe('account channel seen routes', () => {
           entries: { feed_url: string; last_seen_at?: Date }[],
           defaultSeenAt: Date
         ) =>
-          entries.map((entry) => ({
-            feed_url: entry.feed_url,
-            last_seen_at: applyMonotonic(
+          entries.map((entry) => {
+            const previous = feedLastSeenAt.get(entry.feed_url) ?? null;
+            const next = applyMonotonic(
               feedLastSeenAt,
               entry.feed_url,
               entry.last_seen_at ?? defaultSeenAt
-            ),
-          }))
+            );
+            return {
+              feed_url: entry.feed_url,
+              last_seen_at: next,
+              previous_last_seen_at: previous,
+            };
+          })
       );
 
       const feed_url = 'https://example.com/feed.xml';
@@ -525,7 +530,9 @@ describe('account channel seen routes', () => {
         .send({ entries: [{ feed_url, last_seen_at: '2026-01-01T00:00:00.000Z' }] });
 
       expect(replay.status).toBe(200);
-      expect(replay.body.data).toEqual([{ feed_url, last_seen_at: later }]);
+      expect(replay.body.data).toEqual([
+        { feed_url, last_seen_at: later, previous_last_seen_at: later },
+      ]);
     });
 
     it('returns 401 without auth', async () => {

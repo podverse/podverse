@@ -26,7 +26,12 @@ import {
   getSharableStatusIdsForProfileType,
   SharableStatusEnum,
 } from '@podverse/helpers';
-import { validateEmail, validatePassword, validateUsername } from '@podverse/helpers-validation';
+import {
+  normalizeEmail,
+  validateEmail,
+  validatePassword,
+  validateUsername,
+} from '@podverse/helpers-validation';
 
 import { BillingMembershipExtensionService } from '../billingMembershipExtension.js';
 import { BillingPriceCatalogService } from '../billingPriceCatalog.js';
@@ -199,11 +204,14 @@ export class AccountService {
   }
 
   async create(dto: CreateAccountDto, qaVerified?: boolean) {
-    if (!dto.email && !dto.username) {
+    const email =
+      dto.email === undefined || dto.email === null ? dto.email : normalizeEmail(dto.email);
+
+    if (!email && !dto.username) {
       throw new Error('At least one of email or username is required');
     }
 
-    if (dto.email && !validateEmail(dto.email)) {
+    if (email && !validateEmail(email)) {
       throw new Error('Invalid email');
     }
 
@@ -217,8 +225,8 @@ export class AccountService {
 
     const accountCredentialsService = new AccountCredentialsService();
 
-    if (dto.email) {
-      const existingByEmail = await accountCredentialsService.getByEmail(dto.email);
+    if (email) {
+      const existingByEmail = await accountCredentialsService.getByEmail(email);
       if (existingByEmail) {
         throw new Error(ERROR_MESSAGES.ACCOUNT.ALREADY_EXISTS);
       }
@@ -254,7 +262,7 @@ export class AccountService {
     const saltedPassword = await hashPassword(dto.password);
 
     await accountCredentialsService.update(account, {
-      email: dto.email ?? null,
+      email: email ?? null,
       username: dto.username ?? null,
       password: saltedPassword,
     });

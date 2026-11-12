@@ -307,17 +307,28 @@ export function toAddByRssLiveItemPlaybackResourceData(
   };
 }
 
+const addByRssFeedKey = (feedUrl: string): string =>
+  canonicalAddByRSSFeedUrl(feedUrl) ?? feedUrl.trim();
+
 export function mergeLocalAndRemoteAddByRssFeeds(
   localFeeds: MobileAddByRSSFeedRecord[],
   remoteFeeds: FollowedAddByRssFeed[]
 ): MobileAddByRSSFeedRecord[] {
-  const localByUrl = new Map(localFeeds.map((feed) => [feed.feedUrl, feed]));
-  const remoteUrls = new Set(remoteFeeds.map((remoteFeed) => remoteFeed.feed_url));
+  const localByUrl = new Map<string, MobileAddByRSSFeedRecord>();
+  for (const feed of localFeeds) {
+    const key = addByRssFeedKey(feed.feedUrl);
+    const current = localByUrl.get(key);
+    if (current === undefined || feed.feedUrl === key) {
+      localByUrl.set(key, feed);
+    }
+  }
+  const remoteUrls = new Set(remoteFeeds.map((remoteFeed) => addByRssFeedKey(remoteFeed.feed_url)));
   const mergedRemote = remoteFeeds.map((remoteFeed) => {
-    const localFeed = localByUrl.get(remoteFeed.feed_url);
+    const feedUrl = addByRssFeedKey(remoteFeed.feed_url);
+    const localFeed = localByUrl.get(feedUrl);
     return {
       enclosureUrl: localFeed?.enclosureUrl ?? null,
-      feedUrl: remoteFeed.feed_url,
+      feedUrl,
       // A server follow is a follow, including a row held only because an artist lists it.
       followed: true,
       id: localFeed?.id ?? createAddByRSSId(localFeed?.idText ?? createAddByRSSIdText()),
@@ -342,10 +353,18 @@ export function mergeLocalAndRemoteAddByRssFeeds(
   });
 
   // Local listed-only rows are inputs for id reuse, not output. A feed this device follows
-  // renders when the account list lags behind it.
-  const localOnly = localFeeds.filter(
-    (feed) => feed.followed !== false && !remoteUrls.has(feed.feedUrl)
-  );
+  // renders when the account list lags behind it. A path that differs only by a trailing slash
+  // is the same feed, so the stored URL is the form without that slash.
+  const localOnly: MobileAddByRSSFeedRecord[] = [];
+  const localOnlyKeys = new Set<string>();
+  for (const feed of localFeeds) {
+    const feedUrl = addByRssFeedKey(feed.feedUrl);
+    if (feed.followed === false || remoteUrls.has(feedUrl) || localOnlyKeys.has(feedUrl)) {
+      continue;
+    }
+    localOnlyKeys.add(feedUrl);
+    localOnly.push(feedUrl === feed.feedUrl ? feed : { ...feed, feedUrl });
+  }
 
   return [...mergedRemote, ...localOnly];
 }

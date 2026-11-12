@@ -44,7 +44,7 @@ const WORKER_COMMAND_DEFS: readonly WorkerCommandDef[] = [
     name: 'v4SeedAccountIdentity',
     label: 'v4: seed one account identity',
     description:
-      'Copy one v4 account email, bcrypt hash, name, verified flag, and id into v5. A dry run prints the action and writes nothing. Does not copy a library or start a trial.',
+      'Copy one v4 account email, bcrypt hash, name, verified flag, and id into v5, and write the signup rows for settings, membership status, and metaboost. A future paid expiry sets Premium. A trial ending within 90 days is a Trial grant. A dry run prints the action and writes nothing. Does not copy a library, start a signup trial, or write the paid grant.',
     category: 'orm',
     risk: 'normal',
     example_cli:

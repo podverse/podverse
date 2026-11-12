@@ -138,6 +138,17 @@ describe('mergeLocalAndRemoteAddByRssFeeds', () => {
     expect(merged.map((feed) => feed.idText)).not.toContain('rss-listed');
   });
 
+  it('collapses a local row that differs only by a trailing path slash', () => {
+    const merged = mergeLocalAndRemoteAddByRssFeeds(
+      [localFeed({ feedUrl: 'https://example.com/feed/show/', idText: 'rss-slash' })],
+      [{ feed_url: 'https://example.com/feed/show', image_url: null, title: 'Show' }]
+    );
+
+    expect(merged).toHaveLength(1);
+    expect(merged[0]?.feedUrl).toBe('https://example.com/feed/show');
+    expect(merged[0]?.idText).toBe('rss-slash');
+  });
+
   it('keeps a followed local row the account does not follow', () => {
     const merged = mergeLocalAndRemoteAddByRssFeeds(
       [

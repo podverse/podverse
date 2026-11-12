@@ -1,11 +1,24 @@
 'use client';
 
 import classNames from 'classnames';
-import type { ReactElement, ReactNode } from 'react';
-import { Children, cloneElement, isValidElement, useCallback, useEffect, useRef } from 'react';
+import type { CSSProperties, ReactElement, ReactNode } from 'react';
+import {
+  Children,
+  cloneElement,
+  isValidElement,
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+} from 'react';
+import { createPortal } from 'react-dom';
 import { FaChevronDown } from 'react-icons/fa6';
 
+import { DROPDOWN_ANCHOR_GAP_PX } from '../../../hooks/useAnchoredDropdownPosition';
 import { useDropdownKeyboardNavigation } from '../../../hooks/useDropdownKeyboardNavigation';
+import { DROPDOWN_VIEWPORT_CLAMP_MARGIN_PX } from '../../../hooks/useDropdownViewportClamp';
+import { clampRectToViewportEdges } from '../../../lib/viewport/clampRectToViewportEdges';
 import { DropdownMenuContext } from './DropdownMenuContext';
 import type { DropdownMenuItemProps } from './DropdownMenuItem';
 import { DropdownMenuItem } from './DropdownMenuItem';
@@ -41,6 +54,8 @@ function DropdownMenuRoot({
 }: DropdownMenuProps) {
   const triggerRef = useRef<HTMLButtonElement>(null);
   const menuRef = useRef<HTMLUListElement>(null);
+  const panelRef = useRef<HTMLDivElement>(null);
+  const [panelStyle, setPanelStyle] = useState<CSSProperties | null>(null);
 
   const metaBlocks: ReactNode[] = [];
   const itemElements: ReactElement[] = [];
@@ -77,6 +92,7 @@ function DropdownMenuRoot({
       },
       onClose: () => {},
       buttonRef: triggerRef,
+      insideRef: panelRef,
       menuRef,
     });
 
@@ -100,6 +116,52 @@ function DropdownMenuRoot({
       document.removeEventListener('keydown', handleKeyDown);
     };
   }, [open, close]);
+
+  const placePanel = useCallback(() => {
+    const button = triggerRef.current;
+    const panel = panelRef.current;
+    if (button === null || panel === null) {
+      return;
+    }
+    const anchorRect = button.getBoundingClientRect();
+    const width = panel.offsetWidth;
+    const height = panel.offsetHeight;
+    const left = anchorRect.right - width;
+    const top = anchorRect.bottom + DROPDOWN_ANCHOR_GAP_PX;
+    const { dx, dy } = clampRectToViewportEdges(
+      { left, top, width, height },
+      window.innerWidth,
+      window.innerHeight,
+      DROPDOWN_VIEWPORT_CLAMP_MARGIN_PX
+    );
+    const nextTop = top + dy;
+    const nextLeft = left + dx;
+    setPanelStyle((prev) =>
+      prev !== null && prev.top === nextTop && prev.left === nextLeft
+        ? prev
+        : { top: nextTop, left: nextLeft }
+    );
+  }, []);
+
+  useLayoutEffect(() => {
+    if (!open) {
+      setPanelStyle(null);
+      return;
+    }
+    placePanel();
+  }, [open, itemCount, placePanel]);
+
+  useEffect(() => {
+    if (!open) {
+      return;
+    }
+    window.addEventListener('scroll', placePanel, true);
+    window.addEventListener('resize', placePanel);
+    return () => {
+      window.removeEventListener('scroll', placePanel, true);
+      window.removeEventListener('resize', placePanel);
+    };
+  }, [open, placePanel]);
 
   const toggleOpen = () => {
     setOpen((prev) => {
@@ -146,24 +208,37 @@ function DropdownMenuRoot({
             </>
           )}
         </button>
-        {open ? (
-          <div className={styles.panel} role="presentation">
-            {metaBlocks.length > 0 ? (
-              <div className={styles.meta} role="presentation">
-                {metaBlocks}
-              </div>
-            ) : null}
-            <ul
-              ref={menuRef}
-              className={styles.menuList}
-              role="menu"
-              tabIndex={-1}
-              onKeyDown={handleMenuKeyDown}
-            >
-              {menuItems}
-            </ul>
-          </div>
-        ) : null}
+        {/* On document.body so an overflow ancestor of the trigger cannot clip the menu. */}
+        {open
+          ? createPortal(
+              <div
+                ref={panelRef}
+                className={styles.panel}
+                role="presentation"
+                style={
+                  panelStyle === null
+                    ? { visibility: 'hidden' }
+                    : { top: panelStyle.top, left: panelStyle.left, visibility: 'visible' }
+                }
+              >
+                {metaBlocks.length > 0 ? (
+                  <div className={styles.meta} role="presentation">
+                    {metaBlocks}
+                  </div>
+                ) : null}
+                <ul
+                  ref={menuRef}
+                  className={styles.menuList}
+                  role="menu"
+                  tabIndex={-1}
+                  onKeyDown={handleMenuKeyDown}
+                >
+                  {menuItems}
+                </ul>
+              </div>,
+              document.body
+            )
+          : null}
       </div>
     </DropdownMenuContext.Provider>
   );

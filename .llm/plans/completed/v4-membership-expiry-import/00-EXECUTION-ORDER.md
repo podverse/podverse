@@ -11,8 +11,8 @@ Narrative: [00-master-plan.md](./00-master-plan.md). Prompts: [COPY-PASTA.md](./
 
 | # | File | What the operator does |
 | - | ---- | ---------------------- |
-| 01 | [01-export-and-dry-run.md](./01-export-and-dry-run.md) | Build the file, then dry-run. No writes. |
-| 02 | [02-apply-import.md](./02-apply-import.md) | Apply, after the dry-run report is accepted. |
+| 01 | [01-export-and-dry-run.md](../../completed/v4-membership-expiry-import/01-export-and-dry-run.md) | Build the file, then dry-run. No writes. Done. The file is built. The dry-run command was handed over and has not been run. |
+| 02 | [02-apply-import.md](./02-apply-import.md) | Apply, after the dry-run report is accepted. Done at `2026-11-12T05:09:48Z`: created 1, skipped past 1563, unmatched 1373, other counts 0. |
 
 01 finishes before 02 starts. 02 does not start on an unreviewed report.
 02 rebuilds the file in that sitting so the five-year cap is not taken from

@@ -4,6 +4,7 @@ import { Client } from 'pg';
 
 import { Account, getDataSourceReadWrite, isValidNanoIdV2IdText } from '@podverse/orm';
 
+import { applyLibraryCopy } from './copyAccountLibraryApply.js';
 import type {
   LibraryCopyReport,
   LocalCatalog,
@@ -22,12 +23,17 @@ import {
 
 export const V4_COPY_ACCOUNT_LIBRARY_HELP = `v4CopyAccountLibrary
 
-Count one v4 library against the local v5 catalog. Writes nothing, including
-v4_library_copied_at.
+Copy one v4 library into the local v5 database. --dry-run writes nothing,
+including v4_library_copied_at. Without it, the copy writes resolved rows,
+archived items, and snapshots. A public episode with no item after its feed
+parse has finished or failed is archived or snapshotted, not left waiting.
+Rows that still wait on a parse that has not settled are left unwritten. The pass sets
+v4_library_copied_at when the pass finishes. Apply refuses unless DB_HOST
+is local.
 
 Flags:
   --v4-id id    v4 users.id (required)
-  --dry-run     Required. This command does not write yet
+  --dry-run     Count only
   --help        Show this text
 
 Requires V4_DATABASE_URL plus the Base and ORM worker env. The v5 account must
@@ -54,7 +60,13 @@ WHERE id = $1
 `;
 
 const PLAYLIST_SQL = `
-SELECT id, "itemsOrder" AS items_order
+SELECT id,
+       "itemsOrder" AS items_order,
+       title,
+       description,
+       ("isPublic" IS TRUE) AS is_public,
+       ("isDefault" IS TRUE) AS is_default,
+       medium::text AS medium
 FROM playlists
 WHERE "ownerId" = $1
 `;
@@ -72,19 +84,28 @@ WHERE "playlistsId" = ANY($1::varchar[])
 `;
 
 const QUEUE_SQL = `
-SELECT "episodeId" AS episode_id, "mediaRefId" AS media_ref_id
+SELECT "episodeId" AS episode_id,
+       "mediaRefId" AS media_ref_id,
+       "queuePosition" AS queue_position
 FROM "userQueueItems"
 WHERE "ownerId" = $1
 `;
 
 const HISTORY_SQL = `
-SELECT "episodeId" AS episode_id, "mediaRefId" AS media_ref_id
+SELECT "episodeId" AS episode_id,
+       "mediaRefId" AS media_ref_id,
+       "userPlaybackPosition" AS playback_position,
+       "mediaFileDuration" AS media_file_duration,
+       completed,
+       "orderChangedDate" AS order_changed_date
 FROM "userHistoryItems"
 WHERE "ownerId" = $1
 `;
 
 const NOW_PLAYING_SQL = `
-SELECT "episodeId" AS episode_id, "mediaRefId" AS media_ref_id
+SELECT "episodeId" AS episode_id,
+       "mediaRefId" AS media_ref_id,
+       "userPlaybackPosition" AS playback_position
 FROM "userNowPlayingItems"
 WHERE "ownerId" = $1
 `;
@@ -93,7 +114,11 @@ const MEDIA_REF_SQL = `
 SELECT id,
        "episodeId" AS episode_id,
        ("isOfficialChapter" IS TRUE OR "isOfficialSoundBite" IS TRUE) AS official,
-       ("ownerId" = $1) AS owned
+       ("ownerId" = $1) AS owned,
+       title,
+       "startTime" AS start_time,
+       "endTime" AS end_time,
+       ("isPublic" IS TRUE) AS is_public
 FROM "mediaRefs"
 WHERE "ownerId" = $1
    OR id = ANY($2::varchar[])
@@ -115,6 +140,7 @@ const PODCAST_SQL = `
 SELECT DISTINCT ON (p.id)
        p.id,
        p."podcastIndexId" AS podcast_index_id,
+       p.title AS title,
        p."podcastGuid"::text AS podcast_guid,
        NULLIF(btrim(f.url), '') AS authority_url,
        (p."isPublic" IS TRUE) AS is_public,
@@ -158,6 +184,14 @@ function textOrNull(value: unknown): string | null {
   }
   const trimmed = value.trim();
   return trimmed === '' ? null : trimmed;
+}
+
+function clipText(value: unknown, max: number): string | null {
+  const text = textOrNull(value);
+  if (text === null) {
+    return null;
+  }
+  return text.length <= max ? text : text.slice(0, max);
 }
 
 function textList(value: unknown): string[] {
@@ -298,6 +332,11 @@ async function readV4Snapshot(connectionString: string, v4Id: string): Promise<V
         episodeIds: episodesByPlaylist.get(id) ?? [],
         mediaRefIds: mediaRefsByPlaylist.get(id) ?? [],
         orderIds: textList(row.items_order),
+        title: clipText(row.title, 255),
+        description: clipText(row.description, 2500),
+        isPublic: flag(row.is_public),
+        isDefault: flag(row.is_default),
+        medium: textOrNull(row.medium),
       });
     }
 
@@ -313,6 +352,10 @@ async function readV4Snapshot(connectionString: string, v4Id: string): Promise<V
         episodeId: textOrNull(row.episode_id),
         official: flag(row.official),
         owned: flag(row.owned),
+        title: clipText(row.title, 255),
+        startTime: integerOrNull(row.start_time),
+        endTime: integerOrNull(row.end_time),
+        isPublic: flag(row.is_public),
       };
       mediaRefs.push(key);
       if (key.owned) {
@@ -350,12 +393,18 @@ async function readV4Snapshot(connectionString: string, v4Id: string): Promise<V
         authorityUrl: textOrNull(row.authority_url),
         isPublic: flag(row.is_public),
         flagStatus: textOrNull(row.flag_status),
+        title: clipText(row.title, 255),
       });
     }
 
     const playbackKey = (row: Record<string, unknown>): V4PlaybackKey => ({
       episodeId: textOrNull(row.episode_id),
       mediaRefId: textOrNull(row.media_ref_id),
+      playbackPosition: integerOrNull(row.playback_position),
+      mediaFileDuration: integerOrNull(row.media_file_duration),
+      completed: flag(row.completed),
+      orderChangedDate: pubDateIso(row.order_changed_date),
+      queuePosition: integerOrNull(row.queue_position),
     });
 
     return {
@@ -511,6 +560,7 @@ async function readLocalCatalog(snapshot: V4LibrarySnapshot): Promise<LocalCatal
     playlistIdTexts: new Set<string>(),
     accountIdTexts: new Set<string>(),
     feedUrls: feedUrlSet,
+    settledChannelIdTexts: new Set<string>(),
   };
   const channelIds = matchedChannelIdTexts(snapshot, catalogWithoutItems);
   const episodeIds = uniqueTexts(snapshot.episodes.map((episode) => episode.id));
@@ -611,6 +661,29 @@ async function readLocalCatalog(snapshot: V4LibrarySnapshot): Promise<LocalCatal
     }
   }
 
+  const settledChannelIdTexts = new Set<string>();
+  if (channelIds.length > 0) {
+    const rows = await queryV5(
+      `SELECT c.id_text
+       FROM channel c
+       INNER JOIN feed f ON f.id = c.feed_id
+       INNER JOIN feed_log fl ON fl.feed_id = f.id
+       WHERE c.id_text = ANY($1::varchar[])
+         AND f.is_parsing IS NULL
+         AND (
+           fl.last_finished_parse_time IS NOT NULL
+           OR fl.last_failed_parse_time IS NOT NULL
+         )`,
+      [channelIds]
+    );
+    for (const row of rows) {
+      const idText = textOrNull(row.id_text);
+      if (idText !== null) {
+        settledChannelIdTexts.add(idText);
+      }
+    }
+  }
+
   return {
     ...catalogWithoutItems,
     itemIdTexts,
@@ -620,15 +693,30 @@ async function readLocalCatalog(snapshot: V4LibrarySnapshot): Promise<LocalCatal
     clipIdTexts,
     playlistIdTexts,
     accountIdTexts,
+    settledChannelIdTexts,
   };
 }
 
-function logFinished(v4Id: string, action: string, report: LibraryCopyReport | null): void {
-  getLogger().info('v4 library dry run finished', {
-    dryRun: true,
+function assertLocalDatabase(): void {
+  const host = (process.env.DB_HOST ?? '').trim().toLowerCase();
+  if (host !== 'localhost' && host !== '127.0.0.1' && host !== '::1') {
+    throw new Error('Refusing to apply because DB_HOST is not local.');
+  }
+}
+
+function logFinished(
+  v4Id: string,
+  action: string,
+  dryRun: boolean,
+  report: LibraryCopyReport | null,
+  apply: Record<string, number> | null
+): void {
+  getLogger().info(dryRun ? 'v4 library dry run finished' : 'v4 library copy finished', {
+    dryRun,
     v4Id,
     action,
     ...(report === null ? {} : report),
+    ...(apply === null ? {} : { apply }),
   });
 }
 
@@ -648,8 +736,9 @@ export const v4CopyAccountLibrary = async (args: CommandLineArgs) => {
   if (!isValidNanoIdV2IdText(v4Id)) {
     throw new Error('v4 id must be 7–15 characters.');
   }
-  if (!hasOption(args, 'dry-run')) {
-    throw new Error('Writes are not implemented. Pass --dry-run.');
+  const dryRun = hasOption(args, 'dry-run');
+  if (!dryRun) {
+    assertLocalDatabase();
   }
 
   const connectionString = process.env.V4_DATABASE_URL?.trim() ?? '';
@@ -663,11 +752,11 @@ export const v4CopyAccountLibrary = async (args: CommandLineArgs) => {
       where: { id_text: v4Id },
     });
   if (account === null) {
-    logFinished(v4Id, 'skip_missing_account', null);
+    logFinished(v4Id, 'skip_missing_account', dryRun, null, null);
     return;
   }
   if (account.v4_library_copied_at !== null && account.v4_library_copied_at !== undefined) {
-    logFinished(v4Id, 'skip_already_copied', null);
+    logFinished(v4Id, 'skip_already_copied', dryRun, null, null);
     return;
   }
 
@@ -678,5 +767,11 @@ export const v4CopyAccountLibrary = async (args: CommandLineArgs) => {
   } catch (error) {
     throw new Error('Could not read the v5 library index.', { cause: error });
   }
-  logFinished(v4Id, 'dry_run', classifyLibraryCopy(snapshot, catalog));
+  const report = classifyLibraryCopy(snapshot, catalog);
+  if (dryRun) {
+    logFinished(v4Id, 'dry_run', true, report, null);
+    return;
+  }
+  const applied = await applyLibraryCopy(account.id, snapshot, catalog);
+  logFinished(v4Id, 'apply', false, report, applied);
 };

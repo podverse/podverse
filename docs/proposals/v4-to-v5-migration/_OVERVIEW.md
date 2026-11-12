@@ -188,8 +188,8 @@ flowchart LR
 ## Related existing material
 
 - [v4 membership carryover](/docs/billing/BILLING-OPERATIONS.md#v4-membership-carryover)
-  and the parked plan
-  [`.llm/plans/active/v4-membership-expiry-import/`](/.llm/plans/active/v4-membership-expiry-import/)
+  and the completed rehearsal
+  [`.llm/plans/completed/v4-membership-expiry-import/`](/.llm/plans/completed/v4-membership-expiry-import/)
 - [Mobile deep links and prod cutover](/.cursor/rules/mobile-deep-links-and-prod-cutover.mdc)
 - [Legacy app reference](/.cursor/rules/legacy-app-reference.mdc)
 - [Mobile release runbook](/docs/operations/mobile/MOBILE-RELEASE-RUNBOOK.md)

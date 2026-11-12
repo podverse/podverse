@@ -1,10 +1,14 @@
 import type { Account } from '@orm/entities/account/account.js';
 import type { Relation } from 'typeorm';
-import { Column, Entity, JoinColumn, OneToOne, PrimaryGeneratedColumn } from 'typeorm';
+import { Check, Column, Entity, JoinColumn, OneToOne, PrimaryGeneratedColumn } from 'typeorm';
 
 import { DATABASE_CONSTANTS } from '@podverse/helpers';
 
 @Entity()
+@Check(
+  'chk_account_email_change_verification_pending_lowercase',
+  'pending_email_address = lower(btrim(pending_email_address))',
+)
 export class AccountEmailChangeVerification {
   @PrimaryGeneratedColumn()
   id!: number;

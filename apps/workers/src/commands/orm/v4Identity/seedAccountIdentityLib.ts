@@ -16,7 +16,20 @@ export type V4IdentityParseResult =
   | { ok: true; source: V4IdentitySource }
   | { ok: false; reason: V4IdentityParseFailure };
 
-export type IdentitySeedAction = 'create' | 'skip_existing_email' | 'skip_id_taken';
+export type IdentitySeedAction = 'create' | 'repair' | 'skip_existing_email' | 'skip_id_taken';
+
+/** A carried v4 trial is imported only when it ends inside this many days. */
+export const CARRIED_TRIAL_WINDOW_DAYS = 90;
+
+const MS_PER_DAY = 24 * 60 * 60 * 1000;
+
+export type V4MembershipTier = 'premium' | 'trial';
+
+export type V4MembershipDecision = {
+  tier: V4MembershipTier;
+  /** Set when a future trial ends within the carry window. The paid grant is not decided here. */
+  carriedTrialEndsAt: Date | null;
+};
 
 export type V4IdentityRow = {
   idText: string;
@@ -63,13 +76,20 @@ export function parseV4IdentityRow(row: V4IdentityRow): V4IdentityParseResult {
 }
 
 /**
- * An existing email wins and is left unchanged. A taken id blocks a second account
- * from adopting it. Otherwise the row can be created.
+ * The same email and id are the account this seed already wrote, so missing rows can be filled.
+ * A different account's email is left unchanged. A taken id blocks a second account from adopting it.
  */
 export function decideIdentitySeed(input: {
   emailAccountId: number | null;
   idTextAccountId: number | null;
 }): IdentitySeedAction {
+  if (
+    input.emailAccountId !== null &&
+    input.idTextAccountId !== null &&
+    input.emailAccountId === input.idTextAccountId
+  ) {
+    return 'repair';
+  }
   if (input.emailAccountId !== null) {
     return 'skip_existing_email';
   }
@@ -77,4 +97,97 @@ export function decideIdentitySeed(input: {
     return 'skip_id_taken';
   }
   return 'create';
+}
+
+/**
+ * A timestamp column value, or null when it is missing or unreadable.
+ */
+export function readV4Timestamp(value: Date | string | null): Date | null {
+  if (value === null) {
+    return null;
+  }
+  const date = value instanceof Date ? value : new Date(value);
+  if (Number.isNaN(date.getTime())) {
+    return null;
+  }
+  return date;
+}
+
+/** What one v4 row shows about its use, for choosing between two rows that share an address. */
+export type V4IdentityUsage = {
+  /** Latest history, queue, now playing, owned playlist, or user clip update. */
+  activityAt: Date | null;
+  /** Any subscription, followed playlist or user, or Add by RSS feed. */
+  hasLists: boolean;
+  verified: boolean;
+  updatedAt: Date;
+};
+
+function isUsed(usage: V4IdentityUsage): boolean {
+  return usage.activityAt !== null || usage.hasLists;
+}
+
+function laterOf(current: Date, incoming: Date): 'current' | 'incoming' | 'tie' {
+  if (incoming.getTime() === current.getTime()) {
+    return 'tie';
+  }
+  return incoming.getTime() > current.getTime() ? 'incoming' : 'current';
+}
+
+/**
+ * Which v4 row keeps a shared address. A row that was used beats a row that never was.
+ * Between used rows, the later dated activity wins, and a dated row beats one with lists only.
+ * Otherwise a verified row wins, then the later account `updatedAt`. A tie keeps the account
+ * already stored. The stored address is lowercase either way.
+ */
+export function preferV4Identity(input: {
+  current: V4IdentityUsage;
+  incoming: V4IdentityUsage;
+}): 'current' | 'incoming' {
+  const { current, incoming } = input;
+  const currentUsed = isUsed(current);
+  const incomingUsed = isUsed(incoming);
+  if (currentUsed !== incomingUsed) {
+    return incomingUsed ? 'incoming' : 'current';
+  }
+  if (current.activityAt !== null || incoming.activityAt !== null) {
+    if (current.activityAt === null) {
+      return 'incoming';
+    }
+    if (incoming.activityAt === null) {
+      return 'current';
+    }
+    const byActivity = laterOf(current.activityAt, incoming.activityAt);
+    if (byActivity !== 'tie') {
+      return byActivity;
+    }
+  }
+  if (current.verified !== incoming.verified) {
+    return incoming.verified ? 'incoming' : 'current';
+  }
+  const byUpdate = laterOf(current.updatedAt, incoming.updatedAt);
+  return byUpdate === 'tie' ? 'current' : byUpdate;
+}
+
+/**
+ * Future paid expiry selects Premium. A trial that is still running and ends within
+ * {@link CARRIED_TRIAL_WINDOW_DAYS} is carried. A later trial date is not imported.
+ * Either date being absent leaves the account on Trial with no carried grant.
+ */
+export function decideV4Membership(input: {
+  membershipExpiresAt: Date | null;
+  freeTrialExpiresAt: Date | null;
+  now: Date;
+}): V4MembershipDecision {
+  const paidCurrent =
+    input.membershipExpiresAt !== null && input.membershipExpiresAt.getTime() > input.now.getTime();
+  const trialEnd = input.freeTrialExpiresAt;
+  const carried =
+    trialEnd !== null &&
+    trialEnd.getTime() > input.now.getTime() &&
+    trialEnd.getTime() <= input.now.getTime() + CARRIED_TRIAL_WINDOW_DAYS * MS_PER_DAY;
+  return {
+    tier: paidCurrent ? 'premium' : 'trial',
+    carriedTrialEndsAt: carried ? trialEnd : null,
+  };
 }

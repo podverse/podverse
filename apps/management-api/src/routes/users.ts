@@ -17,7 +17,12 @@ import {
   type PremiumBillingCadence,
   SharableStatusEnum,
 } from '@podverse/helpers';
-import { validateEmail, validatePassword, validateUsername } from '@podverse/helpers-validation';
+import {
+  normalizeEmail,
+  validateEmail,
+  validatePassword,
+  validateUsername,
+} from '@podverse/helpers-validation';
 import {
   BillingMembershipExtensionService,
   BillingPriceCatalogService,
@@ -230,7 +235,7 @@ router.post('/', ensureAuthenticated, requireSuperuser, async (req, res, next) =
   try {
     const {
       username,
-      email,
+      email: requestedEmail,
       password,
       account_membership_id,
       membership_expires_at,
@@ -253,6 +258,7 @@ router.post('/', ensureAuthenticated, requireSuperuser, async (req, res, next) =
       allow_notifications?: boolean | null;
       premium_billing_cadence?: PremiumBillingCadence;
     };
+    const email = requestedEmail === undefined ? undefined : normalizeEmail(requestedEmail);
 
     const mode = process.env.ACCOUNT_SIGNUP_MODE;
     const capabilities = getAccountSignupModeCapabilities(
@@ -440,7 +446,7 @@ router.patch('/:id', ensureAuthenticated, requireSuperuser, async (req, res, nex
     }
 
     const {
-      email,
+      email: requestedEmail,
       username,
       verified,
       account_membership_id,
@@ -462,6 +468,7 @@ router.patch('/:id', ensureAuthenticated, requireSuperuser, async (req, res, nex
       track_stats?: boolean | null;
       allow_notifications?: boolean | null;
     };
+    const email = requestedEmail === undefined ? undefined : normalizeEmail(requestedEmail);
 
     if (email !== undefined && !validateEmail(email)) {
       res.status(400).json({ message: 'Invalid email' });

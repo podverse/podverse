@@ -18,6 +18,7 @@ function catalog(overrides: Partial<LocalCatalog> = {}): LocalCatalog {
     clipIdTexts: new Set<string>(),
     playlistIdTexts: new Set<string>(),
     accountIdTexts: new Set<string>(),
+    settledChannelIdTexts: new Set<string>(),
     feedUrls: new Set<string>(),
     ...overrides,
   };

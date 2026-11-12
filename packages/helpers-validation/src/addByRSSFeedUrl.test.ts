@@ -54,6 +54,16 @@ describe('canonicalAddByRSSFeedUrl', () => {
       'https://example.com/feed.xml'
     );
   });
+
+  it('drops a trailing path slash and keeps the host root and the query', () => {
+    expect(canonicalAddByRSSFeedUrl('https://example.com/feed/show/')).toBe(
+      'https://example.com/feed/show'
+    );
+    expect(canonicalAddByRSSFeedUrl('https://example.com/feed/show/?a=1')).toBe(
+      'https://example.com/feed/show?a=1'
+    );
+    expect(canonicalAddByRSSFeedUrl('https://example.com/')).toBe('https://example.com/');
+  });
 });
 
 describe('canSubmitAddByRssFeed', () => {

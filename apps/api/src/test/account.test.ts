@@ -52,6 +52,7 @@ const {
   emailChangeGetByTokenMock,
   emailChangeDeleteByAccountIdMock,
   credentialsUpdateMock,
+  credentialsGetByEmailMock,
   exportUserDataMock,
   sendVerificationEmailMock,
   probeVerificationMailerMock,
@@ -88,6 +89,7 @@ const {
   emailChangeGetByTokenMock: vi.fn(async () => null),
   emailChangeDeleteByAccountIdMock: vi.fn(async () => {}),
   credentialsUpdateMock: vi.fn(async () => {}),
+  credentialsGetByEmailMock: vi.fn(async () => null),
   exportUserDataMock: vi.fn(async () => ({ account: { id: TEST_USER_ID } })),
   sendVerificationEmailMock: vi.fn(async () => 'sent' as const),
   probeVerificationMailerMock: vi.fn(async () => 'skipped' as const),
@@ -133,6 +135,7 @@ vi.mock('@podverse/orm', async (importOriginal) => {
 
   class MockAccountCredentialsService {
     update = credentialsUpdateMock;
+    getByEmail = credentialsGetByEmailMock;
   }
 
   class MockAccountDataExportService {
@@ -558,6 +561,7 @@ describe('account CRUD and email routes', () => {
 
       expect(res.status).toBe(200);
       expect(res.body.message).toBe('Email change verified successfully');
+      expect(credentialsGetByEmailMock).toHaveBeenCalledWith('newemail@example.com');
       expect(credentialsUpdateMock).toHaveBeenCalledTimes(1);
       expect(emailChangeDeleteByAccountIdMock).toHaveBeenCalledWith(TEST_USER_ID);
     });

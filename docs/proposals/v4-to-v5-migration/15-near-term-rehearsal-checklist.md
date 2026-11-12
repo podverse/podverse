@@ -169,16 +169,54 @@ clip is never dropped.
       unresolved 37, archivedItem 415, snapshot 80, dropped 0), official
       skipped 0. Queue 0. History 710 (resolved 663, unresolved 16, dropped
       31). Now playing 1, resolved.
-- [ ] Library write. Same command, `v4CopyAccountLibrary`, without requiring
-      `--dry-run`. Not built. Follow the four results in doc 05: attach to a
-      matched item, wait for a parse, create an Archived item, or keep a
-      snapshot. Set `v4_library_copied_at` only after the copy finishes.
-      Queue, history, and now playing copy only for Active items.
-- [ ] Sign in on local web and mobile with the v4 password.
-- [ ] Copied group counts match the step 2 trace, with the dropped history
+- [x] Library write. Ran `v4CopyAccountLibrary` for `eFv5NFx` at
+      `2026-11-12T02:46:07Z`. It wrote on the local database and set
+      `v4_library_copied_at`. Written: 177 Archived items, 887 clips, 18
+      playlist members, 660 playback rows. Classifier counts match the
+      post-parse dry run. A second run is skipped once the timestamp is set.
+- [x] Sign in on local web and mobile with the v4 password. Both succeeded.
+      The Add by RSS first-parse 403s are expected: this account still has
+      no membership, and that route refuses until one exists.
+- [x] Recopy after a settled parse. A public episode with no local item is
+      no longer left waiting once that feed's parse has finished or failed
+      and is not running. The first write was cleared on the local database
+      and `v4CopyAccountLibrary` ran again for `eFv5NFx` at
+      `2026-11-12T03:43:28Z`. Written: 211 Archived items, 924 clips, 19
+      playlist members, 660 playback rows. Classifier: clips unresolved 0
+      (archivedItem 452, resolved 393, snapshot 80), playlist members
+      unresolved 0, history unresolved 0 (dropped 47).
+- [x] Recopy after the no-channel rule. A show the seed skips for having no
+      authority URL now counts as not seeded, and a clip or playlist member
+      with no local channel is written as a snapshot instead of skipped.
+      Ran at `2026-11-12T03:51:50Z`. Written: 211 Archived items, 925 clips,
+      19 playlist members, 660 playback rows.
+- [x] Copied group counts match the step 2 trace, with the dropped history
       and queue rows for episodes that left their feed counted separately.
-- [ ] `billingImportLegacyMembershipExpiry` dry run against the seeded
-      account. The command exists. This rehearsal has not run it.
+      Local rows for `eFv5NFx` after the recopy: subscriptions 152 of 173
+      (21 not seeded, including the show with no authority URL). Add by RSS
+      11 of 11. Playlist follows 0. User follows 0 of 2 (those accounts are
+      not local; nothing replays them yet). Playlists 5 of 5. Playlist
+      members 19 of 19. Clips 925 of 925 (844 on an item, 81 snapshots).
+      Queue upcoming 0. History 659 of 710 (47 dropped because the episode
+      is not an Active item, 16 of them on two shows whose first parse
+      failed; 4 collapsed to one row). Now playing 1. Archived items 211.
+      Retry and replay for those gaps are not built; see
+      [05 § Migration resilience](05-id-mapping-and-catalog-seeding.md#migration-resilience).
+- [x] `billingImportLegacyMembershipExpiry --dry-run` against the seeded
+      account. Ran at `2026-11-12T04:01:50Z`. It wrote no grants. 2937 rows:
+      created 1 (the seeded account), skipped past 1563, unmatched 1373,
+      updated 0, unchanged 0, ambiguous 0, invalid 0.
+      Re-ran `v4SeedAccountIdentity` for `eFv5NFx` at `2026-11-12T04:15:15Z`
+      after the seed learned to write settings, membership status, and
+      metaboost. A carried trial was not
+      written for this account. The paid-expiry file was rebuilt in this
+      sitting: 2937 rows, 297 capped at `2031-11-12T05:08:14Z`. The apply
+      ran at `2026-11-12T05:09:48Z` and wrote grants. Counts: created 1,
+      skipped past 1563, unmatched 1373, updated 0, unchanged 0, ambiguous 0,
+      invalid 0. After that apply the account is Premium with a future expiry.
+      All 11 Add by RSS follows still have no title. The first-parse 403s were
+      the missing membership. A signed-in app foreground retries them. The
+      server does not start that parse.
 
 ## Not blockers for this list
 

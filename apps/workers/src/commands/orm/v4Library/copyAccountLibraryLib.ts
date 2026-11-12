@@ -32,6 +32,7 @@ export type V4PodcastKey = {
   authorityUrl: string | null;
   isPublic: boolean;
   flagStatus: string | null;
+  title?: string | null;
 };
 
 export type V4EpisodeKey = {
@@ -49,6 +50,11 @@ export type V4MediaRefKey = {
   episodeId: string | null;
   official: boolean;
   owned: boolean;
+  title?: string | null;
+  description?: string | null;
+  startTime?: number | null;
+  endTime?: number | null;
+  isPublic?: boolean;
 };
 
 export type V4PlaylistKey = {
@@ -56,11 +62,21 @@ export type V4PlaylistKey = {
   episodeIds: string[];
   mediaRefIds: string[];
   orderIds: string[];
+  title?: string | null;
+  description?: string | null;
+  isPublic?: boolean;
+  isDefault?: boolean;
+  medium?: string | null;
 };
 
 export type V4PlaybackKey = {
   episodeId: string | null;
   mediaRefId: string | null;
+  playbackPosition?: number | null;
+  mediaFileDuration?: number | null;
+  completed?: boolean;
+  orderChangedDate?: string | null;
+  queuePosition?: number | null;
 };
 
 export type V4LibrarySnapshot = {
@@ -92,6 +108,8 @@ export type LocalCatalog = {
   playlistIdTexts: ReadonlySet<string>;
   accountIdTexts: ReadonlySet<string>;
   feedUrls: ReadonlySet<string>;
+  /** Channels whose feed parse has finished or failed and is not running. A missing item on one of these is not still waiting. */
+  settledChannelIdTexts: ReadonlySet<string>;
 };
 
 type CountKind = Exclude<keyof LibraryCount, 'total'>;
@@ -99,15 +117,18 @@ type CountKind = Exclude<keyof LibraryCount, 'total'>;
 /**
  * What the copy can do with one v4 episode reference.
  * - resolved: a local item matches.
- * - waiting: the show is local or will be seeded and v4 still lists the episode, so the
- *   seeded parse should create the item.
+ * - waiting: the show will be seeded, or its feed parse has not finished or failed yet,
+ *   and v4 still lists the episode. The parse should create the item.
  * - archive: the show is local or will be seeded but v4 hid the episode because it left the
  *   feed. The copy creates an Archived item with the v4 id, guid, and enclosure, so a later
  *   parse reactivates it if the episode returns.
- * - gone: no v5 show will exist (missing, hidden, spam, or takedown podcast), the v4 episode
- *   row is missing, or it has neither a guid nor a media url.
+ * - gone: no v5 show will exist (missing, hidden, spam, or takedown podcast, or one with no
+ *   authority URL to parse), the v4 episode row is missing, or it has neither a guid nor a
+ *   media url.
  */
-type EpisodeOutcome = 'resolved' | 'waiting' | 'archive' | 'gone';
+export type EpisodeDecision = 'resolved' | 'waiting' | 'archive' | 'gone';
+
+type EpisodeOutcome = EpisodeDecision;
 
 const UNSEEDED_FLAG_STATUSES: ReadonlySet<string> = new Set(['spam', 'takedown']);
 
@@ -216,6 +237,11 @@ export function isSeedablePodcast(podcast: V4PodcastKey): boolean {
   return parsePodcastIndexId(podcast.podcastIndexId) !== null;
 }
 
+/** True when the catalog seed creates and parses this show, which also needs an authority URL. */
+function seedCreatesShow(podcast: V4PodcastKey): boolean {
+  return isSeedablePodcast(podcast) && blankToNull(podcast.authorityUrl) !== null;
+}
+
 /**
  * Channel ids the snapshot can already see. Item lookup uses this list.
  */
@@ -286,12 +312,16 @@ function episodeOutcome(episodeId: string | null, context: ClassifyContext): Epi
   }
   const podcast = podcastId === null ? undefined : context.podcasts.get(podcastId);
   const showWillExist =
-    channelIdText !== null || (podcast !== undefined && isSeedablePodcast(podcast));
+    channelIdText !== null || (podcast !== undefined && seedCreatesShow(podcast));
   if (!showWillExist) {
     return 'gone';
   }
   if (episode.isPublic) {
-    return 'waiting';
+    const parseFinished =
+      channelIdText !== null && context.catalog.settledChannelIdTexts.has(channelIdText);
+    if (!parseFinished) {
+      return 'waiting';
+    }
   }
   if (blankToNull(episode.guid) === null && blankToNull(episode.mediaUrl) === null) {
     return 'gone';
@@ -376,7 +406,8 @@ function classifyIdList(ids: string[], present: ReadonlySet<string>, count: Libr
 /**
  * Counts one v4 library against rows already in v5.
  * - resolved: a local row matches, or the account that owns a created playlist is local.
- * - unresolved: waits on a show the seed creates and parses, or on another account's copy.
+ * - unresolved: waits on a show the seed creates and parses, on a feed whose parse
+ *   has not finished or failed yet, or on another account's copy.
  * - archivedItem: the episode left its feed; the copy creates an Archived item for it.
  * - snapshot: no v5 show or episode will exist; the clip or playlist row keeps
  *   `removed_source` with the v4 titles and dates.
@@ -429,7 +460,7 @@ export function classifyLibraryCopy(
       tally(report.subscriptions, 'resolved');
       continue;
     }
-    tally(report.subscriptions, isSeedablePodcast(podcast) ? 'unresolved' : 'notSeeded');
+    tally(report.subscriptions, seedCreatesShow(podcast) ? 'unresolved' : 'notSeeded');
   }
 
   for (const url of snapshot.addByRssUrls) {
@@ -500,4 +531,43 @@ export function classifyLibraryCopy(
   }
 
   return report;
+}
+
+const LIST_POSITION_SCALE = 100000000;
+
+/** `start` plus `index` steps of 0.00000001, as a numeric string. */
+export function listPositionAt(start: number, index: number): string {
+  const units = Math.round(start * LIST_POSITION_SCALE) + index;
+  const sign = units < 0 ? '-' : '';
+  const absolute = Math.abs(units);
+  const whole = Math.floor(absolute / LIST_POSITION_SCALE);
+  const fraction = String(absolute % LIST_POSITION_SCALE).padStart(8, '0');
+  return `${sign}${whole}.${fraction}`;
+}
+
+/**
+ * The same episode decision the counts use. The write attaches, waits, archives, or
+ * snapshots from this and does not decide again.
+ */
+export function episodeDecision(
+  episodeId: string | null,
+  snapshot: V4LibrarySnapshot,
+  catalog: LocalCatalog
+): EpisodeDecision {
+  const podcasts = new Map(snapshot.podcasts.map((podcast) => [podcast.id, podcast]));
+  const episodes = new Map(snapshot.episodes.map((episode) => [episode.id, episode]));
+  const podcastChannels = new Map<string, string>();
+  for (const podcast of snapshot.podcasts) {
+    const channelIdText = podcastChannelIdText(podcast, catalog);
+    if (channelIdText !== null) {
+      podcastChannels.set(podcast.id, channelIdText);
+    }
+  }
+  return episodeOutcome(episodeId, {
+    podcasts,
+    episodes,
+    mediaRefs: new Map(),
+    podcastChannels,
+    catalog,
+  });
 }

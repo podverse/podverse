@@ -10,16 +10,47 @@ The current work is
 then stop and ask. Do not commit or push.
 
 Built on this branch: `v4SeedAccountIdentity` (rehearsal account `eFv5NFx` is
-seeded on the local database) and `v4CopyAccountLibrary` (dry run only). The
-fresh dry-run counts are in checklist 15. The catalog seed dry run counts
-are there too. The catalog apply created 227 channels and queued 227
-parses. One show had no authority URL and was skipped. The post-parse dry
-run is in checklist 15. Next unchecked item is the library write, which is
-not built.
+seeded on the local database) and `v4CopyAccountLibrary` (reapplied for that
+account at `2026-11-12T03:51:50Z`). The catalog seed dry run counts are in
+checklist 15. The catalog apply created 227 channels and queued 227 parses.
+One show had no authority URL and was skipped. Web and mobile sign-in with
+the v4 password both succeeded. All 925 clips and 19 playlist members are
+written. Two user follows and 16 history rows on failed feeds are not, and
+nothing replays them yet. The 21 unseeded subscriptions stay off the
+public catalog. Retry and replay are planned in
+`.llm/plans/active/v4-migration-resilience/` and specified in
+[05 § Migration resilience](05-id-mapping-and-catalog-seeding.md#migration-resilience).
+The membership expiry dry run at `2026-11-12T04:01:50Z` wrote nothing:
+created 1, skipped past 1563, unmatched 1373, and the other counts are 0.
+v4's unique email index is case-sensitive. 50 addresses are stored twice,
+one lowercase row and one mixed-case row, 100 users. None share an identical
+string. The seed keeps a used row over a never-used one, then the later dated
+activity, then a verified row, then the later account `updatedAt`, and logs
+the other id. Under that rule it keeps 30 lowercase rows and 20 mixed-case
+rows. No never-used row wins over a used one, and no left-out row has a
+future paid expiry. In 36 pairs the left-out row also had use. Its library
+is dropped, not merged, and only its v4 id is logged. Six
+mixed-case addresses have no twin and are stored lowercase. v5 stores only a
+trimmed lowercase address (`0006_account_email_lowercase.sql`). Sign-in,
+signup, email change, and the management user routes lowercase the typed
+address and match it exactly. The migration stops if two stored addresses
+differ only by letter case. Alpha has one account and that address is already
+lowercase, so the pre-deploy twin count was skipped. `eFv5NFx` is not one of
+them. The paid-expiry file was rebuilt for this sitting: 2937 rows, 297 capped
+at `2031-11-12T05:08:14Z`. The apply ran at `2026-11-12T05:09:48Z`: created 1,
+skipped past 1563, unmatched 1373, and the other counts are 0. `v4SeedAccountIdentity` was re-run for `eFv5NFx` at
+`2026-11-12T04:15:15Z`. That account is Premium. The import wrote its paid
+grant. See checklist 15. The account is Premium with a future expiry, so the
+Add by RSS parse route now allows it. All 11 follows still have no title. The
+retry is a signed-in app foreground with the parser workers running. The
+server does not start that parse. An add-by-RSS follow drops a trailing path
+slash (`0007_add_by_rss_feed_url_trailing_slash.sql`), so two follows that
+differ only by that slash become one. The host root keeps its slash. A public
+catalog feed URL stays as stored.
 
 The library write is the same
-`v4CopyAccountLibrary` command once `--dry-run` is no longer required, and it
-is not built. Its spec is
+`v4CopyAccountLibrary` command without `--dry-run`. It has been run again for
+`eFv5NFx` on the local database after the settled-parse rule. Its spec is
 [05](05-id-mapping-and-catalog-seeding.md#episodes-that-left-the-feed): a user
 clip is never dropped. An episode that left its feed becomes an Archived item
 when the show will exist in v5, and a snapshot otherwise. Queue, history, and
@@ -161,9 +192,9 @@ relational tables.
 
 ## Deferred
 
-- The library write is not built. The catalog apply has been run on the
-  local database (227 channels created, 227 parses queued). The order is
-  section 5 of
+- The library write for `eFv5NFx` has been run on the local database.
+  Sign-in, the count comparison, and the membership expiry dry run are still
+  open. The order is section 5 of
   [15](15-near-term-rehearsal-checklist.md).
 - No membership CSV export (that file would contain email addresses).
 - v4 purchase receipts are not imported. An operator-held archive of those

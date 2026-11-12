@@ -264,6 +264,7 @@ function emptyCatalog() {
     playlistIdTexts: new Set<string>(),
     accountIdTexts: new Set<string>(),
     feedUrls: new Set<string>(),
+    settledChannelIdTexts: new Set<string>(),
   };
 }
 

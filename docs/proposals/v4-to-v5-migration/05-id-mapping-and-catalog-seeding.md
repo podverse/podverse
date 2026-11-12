@@ -245,17 +245,21 @@ The copy gives a v4 clip or playlist member the same result:
 
 1. **Matched.** A local item matches through the episode chain. Attach to it.
 2. **Waiting.** The podcast is local or will be seeded, and v4 still lists the
-   episode. Attach after the seeded feed's parse finishes.
+   episode. Attach after the seeded feed's first parse finishes or fails and
+   is no longer running.
 3. **Archived item.** The podcast is local or will be seeded, but the episode
-   is hidden in v4, or a finished parse did not produce it. Create an
+   is hidden in v4, or that first parse finished or failed without producing
+   it. Create an
    `Archived` item on that channel with `id_text` = `episodes.id`, `guid`,
    `guid_enclosure_url` = `formatGuidEnclosureUrl(mediaUrl)`, `title`,
    `pub_date`, and one `item_enclosure` from `mediaUrl`. A later parse that
    sees the episode again reactivates this item. Needs a `guid` or a
    `mediaUrl`, which the item CHECK requires.
 4. **Snapshot.** No v5 show will exist (missing, non-public, spam, or
-   takedown podcast), the episode row is missing, the episode has neither a
-   `guid` nor a `mediaUrl`, or its `id_text` is already used by another item.
+   takedown podcast, or one with no authority URL for the seed to parse), the
+   episode row is missing, the episode has neither a `guid` nor a `mediaUrl`,
+   its `id_text` is already used by another item, or no local channel exists
+   when the copy writes the row.
    Write the clip or playlist row with no item and fill `removed_source`
    (`kind: 'item'`, the v4 episode and podcast titles, and `pubDate`) and
    `source_removed_at`. The owner keeps the clip page, title, times, and
@@ -268,6 +272,44 @@ archived item on a spam or takedown channel.
 A playlist member that is another user's clip waits until that account is
 copied. At the forced migration every account is copied, and the retry pass
 attaches it.
+
+### Migration resilience
+
+The library copy runs once per account and then sets `v4_library_copied_at`.
+Anything it cannot finish in that pass is lost unless a later pass picks it
+up. Two pieces cover that.
+
+**Migration feed retry.** A feed the v4 catalog seed created that fails to
+parse is retried on a slow schedule: about 1 hour, 6 hours, 24 hours, 3 days,
+and 7 days. It uses `scheduled_job` with a dedupe key per feed. Only feeds the
+migration created get this schedule. Ordinary feeds keep their current parse
+cadence. A feed is settled when a parse finishes or the last retry fails.
+
+Clips and playlist members do not wait for settled. Once the first parse has
+finished or failed, they become Archived items, which a later successful
+parse makes Active again by `guid` or enclosure. History, queue, and now
+playing wait for settled, because those rows are dropped when no Active item
+exists and a drop cannot be undone.
+
+**Replay pass.** The copy records every row it could not finish as an
+`unresolved` per-account pending row. `legacy_id_map` keeps the id
+crosswalk; it is unique per v4 id, so it cannot hold one account's history
+row. Pending rows cover history, queue, and now playing on
+an unsettled feed, follows of accounts that are not copied yet, another
+user's clip in a playlist, and snapshot clips whose show may be seeded later.
+A replay worker resolves those rows when the missing piece appears. An item
+appears after a parse, the followed account is copied, or the show is
+seeded. A row turns `dropped` only when its feed is settled and still cannot
+match it, and only for kinds that may drop (history, queue, now playing).
+Clips and playlist members are never dropped.
+
+The copy does not wait for retries. A user's first sign-in still copies right
+away, and the replay pass finishes the rest.
+
+Today neither piece is built. The copy writes no pending rows and nothing to
+`legacy_id_map`, and a failed migration feed is parsed again only when Podcast Index reports
+an update. History and queue rows on a feed whose first parse failed are
+dropped at copy time.
 
 ### Crosswalk chain (playlist)
 

@@ -53,6 +53,7 @@ import {
   SharableStatusEnum,
 } from '@podverse/helpers';
 import type { QueryParamsStatsRange } from '@podverse/helpers-requests';
+import { normalizeEmail } from '@podverse/helpers-validation';
 import type {
   Account,
   AccountFollowingAccount,
@@ -813,7 +814,7 @@ export class AccountController {
     await AccountController.accountEmailChangeVerificationService.create(account, {
       verification_token: verificationToken,
       verification_token_expires_at: verificationTokenExpiresAt,
-      pending_email_address,
+      pending_email_address: normalizeEmail(pending_email_address),
     });
 
     const result = await sendEmailChangeVerificationEmail(pending_email_address, verificationToken);
@@ -837,6 +838,17 @@ export class AccountController {
         const dto = {
           email: accountEmailChangeVerification.pending_email_address,
         };
+
+        const existingByEmail = await AccountController.accountCredentialsService.getByEmail(
+          dto.email
+        );
+        if (
+          existingByEmail !== null &&
+          existingByEmail.account_id !== accountEmailChangeVerification.account.id
+        ) {
+          res.status(409).json({ message: 'Email already in use' });
+          return;
+        }
 
         await AccountController.accountCredentialsService.update(
           accountEmailChangeVerification.account,

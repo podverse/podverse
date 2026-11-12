@@ -46,17 +46,45 @@ one account per v4 user. v5 already keeps `account_credentials.email` unique,
 so the row reserves the address. The placeholder is that account row. There is
 no side table to drop. The seed copies `users.email`, the bcrypt
 hash, `users.name`, `users.emailVerified`, and `users.id` as `account.id_text`.
-It does not copy subscriptions, playlists, clips, queue, history, or follows,
-and it does not start the 31-day signup trial.
+It also writes the settings, membership status, and metaboost rows a signup
+creates. A future paid `membershipExpiration` sets Premium. A
+`freeTrialExpiration` that is still running and ends within 90 days becomes a
+Trial grant ending on that timestamp, and the account stays Trial when the
+paid expiry is not in the future. It does not copy subscriptions, playlists,
+clips, queue, history, or follows, it does not start the 31-day signup trial,
+and it does not write the paid grant. Running it again for the same v4 id
+fills any of those rows that are missing and does not change a membership
+status that already exists.
 
 `account.v4_library_copied_at` is a nullable timestamp. Null means the identity
 is reserved and the library is not copied. The copy sets it. The time is the
 record that the copy finished. Once every copy has finished, a later migration
 may drop this column. The account rows stay.
 
-An email that already exists in v5 is skipped. Do not change that account's
-password and do not attach the v4 library. Report the v4 user id for an
-operator. Counts only in automated logs. The worker command is
+An email that already belongs to a different v5 account is skipped. Do not
+change that account's password and do not attach the v4 library. Report the
+v4 user id for an operator. When the email and the v4 id already belong to
+the same seeded account, the seed fills missing rows and does not change the
+password. v4's unique index on `email` is case-sensitive, so the same address
+can be stored twice when one row has different letter case. The app
+lowercases the address when it saves a user, which is why a later save of the
+mixed-case row cannot land: it would collide with the lowercase row. v5 keeps
+one lowercase address. A row that was used beats one that never was. Used
+means a subscription, a followed playlist or user, an Add by RSS feed, or
+dated activity in history, queue, now playing, an owned playlist, or a user
+clip. Between used rows, the later dated activity wins, and a dated row beats
+a row with lists only. Otherwise a verified row wins, then the later account
+`updatedAt`. It logs the other v4 id. The left-out row's library is dropped,
+not merged: it has no v5 account, so `v4CopyAccountLibrary` logs
+`skip_missing_account` for it, and another account's follow of it stays
+unresolved. A mixed-case address with no twin is
+stored in lowercase. v5 stores the trimmed lowercase address, and a check
+constraint refuses any other form (`0006_account_email_lowercase.sql`). The
+migration rewrites an existing mixed-case address first, and stops if two rows
+would become the same address. Sign-in matches the typed address after
+trimming and lowercasing it. It does not move the address when that
+account's library is already copied, or when the account has a grant other
+than the carried trial. Counts only in automated logs. The worker command is
 `v4SeedAccountIdentity` (`--v4-id`, `--dry-run`). It reads `V4_DATABASE_URL`
 and writes the v5 identity rows. It does not copy a library. The library dry
 run is `v4CopyAccountLibrary` (`--v4-id`, `--dry-run`). It counts each group
@@ -88,7 +116,9 @@ rejection from the earlier decision happens at copy, not at seed.
    the timestamp is null.
 3. Copy subscriptions, add-by-RSS URLs, user follows, playlists, user clips,
    queue, history, and now playing through the legacy map
-   ([05](05-id-mapping-and-catalog-seeding.md)). `playlists.isDefault` becomes
+   ([05](05-id-mapping-and-catalog-seeding.md)). An add-by-RSS URL drops a
+   trailing path slash before it is stored. The host root keeps its slash. A
+   public catalog feed URL is stored as given. `playlists.isDefault` becomes
    that account and medium's Likes playlist. Official chapters and soundbites
    are not clips. Purchase receipts and Django tables are not copied.
 4. Apply membership from the rules below.
@@ -117,9 +147,9 @@ rejection from the earlier decision happens at copy, not at seed.
   2024-01-31 whose expiry is more than five years ahead is imported as five
   years from the import time, still Premium.
 - Receipts stay out of v5. The operator-held archive is a separate step.
-- Today's `legacy_import` command writes the grant and the expiry only. The
-  account copy has to set Premium or Trial itself. Do not rely on that
-  command to change the tier.
+- The identity seed sets Premium or Trial, and it writes the carried trial
+  grant. `legacy_import` writes the paid grant and the expiry, including the
+  five-year cap. It does not change the tier.
 
 ### Forced path (grace end)
 

@@ -81,3 +81,66 @@
 - Change: the expiring-soon / expired membership notice is a one-line strip in the bottom chrome above the mini player (or above the tab bar when nothing is playing), instead of a top banner that sat under the notch and pushed Home down. Tapping the message opens Membership; dismiss still hides expiring-soon until that expiry changes, and hides expired until the next launch.
 - Who notices: members whose membership is inside the warning window or already expired
 - Operator steps: none
+
+## v4 library copy writes on the local database
+
+- Surfaces: workers
+- Change: `v4CopyAccountLibrary` without `--dry-run` copies one v4 library into the local database: follows, playlists, clips, archived items for episodes that left the feed, and queue, history, and now playing for Active items. Waiting rows stay unwritten. It sets `v4_library_copied_at` when the pass finishes and refuses unless `DB_HOST` is localhost. `--dry-run` still writes nothing.
+- Who notices: operators rehearsing the v4 account migration
+- Operator steps: run it only against the local database, after that account's catalog parses have finished
+
+## Account menu opens below the bar
+
+- Surfaces: web, management-web
+- Change: the account menu in the top bar is drawn on the page body, so it drops open below the name instead of being clipped by the bar.
+- Who notices: anyone opening the account menu, including in Firefox
+- Operator steps: none
+
+## v4 library copy keeps clips after a settled parse
+
+- Surfaces: workers
+- Change: `v4CopyAccountLibrary` treats a public episode with no matching item as an Archived item or a snapshot once that feed's parse has finished or failed and is not running. A parse that has not settled still leaves the row unwritten. Queue, history, and now playing still copy only for Active items.
+- Who notices: operators rehearsing the v4 account migration
+- Operator steps: run it only against the local database. An account that already has `v4_library_copied_at` set is skipped until that copy is cleared
+
+## v4 library copy snapshots clips with no local show
+
+- Surfaces: workers
+- Change: `v4CopyAccountLibrary` counts a v4 show with no authority URL as not seeded, because the catalog seed cannot parse it. A clip or playlist member whose show has no local channel is written as a snapshot (`removed_source`, `source_removed_at`) instead of being skipped.
+- Who notices: operators rehearsing the v4 account migration; on the rehearsal account all 925 clips are now written
+- Operator steps: none
+
+## Simulator starts without a Firebase config file
+
+- Surfaces: mobile
+- Change: the app loads the Firebase package only when the native Firebase module is in the binary. A local simulator build without a Google services file opens instead of stopping on the missing module. A build that includes Firebase still reads the registration token.
+- Who notices: anyone running the iOS simulator or Android emulator without Firebase config files
+- Operator steps: reload the running app; a native rebuild is not required
+
+## v4 identity seed sets the membership tier
+
+- Surfaces: workers
+- Change: `v4SeedAccountIdentity` writes the settings, membership status, and metaboost rows a signup creates. A future paid v4 expiry sets Premium. A v4 trial that is still running and ends within 90 days becomes a Trial grant, and the account stays Trial when there is no future paid expiry. It does not start the signup trial and does not write the paid grant. Running it again for the same v4 id fills missing rows and leaves an existing membership status unchanged. An email that already belongs to a different account is still skipped.
+- Who notices: operators seeding v4 accounts; a membership import can recompute once the status row exists
+- Operator steps: re-run the seed for an account that was created before this change, against the database being seeded
+
+## v4 identity seed keeps one row when letter case differs
+
+- Surfaces: workers
+- Change: v4's unique email index is case-sensitive, and 50 addresses are stored twice, once lowercase and once in different letter case. `v4SeedAccountIdentity` keeps one lowercase address. A row that was used beats a row that never was; between used rows the later dated activity (history, queue, now playing, owned playlists, user clips) wins; otherwise a verified row, then the later account `updatedAt`. The other v4 id is logged, and its library is dropped rather than merged; `v4CopyAccountLibrary` skips it because it has no v5 account. A mixed-case address with no twin is stored lowercase. An account whose library is already copied, or that has a grant other than the carried trial, is left as it is.
+- Who notices: operators seeding v4 accounts that share an address apart from letter case
+- Operator steps: none until those accounts are seeded. The rehearsal account is not one of the 50
+
+## Account email ignores letter case
+
+- Surfaces: api, management-api, workers
+- Change: account emails are stored trimmed and lowercase. Web and mobile sign-in, signup, the duplicate-signup check, email change, and the management user create and edit routes trim and lowercase the typed address, then match it exactly. Email change refuses an address another account already uses. App migration `0006_account_email_lowercase.sql` rewrites a stored address that is not already lowercase, then a check constraint refuses any later write that is not. The same constraint covers a pending email change. The migration stops when two stored addresses differ only by letter case.
+- Who notices: anyone who types their email with capital letters; a deploy whose database already has two accounts sharing an address apart from letter case
+- Operator steps: before deploying, count letter-case twins in `account_credentials` and `account_email_change_verification`. The migration applies only when that count is 0
+
+## Add by RSS drops a trailing path slash
+
+- Surfaces: api, web, mobile, workers
+- Change: an Add by RSS feed URL is stored without a trailing slash on its path. `https://example.com/feed/show/` and `https://example.com/feed/show` are the same follow, the same credential key, and the same episode hash. The host root stays `https://example.com/`. A query or fragment after the slash is kept. App migration `0007_add_by_rss_feed_url_trailing_slash.sql` removes the extra follow when both forms exist, then rewrites the rest. A public catalog feed URL is unchanged. The v4 library copy stores the form without the slash.
+- Who notices: someone who followed the same feed with and without a trailing slash, including a library copied from v4
+- Operator steps: none. The migration runs with the app migrations

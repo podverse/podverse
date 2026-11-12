@@ -33,7 +33,7 @@ If a **Cursor Grok 4.7** prompt stalls or makes the same mistake twice, rerun it
 
 ## Prompts
 
-- [ ] **01 — Export and dry-run** — **Asks for a value:** export file path (not persisted)
+- [x] **01 — Export and dry-run** — **Asks for a value:** export file path (not persisted)
 
 **Cursor model:** Cursor Grok 4.7 · **Reasoning:** high
 
@@ -47,7 +47,7 @@ Do not run the import. Do not print emails.
 Do not run tests during agent work; end with the plan's operator commands.
 ```
 
-- [ ] **02 — Apply the import** (after 01, and only after the dry-run report is accepted)
+- [x] **02 — Apply the import** (after 01, and only after the dry-run report is accepted)
 
 **Cursor model:** Cursor Grok 4.7 · **Reasoning:** high
 

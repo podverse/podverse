@@ -48,7 +48,7 @@ stay unknown.
    who has not been copied can still use v4 until their copy or the end of the
    grace period.
 8. After enough accounts exist, run membership expiry import (corrected SQL;
-   parked plan under `.llm/plans/active/v4-membership-expiry-import/`).
+   rehearsal runbook under `.llm/plans/completed/v4-membership-expiry-import/`).
 9. Monitor: migration success/fail counts, API latency, crash-free sessions,
    support volume.
 
