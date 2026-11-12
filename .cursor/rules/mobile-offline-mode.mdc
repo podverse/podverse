@@ -78,8 +78,9 @@ unit-testable in node.
   toggle is on (the section chip is visit-local and is not stored). About and other local panes
   stay selectable after an explicit tap.
 - A slim warning strip sits in persistent bottom chrome above the tab bar, in order: sync progress
-  → offline strip → mini player. It does not slide away on stack push. One strip covers all three
-  causes, with copy chosen by cause and a per-cause `testID`.
+  → offline strip → current clip/chapter → membership expiry → mini player. It does not slide away
+  on stack push. One offline strip covers all three causes, with copy chosen by cause and a
+  per-cause `testID`.
 - Screens that cannot work offline (Browse global, Search, Home Clips, …) show a dedicated
   unavailable message while the toggle is on — never a spinner, empty list, or silent failure.
 - Do not auto-switch bottom tabs; the user sees the message on the tab they opened.

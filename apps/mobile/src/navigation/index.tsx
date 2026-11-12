@@ -31,6 +31,7 @@ import { getChannelRouteKind } from '@podverse/helpers/medium';
 
 import { useAuth } from '../auth/AuthProvider';
 import { GlobalActivityBar } from '../components/feedback/GlobalActivityBar';
+import { MembershipExpiredBanner } from '../components/feedback/MembershipExpiredBanner';
 import { MiniPlayer } from '../components/player/MiniPlayer';
 import { NowPlayingSegmentBar } from '../components/player/NowPlayingSegmentBar';
 import type { MenuListItem, MenuListSection } from '../components/screen/MenuListScreen';
@@ -2240,16 +2241,18 @@ function TabScaffold({
           >
             {/*
               Persistent bottom chrome above tabs, outermost first: sync → Offline Mode → current
-              clip/chapter → mini player. Sync sits at the top of the stack because it comes and
-              goes on its own schedule, so its arrival pushes only itself instead of shifting the
-              bars a listener is aiming at. The negative top margin equals that stack's height, so
-              the scene above the tab bar does not resize when a bar appears. The stack overlaps
-              the scene, so this wrapper paints an opaque base: a strip tinted with a translucent
-              token (the warning fill) must never let list rows show through it.
+              clip/chapter → membership expiry → mini player. Sync sits at the top of the stack
+              because it comes and goes on its own schedule, so its arrival pushes only itself
+              instead of shifting the bars a listener is aiming at. The negative top margin equals
+              that stack's height, so the scene above the tab bar does not resize when a bar
+              appears. The stack overlaps the scene, so this wrapper paints an opaque base: a strip
+              tinted with a translucent token (the warning fill) must never let list rows show
+              through it.
             */}
             <GlobalActivityBar />
             <OfflineModeBanner />
             <NowPlayingSegmentBar />
+            <MembershipExpiredBanner onRenew={navigateToMembershipScreen} />
             <MiniPlayer onExpand={onOpenFullPlayer} />
             <OrderedTabBar {...props} />
           </View>
@@ -2322,9 +2325,9 @@ function TabScaffold({
   // The tablet tab bar is a left rail, so there is no bottom column for the bar to sit above. A
   // full-width strip under the whole navigator is the equivalent position, and it carries the
   // home-indicator inset itself because nothing sits beneath it here. Order matches phone:
-  // sync → Offline Mode → current clip/chapter → mini player. The negative top margin is the
-  // variable strips only, so the safe-area padding stays reserved and the scene does not resize
-  // when a bar appears.
+  // sync → Offline Mode → current clip/chapter → membership expiry → mini player. The negative
+  // top margin is the variable strips only, so the safe-area padding stays reserved and the scene
+  // does not resize when a bar appears.
   const scaffold = !isTabletLayout ? (
     navigator
   ) : (
@@ -2344,6 +2347,7 @@ function TabScaffold({
         <GlobalActivityBar />
         <OfflineModeBanner />
         <NowPlayingSegmentBar />
+        <MembershipExpiredBanner onRenew={navigateToMembershipScreen} />
         <MiniPlayer onExpand={onOpenFullPlayer} />
       </View>
     </View>

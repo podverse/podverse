@@ -74,3 +74,10 @@
 - Change: `v4SeedAccountCatalog` without `--dry-run` creates each missing local feed and a channel whose `id_text` is the v4 podcast id, then queues a parse on `rss-slow`. `--dry-run` still writes nothing. The command refuses unless `DB_HOST` is localhost. Episodes that left the feed are not copied.
 - Who notices: operators rehearsing the v4 account migration
 - Operator steps: run it only against the local database, with the parser workers already up
+
+## Membership expiry strip sits above the mini player
+
+- Surfaces: mobile
+- Change: the expiring-soon / expired membership notice is a one-line strip in the bottom chrome above the mini player (or above the tab bar when nothing is playing), instead of a top banner that sat under the notch and pushed Home down. Tapping the message opens Membership; dismiss still hides expiring-soon until that expiry changes, and hides expired until the next launch.
+- Who notices: members whose membership is inside the warning window or already expired
+- Operator steps: none

@@ -13,8 +13,9 @@ Built on this branch: `v4SeedAccountIdentity` (rehearsal account `eFv5NFx` is
 seeded on the local database) and `v4CopyAccountLibrary` (dry run only). The
 fresh dry-run counts are in checklist 15. The catalog seed dry run counts
 are there too. The catalog apply created 227 channels and queued 227
-parses. One show had no authority URL and was skipped. Next unchecked item
-is letting those parses finish.
+parses. One show had no authority URL and was skipped. The post-parse dry
+run is in checklist 15. Next unchecked item is the library write, which is
+not built.
 
 The library write is the same
 `v4CopyAccountLibrary` command once `--dry-run` is no longer required, and it

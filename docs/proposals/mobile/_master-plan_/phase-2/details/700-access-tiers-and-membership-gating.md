@@ -77,7 +77,8 @@ and is gated reactively by the 403 modal. When mobile grows a refresh control it
 `evaluateFeature('add_by_rss_refresh')` rather than inventing a new check.
 
 Renewal reminders appear at three points: when the user touches a membership feature, as a
-persistent row in More/settings, and as a dismissible banner on Home.
+persistent row in More/settings, and as a dismissible strip in the bottom chrome above the mini
+player (or above the tab bar when nothing is playing).
 
 **Expiry is never a notification.** No push, no email, no scheduled job — see the rule
 [`no-membership-expiry-notifications`](/.cursor/rules/no-membership-expiry-notifications.mdc). Each
@@ -97,9 +98,9 @@ deliver, and nothing for the user to unsubscribe from.
 - Anonymous and account tiers are fully usable with no membership present.
 - A lapsed member can still browse, subscribe, filter, sort, download, and play, and still sees
   previously added add-by-RSS feeds.
-- Renewal reminders render at the three points above and the banner is dismissible. An
+- Renewal reminders render at the three points above and the bottom-chrome strip is dismissible. An
   expiring-soon dismissal is remembered against the expiry it was dismissed for. An expired
-  dismissal lasts until the next launch, so the expired banner returns every launch until renewal.
+  dismissal lasts until the next launch, so the expired strip returns every launch until renewal.
 - No expiry reminder is delivered by push, email, or a scheduled job.
 - All user-facing copy resolves through i18n; no hardcoded strings.
 - Unit tests cover tier resolution including the lapsed case, and E2E covers at least one gated

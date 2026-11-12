@@ -1,5 +1,6 @@
 import { StyleSheet } from 'react-native';
 
+import { useMembershipExpiryStripVisible } from '../components/feedback/membershipExpiryStripPresence';
 import { useNowPlayingSegmentStripVisible } from '../components/player/nowPlayingSegmentStripPresence';
 import { useMiniPlayerVisible } from '../components/player/useMiniPlayerVisible';
 import { countInProgressDownloads } from '../downloads/inProgressDownloadCount';
@@ -15,8 +16,9 @@ import { useTheme } from '../theme/useTheme';
 
 /**
  * Height of everything the tab scaffold draws above the tab bar, computed in the same render as
- * those bars. The segment strip is the exception: its presence comes from a store the strip
- * updates when a segment appears or clears, not from the playhead.
+ * those bars. The segment and membership strips publish presence through stores so the overlap
+ * margin does not reserve space while a dismissal is still loading, and so the playhead does not
+ * re-render the tab tree.
  */
 export function useBottomChromeOverlayInsetSource(): number {
   const { tokens } = useTheme();
@@ -25,6 +27,7 @@ export function useBottomChromeOverlayInsetSource(): number {
   const { cause } = useOfflineStatus();
   const miniPlayerVisible = useMiniPlayerVisible();
   const segmentVisible = useNowPlayingSegmentStripVisible();
+  const membershipVisible = useMembershipExpiryStripVisible();
 
   const downloadsVisible = countInProgressDownloads(downloads) > 0;
   const activityHeight = globalActivityBarLayout({
@@ -38,6 +41,7 @@ export function useBottomChromeOverlayInsetSource(): number {
     activityHeight +
     bottomChromeStripOverlayHeight(cause !== null, tokens.spacing) +
     bottomChromeStripOverlayHeight(segmentVisible, tokens.spacing) +
+    bottomChromeStripOverlayHeight(membershipVisible, tokens.spacing) +
     miniPlayerOverlayHeight(miniPlayerVisible)
   );
 }

@@ -69,11 +69,11 @@ once shown, stays up briefly after the queue drains, so a run that finishes imme
 flash. Do not paint it on the first frame of a run.
 
 - The bar sits directly above the mini player, and directly above the tab bar when the mini player
-  is hidden. That stack (the indicator, the offline strip, the current clip/chapter strip, and the
-  mini player) overlaps the scene. It does not change the scene's height. Scrollable content keeps
-  a bottom spacer equal to that overlap so the last row can scroll clear. A centered fill stays
-  centered in the scene and moves only when the block would sit under the overlay. Do not put
-  these bars back in the column under the scene.
+  is hidden. That stack (the indicator, the offline strip, the current clip/chapter strip, the
+  membership expiry strip, and the mini player) overlaps the scene. It does not change the scene's
+  height. Scrollable content keeps a bottom spacer equal to that overlap so the last row can scroll
+  clear. A centered fill stays centered in the scene and moves only when the block would sit under
+  the overlay. Do not put these bars back in the column under the scene.
 - Because the stack overlaps the scene, nothing in it may be see-through. The stack wrapper paints
   the opaque screen background on phone and tablet, so a strip tinted with a translucent token
   (`background.warning`, `background.error`) reads as a solid band. Do not remove that base, and

@@ -6,7 +6,7 @@ import { typography } from './typography';
 
 /**
  * Shared type and height for the slim status strips above the mini player (offline, chapter/clip,
- * download activity). Colors stay per-bar; size and weight do not.
+ * membership expiry, download activity). Colors stay per-bar; size and weight do not.
  */
 export const BOTTOM_CHROME_STRIP_ICON_SIZE = 14;
 

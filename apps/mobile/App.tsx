@@ -11,7 +11,6 @@ import splashIcon from './assets/splash/icon.png';
 import { AuthPromptProvider, AuthProvider, useAuth } from './src/auth';
 import { CrossDevicePlaybackNotice } from './src/components/feedback/CrossDevicePlaybackNotice';
 import { ForcedLogoutNotice } from './src/components/feedback/ForcedLogoutNotice';
-import { MembershipExpiredBanner } from './src/components/feedback/MembershipExpiredBanner';
 import { OverlayA11yShield, OverlayHostProvider, OverlayOutlet } from './src/components/overlay';
 import { VideoPlaybackChromeBridge } from './src/components/player/VideoPlaybackChromeBridge';
 import { ShareSheetPassthroughOverlay } from './src/components/share/ShareSheetPassthroughOverlay';
@@ -344,7 +343,6 @@ function AppBody({ onConsumePendingDeepLink, pendingDeepLinkUrl }: AppBodyProps)
               <CrossDevicePlaybackNotice />
               <SignInPushPromptHost />
               <OverlayA11yShield>
-                <MembershipExpiredBanner onRenew={navigateToMembershipScreen} />
                 <MobileTabNavigator
                   onConsumePendingDeepLink={onConsumePendingDeepLink}
                   pendingDeepLinkUrl={pendingDeepLinkUrl}

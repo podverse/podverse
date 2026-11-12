@@ -60,17 +60,17 @@ see [741](/docs/proposals/mobile/_master-plan_/phase-2/details/741-home-filter-c
 
 ### Carried over from detail 700
 
-`App.tsx` renders `<MembershipExpiredBanner onRenew={navigateToMembershipScreen} />` above the tab
-navigator — one of the three renewal reminder surfaces from
+The tab scaffold renders `<MembershipExpiredBanner onRenew={navigateToMembershipScreen} />` in the
+bottom chrome above the mini player — one of the three renewal reminder surfaces from
 [700](/docs/proposals/mobile/_master-plan_/phase-2/details/700-access-tiers-and-membership-gating.md).
-It is mounted app-wide, not per screen, so this rebuild must **not** add a second copy to
-`HomeScreen`; a lapsed member would see the banner twice on Home.
+It is mounted once in that chrome, not per screen, so this rebuild must **not** add a second copy
+to `HomeScreen` or to the top of the app shell.
 
 ## Acceptance criteria
 
 - Home lists only subscribed content; no global/directory rows appear for any auth state.
-- The membership expiry banner still renders once above Home for a lapsed member and is still
-  dismissible.
+- The membership expiry strip still renders once in the bottom chrome for a lapsed member and is
+  still dismissible; Home content is not pushed down by it.
 - The filter input is visible on Podcasts / Artists / Albums when the list has rows, and scrolls with
   content.
 - Filtering matches titles case-insensitively, including article-stripped forms, across directory

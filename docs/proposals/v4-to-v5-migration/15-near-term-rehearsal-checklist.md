@@ -155,13 +155,20 @@ clip is never dropped.
       local 93, non-public 7). Queue 0. Now playing 1, not local. Combined
       260 (already local 4, not local 228, non-public 22, missing 6). Beyond
       subscriptions 87 (not local 79, non-public 8). Spam and takedown are 0.
-- [ ] Apply that seed on the local database and let those feeds finish
+- [x] Apply that seed on the local database and let those feeds finish
       parsing. Ran `v4SeedAccountCatalog` for `eFv5NFx` at
       `2026-11-11T22:37:13Z`. Created 227 channels, queued 227 parses on
-      `rss-slow`, and skipped 1 show with no authority URL. The parses have
-      not finished. Episodes v4 hid stay out of the parse.
-- [ ] Rerun `v4CopyAccountLibrary --dry-run` after the parses finish.
-      `unresolved` should fall to rows still waiting on a parse.
+      `rss-slow`, and skipped 1 show with no authority URL. Episodes v4 hid
+      stay out of the parse. The later dry run shows those parses landed.
+- [x] Rerun `v4CopyAccountLibrary --dry-run` after the parses finish. Ran
+      for `eFv5NFx` at `2026-11-12T01:54:37Z`. It wrote nothing.
+      Subscriptions 173 (resolved 152, unresolved 1, notSeeded 20). Add by
+      RSS 11 (resolved 2, unresolved 9). Follows: 0 playlists, 2 users, both
+      unresolved. Playlists 5, all resolved. Playlist members 19 (resolved
+      18, unresolved 1). Order ids dropped: 2. Clips 925 (resolved 393,
+      unresolved 37, archivedItem 415, snapshot 80, dropped 0), official
+      skipped 0. Queue 0. History 710 (resolved 663, unresolved 16, dropped
+      31). Now playing 1, resolved.
 - [ ] Library write. Same command, `v4CopyAccountLibrary`, without requiring
       `--dry-run`. Not built. Follow the four results in doc 05: attach to a
       matched item, wait for a parse, create an Archived item, or keep a
