@@ -8,6 +8,8 @@ export type LibraryCount = {
   snapshot: number;
   notSeeded: number;
   dropped: number;
+  /** Rows the copy records in `legacy_pending_row`. Overlaps the other counts; not in `total`. */
+  pending: number;
 };
 
 export type LibraryCopyReport = {
@@ -108,17 +110,42 @@ export type LocalCatalog = {
   playlistIdTexts: ReadonlySet<string>;
   accountIdTexts: ReadonlySet<string>;
   feedUrls: ReadonlySet<string>;
-  /** Channels whose feed parse has finished or failed and is not running. A missing item on one of these is not still waiting. */
+  /**
+   * Channels whose feed parse has finished or failed and is not running. A clip or playlist
+   * member with no item on one of these archives or snapshots; a later parse revives it.
+   */
+  attemptedChannelIdTexts: ReadonlySet<string>;
+  /**
+   * Channels whose feed is settled (`isV4MigrationFeedSettled`): a parse finished, or the
+   * migration retries are used up or cancelled. Queue, history, and now playing drop for a
+   * missing item only on one of these.
+   */
   settledChannelIdTexts: ReadonlySet<string>;
 };
 
-type CountKind = Exclude<keyof LibraryCount, 'total'>;
+/** Which parse state ends the wait for a missing item. */
+type ParseReadiness = 'attempted' | 'settled';
+
+export type PendingRowKind =
+  | 'follow_account'
+  | 'playlist_clip'
+  | 'history'
+  | 'queue'
+  | 'now_playing'
+  | 'snapshot_clip'
+  | 'snapshot_playlist_member'
+  | 'subscription';
+
+export type PendingRowStatus = 'unresolved' | 'resolved' | 'dropped';
+
+type CountKind = Exclude<keyof LibraryCount, 'total' | 'pending'>;
 
 /**
  * What the copy can do with one v4 episode reference.
  * - resolved: a local item matches.
- * - waiting: the show will be seeded, or its feed parse has not finished or failed yet,
- *   and v4 still lists the episode. The parse should create the item.
+ * - waiting: the show will be seeded, or its feed has not reached the readiness the caller
+ *   asked for. For clips and playlist members that is a first parse that finished or failed,
+ *   and only while v4 still lists the episode. For playback it is a settled feed.
  * - archive: the show is local or will be seeded but v4 hid the episode because it left the
  *   feed. The copy creates an Archived item with the v4 id, guid, and enclosure, so a later
  *   parse reactivates it if the episode returns.
@@ -141,12 +168,21 @@ function emptyCount(): LibraryCount {
     snapshot: 0,
     notSeeded: 0,
     dropped: 0,
+    pending: 0,
   };
 }
 
-function tally(count: LibraryCount, kind: CountKind): void {
+function tally(count: LibraryCount, kind: CountKind, recordsPending = false): void {
   count.total += 1;
   count[kind] += 1;
+  if (recordsPending) {
+    count.pending += 1;
+  }
+}
+
+/** A clip or playlist member is recorded while it waits, and as a snapshot to re-attach. */
+function keptRowRecordsPending(kind: CountKind): boolean {
+  return kind === 'unresolved' || kind === 'snapshot';
 }
 
 function blankToNull(value: string | null | undefined): string | null {
@@ -238,7 +274,7 @@ export function isSeedablePodcast(podcast: V4PodcastKey): boolean {
 }
 
 /** True when the catalog seed creates and parses this show, which also needs an authority URL. */
-function seedCreatesShow(podcast: V4PodcastKey): boolean {
+export function seedCreatesShow(podcast: V4PodcastKey): boolean {
   return isSeedablePodcast(podcast) && blankToNull(podcast.authorityUrl) !== null;
 }
 
@@ -298,7 +334,11 @@ function hasLocalItem(
   );
 }
 
-function episodeOutcome(episodeId: string | null, context: ClassifyContext): EpisodeOutcome {
+function episodeOutcome(
+  episodeId: string | null,
+  context: ClassifyContext,
+  readiness: ParseReadiness
+): EpisodeOutcome {
   const id = blankToNull(episodeId);
   const episode = id === null ? undefined : context.episodes.get(id);
   if (episode === undefined) {
@@ -316,10 +356,16 @@ function episodeOutcome(episodeId: string | null, context: ClassifyContext): Epi
   if (!showWillExist) {
     return 'gone';
   }
-  if (episode.isPublic) {
-    const parseFinished =
+  if (readiness === 'settled') {
+    const settled =
       channelIdText !== null && context.catalog.settledChannelIdTexts.has(channelIdText);
-    if (!parseFinished) {
+    if (!settled) {
+      return 'waiting';
+    }
+  } else if (episode.isPublic) {
+    const attempted =
+      channelIdText !== null && context.catalog.attemptedChannelIdTexts.has(channelIdText);
+    if (!attempted) {
       return 'waiting';
     }
   }
@@ -345,7 +391,8 @@ function keptRowKind(outcome: EpisodeOutcome): CountKind {
 
 /**
  * v5 keeps queue, history, and now playing only for Active items
- * (`pruneNonActiveItemBackedQueueResourceRows`), so an episode that left the feed is dropped.
+ * (`pruneNonActiveItemBackedQueueResourceRows`). The playback decision waits for a settled
+ * feed, so a drop here means no further migration parse will create the item.
  */
 function playbackRowKind(outcome: EpisodeOutcome): CountKind {
   switch (outcome) {
@@ -365,14 +412,56 @@ function classifyPlayback(row: V4PlaybackKey, context: ClassifyContext): CountKi
   if (mediaRefId !== null) {
     const mediaRef = context.mediaRefs.get(mediaRefId);
     if (mediaRef === undefined || mediaRef.official) {
-      return episodeId === null ? 'dropped' : playbackRowKind(episodeOutcome(episodeId, context));
+      return episodeId === null
+        ? 'dropped'
+        : playbackRowKind(episodeOutcome(episodeId, context, 'settled'));
     }
-    return playbackRowKind(episodeOutcome(mediaRef.episodeId ?? episodeId, context));
+    return playbackRowKind(episodeOutcome(mediaRef.episodeId ?? episodeId, context, 'settled'));
   }
   if (episodeId === null) {
     return 'dropped';
   }
-  return playbackRowKind(episodeOutcome(episodeId, context));
+  return playbackRowKind(episodeOutcome(episodeId, context, 'settled'));
+}
+
+/** The v4 id a playback row is recorded under: its clip when it has one, else its episode. */
+export function playbackLegacyId(row: V4PlaybackKey): string | null {
+  return blankToNull(row.mediaRefId) ?? blankToNull(row.episodeId);
+}
+
+function tallyPlayback(count: LibraryCount, row: V4PlaybackKey, context: ClassifyContext): void {
+  const kind = classifyPlayback(row, context);
+  tally(count, kind, kind !== 'resolved' && playbackLegacyId(row) !== null);
+}
+
+/**
+ * The `legacy_pending_row` status for a playback row that has no Active item. Null when the
+ * row is written.
+ */
+export function playbackPendingStatus(
+  decision: EpisodeDecision
+): { status: PendingRowStatus; reason: string } | null {
+  switch (decision) {
+    case 'resolved':
+      return null;
+    case 'waiting':
+      return { status: 'unresolved', reason: 'waiting_parse' };
+    case 'archive':
+      return { status: 'dropped', reason: 'episode_left_feed' };
+    case 'gone':
+      return { status: 'dropped', reason: 'no_item' };
+  }
+}
+
+/** The `legacy_pending_row` status for a subscription with no local channel. */
+export function subscriptionPendingStatus(podcast: V4PodcastKey | undefined): {
+  status: PendingRowStatus;
+  reason: string;
+} {
+  if (podcast !== undefined && seedCreatesShow(podcast)) {
+    return { status: 'unresolved', reason: 'waiting_seed' };
+  }
+  return { status: 'dropped', reason: 'not_seeded' };
 }
 
 /**
@@ -389,17 +478,23 @@ function classifyPlaylistClip(mediaRef: V4MediaRefKey, context: ClassifyContext)
   if (!mediaRef.owned) {
     return 'unresolved';
   }
-  return keptRowKind(episodeOutcome(mediaRef.episodeId, context));
+  return keptRowKind(episodeOutcome(mediaRef.episodeId, context, 'attempted'));
 }
 
-function classifyIdList(ids: string[], present: ReadonlySet<string>, count: LibraryCount): void {
+function classifyIdList(
+  ids: string[],
+  present: ReadonlySet<string>,
+  count: LibraryCount,
+  recordsPending: boolean
+): void {
   for (const id of ids) {
     const text = blankToNull(id);
     if (text === null) {
       tally(count, 'dropped');
       continue;
     }
-    tally(count, present.has(text) ? 'resolved' : 'unresolved');
+    const resolved = present.has(text);
+    tally(count, resolved ? 'resolved' : 'unresolved', recordsPending && !resolved);
   }
 }
 
@@ -407,12 +502,14 @@ function classifyIdList(ids: string[], present: ReadonlySet<string>, count: Libr
  * Counts one v4 library against rows already in v5.
  * - resolved: a local row matches, or the account that owns a created playlist is local.
  * - unresolved: waits on a show the seed creates and parses, on a feed whose parse
- *   has not finished or failed yet, or on another account's copy.
+ *   has not finished or failed yet (playback: a feed that is not settled), or on another
+ *   account's copy.
  * - archivedItem: the episode left its feed; the copy creates an Archived item for it.
  * - snapshot: no v5 show or episode will exist; the clip or playlist row keeps
  *   `removed_source` with the v4 titles and dates.
  * - notSeeded: a subscription to a podcast the seed skips.
  * - dropped: not copied.
+ * - pending: rows the copy records in `legacy_pending_row` for a later replay.
  */
 export function classifyLibraryCopy(
   snapshot: V4LibrarySnapshot,
@@ -453,14 +550,14 @@ export function classifyLibraryCopy(
     }
     const podcast = podcasts.get(text);
     if (podcast === undefined) {
-      tally(report.subscriptions, 'notSeeded');
+      tally(report.subscriptions, 'notSeeded', true);
       continue;
     }
     if (podcastChannels.has(podcast.id)) {
       tally(report.subscriptions, 'resolved');
       continue;
     }
-    tally(report.subscriptions, seedCreatesShow(podcast) ? 'unresolved' : 'notSeeded');
+    tally(report.subscriptions, seedCreatesShow(podcast) ? 'unresolved' : 'notSeeded', true);
   }
 
   for (const url of snapshot.addByRssUrls) {
@@ -472,8 +569,13 @@ export function classifyLibraryCopy(
     tally(report.addByRss, catalog.feedUrls.has(text) ? 'resolved' : 'unresolved');
   }
 
-  classifyIdList(snapshot.playlistFollowIds, catalog.playlistIdTexts, report.followsPlaylist);
-  classifyIdList(snapshot.userFollowIds, catalog.accountIdTexts, report.followsUser);
+  classifyIdList(
+    snapshot.playlistFollowIds,
+    catalog.playlistIdTexts,
+    report.followsPlaylist,
+    false
+  );
+  classifyIdList(snapshot.userFollowIds, catalog.accountIdTexts, report.followsUser, true);
 
   for (const playlist of snapshot.playlists) {
     tally(report.playlists, 'resolved');
@@ -485,7 +587,8 @@ export function classifyLibraryCopy(
         continue;
       }
       memberIds.add(text);
-      tally(report.playlistMembers, keptRowKind(episodeOutcome(text, context)));
+      const kind = keptRowKind(episodeOutcome(text, context, 'attempted'));
+      tally(report.playlistMembers, kind, keptRowRecordsPending(kind));
     }
     for (const mediaRefId of playlist.mediaRefIds) {
       const text = blankToNull(mediaRefId);
@@ -495,10 +598,9 @@ export function classifyLibraryCopy(
       }
       memberIds.add(text);
       const mediaRef = mediaRefs.get(text);
-      tally(
-        report.playlistMembers,
-        mediaRef === undefined ? 'dropped' : classifyPlaylistClip(mediaRef, context)
-      );
+      const kind = mediaRef === undefined ? 'dropped' : classifyPlaylistClip(mediaRef, context);
+      // A clip member that was written points at its clip, whose own row carries any snapshot.
+      tally(report.playlistMembers, kind, kind === 'unresolved');
     }
     for (const orderId of playlist.orderIds) {
       const text = blankToNull(orderId);
@@ -517,17 +619,18 @@ export function classifyLibraryCopy(
       tally(report.clips, 'resolved');
       continue;
     }
-    tally(report.clips, keptRowKind(episodeOutcome(clip.episodeId, context)));
+    const kind = keptRowKind(episodeOutcome(clip.episodeId, context, 'attempted'));
+    tally(report.clips, kind, keptRowRecordsPending(kind));
   }
 
   for (const row of snapshot.queue) {
-    tally(report.queue, classifyPlayback(row, context));
+    tallyPlayback(report.queue, row, context);
   }
   for (const row of snapshot.history) {
-    tally(report.history, classifyPlayback(row, context));
+    tallyPlayback(report.history, row, context);
   }
   for (const row of snapshot.nowPlaying) {
-    tally(report.nowPlaying, classifyPlayback(row, context));
+    tallyPlayback(report.nowPlaying, row, context);
   }
 
   return report;
@@ -547,12 +650,14 @@ export function listPositionAt(start: number, index: number): string {
 
 /**
  * The same episode decision the counts use. The write attaches, waits, archives, or
- * snapshots from this and does not decide again.
+ * snapshots from this and does not decide again. Clips and playlist members pass `attempted`;
+ * queue, history, and now playing pass `settled`.
  */
 export function episodeDecision(
   episodeId: string | null,
   snapshot: V4LibrarySnapshot,
-  catalog: LocalCatalog
+  catalog: LocalCatalog,
+  readiness: ParseReadiness
 ): EpisodeDecision {
   const podcasts = new Map(snapshot.podcasts.map((podcast) => [podcast.id, podcast]));
   const episodes = new Map(snapshot.episodes.map((episode) => [episode.id, episode]));
@@ -563,11 +668,15 @@ export function episodeDecision(
       podcastChannels.set(podcast.id, channelIdText);
     }
   }
-  return episodeOutcome(episodeId, {
-    podcasts,
-    episodes,
-    mediaRefs: new Map(),
-    podcastChannels,
-    catalog,
-  });
+  return episodeOutcome(
+    episodeId,
+    {
+      podcasts,
+      episodes,
+      mediaRefs: new Map(),
+      podcastChannels,
+      catalog,
+    },
+    readiness
+  );
 }

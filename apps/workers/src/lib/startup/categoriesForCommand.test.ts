@@ -66,6 +66,12 @@ describe('getCategoriesForCommand', () => {
     );
   });
 
+  it('maps v4ReplayLegacyRows to Base and ORM', () => {
+    expect(sortCategories(getCategoriesForCommand('v4ReplayLegacyRows'))).toEqual(
+      sortCategories(new Set([CATEGORY_BASE, CATEGORY_ORM]))
+    );
+  });
+
   it('maps v4SeedAccountIdentity to Base and ORM', () => {
     expect(sortCategories(getCategoriesForCommand('v4SeedAccountIdentity'))).toEqual(
       sortCategories(new Set([CATEGORY_BASE, CATEGORY_ORM]))

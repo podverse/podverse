@@ -21,16 +21,20 @@ import {
   FEED_FORCE_REPARSE_JOB_TYPE,
   FeedLifecycleStateKeyEnum,
   FeedService,
+  getV4MigrationFeedRetryBackoffMs,
   parseAdminNotificationSendPayload,
   parseFeedForceReparsePayload,
   parseRemoteStubPromotePayload,
   parseRemoteStubRecheckPayload,
   parseRemoteStubRepointPayload,
+  parseV4MigrationFeedRetryPayload,
+  readFeedLastFinishedParseTime,
   REMOTE_STUB_PROMOTE_JOB_TYPE,
   REMOTE_STUB_RECHECK_JOB_TYPE,
   REMOTE_STUB_REPOINT_JOB_TYPE,
   ScheduledJobService,
   shouldAttemptFeedParseFromLifecycleAndPolicy,
+  V4_MIGRATION_FEED_RETRY_JOB_TYPE,
 } from '@podverse/orm';
 
 type JobHandlerResult = {
@@ -147,6 +151,47 @@ const handleFeedForceReparse: JobHandler = async (job) => {
   return { outcome: 'completed' };
 };
 
+function finishedAfter(lastFinishedParseTime: Date | null, since: Date): boolean {
+  return lastFinishedParseTime !== null && lastFinishedParseTime.getTime() > since.getTime();
+}
+
+/**
+ * Parses a migration-seeded feed whose first parse may have failed. A parse that finished after
+ * the job was created means the work is done. `parseRSSFeedAndSaveToDatabase` records a failed
+ * parse in `feed_log` instead of throwing, so the handler throws when no parse finished, which
+ * requeues the job on the migration retry ladder.
+ */
+const handleV4MigrationFeedRetry: JobHandler = async (job) => {
+  const payload = parseV4MigrationFeedRetryPayload(job.payload);
+  if (payload === null) {
+    throw new Error('Invalid v4-migration-feed-retry payload');
+  }
+
+  const feed = await new FeedService().get(payload.feedId);
+  if (feed === null) {
+    return { outcome: 'cancelled', reason: 'Feed not found' };
+  }
+
+  const cancelled = cancelledWhenFeedMayNotBeParsed(feed);
+  if (cancelled !== null) {
+    return cancelled;
+  }
+
+  if (finishedAfter(await readFeedLastFinishedParseTime(feed.id), job.created_at)) {
+    return { outcome: 'completed' };
+  }
+
+  await parsePodcastIndexFeedDirectly(feed.podcast_index_id, true, {
+    enqueueFollowUpWork: true,
+    suppressNewItemSideEffectsPublishedBeforeMs: job.created_at.getTime(),
+  });
+
+  if (!finishedAfter(await readFeedLastFinishedParseTime(feed.id), job.created_at)) {
+    throw new Error('Migration feed parse did not finish');
+  }
+  return { outcome: 'completed' };
+};
+
 const handleRemoteStubRecheck: JobHandler = async (job) => {
   const payload = parseRemoteStubRecheckPayload(job.payload);
   if (payload === null) {
@@ -236,7 +281,21 @@ const jobHandlers: Record<string, JobHandler> = {
   [REMOTE_STUB_RECHECK_JOB_TYPE]: handleRemoteStubRecheck,
   [REMOTE_STUB_REPOINT_JOB_TYPE]: handleRemoteStubRepoint,
   [REMOTE_STUB_PROMOTE_JOB_TYPE]: handleRemoteStubPromote,
+  [V4_MIGRATION_FEED_RETRY_JOB_TYPE]: handleV4MigrationFeedRetry,
 };
+
+/** Job types that retry on their own schedule instead of the shared exponential backoff. */
+const backoffMsByJobType: Record<string, (attempts: number) => number> = {
+  [V4_MIGRATION_FEED_RETRY_JOB_TYPE]: getV4MigrationFeedRetryBackoffMs,
+};
+
+function backoffMsFor(job: ScheduledJob): number {
+  const backoffForType = backoffMsByJobType[job.job_type];
+  if (backoffForType) {
+    return backoffForType(job.attempts);
+  }
+  return computeExponentialBackoffDelayMs(job.attempts, BASE_BACKOFF_MS, BACKOFF_JITTER_MS);
+}
 
 export const scheduledJobsRunDue = async (args: CommandLineArgs) => {
   const logger = getLogger();
@@ -306,11 +365,7 @@ export const scheduledJobsRunDue = async (args: CommandLineArgs) => {
     } catch (error) {
       const errorMessage = getErrorMessage(error, 'Unknown error');
       if (job.attempts < job.max_attempts) {
-        const backoffMs = computeExponentialBackoffDelayMs(
-          job.attempts,
-          BASE_BACKOFF_MS,
-          BACKOFF_JITTER_MS
-        );
+        const backoffMs = backoffMsFor(job);
         await scheduledJobService.requeueWithBackoff(job.id, errorMessage, backoffMs);
         logger.warn(
           `scheduledJobsRunDue requeued id=${job.id} dedupe_key=${job.dedupe_key} attempts=${job.attempts}/${job.max_attempts} backoff_ms=${backoffMs} error="${errorMessage}"`

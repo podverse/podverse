@@ -8,10 +8,14 @@ import type {
 } from './copyAccountLibraryLib.js';
 import {
   classifyLibraryCopy,
+  episodeDecision,
   isSeedablePodcast,
   listPositionAt,
   matchedChannelIdTexts,
   parsePodcastIndexId,
+  playbackLegacyId,
+  playbackPendingStatus,
+  subscriptionPendingStatus,
 } from './copyAccountLibraryLib.js';
 
 function catalog(overrides: Partial<LocalCatalog> = {}): LocalCatalog {
@@ -29,6 +33,7 @@ function catalog(overrides: Partial<LocalCatalog> = {}): LocalCatalog {
     playlistIdTexts: new Set<string>(),
     accountIdTexts: new Set<string>(),
     feedUrls: new Set<string>(),
+    attemptedChannelIdTexts: new Set<string>(),
     settledChannelIdTexts: new Set<string>(),
     ...overrides,
   };
@@ -89,6 +94,7 @@ const emptyCount = {
   snapshot: 0,
   notSeeded: 0,
   dropped: 0,
+  pending: 0,
 };
 
 describe('parsePodcastIndexId', () => {
@@ -144,6 +150,7 @@ describe('classifyLibraryCopy', () => {
       unresolved: 1,
       notSeeded: 2,
       dropped: 1,
+      pending: 3,
     });
     expect(
       matchedChannelIdTexts(
@@ -169,8 +176,22 @@ describe('classifyLibraryCopy', () => {
     );
 
     expect(report.addByRss).toMatchObject({ total: 3, resolved: 1, unresolved: 1, dropped: 1 });
-    expect(report.followsPlaylist).toMatchObject({ total: 2, resolved: 1, unresolved: 1 });
-    expect(report.followsUser).toMatchObject({ total: 1, resolved: 1, unresolved: 0 });
+    expect(report.followsPlaylist).toMatchObject({
+      total: 2,
+      resolved: 1,
+      unresolved: 1,
+      pending: 0,
+    });
+    expect(report.followsUser).toMatchObject({ total: 1, resolved: 1, unresolved: 0, pending: 0 });
+  });
+
+  it('records a follow of an account that is not copied yet', () => {
+    const report = classifyLibraryCopy(
+      snapshot({ userFollowIds: ['user1', 'userLater'] }),
+      catalog({ accountIdTexts: new Set(['user1']) })
+    );
+
+    expect(report.followsUser).toMatchObject({ total: 2, resolved: 1, unresolved: 1, pending: 1 });
   });
 
   it('never drops a user clip: waits on a parse, recreates an archived item, or keeps a snapshot', () => {
@@ -204,6 +225,7 @@ describe('classifyLibraryCopy', () => {
       unresolved: 1,
       archivedItem: 1,
       snapshot: 3,
+      pending: 4,
     });
     expect(report.clipsOfficialSkipped).toBe(1);
   });
@@ -231,6 +253,7 @@ describe('classifyLibraryCopy', () => {
     });
     const parsed = catalog({
       channelIdTexts: new Set(['podParsed']),
+      attemptedChannelIdTexts: new Set(['podParsed']),
       settledChannelIdTexts: new Set(['podParsed']),
     });
     const stillParsing = catalog({ channelIdTexts: new Set(['podParsed']) });
@@ -238,12 +261,37 @@ describe('classifyLibraryCopy', () => {
     const finished = classifyLibraryCopy(listed, parsed);
     expect(finished.clips).toMatchObject({ total: 2, archivedItem: 1, snapshot: 1, unresolved: 0 });
     expect(finished.playlistMembers).toMatchObject({ total: 1, archivedItem: 1, unresolved: 0 });
-    expect(finished.history).toMatchObject({ total: 1, dropped: 1, unresolved: 0 });
+    expect(finished.history).toMatchObject({ total: 1, dropped: 1, unresolved: 0, pending: 1 });
 
     const waiting = classifyLibraryCopy(listed, stillParsing);
     expect(waiting.clips.unresolved).toBe(2);
     expect(waiting.playlistMembers.unresolved).toBe(1);
     expect(waiting.history.unresolved).toBe(1);
+  });
+
+  it('archives clips once a parse was attempted, but holds playback until the feed is settled', () => {
+    const listed = snapshot({
+      podcasts: [podcast('podRetrying', { podcastIndexId: '7' })],
+      episodes: [episode('epStillListed', 'podRetrying')],
+      clips: [{ id: 'clipListed', episodeId: 'epStillListed', official: false, owned: true }],
+      playlists: [
+        { id: 'playlist1', episodeIds: ['epStillListed'], mediaRefIds: [], orderIds: [] },
+      ],
+      history: [{ episodeId: 'epStillListed', mediaRefId: null }],
+      queue: [{ episodeId: 'epStillListed', mediaRefId: null }],
+    });
+    const attemptedOnly = catalog({
+      channelIdTexts: new Set(['podRetrying']),
+      attemptedChannelIdTexts: new Set(['podRetrying']),
+    });
+
+    const report = classifyLibraryCopy(listed, attemptedOnly);
+    expect(report.clips).toMatchObject({ total: 1, archivedItem: 1, unresolved: 0, pending: 0 });
+    expect(report.playlistMembers).toMatchObject({ total: 1, archivedItem: 1, pending: 0 });
+    expect(report.history).toMatchObject({ total: 1, unresolved: 1, dropped: 0, pending: 1 });
+    expect(report.queue).toMatchObject({ total: 1, unresolved: 1, dropped: 0, pending: 1 });
+    expect(episodeDecision('epStillListed', listed, attemptedOnly, 'attempted')).toBe('archive');
+    expect(episodeDecision('epStillListed', listed, attemptedOnly, 'settled')).toBe('waiting');
   });
 
   it('snapshots a clip whose show the seed skips for having no authority URL', () => {
@@ -294,11 +342,12 @@ describe('classifyLibraryCopy', () => {
       archivedItem: 1,
       snapshot: 2,
       dropped: 1,
+      pending: 2,
     });
     expect(report.playlistOrderDropped).toBe(1);
   });
 
-  it('keeps playback rows only for episodes still in a feed', () => {
+  it('waits on playback while the feed is not settled and drops only rows that cannot match', () => {
     const report = classifyLibraryCopy(
       snapshot({
         podcasts: [podcast('podSeed', { podcastIndexId: '7' })],
@@ -321,8 +370,62 @@ describe('classifyLibraryCopy', () => {
     expect(report.history).toEqual({
       ...emptyCount,
       total: 5,
-      unresolved: 2,
-      dropped: 3,
+      unresolved: 3,
+      dropped: 2,
+      pending: 4,
+    });
+  });
+
+  it('drops playback for an episode that left a settled feed', () => {
+    const report = classifyLibraryCopy(
+      snapshot({
+        podcasts: [podcast('podSettled', { podcastIndexId: '7' })],
+        episodes: [episode('epLeftFeed', 'podSettled', { isPublic: false })],
+        nowPlaying: [{ episodeId: 'epLeftFeed', mediaRefId: null }],
+      }),
+      catalog({
+        channelIdTexts: new Set(['podSettled']),
+        attemptedChannelIdTexts: new Set(['podSettled']),
+        settledChannelIdTexts: new Set(['podSettled']),
+      })
+    );
+
+    expect(report.nowPlaying).toEqual({ ...emptyCount, total: 1, dropped: 1, pending: 1 });
+  });
+});
+
+describe('pending row status', () => {
+  it('maps a playback decision to unresolved while waiting and dropped otherwise', () => {
+    expect(playbackPendingStatus('resolved')).toBeNull();
+    expect(playbackPendingStatus('waiting')).toEqual({
+      status: 'unresolved',
+      reason: 'waiting_parse',
+    });
+    expect(playbackPendingStatus('archive')).toEqual({
+      status: 'dropped',
+      reason: 'episode_left_feed',
+    });
+    expect(playbackPendingStatus('gone')).toEqual({ status: 'dropped', reason: 'no_item' });
+  });
+
+  it('keys a playback row by its clip, then its episode', () => {
+    expect(playbackLegacyId({ episodeId: 'ep1', mediaRefId: 'clip1' })).toBe('clip1');
+    expect(playbackLegacyId({ episodeId: 'ep1', mediaRefId: '  ' })).toBe('ep1');
+    expect(playbackLegacyId({ episodeId: null, mediaRefId: null })).toBeNull();
+  });
+
+  it('waits on a subscription the seed creates and records the rest as not seeded', () => {
+    expect(subscriptionPendingStatus(podcast('podSeed', { podcastIndexId: '7' }))).toEqual({
+      status: 'unresolved',
+      reason: 'waiting_seed',
+    });
+    expect(subscriptionPendingStatus(podcast('podHidden', { isPublic: false }))).toEqual({
+      status: 'dropped',
+      reason: 'not_seeded',
+    });
+    expect(subscriptionPendingStatus(undefined)).toEqual({
+      status: 'dropped',
+      reason: 'not_seeded',
     });
   });
 });

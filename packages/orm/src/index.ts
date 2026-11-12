@@ -311,6 +311,7 @@ export * from './services/imageShrinkSource.js';
 
 export * from './services/feed/feed.js';
 export * from './services/feed/feedForceReparseScheduler.js';
+export * from './services/feed/v4MigrationFeedRetryScheduler.js';
 export * from './services/remoteStub/remoteStubJobScheduler.js';
 export * from './services/feed/feedTakedownReason.js';
 export * from './services/feed/feedLifecycleState.js';

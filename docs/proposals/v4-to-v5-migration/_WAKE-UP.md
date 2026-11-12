@@ -15,10 +15,10 @@ account at `2026-11-12T03:51:50Z`). The catalog seed dry run counts are in
 checklist 15. The catalog apply created 227 channels and queued 227 parses.
 One show had no authority URL and was skipped. Web and mobile sign-in with
 the v4 password both succeeded. All 925 clips and 19 playlist members are
-written. Two user follows and 16 history rows on failed feeds are not, and
-nothing replays them yet. The 21 unseeded subscriptions stay off the
-public catalog. Retry and replay are planned in
-`.llm/plans/active/v4-migration-resilience/` and specified in
+written. Two user follows and 16 history rows on failed feeds are not. The
+migration feed retry, `legacy_pending_row`, and `v4ReplayLegacyRows` are now
+built for those gaps but not rehearsed yet; the replay steps are in checklist
+15 section 5. The 21 unseeded subscriptions stay off the public catalog. See
 [05 § Migration resilience](05-id-mapping-and-catalog-seeding.md#migration-resilience).
 The membership expiry dry run at `2026-11-12T04:01:50Z` wrote nothing:
 created 1, skipped past 1563, unmatched 1373, and the other counts are 0.

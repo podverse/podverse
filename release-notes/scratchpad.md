@@ -144,3 +144,54 @@
 - Change: an Add by RSS feed URL is stored without a trailing slash on its path. `https://example.com/feed/show/` and `https://example.com/feed/show` are the same follow, the same credential key, and the same episode hash. The host root stays `https://example.com/`. A query or fragment after the slash is kept. App migration `0007_add_by_rss_feed_url_trailing_slash.sql` removes the extra follow when both forms exist, then rewrites the rest. A public catalog feed URL is unchanged. The v4 library copy stores the form without the slash.
 - Who notices: someone who followed the same feed with and without a trailing slash, including a library copied from v4
 - Operator steps: none. The migration runs with the app migrations
+
+## Slow retry for v4-seeded feeds that fail to parse
+
+- Surfaces: workers, orm
+- Change: `v4SeedAccountCatalog` apply now writes a `v4-migration-feed-retry` scheduled job for each
+  show it creates, due 1 hour after the seed. `scheduledJobsRunDue` completes it without parsing
+  when an ordinary parse already finished; otherwise it force parses and, if no parse finished,
+  retries 1 h, 6 h, 24 h, 3 d, and 7 d later (6 attempts). Other scheduled job types keep the
+  5-minute exponential backoff. Feeds the migration did not create are unchanged.
+- Who notices: migrated v4 users whose shows failed their first parse get episodes later, without
+  waiting for a Podcast Index update.
+- Operator steps: `scheduledJobsRunDue` must be running wherever the catalog seed runs.
+
+## v4 library copy records what it could not finish
+
+- Surfaces: workers, k8s (app migration), api readiness marker
+- Change: app migration `0008_legacy_pending_row.sql` adds `legacy_pending_row`. `v4CopyAccountLibrary`
+  apply now records, in the same transaction, every row it could not finish: subscriptions with no
+  local show, follows of accounts not copied yet, another user's clip in a playlist, clips and
+  playlist members that are snapshots or still waiting on a parse, and queue, history, and now
+  playing with no Active item. Queue, history, and now playing on a feed that is not settled
+  (a parse finished, or the migration retries are used up) are held as `unresolved` instead of
+  dropped. The copy also writes `mapped` `legacy_id_map` rows for podcast, episode, mediaRef,
+  playlist, and user ids it resolved, attaches another user's clip that is already local, and keeps
+  a list slot for every playlist member. The dry run adds a `pending` count per group.
+- Who notices: operators running the v4 rehearsal; migrated users later get rows a replay can finish.
+- Operator steps: apply the app migration; `API_EXPECTED_MIGRATION_FILENAME` is now
+  `0008_legacy_pending_row.sql`. Commit the regenerated `0004_app_linear_baseline.sql.gz` and run
+  `/test` on the PR.
+
+## v4 legacy replay finishes what the library copy could not
+
+- Surfaces: workers, worker-commands registry (management command list)
+- Change: new worker command `v4ReplayLegacyRows` (`npm run v4_replay_legacy_rows -w apps/workers`)
+  finishes follows, playlist clips, playback, and snapshot re-attach that the one-time copy could
+  not. It reads `unresolved` and `resolved` / `snapshot` rows from `legacy_pending_row`, least
+  recently tried first, one transaction per row. Follows are inserted once the followed account
+  exists; another user's clip joins the playlist at its recorded slot once that user is copied;
+  queue, history, and now playing are inserted once the item is Active (one row per item or clip
+  per queue, history placed by play time) and dropped only once the feed is settled; waiting clips
+  and playlist members are written once their feed parse finished or failed; snapshots reattach to
+  an item (or a new Archived item) once their show is local, clearing `removed_source`. Clips and
+  playlist members are never dropped; subscriptions are left alone. `--dry-run` rolls each row
+  back; `--limit` (default 500) and `--v4-id` narrow the pass. It refuses a non-local `DB_HOST`,
+  reads `V4_DATABASE_URL` read-only, and logs counts per kind and outcome only. The copy itself now
+  keeps a playback row whose item exists but is not Active as `unresolved` until the feed is
+  settled, instead of dropping it.
+- Who notices: operators running the v4 rehearsal; migrated users get follows, playlist clips,
+  history, and reattached clips that were missing right after their first sign-in.
+- Operator steps: run `v4ReplayLegacyRows` on the same schedule as `scheduledJobsRunDue` during the
+  migration window, and once after the forced migration. Set `V4_DATABASE_URL` for it.

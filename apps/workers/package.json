@@ -19,6 +19,7 @@
     "archive_all": "node ./dist/index.js archiveAll",
     "billing_import_legacy_membership_expiry": "node ./dist/index.js billingImportLegacyMembershipExpiry",
     "v4_copy_account_library": "node ./dist/index.js v4CopyAccountLibrary",
+    "v4_replay_legacy_rows": "node ./dist/index.js v4ReplayLegacyRows",
     "v4_seed_account_identity": "node ./dist/index.js v4SeedAccountIdentity",
     "v4_seed_account_catalog": "node ./dist/index.js v4SeedAccountCatalog",
     "billing_reconcile": "node ./dist/index.js billingReconcile",

@@ -11,6 +11,8 @@ import {
   FeedService,
   getDataSourceReadWrite,
   isValidNanoIdV2IdText,
+  scheduleV4MigrationFeedRetry,
+  V4_MIGRATION_FEED_RETRY_FIRST_DELAY_MS,
 } from '@podverse/orm';
 
 import type { LocalCatalog, V4PodcastKey } from '../v4Library/copyAccountLibraryLib.js';
@@ -27,7 +29,10 @@ export const V4_SEED_ACCOUNT_CATALOG_HELP = `v4SeedAccountCatalog
 Count the shows one v4 account needs in the local v5 catalog. With --dry-run,
 writes nothing and does not queue a parse. Without --dry-run, creates each
 missing local feed and a channel whose id_text is the v4 podcast id, then
-queues a parse on rss-slow. Episodes that left the feed are not copied.
+queues a parse on rss-slow. Each new show also gets up to six slow retries
+(scheduledJobsRunDue), the first 1 h after the seed, then 1 h, 6 h, 24 h, 3 d,
+and 7 d apart. They stop once a parse finishes. Episodes that left the feed are
+not copied.
 
 Flags:
   --v4-id id    v4 users.id (required)
@@ -264,11 +269,15 @@ function emptyCatalog() {
     playlistIdTexts: new Set<string>(),
     accountIdTexts: new Set<string>(),
     feedUrls: new Set<string>(),
+    attemptedChannelIdTexts: new Set<string>(),
     settledChannelIdTexts: new Set<string>(),
   };
 }
 
-async function readV4Sources(connectionString: string, v4Id: string): Promise<{
+async function readV4Sources(
+  connectionString: string,
+  v4Id: string
+): Promise<{
   sources: CatalogSeedSources;
   podcasts: V4PodcastKey[];
 }> {
@@ -582,7 +591,12 @@ function refusalForExisting(
   return null;
 }
 
-async function ensureChannel(show: CatalogSeedCreate): Promise<'created' | 'present'> {
+type EnsureChannelResult = {
+  outcome: 'created' | 'present';
+  feedId: number;
+};
+
+async function ensureChannel(show: CatalogSeedCreate): Promise<EnsureChannelResult> {
   const feed = await new FeedService().getOrCreate({
     url: show.authorityUrl,
     podcast_index_id: show.podcastIndexId,
@@ -596,7 +610,7 @@ async function ensureChannel(show: CatalogSeedCreate): Promise<'created' | 'pres
     );
   }
   if (channelIdText === show.id) {
-    return 'present';
+    return { outcome: 'present', feedId: feed.id };
   }
   const channel = new Channel();
   channel.id_text = show.id;
@@ -605,7 +619,18 @@ async function ensureChannel(show: CatalogSeedCreate): Promise<'created' | 'pres
   channel.medium_id = MediumEnum.Podcast;
   channel.medium = MediumEnum.Podcast;
   await getDataSourceReadWrite().getRepository(Channel).save(channel);
-  return 'created';
+  return { outcome: 'created', feedId: feed.id };
+}
+
+/**
+ * Written before the first parse is queued, so a first parse that succeeds finishes after the
+ * job's `created_at` and the retry completes without parsing.
+ */
+async function scheduleRetries(feedIds: readonly number[]): Promise<void> {
+  const runAfter = new Date(Date.now() + V4_MIGRATION_FEED_RETRY_FIRST_DELAY_MS);
+  for (const feedId of feedIds) {
+    await scheduleV4MigrationFeedRetry(feedId, runAfter);
+  }
 }
 
 async function queueParses(shows: readonly CatalogSeedCreate[]): Promise<void> {
@@ -664,9 +689,11 @@ export const v4SeedAccountCatalog = async (args: CommandLineArgs) => {
     assertLocalDatabase();
   }
 
-  const account = await getDataSourceReadWrite().getRepository(Account).findOne({
-    where: { id_text: v4Id },
-  });
+  const account = await getDataSourceReadWrite()
+    .getRepository(Account)
+    .findOne({
+      where: { id_text: v4Id },
+    });
   if (account === null) {
     logFinished(v4Id, 'skip_missing_account', dryRun, null, null);
     return;
@@ -696,20 +723,24 @@ export const v4SeedAccountCatalog = async (args: CommandLineArgs) => {
   let created = 0;
   let present = 0;
   const queued: CatalogSeedCreate[] = [];
+  const createdFeedIds: number[] = [];
   for (const show of creates) {
-    const outcome = await ensureChannel(show);
+    const { outcome, feedId } = await ensureChannel(show);
     queued.push(show);
     if (outcome === 'created') {
       created += 1;
+      createdFeedIds.push(feedId);
     } else {
       present += 1;
     }
   }
+  await scheduleRetries(createdFeedIds);
   await queueParses(queued);
   logFinished(v4Id, 'apply', false, report, {
     created,
     present,
     queued: queued.length,
+    retriesScheduled: createdFeedIds.length,
     skippedNoAuthorityUrl: plan.skippedNoAuthorityUrl,
     skippedInvalidId: plan.creates.length - creates.length,
   });

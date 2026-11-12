@@ -279,11 +279,22 @@ The library copy runs once per account and then sets `v4_library_copied_at`.
 Anything it cannot finish in that pass is lost unless a later pass picks it
 up. Two pieces cover that.
 
-**Migration feed retry.** A feed the v4 catalog seed created that fails to
-parse is retried on a slow schedule: about 1 hour, 6 hours, 24 hours, 3 days,
-and 7 days. It uses `scheduled_job` with a dedupe key per feed. Only feeds the
-migration created get this schedule. Ordinary feeds keep their current parse
-cadence. A feed is settled when a parse finishes or the last retry fails.
+**Migration feed retry.** `v4SeedAccountCatalog` apply writes one
+`v4-migration-feed-retry` job (`scheduled_job`, dedupe key
+`v4-migration-feed-retry:<feedId>`, 6 attempts) for each show it creates, due
+1 hour later, before it queues the first `rss-slow` parse. `scheduledJobsRunDue`
+completes the job without parsing when `feed_log.last_finished_parse_time` is
+later than the job's `created_at`. Otherwise it force parses, and when no parse
+finished it requeues the job 1 hour, 6 hours, 24 hours, 3 days, then 7 days
+later. Only feeds the migration created get this schedule. Ordinary feeds keep
+their current parse cadence, and every other job type keeps the shared
+5-minute exponential backoff.
+
+A feed is settled when `last_finished_parse_time` is set, or its retry job is
+`failed` (attempts used up) or `cancelled`. A feed with no retry job is settled
+once a parse has finished or failed, so feeds seeded before the retry existed
+still settle. `isV4MigrationFeedSettled` and `getV4MigrationFeedSettledByFeedId`
+in `@podverse/orm` hold the rule.
 
 Clips and playlist members do not wait for settled. Once the first parse has
 finished or failed, they become Archived items, which a later successful
@@ -291,25 +302,57 @@ parse makes Active again by `guid` or enclosure. History, queue, and now
 playing wait for settled, because those rows are dropped when no Active item
 exists and a drop cannot be undone.
 
-**Replay pass.** The copy records every row it could not finish as an
-`unresolved` per-account pending row. `legacy_id_map` keeps the id
-crosswalk; it is unique per v4 id, so it cannot hold one account's history
-row. Pending rows cover history, queue, and now playing on
-an unsettled feed, follows of accounts that are not copied yet, another
-user's clip in a playlist, and snapshot clips whose show may be seeded later.
-A replay worker resolves those rows when the missing piece appears. An item
-appears after a parse, the followed account is copied, or the show is
-seeded. A row turns `dropped` only when its feed is settled and still cannot
-match it, and only for kinds that may drop (history, queue, now playing).
-Clips and playlist members are never dropped.
+**Pending rows.** `legacy_id_map` keeps the id crosswalk; it is unique per v4
+id, so it cannot hold one account's history row. The copy records what it
+could not finish in `legacy_pending_row` (app migration
+`0008_legacy_pending_row.sql`), in the same transaction as the rest of the
+copy. A row is unique on `(account_id, row_kind, legacy_id)` and keeps ids and
+positions only in `context`.
+
+| `row_kind`                        | `legacy_id`                  | Recorded when                                                                  |
+| --------------------------------- | ---------------------------- | ------------------------------------------------------------------------------ |
+| `subscription`                    | v4 podcast id                | No local channel: `unresolved` / `waiting_seed`, else `dropped` / `not_seeded` |
+| `follow_account`                  | v4 user id                   | The followed account is not copied yet                                         |
+| `playlist_clip`                   | `<playlist id>:<mediaRef>`   | Another user's clip whose owner is not copied yet                              |
+| `snapshot_clip`                   | v4 mediaRef id               | Written as a snapshot (`resolved` / `snapshot`) or still waiting               |
+| `snapshot_playlist_member`        | `<playlist id>:<member>`     | Written as a snapshot (`resolved` / `snapshot`) or still waiting               |
+| `history`, `queue`, `now_playing` | mediaRef id, else episode id | No Active item: `unresolved` until the feed is settled, then `dropped`         |
+
+Each playlist member keeps its own `list_position`, including members the copy
+could not write, so a replay inserts one at its v4 place. The copy also
+upserts `mapped` `legacy_id_map` rows for the podcast, episode, mediaRef,
+playlist, and user ids it resolved. The dry run reports a `pending` count per
+group.
+
+**Replay pass.** The worker command `v4ReplayLegacyRows` resolves pending rows
+when the missing piece appears. An item appears after a parse, the followed
+account is copied, or the show is seeded. It reads `unresolved` rows and
+`resolved` / `snapshot` rows, least recently tried first, and runs each row in
+its own transaction. It reads the v4 episodes and mediaRefs behind those rows
+from `V4_DATABASE_URL` (read only) and matches items the same way the copy
+does.
+
+| `row_kind`                        | Replay                                                                                                                               |
+| --------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------ |
+| `follow_account`                  | Inserts the follow once the followed account exists                                                                                  |
+| `playlist_clip`                   | Inserts the clip at its recorded slot, or after the last member, once the clip exists                                                |
+| `history`, `queue`, `now_playing` | Inserts once the item is Active; one row per item or clip per queue; `dropped` once the feed is settled and still has no Active item |
+| `snapshot_clip`                   | Writes a waiting clip once its feed parse finished or failed; reattaches a snapshot once its show is local                           |
+| `snapshot_playlist_member`        | Same as `snapshot_clip`, at the member's recorded slot                                                                               |
+| `subscription`                    | Left as the copy recorded it                                                                                                         |
+
+A reattached snapshot gets `item_id` (an Archived item when the episode left
+the feed) and loses `removed_source` and `source_removed_at`. History is placed
+by play time between its neighbors; a second now-playing row goes to the front
+of the queue. A row turns `dropped` only when its feed is settled and still
+cannot match it, and only for kinds that may drop (history, queue, now
+playing). Clips and playlist members are never dropped. `--dry-run` runs each
+row and rolls it back. The log is counts per kind and outcome.
 
 The copy does not wait for retries. A user's first sign-in still copies right
-away, and the replay pass finishes the rest.
-
-Today neither piece is built. The copy writes no pending rows and nothing to
-`legacy_id_map`, and a failed migration feed is parsed again only when Podcast Index reports
-an update. History and queue rows on a feed whose first parse failed are
-dropped at copy time.
+away, and the replay pass finishes the rest. During the migration window the
+replay runs on the same schedule as `scheduledJobsRunDue`, and once more after
+the forced migration.
 
 ### Crosswalk chain (playlist)
 
@@ -410,7 +453,8 @@ onto an archived item. The clip itself survives through the rules above.
 
 ### Durable legacy map
 
-Keep a permanent table (exact schema in a later plan):
+`legacy_id_map` (app migration `0005_v4_rehearsal_schema.sql`). The library
+copy writes `mapped` rows for the ids it resolved:
 
 | Column        | Contents                                                                           |
 | ------------- | ---------------------------------------------------------------------------------- |

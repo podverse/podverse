@@ -200,8 +200,21 @@ clip is never dropped.
       Queue upcoming 0. History 659 of 710 (47 dropped because the episode
       is not an Active item, 16 of them on two shows whose first parse
       failed; 4 collapsed to one row). Now playing 1. Archived items 211.
-      Retry and replay for those gaps are not built; see
+      Migration feed retries and `v4ReplayLegacyRows` now cover those gaps;
+      see
       [05 § Migration resilience](05-id-mapping-and-catalog-seeding.md#migration-resilience).
+- [x] Replay pass. Recopied `eFv5NFx` at `2026-11-12T06:08:21Z` after
+      `0008_legacy_pending_row.sql` was applied locally. Written: 0 new
+      Archived items (they already existed), 925 clips, 19 playlist members,
+      660 playback rows, 151 pending rows. The dry run at `2026-11-12T06:08:23Z`
+      read 83 rows and rolled them back: 2 follows kept, 81 snapshot clips
+      kept. The other 68 pending rows are 21 subscriptions and 47 settled
+      history rows, which the replay does not read.
+- [x] Replay a follow. Seeded `m6K-enJTW` at `2026-11-12T06:09:25Z` (trial,
+      no carried trial). `v4ReplayLegacyRows` for `eFv5NFx` at
+      `2026-11-12T06:09:27Z` wrote 1 follow and kept 1. The follow row exists.
+      Its `follow_account` row is `resolved` / `replayed`. `WfxBLT5cy` stays
+      `unresolved` / `account_not_copied`. The 81 snapshot clips stayed kept.
 - [x] `billingImportLegacyMembershipExpiry --dry-run` against the seeded
       account. Ran at `2026-11-12T04:01:50Z`. It wrote no grants. 2937 rows:
       created 1 (the seeded account), skipped past 1563, unmatched 1373,

@@ -2,7 +2,12 @@ import type { CommandLineArgs } from '@workers/commands/index.js';
 import { getLogger } from '@workers/factories/logger.js';
 import { Client } from 'pg';
 
-import { Account, getDataSourceReadWrite, isValidNanoIdV2IdText } from '@podverse/orm';
+import {
+  Account,
+  getDataSourceReadWrite,
+  getV4MigrationFeedSettledByFeedId,
+  isValidNanoIdV2IdText,
+} from '@podverse/orm';
 
 import { applyLibraryCopy } from './copyAccountLibraryApply.js';
 import type {
@@ -25,9 +30,12 @@ export const V4_COPY_ACCOUNT_LIBRARY_HELP = `v4CopyAccountLibrary
 
 Copy one v4 library into the local v5 database. --dry-run writes nothing,
 including v4_library_copied_at. Without it, the copy writes resolved rows,
-archived items, and snapshots. A public episode with no item after its feed
-parse has finished or failed is archived or snapshotted, not left waiting.
-Rows that still wait on a parse that has not settled are left unwritten. The pass sets
+archived items, and snapshots. A clip or playlist member with no item after
+its feed parse has finished or failed is archived or snapshotted, not left
+waiting. Queue, history, and now playing wait until the feed is settled: a
+parse finished, or the migration retries are used up. Every row the copy
+cannot finish is recorded in legacy_pending_row for a later replay, and each
+v4 id it resolved is recorded in legacy_id_map. The pass sets
 v4_library_copied_at when the pass finishes. Apply refuses unless DB_HOST
 is local.
 
@@ -47,7 +55,8 @@ The log is the id and counts. No email, url, or title is logged.
                 keeps the v4 titles and dates in removed_source
   notSeeded     a subscription to a podcast the seed skips
   dropped       not copied. Queue, history, and now playing keep only
-                episodes still in a feed, so the rest are dropped
+                episodes still in a feed of a settled show
+  pending       rows recorded in legacy_pending_row (overlaps the others)
 `;
 
 const USER_SQL = `
@@ -124,6 +133,19 @@ WHERE "ownerId" = $1
    OR id = ANY($2::varchar[])
 `;
 
+const MEDIA_REF_BY_ID_SQL = `
+SELECT id,
+       "episodeId" AS episode_id,
+       ("isOfficialChapter" IS TRUE OR "isOfficialSoundBite" IS TRUE) AS official,
+       ("ownerId" = $1) AS owned,
+       title,
+       "startTime" AS start_time,
+       "endTime" AS end_time,
+       ("isPublic" IS TRUE) AS is_public
+FROM "mediaRefs"
+WHERE id = ANY($2::varchar[])
+`;
+
 const EPISODE_SQL = `
 SELECT id,
        "podcastId" AS podcast_id,
@@ -154,11 +176,11 @@ ORDER BY p.id, f.url
 
 const UUID_TEXT = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
-function hasOption(args: CommandLineArgs, name: string): boolean {
+export function hasOption(args: CommandLineArgs, name: string): boolean {
   return Object.prototype.hasOwnProperty.call(args, name);
 }
 
-function optionValue(args: CommandLineArgs, name: string): string | null {
+export function optionValue(args: CommandLineArgs, name: string): string | null {
   const value = args[name];
   if (typeof value !== 'string') {
     return null;
@@ -258,6 +280,98 @@ async function queryV5(
   return rowsOf(result);
 }
 
+function keysOf<T>(
+  rows: Record<string, unknown>[],
+  toKey: (row: Record<string, unknown>, id: string) => T
+): T[] {
+  const keys: T[] = [];
+  for (const row of rows) {
+    const id = textOrNull(row.id);
+    if (id !== null) {
+      keys.push(toKey(row, id));
+    }
+  }
+  return keys;
+}
+
+function mediaRefKey(row: Record<string, unknown>, id: string): V4MediaRefKey {
+  return {
+    id,
+    episodeId: textOrNull(row.episode_id),
+    official: flag(row.official),
+    owned: flag(row.owned),
+    title: clipText(row.title, 255),
+    startTime: integerOrNull(row.start_time),
+    endTime: integerOrNull(row.end_time),
+    isPublic: flag(row.is_public),
+  };
+}
+
+function episodeKey(row: Record<string, unknown>, id: string): V4EpisodeKey {
+  return {
+    id,
+    podcastId: textOrNull(row.podcast_id),
+    guid: textOrNull(row.guid),
+    mediaUrl: textOrNull(row.media_url),
+    title: textOrNull(row.title),
+    pubDate: pubDateIso(row.pub_date),
+    isPublic: flag(row.is_public),
+  };
+}
+
+function podcastKey(row: Record<string, unknown>, id: string): V4PodcastKey {
+  return {
+    id,
+    podcastIndexId: textOrNull(row.podcast_index_id),
+    podcastGuid: textOrNull(row.podcast_guid),
+    authorityUrl: textOrNull(row.authority_url),
+    isPublic: flag(row.is_public),
+    flagStatus: textOrNull(row.flag_status),
+    title: clipText(row.title, 255),
+  };
+}
+
+/**
+ * Reads the v4 mediaRefs, episodes, and podcasts behind a set of ids, for rows recorded in
+ * `legacy_pending_row`. `owned` is relative to `v4Id`. Episodes include those the mediaRefs
+ * point at.
+ */
+export async function readV4References(
+  connectionString: string,
+  v4Id: string,
+  ids: { episodeIds: string[]; mediaRefIds: string[] }
+): Promise<Pick<V4LibrarySnapshot, 'mediaRefs' | 'clips' | 'episodes' | 'podcasts'>> {
+  const client = new Client({ connectionString });
+  try {
+    await client.connect();
+    const mediaRefIds = uniqueTexts(ids.mediaRefIds);
+    const mediaRefRows =
+      mediaRefIds.length === 0
+        ? []
+        : await queryV4(client, MEDIA_REF_BY_ID_SQL, [v4Id, mediaRefIds]);
+    const episodeIds = uniqueTexts([
+      ...ids.episodeIds,
+      ...mediaRefRows.map((row) => textOrNull(row.episode_id)),
+    ]);
+    const episodeRows =
+      episodeIds.length === 0 ? [] : await queryV4(client, EPISODE_SQL, [episodeIds]);
+    const podcastIds = uniqueTexts(episodeRows.map((row) => textOrNull(row.podcast_id)));
+    const podcastRows =
+      podcastIds.length === 0 ? [] : await queryV4(client, PODCAST_SQL, [podcastIds]);
+    const mediaRefs = keysOf(mediaRefRows, mediaRefKey);
+    return {
+      mediaRefs,
+      clips: mediaRefs.filter((mediaRef) => mediaRef.owned),
+      episodes: keysOf(episodeRows, episodeKey),
+      podcasts: keysOf(podcastRows, podcastKey),
+    };
+  } catch (error) {
+    throw new Error('Could not read the v4 references.', { cause: error });
+  } finally {
+    await client.end().catch(() => undefined);
+  }
+}
+
 async function readV4Snapshot(connectionString: string, v4Id: string): Promise<V4LibrarySnapshot> {
   const client = new Client({ connectionString });
   try {
@@ -340,62 +454,10 @@ async function readV4Snapshot(connectionString: string, v4Id: string): Promise<V
       });
     }
 
-    const mediaRefs: V4MediaRefKey[] = [];
-    const clips: V4MediaRefKey[] = [];
-    for (const row of mediaRefRows) {
-      const id = textOrNull(row.id);
-      if (id === null) {
-        continue;
-      }
-      const key: V4MediaRefKey = {
-        id,
-        episodeId: textOrNull(row.episode_id),
-        official: flag(row.official),
-        owned: flag(row.owned),
-        title: clipText(row.title, 255),
-        startTime: integerOrNull(row.start_time),
-        endTime: integerOrNull(row.end_time),
-        isPublic: flag(row.is_public),
-      };
-      mediaRefs.push(key);
-      if (key.owned) {
-        clips.push(key);
-      }
-    }
-
-    const episodes: V4EpisodeKey[] = [];
-    for (const row of episodeRows) {
-      const id = textOrNull(row.id);
-      if (id === null) {
-        continue;
-      }
-      episodes.push({
-        id,
-        podcastId: textOrNull(row.podcast_id),
-        guid: textOrNull(row.guid),
-        mediaUrl: textOrNull(row.media_url),
-        title: textOrNull(row.title),
-        pubDate: pubDateIso(row.pub_date),
-        isPublic: flag(row.is_public),
-      });
-    }
-
-    const podcasts: V4PodcastKey[] = [];
-    for (const row of podcastRows) {
-      const id = textOrNull(row.id);
-      if (id === null) {
-        continue;
-      }
-      podcasts.push({
-        id,
-        podcastIndexId: textOrNull(row.podcast_index_id),
-        podcastGuid: textOrNull(row.podcast_guid),
-        authorityUrl: textOrNull(row.authority_url),
-        isPublic: flag(row.is_public),
-        flagStatus: textOrNull(row.flag_status),
-        title: clipText(row.title, 255),
-      });
-    }
+    const mediaRefs = keysOf(mediaRefRows, mediaRefKey);
+    const clips = mediaRefs.filter((mediaRef) => mediaRef.owned);
+    const episodes = keysOf(episodeRows, episodeKey);
+    const podcasts = keysOf(podcastRows, podcastKey);
 
     const playbackKey = (row: Record<string, unknown>): V4PlaybackKey => ({
       episodeId: textOrNull(row.episode_id),
@@ -441,7 +503,7 @@ function uniqueTexts(values: Array<string | null>): string[] {
   return [...unique];
 }
 
-async function readLocalCatalog(snapshot: V4LibrarySnapshot): Promise<LocalCatalog> {
+export async function readLocalCatalog(snapshot: V4LibrarySnapshot): Promise<LocalCatalog> {
   const podcastIndexIds = [
     ...new Set(
       snapshot.podcasts
@@ -560,6 +622,7 @@ async function readLocalCatalog(snapshot: V4LibrarySnapshot): Promise<LocalCatal
     playlistIdTexts: new Set<string>(),
     accountIdTexts: new Set<string>(),
     feedUrls: feedUrlSet,
+    attemptedChannelIdTexts: new Set<string>(),
     settledChannelIdTexts: new Set<string>(),
   };
   const channelIds = matchedChannelIdTexts(snapshot, catalogWithoutItems);
@@ -661,6 +724,7 @@ async function readLocalCatalog(snapshot: V4LibrarySnapshot): Promise<LocalCatal
     }
   }
 
+  const attemptedChannelIdTexts = new Set<string>();
   const settledChannelIdTexts = new Set<string>();
   if (channelIds.length > 0) {
     const rows = await queryV5(
@@ -679,6 +743,25 @@ async function readLocalCatalog(snapshot: V4LibrarySnapshot): Promise<LocalCatal
     for (const row of rows) {
       const idText = textOrNull(row.id_text);
       if (idText !== null) {
+        attemptedChannelIdTexts.add(idText);
+      }
+    }
+
+    const feedRows = await queryV5(
+      'SELECT id_text, feed_id FROM channel WHERE id_text = ANY($1::varchar[])',
+      [channelIds]
+    );
+    const channelByFeedId = new Map<number, string>();
+    for (const row of feedRows) {
+      const idText = textOrNull(row.id_text);
+      const feedId = integerOrNull(row.feed_id);
+      if (idText !== null && feedId !== null) {
+        channelByFeedId.set(feedId, idText);
+      }
+    }
+    const settledByFeedId = await getV4MigrationFeedSettledByFeedId([...channelByFeedId.keys()]);
+    for (const [feedId, idText] of channelByFeedId) {
+      if (settledByFeedId.get(feedId) === true) {
         settledChannelIdTexts.add(idText);
       }
     }
@@ -693,11 +776,12 @@ async function readLocalCatalog(snapshot: V4LibrarySnapshot): Promise<LocalCatal
     clipIdTexts,
     playlistIdTexts,
     accountIdTexts,
+    attemptedChannelIdTexts,
     settledChannelIdTexts,
   };
 }
 
-function assertLocalDatabase(): void {
+export function assertLocalDatabase(): void {
   const host = (process.env.DB_HOST ?? '').trim().toLowerCase();
   if (host !== 'localhost' && host !== '127.0.0.1' && host !== '::1') {
     throw new Error('Refusing to apply because DB_HOST is not local.');
@@ -772,6 +856,6 @@ export const v4CopyAccountLibrary = async (args: CommandLineArgs) => {
     logFinished(v4Id, 'dry_run', true, report, null);
     return;
   }
-  const applied = await applyLibraryCopy(account.id, snapshot, catalog);
+  const applied = await applyLibraryCopy(account.id, account.id_text, snapshot, catalog);
   logFinished(v4Id, 'apply', false, report, applied);
 };
