@@ -33,7 +33,7 @@
     "@podverse/orm": "*",
     "@podverse/parser-mapping": "*",
     "module-alias": "^2.3.5",
-    "podverse-partytime": "file:../../../partytime"
+    "podverse-partytime": "^5.2.0"
   },
   "devDependencies": {
     "@types/module-alias": "^2.0.4",

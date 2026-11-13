@@ -290,16 +290,14 @@
 ## Server feed parsing uses the portable partytime entry
 
 - Surfaces: workers, api (through `@podverse/parser`)
-- Change: `@podverse/parser` imports `podverse-partytime/core`, the same parser code mobile runs
-  on the device. This checkout resolves the package through a `file:` link to the sibling
-  `partytime` repo, not through a published version. On the server, partytime no longer loads
-  `dotenv` or reads `PARTYTIME_LOG`; its warnings print as plain console lines instead of pino
-  JSON lines. The feed size limit still comes from `PARSER_MAX_FEED_BODY_BYTES`. Parsed items
-  and feeds now carry `descriptionRaw`, which `@podverse/parser-mapping` already reads.
+- Change: `@podverse/parser` imports `podverse-partytime/core` from published
+  `podverse-partytime` `^5.2.0`, the same parser code mobile runs on the device. On the server,
+  partytime no longer loads `dotenv` or reads `PARTYTIME_LOG`; its warnings print as plain
+  console lines instead of pino JSON lines. The feed size limit still comes from
+  `PARSER_MAX_FEED_BODY_BYTES`. Parsed items and feeds now carry `descriptionRaw`, which
+  `@podverse/parser-mapping` already reads.
 - Who notices: operators reading worker and API logs
-- Operator steps: before committing this dependency for other machines, publish partytime and
-  replace `file:../../../partytime` with the published range, then run
-  `./scripts/development/update-lockfile-linux.sh`
+- Operator steps: none
 
 ## Mobile Add by RSS keeps feed passwords while signed out
 
