@@ -1338,6 +1338,7 @@
       "preference_in_app": "",
       "preference_push": "",
       "preference_banner": "",
+      "preference_banner_push_hides": "",
       "preference_push_requirement": "",
       "when_i_subscribe_section": "",
       "media_notifications_section": "",

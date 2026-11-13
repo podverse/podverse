@@ -1,10 +1,12 @@
 appId: com.podverse.app.next
 name: Banner Notification
 ---
-# The playback screen's E2E button presents one banner. A swipe up dismisses it and stays on
-# this screen. A later tap opens Notifications, which slides up over this screen. The down
-# chevron returns to it.
+# The playback screen's E2E button presents one banner. A close tap and a swipe up dismiss it
+# without opening Notifications. A later tap opens Notifications, which slides up over this
+# screen. The down chevron returns to it. The same close and open paths are checked while the
+# full player is up (dismiss gesture in that band stays off while a banner is visible).
 # Mark-read for this fixture id answers 404, which the read action ignores.
+# Needs flow_needs_e2e_api + flow_needs_test_assets (video play for the full-player section).
 
 - runFlow: shared/launch-and-connect.yaml
 - runFlow: shared/login-seeded-user.yaml
@@ -20,6 +22,23 @@ name: Banner Notification
     id: banner-notification-title
     text: "New episode: E2E Show – E2E Banner"
 - takeScreenshot: banner-notification-visible
+- tapOn:
+    id: banner-notification-dismiss
+- extendedWaitUntil:
+    notVisible:
+      id: banner-notification
+    timeout: ${TIMEOUT_FAST}
+- assertVisible:
+    id: more-e2e-playback-screen
+- assertNotVisible:
+    id: notifications-inbox-screen
+- takeScreenshot: banner-notification-dismissed
+- tapOn:
+    id: e2e-show-banner-notification
+- extendedWaitUntil:
+    visible:
+      id: banner-notification
+    timeout: ${TIMEOUT_FAST}
 # The card is shorter than the dismiss distance, so a swipe that stays inside it springs back.
 # This drag starts on the card and finishes above it.
 - swipe:
@@ -63,3 +82,52 @@ name: Banner Notification
 - assertVisible:
     id: more-e2e-playback-screen
 - takeScreenshot: banner-notification-inbox-dismissed
+
+- tapOn:
+    id: e2e-play-video-item
+- extendedWaitUntil:
+    visible:
+      id: playback-active-e2e
+    timeout: ${TIMEOUT_SLOWEST}
+- assertVisible:
+    id: mini-player
+- tapOn:
+    id: mini-player
+- assertVisible:
+    id: full-player-screen
+- takeScreenshot: banner-notification-full-player
+# The More playback button sits under the full player; this overlay control stays above it.
+- tapOn:
+    id: e2e-present-banner-notification
+- extendedWaitUntil:
+    visible:
+      id: banner-notification
+    timeout: ${TIMEOUT_FAST}
+- tapOn:
+    id: banner-notification-dismiss
+- extendedWaitUntil:
+    notVisible:
+      id: banner-notification
+    timeout: ${TIMEOUT_FAST}
+- assertVisible:
+    id: full-player-screen
+- takeScreenshot: banner-notification-full-player-dismissed
+- tapOn:
+    id: e2e-present-banner-notification
+- extendedWaitUntil:
+    visible:
+      id: banner-notification
+    timeout: ${TIMEOUT_FAST}
+- tapOn:
+    id: banner-notification
+- extendedWaitUntil:
+    notVisible:
+      id: banner-notification
+    timeout: ${TIMEOUT_FAST}
+- extendedWaitUntil:
+    visible:
+      id: notifications-inbox-screen
+    timeout: ${TIMEOUT_SLOW}
+- assertNotVisible:
+    id: full-player-screen
+- takeScreenshot: banner-notification-full-player-opened-inbox

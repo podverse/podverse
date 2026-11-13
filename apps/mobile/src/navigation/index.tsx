@@ -20,7 +20,7 @@ import {
 } from '@react-navigation/native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState, useSyncExternalStore } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Platform, StyleSheet, useWindowDimensions, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -46,6 +46,10 @@ import { useInProgressDownloadCount } from '../downloads/useDownloads';
 import { isMobileE2eHarnessEnabled } from '../lib/e2e/e2eHarness';
 import { PerfE2eReport } from '../lib/perf/PerfE2eReport';
 import { useMembership } from '../membership/useMembership';
+import {
+  isBannerNotificationVisible,
+  subscribeBannerNotificationQueue,
+} from '../notifications/bannerNotificationStore';
 import { NotificationStreamE2eStatus } from '../notifications/NotificationStreamE2eStatus';
 import { PlaybackE2eStatus } from '../playback/PlaybackE2eStatus';
 import type { ContentTabId } from '../prefs/tabLayout';
@@ -1153,6 +1157,8 @@ export function navigateToNotificationsInboxScreen(): void {
   if (!rootNavigationRef.isReady()) {
     return;
   }
+  // Pop a root slide-up (full player, Search, image viewer) so the inbox is not buried under it.
+  rootNavigationRef.navigate(ROOT_STACK_ROUTES.MainTabs, undefined, { pop: true });
   rootNavigationRef.navigate(ROOT_STACK_ROUTES.NotificationsInbox);
 }
 
@@ -1257,14 +1263,31 @@ function SearchStackNavigator() {
   // Outside the inner navigator this is the root Search card.
   const rootNavigation = useNavigation<NavigationProp<RootStackParamList>>();
   const [dismissFromRoot, setDismissFromRoot] = useState(true);
+  const bannerVisible = useSyncExternalStore(
+    subscribeBannerNotificationQueue,
+    isBannerNotificationVisible
+  );
 
   const syncRootDismissGesture = useCallback(
     (isRootRoute: boolean) => {
       setDismissFromRoot(isRootRoute);
-      rootNavigation.setOptions({ gestureEnabled: isRootRoute });
+      rootNavigation.setOptions({
+        fullScreenGestureEnabled: isRootRoute && !isBannerNotificationVisible(),
+        gestureEnabled: isRootRoute && !isBannerNotificationVisible(),
+      });
     },
     [rootNavigation]
   );
+
+  useEffect(() => {
+    if (!dismissFromRoot) {
+      return;
+    }
+    rootNavigation.setOptions({
+      fullScreenGestureEnabled: !bannerVisible,
+      gestureEnabled: !bannerVisible,
+    });
+  }, [bannerVisible, dismissFromRoot, rootNavigation]);
 
   const dismissSearchCard = useCallback(() => {
     if (rootNavigation.canGoBack()) {
@@ -1276,7 +1299,7 @@ function SearchStackNavigator() {
 
   return (
     <SlideUpDismissGesture
-      enabled={Platform.OS === 'android' && dismissFromRoot}
+      enabled={Platform.OS === 'android' && dismissFromRoot && !bannerVisible}
       onDismiss={dismissSearchCard}
     >
       <SearchStack.Navigator
@@ -2385,10 +2408,21 @@ export function MobileTabNavigator({
   const navigationTheme = useNavigationTheme();
   const { visibleTabIds } = useTabLayout();
   const insets = useSafeAreaInsets();
-  const slideUpDismissOptions = useMemo(
-    () => buildRootSlideUpDismissOptions(insets.top),
-    [insets.top]
+  const bannerVisible = useSyncExternalStore(
+    subscribeBannerNotificationQueue,
+    isBannerNotificationVisible
   );
+  const slideUpDismissOptions = useMemo(() => {
+    const base = buildRootSlideUpDismissOptions(insets.top);
+    if (!bannerVisible) {
+      return base;
+    }
+    return {
+      ...base,
+      fullScreenGestureEnabled: false,
+      gestureEnabled: false,
+    };
+  }, [bannerVisible, insets.top]);
 
   useEffect(() => {
     if (pendingDeepLinkUrl === null || !rootNavigationRef.isReady()) {
@@ -2396,7 +2430,13 @@ export function MobileTabNavigator({
     }
 
     const action = resolveMobileDeepLinkAction(pendingDeepLinkUrl, mobileNavigationLinking.config);
-    if (action !== undefined) {
+    if (
+      action !== undefined &&
+      action.type === 'NAVIGATE' &&
+      action.payload.name === ROOT_STACK_ROUTES.NotificationsInbox
+    ) {
+      navigateToNotificationsInboxScreen();
+    } else if (action !== undefined) {
       rootNavigationRef.dispatch(action);
     } else {
       rootNavigationRef.navigate(ROOT_STACK_ROUTES.MainTabs);
@@ -2435,7 +2475,7 @@ export function MobileTabNavigator({
               };
               return (
                 <SlideUpDismissGesture
-                  enabled={Platform.OS === 'android'}
+                  enabled={Platform.OS === 'android' && !bannerVisible}
                   onDismiss={closeFullPlayer}
                 >
                   <FullPlayerScreen

@@ -1,12 +1,13 @@
 import { Linking } from 'react-native';
 
-import { getMobileConfig } from '../config';
+import { queuePendingDeepLink } from '../navigation/pendingDeepLink';
 import { resolveAccountNotificationOpenPath } from './accountNotificationLink';
 
 /**
- * Opens the notification's page. An http(s) path, or any path that already contains a scheme,
- * is opened as-is. Anything else is prefixed with the app's deep-link scheme. A failure is
- * logged and resolved; this does not throw.
+ * Opens the notification's page through the same pending-deep-link buffer a push tap uses, so a
+ * root slide-up card (full player, Search) is dismissed with `pop: true`. An http(s) path, or any
+ * path that already contains a scheme, is opened with Linking. A failure is logged and resolved;
+ * this does not throw.
  */
 export async function openAccountNotificationLink(notification: {
   link_path: string | null;
@@ -21,9 +22,7 @@ export async function openAccountNotificationLink(notification: {
       return;
     }
 
-    const scheme = getMobileConfig().deepLinkSchemes[0] ?? 'podverse-next';
-    const inAppPath = targetPath.startsWith('/') ? targetPath.slice(1) : targetPath;
-    await Linking.openURL(`${scheme}://${inAppPath}`);
+    queuePendingDeepLink(targetPath.startsWith('/') ? targetPath : `/${targetPath}`);
   } catch (error: unknown) {
     console.warn('Could not navigate from notification link', targetPath, error);
   }

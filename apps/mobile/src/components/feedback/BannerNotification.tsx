@@ -9,7 +9,7 @@ import {
   bannerNotificationDragOffset,
   shouldDismissBannerNotificationSwipe,
 } from '../../notifications/bannerNotificationSwipe';
-import { NOTIFICATION_ARTWORK_SIZE } from '../../theme/screenLayout';
+import { LIST_ROW_ACTION_SIZE, NOTIFICATION_ARTWORK_SIZE } from '../../theme/screenLayout';
 import { typography } from '../../theme/typography';
 import type { ThemedStylesTheme } from '../../theme/useThemedStyles';
 import { useThemedStyles } from '../../theme/useThemedStyles';
@@ -43,10 +43,13 @@ const createStyles = ({ styles: themeStyles, tokens }: ThemedStylesTheme) => ({
   dismiss: {
     color: themeStyles.textSecondary.color,
     fontSize: 18,
-    paddingHorizontal: tokens.spacing.xs,
   },
   dismissHit: {
+    alignItems: 'center' as const,
     flexShrink: 0,
+    height: LIST_ROW_ACTION_SIZE,
+    justifyContent: 'center' as const,
+    minWidth: LIST_ROW_ACTION_SIZE,
   },
   motion: {
     alignSelf: 'stretch' as const,
@@ -56,6 +59,14 @@ const createStyles = ({ styles: themeStyles, tokens }: ThemedStylesTheme) => ({
     flexDirection: 'row' as const,
     gap: tokens.spacing.md,
     padding: tokens.spacing.lg,
+  },
+  swipeArea: {
+    alignItems: 'center' as const,
+    flex: 1,
+    flexDirection: 'row' as const,
+    flexShrink: 1,
+    gap: tokens.spacing.md,
+    minWidth: 0,
   },
   summary: {
     ...typography.caption,
@@ -510,52 +521,54 @@ export function BannerNotification({
   );
 
   return (
-    <GestureDetector gesture={pan}>
-      <Animated.View
-        collapsable={false}
-        onTouchCancel={motion.onTouchEnd}
-        onTouchEnd={motion.onTouchEnd}
-        onTouchStart={motion.onTouchStart}
-        style={[styles.motion, { transform: [{ translateY }] }]}
-      >
-        <Card padded={false}>
-          <View style={styles.row}>
-            <CoverImage
-              decodeEdge={NOTIFICATION_ARTWORK_SIZE}
-              opensViewer={false}
-              style={styles.artwork}
-              uri={imageUrl}
-            />
-            <Pressable
-              accessibilityHint={accessibilityHint}
-              accessibilityLabel={accessibilityLabel}
-              accessibilityLiveRegion="polite"
-              accessibilityRole="button"
-              onPress={motion.onCardPress}
-              style={styles.body}
-              testID="banner-notification"
+    <Animated.View style={[styles.motion, { transform: [{ translateY }] }]}>
+      <Card padded={false}>
+        <View style={styles.row}>
+          <GestureDetector gesture={pan}>
+            <View
+              collapsable={false}
+              onTouchCancel={motion.onTouchEnd}
+              onTouchEnd={motion.onTouchEnd}
+              onTouchStart={motion.onTouchStart}
+              style={styles.swipeArea}
             >
-              <Text numberOfLines={1} style={styles.title} testID="banner-notification-title">
-                {title}
-              </Text>
-              {body !== null ? (
-                <Text numberOfLines={1} style={styles.summary}>
-                  {body}
+              <CoverImage
+                decodeEdge={NOTIFICATION_ARTWORK_SIZE}
+                opensViewer={false}
+                style={styles.artwork}
+                uri={imageUrl}
+              />
+              <Pressable
+                accessibilityHint={accessibilityHint}
+                accessibilityLabel={accessibilityLabel}
+                accessibilityLiveRegion="polite"
+                accessibilityRole="button"
+                onPress={motion.onCardPress}
+                style={styles.body}
+                testID="banner-notification"
+              >
+                <Text numberOfLines={1} style={styles.title} testID="banner-notification-title">
+                  {title}
                 </Text>
-              ) : null}
-            </Pressable>
-            <Pressable
-              accessibilityLabel={dismissLabel}
-              accessibilityRole="button"
-              onPress={motion.onDismissPress}
-              style={styles.dismissHit}
-              testID="banner-notification-dismiss"
-            >
-              <Text style={styles.dismiss}>✕</Text>
-            </Pressable>
-          </View>
-        </Card>
-      </Animated.View>
-    </GestureDetector>
+                {body !== null ? (
+                  <Text numberOfLines={1} style={styles.summary}>
+                    {body}
+                  </Text>
+                ) : null}
+              </Pressable>
+            </View>
+          </GestureDetector>
+          <Pressable
+            accessibilityLabel={dismissLabel}
+            accessibilityRole="button"
+            onPress={motion.onDismissPress}
+            style={styles.dismissHit}
+            testID="banner-notification-dismiss"
+          >
+            <Text style={styles.dismiss}>✕</Text>
+          </Pressable>
+        </View>
+      </Card>
+    </Animated.View>
   );
 }

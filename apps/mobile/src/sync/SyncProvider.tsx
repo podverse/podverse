@@ -35,6 +35,7 @@ import {
   reportUserNetworkAction,
   subscribeConnectivity,
 } from '../net/connectivity';
+import { clearAccountPushPreferences } from '../notifications/accountPushPreferenceStore';
 import { clearBannerNotificationQueue } from '../notifications/bannerNotificationStore';
 import { resetNotificationsInboxCache } from '../notifications/notificationsInboxCache';
 import { resetNotificationStreamStore } from '../notifications/notificationStreamStore';
@@ -250,6 +251,7 @@ export function SyncProvider({ children }: PropsWithChildren) {
     resetCrossDevicePlaybackStore();
     resetNotificationsInboxCache();
     clearBannerNotificationQueue();
+    clearAccountPushPreferences();
     nowPlayingAddByRssSections.reset();
     homeFeedRefresh.notify();
     void import('../data/nativeCache/carCacheReproject')

@@ -83,7 +83,7 @@ flow_is_perf() {
 # Basename list of flows that need tools/test-assets on :2111 (real media / play asserts).
 flow_needs_test_assets() {
   case "$1" in
-  add-by-rss | add-by-rss-credentials | add-by-rss-episode-sections | add-by-rss-track | add-by-rss-artist | add-by-rss-livestream | add-by-rss-anonymous | add-by-rss-anonymous-artist | add-by-rss-anonymous-sections | add-by-rss-anonymous-podroll | add-by-rss-sign-in | add-by-rss-device-credentials | signup-add-by-rss-limit | auto-queue-advance | engine-audio-spike | hls-playback | library-downloads | livestream-player-controls | make-clip | \
+  add-by-rss | add-by-rss-credentials | add-by-rss-episode-sections | add-by-rss-track | add-by-rss-artist | add-by-rss-livestream | add-by-rss-anonymous | add-by-rss-anonymous-artist | add-by-rss-anonymous-sections | add-by-rss-anonymous-podroll | add-by-rss-sign-in | add-by-rss-device-credentials | signup-add-by-rss-limit | auto-queue-advance | banner-notification | engine-audio-spike | hls-playback | library-downloads | livestream-player-controls | make-clip | \
   membership-gate | play-mini-player | playback-cross-device | playback-offline-reconciliation | playback-resume-on-relaunch | player-screen | \
   show-notes | tab-switch-playback | tablet | v4v | video-transition)
     return 0

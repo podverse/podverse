@@ -31,6 +31,11 @@ import { accountHasAnyPushDevice } from '../../lib/notifications/applyFirstSubsc
 import { NOTIFICATION_TYPE_ROWS } from '../../lib/notifications/notificationTypeRows';
 import { useMembershipGate } from '../../membership/MembershipGateProvider';
 import {
+  setAccountPushPreferences,
+  setDevicePushStateForBanners,
+} from '../../notifications/accountPushPreferenceStore';
+import { shouldSkipBannerForPush } from '../../notifications/bannerPushSkipPolicy';
+import {
   getBannerNotificationCategoryEnabled,
   getBannerNotificationEnabled,
   hydrateBannerNotificationPrefs,
@@ -153,6 +158,7 @@ export function MoreSettingsNotificationsScreen() {
         .then((next) => {
           if (!cancelled) {
             setDevicePushState(next);
+            setDevicePushStateForBanners(next);
           }
         })
         .catch((error: unknown) => {
@@ -177,6 +183,7 @@ export function MoreSettingsNotificationsScreen() {
         void readDevicePushState()
           .then(async (next) => {
             setDevicePushState(next);
+            setDevicePushStateForBanners(next);
             if (previous === 'blocked' && next === 'enabled') {
               await enablePushOnThisDevice({ auth: requestContext, locale: selectedLocale });
             }
@@ -210,6 +217,7 @@ export function MoreSettingsNotificationsScreen() {
 
       try {
         const rows = await notificationsRepository.listPreferences(requestContext);
+        setAccountPushPreferences(rows);
         if (!isMounted) {
           return;
         }
@@ -441,7 +449,9 @@ export function MoreSettingsNotificationsScreen() {
           auth: requestContext,
           locale: selectedLocale,
         });
-        setDevicePushState(await readDevicePushState());
+        const nextDevicePushState = await readDevicePushState();
+        setDevicePushState(nextDevicePushState);
+        setDevicePushStateForBanners(nextDevicePushState);
         if (result.outcome === 'denied') {
           setErrorMessageKey('settings.notifications.permission_required');
           return;
@@ -462,6 +472,7 @@ export function MoreSettingsNotificationsScreen() {
         };
       });
       setNotificationPreferences(optimisticPreferences);
+      setAccountPushPreferences(optimisticPreferences);
 
       try {
         const updated = await notificationsRepository.updatePreferences(requestContext, {
@@ -474,8 +485,10 @@ export function MoreSettingsNotificationsScreen() {
           ],
         });
         setNotificationPreferences(updated);
+        setAccountPushPreferences(updated);
       } catch (error) {
         setNotificationPreferences(notificationPreferences);
+        setAccountPushPreferences(notificationPreferences);
         if (handleGateError(error)) {
           return;
         }
@@ -586,6 +599,13 @@ export function MoreSettingsNotificationsScreen() {
       const pushSwitchValue = accountPushEnabled && pushDeliveryReady === true;
       const pushDeliveryBlocksToggle = pushProvider !== 'fcm' && pushDeliveryReady !== true;
       const showPushAsterisk = showOptionalChannels && showPushRequirement;
+      const bannerHiddenByPush = shouldSkipBannerForPush({
+        category: row.category,
+        devicePushState,
+        pushEnabledByCategory: {
+          [row.category]: accountPushEnabled,
+        },
+      });
       const isFirst = index === 0;
       const isLast = index === rows.length - 1;
       const showFooter = options.showFooterHints && isLast && !showPushRequirement;
@@ -650,6 +670,11 @@ export function MoreSettingsNotificationsScreen() {
                 title={t('settings.notifications.preference_banner')}
                 value={getBannerNotificationCategoryEnabled(row.category)}
               />
+              {bannerHiddenByPush ? (
+                <Text style={styles.preferenceHint}>
+                  {t('settings.notifications.preference_banner_push_hides')}
+                </Text>
+              ) : null}
             </View>
           ) : null}
         </View>

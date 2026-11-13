@@ -30,11 +30,13 @@ import { startPerfUiMonitor } from './src/lib/perf/perfFrames';
 import { MembershipGateProvider } from './src/membership/MembershipGateProvider';
 import { MobileTabNavigator, navigateToMembershipScreen } from './src/navigation';
 import { isAuthGatedDeepLink } from './src/navigation/deepLinking';
+import { setPendingDeepLinkHandler } from './src/navigation/pendingDeepLink';
 import { TabLayoutProvider, useTabLayout } from './src/navigation/TabLayoutProvider';
 import { BannerNotificationHost } from './src/notifications/BannerNotificationHost';
 import { NotificationsRuntime } from './src/notifications/NotificationsRuntime';
 import { SignInPushPromptHost } from './src/notifications/SignInPushPromptHost';
 import { PlaybackProvider } from './src/playback';
+import { configureForegroundPushPresentation } from './src/push/configureForegroundPushPresentation';
 import {
   getInitialNotificationDeepLinkUrl,
   subscribeToNotificationOpen,
@@ -101,6 +103,17 @@ export default function App() {
       .finally(() => {
         setIsCustomApiReady(true);
       });
+  }, []);
+
+  useEffect(() => {
+    configureForegroundPushPresentation();
+  }, []);
+
+  useEffect(() => {
+    setPendingDeepLinkHandler(setPendingDeepLinkUrl);
+    return () => {
+      setPendingDeepLinkHandler(null);
+    };
   }, []);
 
   useEffect(() => {

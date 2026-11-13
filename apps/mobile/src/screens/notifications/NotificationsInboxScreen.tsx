@@ -1,6 +1,6 @@
 import { useFocusEffect } from '@react-navigation/native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { useCallback, useMemo, useRef, useState } from 'react';
+import { useCallback, useMemo, useRef, useState, useSyncExternalStore } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Platform, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -40,6 +40,10 @@ import type { RootStackParamList } from '../../navigation';
 import { ROOT_STACK_ROUTES } from '../../navigation';
 import { SlideUpDismissGesture } from '../../navigation/SlideUpDismissGesture';
 import { accountNotificationLineLabels } from '../../notifications/accountNotificationLineLabels';
+import {
+  isBannerNotificationVisible,
+  subscribeBannerNotificationQueue,
+} from '../../notifications/bannerNotificationStore';
 import { markNotificationReadById } from '../../notifications/notificationReadActions';
 import {
   getNotificationsInboxCache,
@@ -558,8 +562,16 @@ export function NotificationsInboxScreen({ navigation }: NotificationsInboxScree
     [handleNotificationPress]
   );
 
+  const bannerVisible = useSyncExternalStore(
+    subscribeBannerNotificationQueue,
+    isBannerNotificationVisible
+  );
+
   return (
-    <SlideUpDismissGesture enabled={Platform.OS === 'android'} onDismiss={handleDismiss}>
+    <SlideUpDismissGesture
+      enabled={Platform.OS === 'android' && !bannerVisible}
+      onDismiss={handleDismiss}
+    >
       <View style={styles.container} testID="notifications-inbox-screen">
         <HeaderBarChrome
           backAccessibilityLabel={t('misc.dismiss')}

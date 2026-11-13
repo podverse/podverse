@@ -1,6 +1,6 @@
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { Image } from 'expo-image';
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useMemo, useState, useSyncExternalStore } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Platform, StyleSheet, View } from 'react-native';
 
@@ -11,6 +11,10 @@ import { HeaderBarChrome } from '../../components/screen/HeaderBarChrome';
 import { useAddByRssArtworkHeaders } from '../../hooks/useAddByRssArtworkHeaders';
 import { shareRemoteFile } from '../../lib/share/shareRemoteFile';
 import { SlideUpDismissGesture } from '../../navigation/SlideUpDismissGesture';
+import {
+  isBannerNotificationVisible,
+  subscribeBannerNotificationQueue,
+} from '../../notifications/bannerNotificationStore';
 import type { ThemedStylesTheme } from '../../theme/useThemedStyles';
 import { useThemedStyles } from '../../theme/useThemedStyles';
 
@@ -81,12 +85,20 @@ export function ImageViewerScreen({ navigation, route }: ImageViewerScreenProps)
     ];
   }, [artworkHeaders, handleDownload, t]);
 
+  const bannerVisible = useSyncExternalStore(
+    subscribeBannerNotificationQueue,
+    isBannerNotificationVisible
+  );
+
   const dismiss = useCallback(() => {
     navigation.goBack();
   }, [navigation]);
 
   return (
-    <SlideUpDismissGesture enabled={Platform.OS === 'android'} onDismiss={dismiss}>
+    <SlideUpDismissGesture
+      enabled={Platform.OS === 'android' && !bannerVisible}
+      onDismiss={dismiss}
+    >
       <View style={styles.root} testID="image-viewer">
         <HeaderBarChrome
           backAccessibilityLabel={t('misc.dismiss')}

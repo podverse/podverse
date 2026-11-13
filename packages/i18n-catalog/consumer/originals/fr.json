@@ -1338,6 +1338,7 @@
       "preference_in_app": "Dans l'application",
       "preference_push": "Push",
       "preference_banner": "Bannière",
+      "preference_banner_push_hides": "Tant que les notifications push sont activées pour cette catégorie sur cet appareil, la notification système s'affiche à la place de la bannière dans l'application.",
       "preference_push_requirement": "Activez d'abord Web Push ou Unified Push.",
       "when_i_subscribe_section": "Lorsque je m'abonne",
       "media_notifications_section": "Notifications médias",

@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useSyncExternalStore } from 'react';
 import { useTranslation } from 'react-i18next';
-import { AppState, StyleSheet, View } from 'react-native';
+import { AppState, Pressable, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import type { DTOAccountNotification } from '@podverse/helpers';
@@ -14,6 +14,8 @@ import type { AuthStatus } from '../auth/AuthProvider';
 import { useAuth } from '../auth/AuthProvider';
 import type { AuthRequestDeps } from '../auth/authRequestWithRefresh';
 import { BannerNotification } from '../components/feedback/BannerNotification';
+import { isMobileE2eFromEnv } from '../config/env';
+import { notificationsRepository } from '../data/repositories';
 import { getReduceMotionSnapshot } from '../hooks/useReduceMotion';
 import {
   getBannerNotificationEnabled,
@@ -21,9 +23,18 @@ import {
   isBannerNotificationPrefsHydrated,
   subscribeBannerNotificationPrefs,
 } from '../prefs/bannerNotificationPrefs';
+import { readDevicePushState } from '../push/devicePushState.read';
 import { openAccountNotificationLink } from '../push/openAccountNotificationLink';
 import { useTheme } from '../theme/useTheme';
 import { accountNotificationLineLabels } from './accountNotificationLineLabels';
+import {
+  clearAccountPushPreferences,
+  getAccountPushPreferenceSnapshot,
+  setAccountPushPreferences,
+  setDevicePushStateForBanners,
+  subscribeAccountPushPreferences,
+} from './accountPushPreferenceStore';
+import { presentE2eBannerNotification } from './bannerNotificationE2e';
 import type { BannerNotificationKind } from './bannerNotificationPolicy';
 import {
   clearBannerNotificationQueue,
@@ -33,6 +44,7 @@ import {
   removeBannerNotification,
   subscribeBannerNotificationQueue,
 } from './bannerNotificationStore';
+import { shouldSkipBannerForPush } from './bannerPushSkipPolicy';
 import { markNotificationReadById } from './notificationReadActions';
 import {
   isNotificationsInboxFocused,
@@ -44,12 +56,21 @@ import { playBannerNotificationHaptic } from './playBannerNotificationHaptic';
 /**
  * Presents the banner queue above the navigator. Touches outside the card pass through.
  * Subscriptions start after the first paint. A notification that arrives while the app is not
- * active is dropped: it is not shown and it is not kept for the return to the foreground.
+ * active is dropped: it is not shown and it is not kept for the return to the foreground. When
+ * this device will show a system push for that category, the banner is skipped.
  */
 
 const HELD_BANNER_NOTIFICATION_LIMIT = 4;
 
 type BannerNotificationAuth = AuthRequestDeps & { status: AuthStatus };
+
+const isPushSkipSnapshotReady = (authStatus: AuthStatus): boolean => {
+  if (authStatus !== 'authenticated') {
+    return true;
+  }
+  const snapshot = getAccountPushPreferenceSnapshot();
+  return snapshot.devicePushState !== null && snapshot.pushEnabledByCategory !== null;
+};
 
 const presentHeldBannerNotifications = (
   held: readonly DTOAccountNotification[],
@@ -59,7 +80,17 @@ const presentHeldBannerNotifications = (
     appActive: AppState.currentState === 'active',
     inboxFocused: isNotificationsInboxFocused(),
   };
+  const pushSnapshot = getAccountPushPreferenceSnapshot();
   for (const notification of held) {
+    if (
+      shouldSkipBannerForPush({
+        category: notification.category,
+        devicePushState: pushSnapshot.devicePushState,
+        pushEnabledByCategory: pushSnapshot.pushEnabledByCategory,
+      })
+    ) {
+      continue;
+    }
     presentBannerNotification(notification, enabled, context);
   }
 };
@@ -88,6 +119,10 @@ export function BannerNotificationHost() {
     subscribeBannerNotificationPrefs,
     isBannerNotificationPrefsHydrated
   );
+  const pushSnapshot = useSyncExternalStore(
+    subscribeAccountPushPreferences,
+    getAccountPushPreferenceSnapshot
+  );
 
   const slotStyle = useMemo(
     () => ({
@@ -106,17 +141,73 @@ export function BannerNotificationHost() {
   }, []);
 
   useEffect(() => {
+    if (status !== 'authenticated' || accessToken === null) {
+      clearAccountPushPreferences();
+      return;
+    }
+
+    let cancelled = false;
+    const auth = {
+      accessToken,
+      clearSession,
+      refreshToken,
+      setTokens,
+    };
+
+    void (async () => {
+      try {
+        const [preferences, devicePushState] = await Promise.all([
+          notificationsRepository.listPreferences(auth),
+          readDevicePushState(),
+        ]);
+        if (cancelled) {
+          return;
+        }
+        setAccountPushPreferences(preferences);
+        setDevicePushStateForBanners(devicePushState);
+      } catch (error: unknown) {
+        if (cancelled) {
+          return;
+        }
+        console.warn('Could not load push preferences for banner skip', error);
+        try {
+          setDevicePushStateForBanners(await readDevicePushState());
+        } catch {
+          setDevicePushStateForBanners('unsupported');
+        }
+        setAccountPushPreferences([]);
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [accessToken, clearSession, refreshToken, setTokens, status]);
+
+  useEffect(() => {
     return subscribeNotificationStreamEvents((event) => {
       if (event.type === 'created') {
         if (AppState.currentState !== 'active') {
           return;
         }
-        if (!isBannerNotificationPrefsHydrated()) {
+        if (
+          !isBannerNotificationPrefsHydrated() ||
+          !isPushSkipSnapshotReady(authRef.current.status)
+        ) {
           const held = heldRef.current;
           held.push(event.notification);
           if (held.length > HELD_BANNER_NOTIFICATION_LIMIT) {
             held.splice(0, held.length - HELD_BANNER_NOTIFICATION_LIMIT);
           }
+          return;
+        }
+        if (
+          shouldSkipBannerForPush({
+            category: event.notification.category,
+            devicePushState: getAccountPushPreferenceSnapshot().devicePushState,
+            pushEnabledByCategory: getAccountPushPreferenceSnapshot().pushEnabledByCategory,
+          })
+        ) {
           return;
         }
         presentBannerNotification(event.notification, getBannerNotificationEnabled(), {
@@ -167,12 +258,15 @@ export function BannerNotificationHost() {
     if (!prefsHydrated) {
       return;
     }
+    if (status === 'authenticated' && !isPushSkipSnapshotReady(status)) {
+      return;
+    }
     const held = heldRef.current.splice(0, heldRef.current.length);
     if (status === 'anonymous') {
       return;
     }
     presentHeldBannerNotifications(held, enabled);
-  }, [enabled, prefsHydrated, status]);
+  }, [enabled, prefsHydrated, pushSnapshot, status]);
 
   const visibleId = queue.visible === null ? null : queue.visible.id;
   useEffect(() => {
@@ -187,14 +281,27 @@ export function BannerNotificationHost() {
     playBannerNotificationHaptic(getReduceMotionSnapshot());
   }, [visibleId]);
 
+  const e2ePresentControl = isMobileE2eFromEnv() ? (
+    <Pressable
+      accessibilityElementsHidden
+      importantForAccessibility="no-hide-descendants"
+      onPress={() => {
+        presentE2eBannerNotification();
+      }}
+      style={styles.e2ePresent}
+      testID="e2e-present-banner-notification"
+    />
+  ) : null;
+
   if (queue.visible === null) {
-    return null;
+    return e2ePresentControl;
   }
 
   const visible = queue.visible;
 
   return (
     <View pointerEvents="box-none" style={styles.host}>
+      {e2ePresentControl}
       <View pointerEvents="box-none" style={slotStyle}>
         <BannerNotification
           accessibilityHint={t('settings.notifications.banner_open_hint')}
@@ -223,6 +330,13 @@ export function BannerNotificationHost() {
 }
 
 const styles = StyleSheet.create({
+  e2ePresent: {
+    height: 1,
+    left: 0,
+    position: 'absolute',
+    top: 0,
+    width: 1,
+  },
   host: {
     ...StyleSheet.absoluteFill,
   },

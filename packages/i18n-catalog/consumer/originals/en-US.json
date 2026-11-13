@@ -1350,6 +1350,7 @@
       "preference_in_app": "In-App",
       "preference_push": "Push",
       "preference_banner": "Banner",
+      "preference_banner_push_hides": "While Push is on for this category on this device, the system notification is shown instead of the in-app banner.",
       "preference_push_requirement": "Enable Web Push or Unified Push first.",
       "when_i_subscribe_section": "When I Subscribe",
       "media_notifications_section": "Media Notifications",

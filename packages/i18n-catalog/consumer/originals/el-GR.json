@@ -1338,6 +1338,7 @@
       "preference_in_app": "Στην εφαρμογή",
       "preference_push": "Push",
       "preference_banner": "Banner",
+      "preference_banner_push_hides": "Όσο το Push είναι ενεργό για αυτή την κατηγορία σε αυτή τη συσκευή, εμφανίζεται η ειδοποίηση συστήματος αντί για το in-app banner.",
       "preference_push_requirement": "Ενεργοποιήστε πρώτα το Web Push ή το Unified Push.",
       "when_i_subscribe_section": "Όταν κάνω εγγραφή",
       "media_notifications_section": "Ειδοποιήσεις μέσων",

@@ -3,7 +3,12 @@ import { NotificationCategoryEnum } from '@podverse/helpers';
 import type { AuthRequestDeps } from '../../auth/authRequestWithRefresh';
 import { requestWithMobileAuthRefresh } from '../../auth/authRequestWithRefresh';
 import { notificationsRepository } from '../../data/repositories';
+import {
+  setAccountPushPreferences,
+  setDevicePushStateForBanners,
+} from '../../notifications/accountPushPreferenceStore';
 import { markFirstSubscribePushPromptAnswered } from '../../prefs/subscribePushPromptPrefs';
+import { readDevicePushState } from '../../push/devicePushState.read';
 import { enablePushOnThisDevice } from '../../push/enablePushOnThisDevice';
 
 export type FirstSubscribePushChoice = 'enable_push' | 'in_app_only';
@@ -25,7 +30,7 @@ export const accountHasAnyPushDevice = async (auth: AuthRequestDeps): Promise<bo
 
 const setMediaPushEnabled = async (auth: AuthRequestDeps, pushEnabled: boolean): Promise<void> => {
   const existing = await notificationsRepository.listPreferences(auth);
-  await notificationsRepository.updatePreferences(auth, {
+  const updated = await notificationsRepository.updatePreferences(auth, {
     preferences: MEDIA_PUSH_CATEGORIES.map((category) => {
       const row = existing.find((candidate) => candidate.category === category);
       return {
@@ -35,6 +40,12 @@ const setMediaPushEnabled = async (auth: AuthRequestDeps, pushEnabled: boolean):
       };
     }),
   });
+  setAccountPushPreferences(updated);
+  try {
+    setDevicePushStateForBanners(await readDevicePushState());
+  } catch (error: unknown) {
+    console.warn('Could not refresh device push state after first subscribe choice', error);
+  }
 };
 
 const enableChannelInboxNotifications = async (

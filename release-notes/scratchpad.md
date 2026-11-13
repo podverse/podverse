@@ -421,3 +421,14 @@
   every directory follow was reported missing.
 - Who notices: mobile users exporting OPML that includes subscribed podcasts
 - Operator steps: none
+
+## Mobile banners defer to push on the same device
+
+- Surfaces: mobile
+- Change: When Push is on for a category and this device can show system notifications, the
+  in-app banner for that category is skipped so the same alert is not shown twice. Foreground
+  FCM builds present the system banner, list, and sound. Banner and inbox taps use the same
+  deep-link path as a push tap, including while the full player is open. The banner close
+  control dismisses the card in that case. The notifications inbox is unchanged.
+- Who notices: signed-in mobile listeners with Push and Banner both on
+- Operator steps: none

@@ -52,6 +52,11 @@ export function getBannerNotificationQueue(): BannerNotificationQueueState {
   return queueState;
 }
 
+/** True while a banner card is on screen. Used to park slide-up dismiss gestures in that band. */
+export function isBannerNotificationVisible(): boolean {
+  return queueState.visible !== null;
+}
+
 export function subscribeBannerNotificationQueue(listener: Listener): () => void {
   listeners.add(listener);
   return () => {
