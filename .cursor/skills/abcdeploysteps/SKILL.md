@@ -598,7 +598,12 @@ the checklist path in `apps/mobile/modules/podverse-media-engine/`. Do not paste
 6. The steps (same text as the file).
 7. The temp file path.
 
-Do not run the steps. If the operator later says to run one, still refuse push, EAS build or
-submit, Argo, secret generation, and anything that deletes cluster data. Repeat the warning
-before any step in the inadvisable list. That refusal is for this command. `abcdeployrun` is
-allowed to run the server and GitOps steps; follow that skill for what it may run.
+Do not run the steps from this command. If the operator later tells you to carry out the pin
+or to finish the alpha update, that is **abcdeployrun** for the server lane, and it includes
+the migrate jobs when `Migrations:` is not `none`. A pin whose pending list is not `none` is
+not done at `git push`. Do not hand those jobs back as the next paste when you are the one
+deploying. The new API stays in `wait-app-migrations` until they run.
+
+Still refuse EAS build or submit, a database wipe, secret generation, and a `main` promote.
+Repeat the warning before any step in the inadvisable list. That refusal is for this command.
+`abcdeployrun` runs the server and GitOps steps, including the migrate jobs.

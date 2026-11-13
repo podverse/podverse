@@ -130,9 +130,15 @@ script stops the run before the commit.
 Do not change kubectl context. Before the first kubectl write, record the context and the API
 server, and run `kubectl get namespace podverse-alpha`. Stop if that namespace is not found.
 
+The GitOps push is not the end of the run. Do not answer that the pin is pushed and leave
+the migrate commands for a later message. Syncing the new tag does not apply SQL to a database
+that already exists. The new API stays in `wait-app-migrations`, and web stays Degraded, until
+every pending file is applied.
+
 Then follow the GitOps waits in `abcdeploysteps`: `db` and `ops` synced and Healthy, the
 bootstrap job, then **Pending migrations** from that skill. Run that check before the public
-app waits. A file missing from `linear_migration_history` is pending even when
+app waits. Confirm the ops migration ConfigMap for that database lists each pending filename
+before creating the job. A file missing from `linear_migration_history` is pending even when
 `<pinned-tag>..origin/develop` does not add it. Create the matching migrate job once, wait
 for it, and read the log for an `APPLY` line for each pending filename. `Migrations: none`
 means skip the job. `unconfirmed` means stop. Then the public apps synced and Healthy, then
@@ -152,5 +158,6 @@ Public hosts, after both public waits return:
 ## Reply
 
 When the run finishes, say whether alpha is serving the new tag or why it stopped. Include the
-tag, the GitOps commit, smoke status codes when they ran, and the log path. Mention mobile only
-to say this command did not build it.
+tag, the GitOps commit, the `APPLY` lines for each pending migration, smoke status codes when
+they ran, and the log path. A reply that stops at the pin while migrations are pending is not
+finished. Mention mobile only to say this command did not build it.
