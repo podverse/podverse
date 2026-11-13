@@ -8,9 +8,8 @@ export type ResolvedProductMembershipResponse = {
 
 export type UpdateProductMembershipSettingsRequest = {
   freeTrialExpirationSeconds?: number;
-  trialMaxAddByRSSFeeds?: number;
+  maxAddByRSSFeeds?: number;
   trialMaxManualRefreshesPerHour?: number;
-  premiumMaxAddByRSSFeeds?: number;
   premiumMaxManualRefreshesPerHour?: number;
 };
 

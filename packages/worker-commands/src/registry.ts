@@ -31,6 +31,42 @@ const WORKER_COMMAND_DEFS: readonly WorkerCommandDef[] = [
     example_cli: 'npm run billing_strike_ensure_webhook -w apps/workers',
   },
   {
+    name: 'v4CopyAccountLibrary',
+    label: 'v4: dry-run one account library',
+    description:
+      'Count one v4 library against the local v5 catalog. A dry run is required and writes nothing. Does not set v4_library_copied_at.',
+    category: 'orm',
+    risk: 'normal',
+    example_cli: 'npm run v4_copy_account_library -w apps/workers -- --v4-id abcd123 --dry-run',
+  },
+  {
+    name: 'v4ReplayLegacyRows',
+    label: 'v4: replay pending library rows',
+    description:
+      'Finish rows the v4 library copy recorded as pending: follows, playlist clips, queue, history, now playing, and snapshot re-attach. Each row runs in its own transaction. A dry run rolls every row back. Subscriptions are left alone. Refuses a non-local database.',
+    category: 'orm',
+    risk: 'normal',
+    example_cli: 'npm run v4_replay_legacy_rows -w apps/workers -- --dry-run --limit 100',
+  },
+  {
+    name: 'v4SeedAccountIdentity',
+    label: 'v4: seed one account identity',
+    description:
+      'Copy one v4 account email, bcrypt hash, name, verified flag, and id into v5, and write the signup rows for settings, membership status, and metaboost. A future paid expiry sets Premium. A trial ending within 90 days is a Trial grant. A dry run prints the action and writes nothing. Does not copy a library, start a signup trial, or write the paid grant.',
+    category: 'orm',
+    risk: 'normal',
+    example_cli: 'npm run v4_seed_account_identity -w apps/workers -- --v4-id abcd123 --dry-run',
+  },
+  {
+    name: 'v4SeedAccountCatalog',
+    label: 'v4: seed one account catalog',
+    description:
+      'Count the public shows one v4 account needs. A dry run writes nothing. Without --dry-run, create each missing local feed with the v4 podcast id and queue a parse on rss-slow. Refuses a non-local database.',
+    category: 'orm',
+    risk: 'normal',
+    example_cli: 'npm run v4_seed_account_catalog -w apps/workers -- --v4-id abcd123 --dry-run',
+  },
+  {
     name: 'billingImportLegacyMembershipExpiry',
     label: 'Billing: import legacy membership expiry',
     description:

@@ -47,6 +47,14 @@ pin only. It does not authorize a force push, `sync-staging-to-main.sh`, a versi
 store commands, or any other branch. See
 [.cursor/skills/abcdeployrun/SKILL.md](/.cursor/skills/abcdeployrun/SKILL.md).
 
+**v4-to-v5 migration inventory overnight** is finished. That pass no longer authorizes
+`git commit` or `git push`. Later work follows
+[.cursor/prompts/v4-to-v5-migration-guided.md](/.cursor/prompts/v4-to-v5-migration-guided.md):
+one chunk, then stop and ask. It stays in the working tree, including a repeat of
+[.cursor/prompts/v4-to-v5-migration-inventory-overnight.md](/.cursor/prompts/v4-to-v5-migration-inventory-overnight.md).
+Commit or push only when the operator's current message explicitly asks for that
+command. No pull requests.
+
 ## Why
 
 Protected branches and publish pipelines are operator-controlled. Agent-driven pushes and merges bypass review and can trigger unintended releases.

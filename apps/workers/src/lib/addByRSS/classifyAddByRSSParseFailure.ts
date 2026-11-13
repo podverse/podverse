@@ -3,6 +3,7 @@ import type {
   AddByRSSParseCredentialsState,
   AddByRSSParseFailureReason,
 } from '@podverse/helpers';
+import { resolveAddByRSSParseFailureReason, toAddByRSSAuthChallenge } from '@podverse/helpers';
 
 export type UpstreamHttpFailure = {
   httpStatus?: number;
@@ -12,8 +13,6 @@ export type UpstreamHttpFailure = {
 export type ClassifiedAddByRSSParseFailure = UpstreamHttpFailure & {
   failureReason: AddByRSSParseFailureReason;
 };
-
-const BASIC_CHALLENGE = /(^|,)\s*basic\b/i;
 
 const readHeader = (headers: unknown, nameLower: string): string | undefined => {
   if (typeof headers !== 'object' || headers === null) {
@@ -33,15 +32,6 @@ const readHeader = (headers: unknown, nameLower: string): string | undefined => 
   return undefined;
 };
 
-export const toAuthChallenge = (
-  wwwAuthenticate: string | undefined
-): AddByRSSParseAuthChallenge => {
-  if (wwwAuthenticate === undefined || wwwAuthenticate.trim() === '') {
-    return 'none';
-  }
-  return BASIC_CHALLENGE.test(wwwAuthenticate) ? 'basic' : 'other';
-};
-
 /**
  * Reads the HTTP status and auth challenge from an Axios-style error. Only the status and the
  * `WWW-Authenticate` header are read — never the request config, which holds the Authorization
@@ -58,7 +48,10 @@ export const readUpstreamHttpFailure = (error: unknown): UpstreamHttpFailure => 
   const httpStatus =
     'status' in response && typeof response.status === 'number' ? response.status : undefined;
   const headers = 'headers' in response ? response.headers : undefined;
-  return { httpStatus, authChallenge: toAuthChallenge(readHeader(headers, 'www-authenticate')) };
+  return {
+    httpStatus,
+    authChallenge: toAddByRSSAuthChallenge(readHeader(headers, 'www-authenticate')),
+  };
 };
 
 /** Axios and Node socket errors carry `isAxiosError` or a string `code`; parser throws do not. */
@@ -69,14 +62,8 @@ const isTransportError = (error: unknown): boolean =>
     ('code' in error && typeof error.code === 'string'));
 
 /**
- * Maps a failed add-by-RSS fetch to a reason the device can act on. `error` is the thrown fetch
- * error; omit it when the fetch succeeded but the body did not parse.
- *
- * - An unopenable envelope always reports `credentials_envelope_invalid`.
- * - 401/403 after sending credentials means the origin rejected them.
- * - When credentials existed but scope withheld them, any failure keeps the withheld reason:
- *   the device needs to know its credentials never reached the origin.
- * - A 401 without a non-Basic challenge, with nothing sent, means credentials are required.
+ * Maps a thrown fetch error (axios) to the shared failure reason; omit `error` when the fetch
+ * succeeded but the body did not parse.
  */
 export const classifyAddByRSSParseFailure = ({
   error,
@@ -87,34 +74,15 @@ export const classifyAddByRSSParseFailure = ({
 }): ClassifiedAddByRSSParseFailure => {
   const upstream: UpstreamHttpFailure =
     error === undefined ? { authChallenge: 'none' } : readUpstreamHttpFailure(error);
-  const { httpStatus } = upstream;
-  const classified = (failureReason: AddByRSSParseFailureReason) => ({
+  return {
     ...upstream,
-    failureReason,
-  });
-
-  if (credentialsState === 'decrypt_failed') {
-    return classified('credentials_envelope_invalid');
-  }
-  if (credentialsState === 'sent' && (httpStatus === 401 || httpStatus === 403)) {
-    return classified('credentials_rejected');
-  }
-  if (credentialsState === 'withheld_other_domain') {
-    return classified('credentials_withheld_other_domain');
-  }
-  if (credentialsState === 'withheld_insecure') {
-    return classified('credentials_withheld_insecure');
-  }
-  if (httpStatus === 401 && upstream.authChallenge !== 'other') {
-    return classified('credentials_required');
-  }
-  if (httpStatus !== undefined) {
-    return classified('http_error');
-  }
-  if (error !== undefined && isTransportError(error)) {
-    return classified('network');
-  }
-  return classified('parse');
+    failureReason: resolveAddByRSSParseFailureReason({
+      authChallenge: upstream.authChallenge,
+      credentialsState,
+      httpStatus: upstream.httpStatus,
+      transportError: error !== undefined && isTransportError(error),
+    }),
+  };
 };
 
 /**

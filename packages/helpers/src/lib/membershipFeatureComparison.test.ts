@@ -23,6 +23,9 @@ describe('membership comparison marks', () => {
   it('marks Free-on-mobile separately from a feature that is mobile-app only', () => {
     expect(membershipComparisonFreeOnMobileOnly(featureNamed('subscribe'))).toBe(true);
     expect(membershipComparisonMobileAppOnly(featureNamed('subscribe'))).toBe(false);
+    expect(featureNamed('add_rss').free).toBe(true);
+    expect(featureNamed('add_rss').premium).toBe(true);
+    expect(membershipComparisonFreeOnMobileOnly(featureNamed('add_rss'))).toBe(true);
     expect(membershipComparisonFreeOnMobileOnly(featureNamed('download'))).toBe(false);
     expect(membershipComparisonMobileAppOnly(featureNamed('download'))).toBe(false);
     expect(membershipComparisonMobileAppOnly(featureNamed('carplay'))).toBe(false);
@@ -51,7 +54,6 @@ describe('membership comparison marks', () => {
   });
 
   it('keeps Premium-only rows off the Free column', () => {
-    expect(featureNamed('add_rss').free).toBe(false);
     expect(featureNamed('playback_handoff').premium).toBe(true);
     expect(featureNamed('playback_handoff').free).toBe(false);
     expect(featureNamed('queue').free).toBe(false);
@@ -103,7 +105,6 @@ const comparisonMessages: MembershipComparisonMessages = {
   names: comparisonNames,
   premium: 'Premium',
   trialDirectory: 'Directory blocked.',
-  trialFeedLimit: 'Feeds {trial_feeds} and {premium_feeds}.',
   trialRefreshLimit: 'Refresh {trial_refreshes} and {premium_refreshes}.',
   trialStats: 'Listens are saved.',
   trialSummary: 'Some features are unavailable.',
@@ -116,10 +117,8 @@ describe('membership comparison document', () => {
       'en-US',
       {
         premiumAllowDirectoryAddByRSS: true,
-        premiumMaxAddByRSSFeeds: 100,
         premiumMaxManualRefreshesPerHour: 20,
         trialAllowDirectoryAddByRSS: false,
-        trialMaxAddByRSSFeeds: 10,
         trialMaxManualRefreshesPerHour: 5,
       },
       comparisonMessages
@@ -139,10 +138,12 @@ describe('membership comparison document', () => {
     const transcriptsIndex = document.features.findIndex((row) => row.id === 'transcripts');
     const boostagramsIndex = document.features.findIndex((row) => row.id === 'boostagrams');
     expect(addRssIndex).toBe(screenReaderIndex + 1);
+    const addRss = document.features.find((row) => row.id === 'add_rss');
+    expect(addRss?.name).toBe('add_rss *');
+    expect(addRss?.free).toBe(true);
     expect(boostagramsIndex).toBe(transcriptsIndex + 1);
     expect(document.trialLimitations.items).toEqual([
       'Directory blocked.',
-      'Feeds 10 and 100.',
       'Refresh 5 and 20.',
       'Listens are saved.',
     ]);
@@ -153,10 +154,8 @@ describe('membership comparison document', () => {
       'en-US',
       {
         premiumAllowDirectoryAddByRSS: true,
-        premiumMaxAddByRSSFeeds: 10,
         premiumMaxManualRefreshesPerHour: 5,
         trialAllowDirectoryAddByRSS: true,
-        trialMaxAddByRSSFeeds: 10,
         trialMaxManualRefreshesPerHour: 5,
       },
       comparisonMessages

@@ -308,6 +308,13 @@ const validateAllEnvironmentVariables = (): ValidationSummary => {
       'Use Default (30)'
     )
   );
+  results.push(
+    validateOptional(
+      'ACCOUNT_ADD_BY_RSS_REMOTE_ITEM_RESOLVE_ANON_MAX_PER_MINUTE',
+      'Add-by-RSS',
+      'Use Default (120)'
+    )
+  );
 
   // OPML import (optional; default 50 new feeds/hour)
   results.push(
@@ -380,6 +387,7 @@ const validateAllEnvironmentVariables = (): ValidationSummary => {
   results.push(validateOptional('MEMBERSHIP_PREMIUM_COST_MONTHLY', 'Premium'));
   results.push(validateOptional('MEMBERSHIP_PREMIUM_COST_ANNUALLY', 'Premium'));
   results.push(validateOptional('MEMBERSHIP_FREE_TRIAL_EXPIRATION', 'Premium'));
+  results.push(validateOptional('MEMBERSHIP_MAX_ADD_BY_RSS_FEEDS', 'Premium', 'Use Default (100)'));
 
   // Mailer (conditionally required when signup mode uses email flows)
   if (usesEmailFlows) {

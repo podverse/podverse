@@ -1141,12 +1141,12 @@
     "trial_limitations_show_more": "",
     "trial_limitations_title": "",
     "trial_limitations_directory_add_by_rss": "",
-    "trial_limitations_add_by_rss_feed_limit": "",
     "trial_limitations_manual_refresh_limit": "",
     "trial_limitations_stats_tracking": "",
     "gate": {
       "cancel": "",
       "sign_up": "",
+      "email_support": "",
       "title_expired": "",
       "title_premium": "",
       "title_limit": "",

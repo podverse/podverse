@@ -1,7 +1,7 @@
 import { ensureAuthenticated, getAuthenticatedUser } from '@api/lib/auth/index.js';
-import { generateOpml } from '@api/lib/opml/generateOpml.js';
 import type { Request, Response } from 'express';
 
+import { generateOpml } from '@podverse/helpers';
 import {
   AccountFollowingAddByRSSChannelService,
   AccountFollowingChannelService,

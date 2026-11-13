@@ -16,9 +16,8 @@ type ActivePricingRow = {
 
 type ProductMembershipSettingsRow = {
   free_trial_expiration_seconds: number;
-  trial_max_add_by_rss_feeds: number;
+  max_add_by_rss_feeds: number;
   trial_max_manual_refreshes_per_hour: number;
-  premium_max_add_by_rss_feeds: number;
   premium_max_manual_refreshes_per_hour: number;
 };
 
@@ -75,9 +74,8 @@ export class BillingPriceCatalogService {
       `
       SELECT
         free_trial_expiration_seconds,
-        trial_max_add_by_rss_feeds,
+        max_add_by_rss_feeds,
         trial_max_manual_refreshes_per_hour,
-        premium_max_add_by_rss_feeds,
         premium_max_manual_refreshes_per_hour
       FROM product_membership_settings
       WHERE id = 1
@@ -98,9 +96,8 @@ export class BillingPriceCatalogService {
         ? `
       ON CONFLICT (id) DO UPDATE SET
         free_trial_expiration_seconds = EXCLUDED.free_trial_expiration_seconds,
-        trial_max_add_by_rss_feeds = EXCLUDED.trial_max_add_by_rss_feeds,
+        max_add_by_rss_feeds = EXCLUDED.max_add_by_rss_feeds,
         trial_max_manual_refreshes_per_hour = EXCLUDED.trial_max_manual_refreshes_per_hour,
-        premium_max_add_by_rss_feeds = EXCLUDED.premium_max_add_by_rss_feeds,
         premium_max_manual_refreshes_per_hour = EXCLUDED.premium_max_manual_refreshes_per_hour,
         updated_at = EXCLUDED.updated_at`
         : 'ON CONFLICT (id) DO NOTHING';
@@ -109,21 +106,19 @@ export class BillingPriceCatalogService {
       INSERT INTO product_membership_settings (
         id,
         free_trial_expiration_seconds,
-        trial_max_add_by_rss_feeds,
+        max_add_by_rss_feeds,
         trial_max_manual_refreshes_per_hour,
-        premium_max_add_by_rss_feeds,
         premium_max_manual_refreshes_per_hour,
         created_at,
         updated_at
       )
-      VALUES (1, $1, $2, $3, $4, $5, $6, $6)
+      VALUES (1, $1, $2, $3, $4, $5, $5)
       ${conflictResolution}
       `,
       [
         envDefaults.freeTrialExpirationSeconds,
-        envDefaults.trialMaxAddByRSSFeeds,
+        envDefaults.maxAddByRSSFeeds,
         envDefaults.trialMaxManualRefreshesPerHour,
-        envDefaults.premiumMaxAddByRSSFeeds,
         envDefaults.premiumMaxManualRefreshesPerHour,
         now,
       ]
@@ -132,9 +127,8 @@ export class BillingPriceCatalogService {
 
   async updateProductMembershipSettings(params: {
     freeTrialExpirationSeconds?: number;
-    trialMaxAddByRSSFeeds?: number;
+    maxAddByRSSFeeds?: number;
     trialMaxManualRefreshesPerHour?: number;
-    premiumMaxAddByRSSFeeds?: number;
     premiumMaxManualRefreshesPerHour?: number;
   }): Promise<void> {
     await this.ensureProductMembershipTrialSeededFromEnv();
@@ -148,19 +142,14 @@ export class BillingPriceCatalogService {
       values.push(params.freeTrialExpirationSeconds);
       paramIndex += 1;
     }
-    if (params.trialMaxAddByRSSFeeds !== undefined) {
-      assignments.push(`trial_max_add_by_rss_feeds = $${paramIndex}`);
-      values.push(params.trialMaxAddByRSSFeeds);
+    if (params.maxAddByRSSFeeds !== undefined) {
+      assignments.push(`max_add_by_rss_feeds = $${paramIndex}`);
+      values.push(params.maxAddByRSSFeeds);
       paramIndex += 1;
     }
     if (params.trialMaxManualRefreshesPerHour !== undefined) {
       assignments.push(`trial_max_manual_refreshes_per_hour = $${paramIndex}`);
       values.push(params.trialMaxManualRefreshesPerHour);
-      paramIndex += 1;
-    }
-    if (params.premiumMaxAddByRSSFeeds !== undefined) {
-      assignments.push(`premium_max_add_by_rss_feeds = $${paramIndex}`);
-      values.push(params.premiumMaxAddByRSSFeeds);
       paramIndex += 1;
     }
     if (params.premiumMaxManualRefreshesPerHour !== undefined) {
@@ -192,26 +181,24 @@ export class BillingPriceCatalogService {
     const row = await this.getProductMembershipSettingsRow();
     if (row === null) {
       return {
+        maxAddByRSSFeeds: envDefaults.maxAddByRSSFeeds,
         trialAllowDirectoryAddByRSS: envDefaults.trialAllowDirectoryAddByRSS,
-        trialMaxAddByRSSFeeds: envDefaults.trialMaxAddByRSSFeeds,
         trialMaxManualRefreshesPerHour: envDefaults.trialMaxManualRefreshesPerHour,
         trialTrackStats: envDefaults.trialTrackStats,
         trialAllowNotifications: envDefaults.trialAllowNotifications,
         premiumAllowDirectoryAddByRSS: envDefaults.premiumAllowDirectoryAddByRSS,
-        premiumMaxAddByRSSFeeds: envDefaults.premiumMaxAddByRSSFeeds,
         premiumMaxManualRefreshesPerHour: envDefaults.premiumMaxManualRefreshesPerHour,
         premiumTrackStats: envDefaults.premiumTrackStats,
         premiumAllowNotifications: envDefaults.premiumAllowNotifications,
       };
     }
     return {
+      maxAddByRSSFeeds: row.max_add_by_rss_feeds,
       trialAllowDirectoryAddByRSS: envDefaults.trialAllowDirectoryAddByRSS,
-      trialMaxAddByRSSFeeds: row.trial_max_add_by_rss_feeds,
       trialMaxManualRefreshesPerHour: row.trial_max_manual_refreshes_per_hour,
       trialTrackStats: envDefaults.trialTrackStats,
       trialAllowNotifications: envDefaults.trialAllowNotifications,
       premiumAllowDirectoryAddByRSS: envDefaults.premiumAllowDirectoryAddByRSS,
-      premiumMaxAddByRSSFeeds: row.premium_max_add_by_rss_feeds,
       premiumMaxManualRefreshesPerHour: row.premium_max_manual_refreshes_per_hour,
       premiumTrackStats: envDefaults.premiumTrackStats,
       premiumAllowNotifications: envDefaults.premiumAllowNotifications,
@@ -328,18 +315,12 @@ export class BillingPriceCatalogService {
         annualRow !== undefined
           ? Number((annualRow.amount_cents / 100).toFixed(2))
           : envDefaults.premiumMembershipCostAnnually,
-      trialMaxAddByRSSFeeds:
-        settingsRow !== null
-          ? settingsRow.trial_max_add_by_rss_feeds
-          : envDefaults.trialMaxAddByRSSFeeds,
+      maxAddByRSSFeeds:
+        settingsRow !== null ? settingsRow.max_add_by_rss_feeds : envDefaults.maxAddByRSSFeeds,
       trialMaxManualRefreshesPerHour:
         settingsRow !== null
           ? settingsRow.trial_max_manual_refreshes_per_hour
           : envDefaults.trialMaxManualRefreshesPerHour,
-      premiumMaxAddByRSSFeeds:
-        settingsRow !== null
-          ? settingsRow.premium_max_add_by_rss_feeds
-          : envDefaults.premiumMaxAddByRSSFeeds,
       premiumMaxManualRefreshesPerHour:
         settingsRow !== null
           ? settingsRow.premium_max_manual_refreshes_per_hour

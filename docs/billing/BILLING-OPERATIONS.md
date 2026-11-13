@@ -215,42 +215,53 @@ The v4 expiry import is [v4 membership carryover](#v4-membership-carryover).
 
 `billingImportLegacyMembershipExpiry` copies expiry from the previous Podverse app into
 `legacy_import` grants. It reads email and `membership_expires_at` only. It does not import
-payment transactions or email anyone.
+payment transactions, `freeTrialExpiration`, or email anyone. v4 purchase receipts stay
+out of v5. Archive `paypalOrders`, `appStorePurchase`, `googlePlayPurchase`, and
+`bitpayInvoices` outside the git repo before the import. That archive can hold payment
+tokens, so it is not committed. A future v4 trial that ends
+within 90 days is a separate Trial grant. A trial end more than 90 days ahead is not
+imported. Paid expiry is kept as stored, including dates more than 90 days ahead,
+except an account with an App Store purchase on 2023-12-27 through 2024-01-31
+whose expiry is more than five years ahead. That expiry is imported as five
+years from the import time. The account copy sets Premium when access comes
+from a future paid `membershipExpiration`, and Trial when it comes from a
+carried trial. This command writes the grant and the expiry only. It does
+not change the tier.
 
 Run it only after v5 already has the migrated accounts, with the same emails. Until that
 account migration is underway, leave the v4 database alone. The steps below are the runbook
 for that later pass.
 
-Export those two columns from the v4 database (read-only). Join `account_credentials.email`
-to `account_membership_status.membership_expires_at`, drop null expirations, and format the
-timestamp as ISO-8601 UTC. Save the file outside this repo. It contains email addresses.
+Export those two columns from the v4 `users` table (read-only). v4 stores the address
+on `users.email` and the expiry on `users.membershipExpiration` (`timestamp without time zone`).
+There is no `account_credentials` table in v4. Drop null expirations. The stored clock is UTC,
+so format that timestamp directly and label it `Z`. Save the file outside this repo. It contains
+email addresses.
 
 ```sql
-SELECT c.email,
+SELECT email,
   to_char(
-    s.membership_expires_at AT TIME ZONE 'UTC',
+    "membershipExpiration",
     'YYYY-MM-DD"T"HH24:MI:SS"Z"'
   ) AS membership_expires_at
-FROM account_credentials AS c
-INNER JOIN account_membership_status AS s ON s.account_id = c.account_id
-WHERE c.email IS NOT NULL
-  AND s.membership_expires_at IS NOT NULL
-ORDER BY c.email;
+FROM users
+WHERE email IS NOT NULL
+  AND "membershipExpiration" IS NOT NULL
+ORDER BY email;
 ```
 
 ```bash
 psql "$V4_DATABASE_URL" <<'SQL'
 \copy (
-  SELECT c.email,
+  SELECT email,
     to_char(
-      s.membership_expires_at AT TIME ZONE 'UTC',
+      "membershipExpiration",
       'YYYY-MM-DD"T"HH24:MI:SS"Z"'
     ) AS membership_expires_at
-  FROM account_credentials AS c
-  INNER JOIN account_membership_status AS s ON s.account_id = c.account_id
-  WHERE c.email IS NOT NULL
-    AND s.membership_expires_at IS NOT NULL
-  ORDER BY c.email
+  FROM users
+  WHERE email IS NOT NULL
+    AND "membershipExpiration" IS NOT NULL
+  ORDER BY email
 ) TO '/absolute/path/outside/the/repo/v4-membership-expiry.csv' WITH (FORMAT csv, HEADER true)
 SQL
 ```

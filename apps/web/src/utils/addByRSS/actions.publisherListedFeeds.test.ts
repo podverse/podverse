@@ -73,8 +73,7 @@ vi.mock('./credentialStore', () => ({
   setCredentials: vi.fn(),
 }));
 
-import { FeedType, Phase5Blocked } from 'podverse-partytime';
-import { Phase4LiveStatus } from 'podverse-partytime/dist/parser/phase/phase-4.js';
+import { FeedType, Phase4LiveStatus, Phase5Blocked } from 'podverse-partytime/core';
 
 import type { AddByRSSPublisherListedFeed } from '@podverse/helpers';
 import { convertParsedRSSFeedToCompat } from '@podverse/parser-mapping';

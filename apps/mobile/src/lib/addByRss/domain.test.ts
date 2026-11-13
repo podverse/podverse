@@ -12,6 +12,7 @@ import {
   mapParsedFeedToPreview,
   mergeLocalAndRemoteAddByRssFeeds,
   pollAddByRssParseStatus,
+  resolveAddByRssParsePayload,
   toAddByRssLiveItemPlaybackResourceData,
 } from './domain';
 import { addByRssPlaybackMediaId } from './resourceData';
@@ -30,6 +31,30 @@ const localFeed = (
   title: 'E2E Add-by-RSS Channel',
   updatedAt: '2026-01-01T00:00:00.000Z',
   ...overrides,
+});
+
+describe('resolveAddByRssParsePayload', () => {
+  const emptyPreview = {
+    enclosureUrl: null,
+    imageUrl: null,
+    latestItemPubDateMs: null,
+    playbackPosition: null,
+    title: null,
+  };
+
+  it('returns no bundle and an empty preview for a failed parse without a payload', () => {
+    expect(resolveAddByRssParsePayload('failed', undefined)).toEqual({
+      mappedFeed: null,
+      preview: emptyPreview,
+    });
+  });
+
+  it('returns no bundle and an empty preview for an unchanged feed without a payload', () => {
+    expect(resolveAddByRssParsePayload('not_modified', null)).toEqual({
+      mappedFeed: null,
+      preview: emptyPreview,
+    });
+  });
 });
 
 describe('localFeedForServerFollow', () => {
@@ -136,6 +161,17 @@ describe('mergeLocalAndRemoteAddByRssFeeds', () => {
     expect(merged).toHaveLength(1);
     expect(merged[0]?.feedUrl).toBe('https://example.com/other.xml');
     expect(merged.map((feed) => feed.idText)).not.toContain('rss-listed');
+  });
+
+  it('collapses a local row that differs only by a trailing path slash', () => {
+    const merged = mergeLocalAndRemoteAddByRssFeeds(
+      [localFeed({ feedUrl: 'https://example.com/feed/show/', idText: 'rss-slash' })],
+      [{ feed_url: 'https://example.com/feed/show', image_url: null, title: 'Show' }]
+    );
+
+    expect(merged).toHaveLength(1);
+    expect(merged[0]?.feedUrl).toBe('https://example.com/feed/show');
+    expect(merged[0]?.idText).toBe('rss-slash');
   });
 
   it('keeps a followed local row the account does not follow', () => {

@@ -1,5 +1,5 @@
 import { timerManager } from '@parser/factories/timerManager.js';
-import type { FeedObject } from 'podverse-partytime';
+import type { FeedObject } from 'podverse-partytime/core';
 
 import { getStatusCodeFromError, throwRequestError } from '@podverse/helpers-requests';
 import type { Feed } from '@podverse/orm';

@@ -7,7 +7,6 @@ import {
   getActiveSessionAccountId,
   getAuthenticatedUser,
 } from '@api/lib/auth/index.js';
-import { assignChapterEndTimes } from '@api/lib/chapters.js';
 import { getFollowedChannelIds } from '@api/lib/followed.js';
 import { getParamRequired } from '@api/lib/params.js';
 import { getStatsOrder } from '@api/lib/stats.js';
@@ -75,6 +74,7 @@ import {
   TasteProfileAccountService,
 } from '@podverse/orm';
 import { parseChapters } from '@podverse/parser';
+import { assignChapterEndTimes } from '@podverse/parser-mapping';
 
 const getRecentOrder = (itemType: 'normal' | 'live-item'): FindOptionsOrder<Item> => {
   if (itemType === 'live-item') {

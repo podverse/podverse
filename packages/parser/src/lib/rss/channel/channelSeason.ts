@@ -1,5 +1,5 @@
 import { timerManager } from '@parser/factories/timerManager.js';
-import type { FeedObject } from 'podverse-partytime';
+import type { FeedObject } from 'podverse-partytime/core';
 
 import type { Channel } from '@podverse/orm';
 import { ChannelSeasonService } from '@podverse/orm';

@@ -73,7 +73,7 @@ function legacyMembershipExpiryDeps(dryRun: boolean): LegacyMembershipExpiryImpo
         .getRepository(AccountCredentials)
         .createQueryBuilder('credentials')
         .select(['credentials.id', 'credentials.account_id'])
-        .where('LOWER(BTRIM(credentials.email)) = :email', { email: normalizedEmail })
+        .where('credentials.email = :email', { email: normalizedEmail })
         .getMany();
       const accountIds = [...new Set(rows.map((row) => row.account_id))];
       const accountId = accountIds[0];

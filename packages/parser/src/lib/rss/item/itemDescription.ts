@@ -1,7 +1,7 @@
 import { loggerService } from '@parser/factories/loggerService.js';
 import type { DescriptionIngestContext } from '@parser/lib/rss/descriptionIngestContext.js';
 import { recordPreparedDescription } from '@parser/lib/rss/descriptionIngestContext.js';
-import type { Episode } from 'podverse-partytime';
+import type { Episode } from 'podverse-partytime/core';
 
 import type { PreparedDescription } from '@podverse/helpers';
 import type { EntityManager, Item } from '@podverse/orm';

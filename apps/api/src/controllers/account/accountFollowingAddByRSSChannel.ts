@@ -10,7 +10,6 @@ import {
 import type { Request, Response } from 'express';
 import Joi from 'joi';
 
-import { APP_ROUTES } from '@podverse/helpers';
 import { resolveAddByRSSFeedUrlCredentials } from '@podverse/helpers-validation';
 import type { AccountFollowingAddByRSSChannelDto } from '@podverse/orm';
 import { AccountFollowingAddByRSSChannelService, AccountService } from '@podverse/orm';
@@ -115,16 +114,16 @@ class AccountFollowingAddByRSSChannelController {
                   account.id
                 );
               if (!alreadySaved && existingCount >= entitlements.maxAddByRSSFeeds) {
-                const premiumLimitRaw = process.env.MEMBERSHIP_PREMIUM_MAX_ADD_BY_RSS_FEEDS;
-                const premiumLimitParsed = premiumLimitRaw
-                  ? Number.parseInt(premiumLimitRaw, 10)
-                  : 100;
-                const premiumLimit = Number.isFinite(premiumLimitParsed) ? premiumLimitParsed : 100;
+                const limit = entitlements.maxAddByRSSFeeds;
+                const contactEmail = config.terms.contactEmail;
                 res.status(403).json({
-                  message: `Your account can only save up to ${entitlements.maxAddByRSSFeeds} Add by RSS feeds. Renew your membership to raise this limit to ${premiumLimit}.`,
+                  message:
+                    contactEmail !== ''
+                      ? `You have reached your limit of ${limit} Add by RSS feeds. To have it raised, email ${contactEmail}.`
+                      : `You have reached your limit of ${limit} Add by RSS feeds. To have it raised, contact support.`,
                   code: 'add_by_rss_feed_limit_reached',
                   i18nKey: 'membership.add_by_rss_feed_limit_reached',
-                  renewPath: APP_ROUTES.MEMBERSHIP_RENEW,
+                  limit,
                 });
                 return;
               }
@@ -175,6 +174,25 @@ class AccountFollowingAddByRSSChannelController {
       {
         skipMembershipStatus: true,
         apiKeyAccess: { resource: 'add_by_rss', action: 'delete' },
+      }
+    );
+  }
+
+  static async getAddByRSSFeedLimit(req: Request, res: Response): Promise<void> {
+    ensureAuthenticated(
+      req,
+      res,
+      async () => {
+        const entitlements = getAuthenticatedUser(req).entitlements;
+        if (entitlements === undefined) {
+          handleGenericErrorResponse(res, new Error('Entitlements were not resolved'));
+          return;
+        }
+        res.status(200).json({ data: { maxAddByRSSFeeds: entitlements.maxAddByRSSFeeds } });
+      },
+      {
+        skipMembershipStatus: false,
+        apiKeyAccess: { resource: 'add_by_rss', action: 'read' },
       }
     );
   }

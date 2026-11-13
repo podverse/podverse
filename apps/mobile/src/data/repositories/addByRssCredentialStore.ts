@@ -3,11 +3,19 @@ import * as SecureStore from 'expo-secure-store';
 
 import { isObjectLike } from '@podverse/helpers/guards';
 
-import type { AddByRssCredentials } from '../../lib/addByRss/credentials';
+import type {
+  AddByRssCredentials,
+  SignedOutCredentialCopy,
+  SignedOutCredentialSettle,
+} from '../../lib/addByRss/credentials';
 import {
   buildAddByRssCredentialKey,
+  copySignedOutAddByRssCredentialsToAccount,
+  isAccountCredentialOwner,
   parseStoredAddByRssCredentials,
+  resolveAddByRssCredentialOwner,
   serializeAddByRssCredentials,
+  settleSignedOutAddByRssCredentials,
   toAddByRssCredentialFeedUrl,
 } from '../../lib/addByRss/credentials';
 import { getDb, initializeDatabase, safeJsonParse, schema } from '../db';
@@ -45,6 +53,9 @@ const readCurrentAccountIdText = async (): Promise<string | null> => {
   return parsed.id_text;
 };
 
+const readCurrentOwner = async (): Promise<string> =>
+  resolveAddByRssCredentialOwner(await readCurrentAccountIdText());
+
 const deleteSecret = async (accountIdText: string, feedUrl: string): Promise<void> => {
   await SecureStore.deleteItemAsync(
     buildAddByRssCredentialKey(accountIdText, feedUrl),
@@ -66,12 +77,15 @@ const deleteIndexRows = async (rows: { accountIdText: string; feedUrl: string }[
 };
 
 /**
- * Device-local Basic Auth credentials for add-by-RSS feeds, keyed by account and canonical feed
- * URL. The username and password live only in SecureStore; the server never stores them and
- * SQLite holds only which feeds have them. Values must never be logged or written to the error log.
+ * Device-local Basic Auth credentials for add-by-RSS feeds, keyed by owner (the account, or
+ * `SIGNED_OUT_CREDENTIAL_OWNER` for the signed-out user) and canonical feed URL. The username and
+ * password live only in SecureStore; the server never stores them and SQLite holds only which
+ * feeds have them. Values must never be logged or written to the error log.
  *
- * Credentials are account data: `clearSession` removes them on every sign-out, even though the
- * feed rows themselves stay on the device.
+ * An account's entries end with its session (`clearSession`); the signed-out user's entries stay
+ * through sign-in and sign-out. At sign-in a signed-out pair is copied to the account for a feed
+ * both follow, unless the account holds one here; at sign-up it moves to the account for the
+ * feeds the sign-up carry saves. Feed rows stay on the device either way.
  */
 export const addByRssCredentialStore = {
   currentAccountIdText: readCurrentAccountIdText,
@@ -90,8 +104,7 @@ export const addByRssCredentialStore = {
   },
 
   getForCurrentAccount: async (feedUrl: string): Promise<AddByRssCredentials | null> => {
-    const accountIdText = await readCurrentAccountIdText();
-    return accountIdText === null ? null : addByRssCredentialStore.get(accountIdText, feedUrl);
+    return addByRssCredentialStore.get(await readCurrentOwner(), feedUrl);
   },
 
   set: async (
@@ -127,10 +140,7 @@ export const addByRssCredentialStore = {
   },
 
   deleteForCurrentAccount: async (feedUrl: string): Promise<void> => {
-    const accountIdText = await readCurrentAccountIdText();
-    if (accountIdText !== null) {
-      await addByRssCredentialStore.delete(accountIdText, feedUrl);
-    }
+    await addByRssCredentialStore.delete(await readCurrentOwner(), feedUrl);
   },
 
   /** Canonical feed URLs this account holds credentials for on this device. */
@@ -143,10 +153,12 @@ export const addByRssCredentialStore = {
     return new Set(rows.map((row) => row.feedUrl));
   },
 
-  /** Empty while signed out: credentials never outlive the session that saved them. */
+  /**
+   * Canonical feed URLs the signed-in account, or the signed-out user, holds credentials for on
+   * this device.
+   */
   listFeedUrlsForCurrentAccount: async (): Promise<Set<string>> => {
-    const accountIdText = await readCurrentAccountIdText();
-    return accountIdText === null ? new Set() : addByRssCredentialStore.listFeedUrls(accountIdText);
+    return addByRssCredentialStore.listFeedUrls(await readCurrentOwner());
   },
 
   /** Every stored credential for this account, keyed by canonical feed URL, for a refresh-all. */
@@ -160,6 +172,30 @@ export const addByRssCredentialStore = {
       }
     }
     return byFeedUrl;
+  },
+
+  /** Sign-in settle: see `copySignedOutAddByRssCredentialsToAccount`. */
+  copySignedOutCredentialsAtSignIn: async (params: SignedOutCredentialCopy): Promise<void> => {
+    await copySignedOutAddByRssCredentialsToAccount(
+      {
+        delete: addByRssCredentialStore.delete,
+        get: addByRssCredentialStore.get,
+        set: addByRssCredentialStore.set,
+      },
+      params
+    );
+  },
+
+  /** Sign-up carry: see `settleSignedOutAddByRssCredentials`. */
+  settleSignedOutCredentialsAtSignUp: async (params: SignedOutCredentialSettle): Promise<void> => {
+    await settleSignedOutAddByRssCredentials(
+      {
+        delete: addByRssCredentialStore.delete,
+        get: addByRssCredentialStore.get,
+        set: addByRssCredentialStore.set,
+      },
+      params
+    );
   },
 
   clearAccount: async (accountIdText: string): Promise<void> => {
@@ -176,18 +212,21 @@ export const addByRssCredentialStore = {
   },
 
   /**
-   * Sign-out path. Clears every account's entries rather than only the snapshot's, because the
-   * snapshot can already be gone (or never written) by the time a session ends.
+   * Sign-out path. Removes every account's entries rather than only the snapshot's, because the
+   * snapshot can already be gone (or never written) by the time a session ends. The signed-out
+   * user's entries stay.
    */
-  clearAll: async (): Promise<void> => {
+  clearAccountCredentials: async (): Promise<void> => {
     await initializeDatabase();
-    const rows = await getDb()
-      .select({
-        accountIdText: schema.addByRssCredentialIndex.accountIdText,
-        feedUrl: schema.addByRssCredentialIndex.feedUrl,
-      })
-      .from(schema.addByRssCredentialIndex);
+    const rows = (
+      await getDb()
+        .select({
+          accountIdText: schema.addByRssCredentialIndex.accountIdText,
+          feedUrl: schema.addByRssCredentialIndex.feedUrl,
+        })
+        .from(schema.addByRssCredentialIndex)
+    ).filter((row) => isAccountCredentialOwner(row.accountIdText));
     await Promise.allSettled(rows.map((row) => deleteSecret(row.accountIdText, row.feedUrl)));
-    await getDb().delete(schema.addByRssCredentialIndex);
+    await deleteIndexRows(rows);
   },
 };

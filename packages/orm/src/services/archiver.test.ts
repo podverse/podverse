@@ -416,6 +416,7 @@ describe('ArchiverService deleteArchivedItemsWithoutClipOrPlaylist', () => {
       expect.stringContaining('SELECT i.id AS id FROM item i'),
       [ItemFlagStatusStatusEnum.Archived, 1000]
     );
+    expect(String(itemQueryMock.mock.calls[0]?.[0])).toContain('item_merge_map');
     expect(itemDeleteMock).not.toHaveBeenCalled();
   });
 
@@ -569,6 +570,21 @@ describe('ArchiverService spam feed item cleanup', () => {
     expect(feedSaveMock).not.toHaveBeenCalled();
   });
 
+  it('processSpamFeeds sets Active items to Archived when a channel merge map points at them', async () => {
+    feedQbGetManyMock.mockResolvedValue([{ id: 42, channel: { id: 900 } }]);
+    itemReadFindMock.mockResolvedValue([
+      { id: 7001, item_flag_status: { id: ItemFlagStatusStatusEnum.Active } },
+    ]);
+    playlistFindOneMock.mockResolvedValue(null);
+    clipFindOneMock.mockResolvedValue(null);
+    itemQueryMock.mockResolvedValue([{ '?column?': 1 }]);
+    const service = new ArchiverService();
+    await service.processSpamFeeds();
+    expect(itemQueryMock).toHaveBeenCalledWith(expect.stringContaining('item_merge_map'), [7001]);
+    expect(itemSaveMock).toHaveBeenCalledWith(expect.objectContaining({ id: 7001 }));
+    expect(itemDeleteMock).not.toHaveBeenCalled();
+  });
+
   it('processSpamFeeds sets Active items to Archived when a clip exists', async () => {
     feedQbGetManyMock.mockResolvedValue([{ id: 42, channel: { id: 900 } }]);
     itemReadFindMock.mockResolvedValue([
@@ -669,6 +685,7 @@ describe('ArchiverService processPendingArchiveFeeds', () => {
     ]);
     expect(String(updateCall?.[0])).toContain('clip.item_id');
     expect(String(updateCall?.[0])).toContain('playlist_resource.item_id');
+    expect(String(updateCall?.[0])).toContain('item_merge_map.from_item_id');
     expect(itemDeleteMock).not.toHaveBeenCalled();
     expect(itemSaveMock).not.toHaveBeenCalled();
     expect(itemReadFindMock).not.toHaveBeenCalled();
@@ -689,9 +706,10 @@ describe('ArchiverService processPendingArchiveFeeds', () => {
     const selectCall = itemQueryMock.mock.calls.find((call) =>
       String(call[0]).includes('SELECT i.id')
     );
-    expect(String(selectCall?.[0])).toContain('NOT EXISTS');
+    expect(String(selectCall?.[0])).toContain('AND NOT (');
     expect(String(selectCall?.[0])).toContain('clip.item_id');
     expect(String(selectCall?.[0])).toContain('playlist_resource.item_id');
+    expect(String(selectCall?.[0])).toContain('item_merge_map.to_item_id');
     expect(selectCall?.[1]).toEqual([
       [40],
       [ItemFlagStatusStatusEnum.Active, ItemFlagStatusStatusEnum.PendingArchive],

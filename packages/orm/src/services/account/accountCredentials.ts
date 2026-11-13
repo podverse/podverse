@@ -3,6 +3,8 @@ import { AccountCredentials } from '@orm/entities/account/accountCredentials.js'
 import { BaseOneService } from '@orm/services/base/baseOneService.js';
 import type { EntityManager } from 'typeorm';
 
+import { normalizeEmail } from '@podverse/helpers-validation';
+
 export type AccountCredentialsDto = {
   email?: string | null;
   username?: string | null;
@@ -14,8 +16,13 @@ export class AccountCredentialsService extends BaseOneService<AccountCredentials
     super(AccountCredentials, 'account', transactionalEntityManager);
   }
 
+  /** The stored address is trimmed and lowercase. The lookup normalizes the typed address first. */
   async getByEmail(email: string): Promise<AccountCredentials | null> {
-    return this.repositoryRead.findOne({ where: { email } });
+    const normalized = normalizeEmail(email);
+    if (normalized === '') {
+      return null;
+    }
+    return this.repositoryRead.findOne({ where: { email: normalized } });
   }
 
   async getByUsername(username: string): Promise<AccountCredentials | null> {
@@ -30,6 +37,8 @@ export class AccountCredentialsService extends BaseOneService<AccountCredentials
   }
 
   async update(account: Account, dto: AccountCredentialsDto): Promise<AccountCredentials> {
-    return super._update(account, dto);
+    const email =
+      dto.email === undefined || dto.email === null ? dto.email : normalizeEmail(dto.email);
+    return super._update(account, email === undefined ? dto : { ...dto, email });
   }
 }

@@ -2,7 +2,7 @@ import { loggerService } from '@parser/factories/loggerService.js';
 import { timerManager } from '@parser/factories/timerManager.js';
 import type { DescriptionIngestContext } from '@parser/lib/rss/descriptionIngestContext.js';
 import { recordPreparedDescription } from '@parser/lib/rss/descriptionIngestContext.js';
-import type { FeedObject } from 'podverse-partytime';
+import type { FeedObject } from 'podverse-partytime/core';
 
 import type { PreparedDescription } from '@podverse/helpers';
 import type { Channel, EntityManager } from '@podverse/orm';

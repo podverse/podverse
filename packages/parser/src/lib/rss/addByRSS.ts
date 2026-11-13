@@ -1,8 +1,12 @@
 import { _requestWithHeaders } from '@parser/lib/_request.js';
-import type { FeedObject } from 'podverse-partytime';
-import { parseFeed } from 'podverse-partytime';
+import type { FeedObject } from 'podverse-partytime/core';
+import { parseFeed } from 'podverse-partytime/core';
 
-import { DEFAULT_HTTP_TIMEOUT_MS, resolveParserMaxFeedBodyBytes, sleep } from '@podverse/helpers';
+import {
+  resolveAddByRSSHostRequestSpacing,
+  resolveParserMaxFeedBodyBytes,
+  sleep,
+} from '@podverse/helpers';
 import { canonicalHttpOrHttpsUrl } from '@podverse/helpers-validation';
 
 import type { CredentialsWithheldDecision } from './addByRSSRedirectAuth.js';
@@ -42,19 +46,13 @@ export type ParseRSSFeedForAddByRSSResult =
       error: string;
     };
 
-// Handle request delay for specific domains to avoid rate limiting
-async function handleRateLimitRequestDelay(url: string) {
-  const delayConfig = [
-    { regex: /^https?:\/\/(www\.)?wavlake\.com/, delay: DEFAULT_HTTP_TIMEOUT_MS },
-  ];
-
-  for (const { regex, delay } of delayConfig) {
-    if (regex.test(url)) {
-      await sleep(delay);
-      break;
-    }
+/** Sleeps before a request to a host that needs its feed requests spaced out. */
+const waitForHostRequestSpacing = async (url: string): Promise<void> => {
+  const spacing = resolveAddByRSSHostRequestSpacing(url);
+  if (spacing !== null) {
+    await sleep(spacing.spacingMs);
   }
-}
+};
 
 type HeaderValue = string | string[] | undefined;
 type HeaderRecord = Record<string, HeaderValue>;
@@ -84,7 +82,7 @@ export const parseRSSFeedForAddByRSS = async (
     return { status: 'failed', error: `parseRSSFeedForAddByRSS: invalid feed URL: ${url}` };
   }
 
-  await handleRateLimitRequestDelay(canonicalUrl);
+  await waitForHostRequestSpacing(canonicalUrl);
 
   const conditionalHeaders: Record<string, string> = {};
   if (options.etag) {

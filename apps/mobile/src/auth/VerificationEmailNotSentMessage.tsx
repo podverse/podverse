@@ -1,6 +1,7 @@
 import { useTranslation } from 'react-i18next';
-import { Linking, StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
 
+import { ContactEmailText } from '../components/content/ContactEmailText';
 import { getMobileConfig } from '../config';
 import { typography } from '../theme/typography';
 import { useTheme } from '../theme/useTheme';
@@ -24,7 +25,6 @@ export function VerificationEmailNotSentMessage({
   const body = copy.showContactLink
     ? t('authentication.verification_email_not_sent_body', { email: contactEmail })
     : t('authentication.verification_email_not_sent_body_no_contact');
-  const emailIndex = copy.showContactLink ? body.indexOf(contactEmail) : -1;
 
   const styles = StyleSheet.create({
     body: {
@@ -47,26 +47,14 @@ export function VerificationEmailNotSentMessage({
       {showTitle ? (
         <Text style={styles.title}>{t('authentication.verification_email_not_sent_title')}</Text>
       ) : null}
-      <Text style={styles.body} testID={testID}>
-        {emailIndex < 0 ? (
-          body
-        ) : (
-          <>
-            {body.slice(0, emailIndex)}
-            <Text
-              accessibilityRole="link"
-              onPress={() => {
-                void Linking.openURL(`mailto:${contactEmail}`);
-              }}
-              style={styles.emailLink}
-              testID={contactTestID}
-            >
-              {contactEmail}
-            </Text>
-            {body.slice(emailIndex + contactEmail.length)}
-          </>
-        )}
-      </Text>
+      <ContactEmailText
+        email={copy.showContactLink ? contactEmail : ''}
+        linkStyle={styles.emailLink}
+        linkTestID={contactTestID}
+        style={styles.body}
+        testID={testID}
+        text={body}
+      />
     </View>
   );
 }

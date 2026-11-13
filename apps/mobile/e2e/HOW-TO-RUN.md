@@ -223,6 +223,12 @@ Every phone `<area>` you can pass. Each line is one top-level file under
 ```bash
 npm run mobile:e2e:test -- --platform ios add-by-rss
 npm run mobile:e2e:test -- --platform ios add-by-rss-credentials
+npm run mobile:e2e:test -- --platform ios add-by-rss-anonymous
+npm run mobile:e2e:test -- --platform ios add-by-rss-anonymous-artist
+npm run mobile:e2e:test -- --platform ios add-by-rss-anonymous-sections
+npm run mobile:e2e:test -- --platform ios add-by-rss-anonymous-podroll
+npm run mobile:e2e:test -- --platform ios add-by-rss-sign-in
+npm run mobile:e2e:test -- --platform ios add-by-rss-device-credentials
 npm run mobile:e2e:test -- --platform ios about
 npm run mobile:e2e:test -- --platform ios album
 npm run mobile:e2e:test -- --platform ios alternate-enclosure
@@ -290,6 +296,12 @@ npm run mobile:e2e:test -- --platform ios video-transition
 ```bash
 npm run mobile:e2e:test -- --platform android add-by-rss
 npm run mobile:e2e:test -- --platform android add-by-rss-credentials
+npm run mobile:e2e:test -- --platform android add-by-rss-anonymous
+npm run mobile:e2e:test -- --platform android add-by-rss-anonymous-artist
+npm run mobile:e2e:test -- --platform android add-by-rss-anonymous-sections
+npm run mobile:e2e:test -- --platform android add-by-rss-anonymous-podroll
+npm run mobile:e2e:test -- --platform android add-by-rss-sign-in
+npm run mobile:e2e:test -- --platform android add-by-rss-device-credentials
 npm run mobile:e2e:test -- --platform android about
 npm run mobile:e2e:test -- --platform android album
 npm run mobile:e2e:test -- --platform android alternate-enclosure
@@ -520,6 +532,10 @@ signs out (which clears device-held credentials but keeps the feed), re-enters t
 channel without fetching the feed, so the Basic challenge itself is checked by hand; see
 [TOOLS-TEST-ASSETS.md § Credential fixtures](/tools/test-assets/TOOLS-TEST-ASSETS.md#credential-fixtures).
 
+`add-by-rss-device-credentials` adds a protected feed while signed out, checks that a redirect
+to another host does not receive the username and password, and checks that they are still on
+the phone after signing in and signing out again.
+
 `hls-playback` uses **Play E2E HLS** on the same page (`testID=e2e-play-hls-item`). It plays
 the seeded VOD HLS playlist `e2e-hls-vod.m3u8` from `tools/test-assets/assets/e2e/hls/`. If those
 files are missing, regenerate E2E media (same command as the video fixture) and reseed.
@@ -530,6 +546,12 @@ the default sequential slots.
 ```bash
 npm run mobile:e2e:test -- add-by-rss
 npm run mobile:e2e:test -- add-by-rss-credentials
+npm run mobile:e2e:test -- add-by-rss-anonymous
+npm run mobile:e2e:test -- add-by-rss-anonymous-artist
+npm run mobile:e2e:test -- add-by-rss-anonymous-sections
+npm run mobile:e2e:test -- add-by-rss-anonymous-podroll
+npm run mobile:e2e:test -- add-by-rss-sign-in
+npm run mobile:e2e:test -- add-by-rss-device-credentials
 npm run mobile:e2e:test -- alternate-enclosure
 npm run mobile:e2e:test -- auto-queue-advance
 npm run mobile:e2e:test -- engine-audio-spike

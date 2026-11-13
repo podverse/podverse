@@ -1,5 +1,5 @@
 import type { Item } from '@orm/entities/item/item.js';
-import { generateRandomIdText, NANO_ID_V2_MAX_LENGTH } from '@orm/lib/nanoid.js';
+import { assignIdText, NANO_ID_V2_MAX_LENGTH } from '@orm/lib/nanoid.js';
 import type { Relation } from 'typeorm';
 import {
   BeforeInsert,
@@ -35,6 +35,6 @@ export class ItemSoundbite {
 
   @BeforeInsert()
   generateIdText() {
-    this.id_text = generateRandomIdText();
+    this.id_text = assignIdText(this.id_text);
   }
 }

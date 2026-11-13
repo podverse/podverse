@@ -22,8 +22,9 @@ Tier assignments are fixed in
 [`mobile-anonymous-vs-account-features`](/.cursor/rules/mobile-anonymous-vs-account-features.mdc).
 Summary: local subscribe, local list/filter/sort, downloads, offline playback, local queue/history,
 local seen state, and **unsubscribing** are **anonymous**; cross-device sync of seen state is
-**account**; **server-side follow**, cross-device sync of queue and history, add-by-RSS, and
-notifications are **membership**.
+**account**; **server-side follow**, cross-device sync of queue and history, and notifications are
+**membership**. Add by RSS is the two rows in that rule: signed out on mobile is anonymous, and
+Add by RSS while signed in, including on the website, is membership.
 
 ### The seam is shared, not mobile-only
 
@@ -53,7 +54,10 @@ working, now derived from one tier model instead of two independent checks.
 
 `hasValidMembership` is true for **Trial** as well as Premium, so a Trial holder resolves to
 `membership` tier. The server draws a further line the client model does not: Trial accounts are
-blocked from some Premium capabilities (directory add-by-RSS, tighter refresh and feed limits).
+blocked from some Premium capabilities (directory add-by-RSS, and tighter refresh caps). Trial and
+Premium share one Add by RSS feed limit. Refresh caps stay per tier. The Trial limitations list
+does not state the Add by RSS limit. On mobile that limit is help text on the Add by RSS screen
+for a signed-in user whose limit is known.
 
 That is intentional. The tier model answers "is this capability plausibly available to this user",
 and Trial-vs-Premium capability differences stay **server-authoritative** — a Trial user's request
@@ -68,16 +72,18 @@ Consequence to be aware of when reading gating code: `evaluateFeature(...).allow
 
 A lapsed member keeps a working app. Anonymous- and account-tier capability is unaffected.
 Membership features present a renewal affordance rather than a dead or missing control. For
-add-by-RSS specifically: existing feeds stay visible and playable but **stop refreshing**, and
-adding new feeds is blocked.
+add-by-RSS specifically, for a signed-in lapsed membership: existing feeds stay visible and
+playable but **stop refreshing**, and adding new feeds is blocked. A signed-out user parses and
+refreshes on the phone with no feed limit. A free or lapsed account does not.
 
-`add_by_rss_refresh` is assigned membership tier in the shared feature table, but **mobile has no
-manual refresh control today** — web's refresh lives in `AddByRSSListClient` / `ListChannelSettings`
-and is gated reactively by the 403 modal. When mobile grows a refresh control it must consult
-`evaluateFeature('add_by_rss_refresh')` rather than inventing a new check.
+`add_by_rss_refresh` stays membership tier in the shared feature table. Mobile has Check for
+Updates. Signed in, it uses the server parse and the membership check. Signed out, it refreshes
+on the phone. The playlist screens still evaluate `add_by_rss_add` as their membership check.
+Web's refresh stays on the server parse (`AddByRSSListClient` / `ListChannelSettings`).
 
 Renewal reminders appear at three points: when the user touches a membership feature, as a
-persistent row in More/settings, and as a dismissible banner on Home.
+persistent row in More/settings, and as a dismissible strip in the bottom chrome above the mini
+player (or above the tab bar when nothing is playing).
 
 **Expiry is never a notification.** No push, no email, no scheduled job — see the rule
 [`no-membership-expiry-notifications`](/.cursor/rules/no-membership-expiry-notifications.mdc). Each
@@ -96,10 +102,11 @@ deliver, and nothing for the user to unsubscribe from.
   affordance — never a control that silently fails.
 - Anonymous and account tiers are fully usable with no membership present.
 - A lapsed member can still browse, subscribe, filter, sort, download, and play, and still sees
-  previously added add-by-RSS feeds.
-- Renewal reminders render at the three points above and the banner is dismissible. An
+  previously added add-by-RSS feeds. They cannot add or refresh those feeds.
+- A signed-out user can add and refresh Add by RSS feeds on the phone.
+- Renewal reminders render at the three points above and the bottom-chrome strip is dismissible. An
   expiring-soon dismissal is remembered against the expiry it was dismissed for. An expired
-  dismissal lasts until the next launch, so the expired banner returns every launch until renewal.
+  dismissal lasts until the next launch, so the expired strip returns every launch until renewal.
 - No expiry reminder is delivered by push, email, or a scheduled job.
 - All user-facing copy resolves through i18n; no hardcoded strings.
 - Unit tests cover tier resolution including the lapsed case, and E2E covers at least one gated

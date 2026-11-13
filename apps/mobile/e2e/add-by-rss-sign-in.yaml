@@ -1,0 +1,84 @@
+appId: com.podverse.app.next
+name: Add By RSS Sign In
+---
+# A feed added signed out is hidden while an account is signed in and listed again after sign-out.
+# The account's own follow is listed while signed in and stays on the phone after sign-out.
+# Needs flow_needs_e2e_api + flow_needs_test_assets.
+
+- runFlow: shared/launch-and-connect.yaml
+
+- tapOn:
+    id: tab-my-library
+- assertVisible:
+    id: library-hub-screen
+- tapOn:
+    id: library-nav-add-by-rss
+- assertVisible:
+    id: rss-root-screen
+- tapOn:
+    id: rss-add-button
+- assertVisible:
+    id: rss-add-screen
+- tapOn:
+    id: rss-url-input
+- inputText: http://localhost:2111/feeds/feed-1.rss
+- tapOn:
+    id: rss-add-submit
+- extendedWaitUntil:
+    visible:
+      id: rss-root-screen
+    timeout: ${TIMEOUT_SLOWER}
+- extendedWaitUntil:
+    visible:
+      id: "rss-feed-row-.*-swipe"
+    timeout: ${TIMEOUT_SLOW}
+- assertNotVisible:
+    id: "rss-feed-row-.*-swipe"
+    index: 1
+- takeScreenshot: add-by-rss-sign-in-signed-out-feed
+
+# Signed in, the account's follow is listed and the signed-out feed is not.
+- runFlow: shared/login-seeded-user.yaml
+- tapOn:
+    id: tab-my-library
+- runFlow:
+    when:
+      notVisible:
+        id: rss-root-screen
+    commands:
+      - tapOn:
+          id: library-nav-add-by-rss
+- extendedWaitUntil:
+    visible: "Vitium amitto volup traho praesentium tantillus totam balbus balbus paulatim."
+    timeout: ${TIMEOUT_SLOWER}
+- assertNotVisible:
+    id: "rss-feed-row-.*-swipe"
+    index: 1
+- takeScreenshot: add-by-rss-sign-in-account-feeds
+
+# Signed out again, both feeds are listed.
+- tapOn:
+    id: tab-more
+- assertVisible:
+    id: more-screen
+- tapOn:
+    id: more-nav-logout
+- extendedWaitUntil:
+    visible:
+      id: anonymous-login-cta
+    timeout: ${TIMEOUT_FAST}
+- tapOn:
+    id: tab-my-library
+- runFlow:
+    when:
+      notVisible:
+        id: rss-root-screen
+    commands:
+      - tapOn:
+          id: library-nav-add-by-rss
+- extendedWaitUntil:
+    visible:
+      id: "rss-feed-row-.*-swipe"
+      index: 1
+    timeout: ${TIMEOUT_SLOW}
+- takeScreenshot: add-by-rss-sign-in-after-sign-out

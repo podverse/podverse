@@ -69,10 +69,6 @@ test.describe('Web membership page trial limitations and renew route', () => {
       'Adding feeds to the public directory from search is blocked for Trial status.',
       { exact: true }
     );
-    const feedLimitBullet = page.getByText(
-      'Add by RSS holds up to 10 feeds on Trial and 100 on Premium.',
-      { exact: true }
-    );
     const refreshBullet = page.getByText(
       'Manual refresh is limited to 5 times an hour on Trial and 20 on Premium.',
       { exact: true }
@@ -83,7 +79,6 @@ test.describe('Web membership page trial limitations and renew route', () => {
     );
     await expect(trialSummary).not.toBeVisible();
     await expect(directoryBullet).not.toBeVisible();
-    await expect(feedLimitBullet).not.toBeVisible();
     await expect(refreshBullet).not.toBeVisible();
     await expect(statsBullet).not.toBeVisible();
 
@@ -98,7 +93,6 @@ test.describe('Web membership page trial limitations and renew route', () => {
 
     await expect(trialSummary).toBeVisible();
     await expect(directoryBullet).toBeVisible();
-    await expect(feedLimitBullet).toBeVisible();
     await expect(refreshBullet).toBeVisible();
     await expect(statsBullet).toBeVisible();
 

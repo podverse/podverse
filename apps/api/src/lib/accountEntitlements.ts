@@ -29,7 +29,7 @@ const getMembershipDefaults = (
   if (membershipId === AccountMembershipEnum.Premium) {
     return {
       allowDirectoryAddByRSS: capDefaults.premiumAllowDirectoryAddByRSS,
-      maxAddByRSSFeeds: capDefaults.premiumMaxAddByRSSFeeds,
+      maxAddByRSSFeeds: capDefaults.maxAddByRSSFeeds,
       maxManualRefreshesPerHour: capDefaults.premiumMaxManualRefreshesPerHour,
       trackStats: capDefaults.premiumTrackStats,
       allowNotifications: capDefaults.premiumAllowNotifications,
@@ -38,7 +38,7 @@ const getMembershipDefaults = (
 
   return {
     allowDirectoryAddByRSS: capDefaults.trialAllowDirectoryAddByRSS,
-    maxAddByRSSFeeds: capDefaults.trialMaxAddByRSSFeeds,
+    maxAddByRSSFeeds: capDefaults.maxAddByRSSFeeds,
     maxManualRefreshesPerHour: capDefaults.trialMaxManualRefreshesPerHour,
     trackStats: capDefaults.trialTrackStats,
     allowNotifications: capDefaults.trialAllowNotifications,

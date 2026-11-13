@@ -54,23 +54,19 @@ productMembershipRouter.patch(
 
       const updates: {
         freeTrialExpirationSeconds?: number;
-        trialMaxAddByRSSFeeds?: number;
+        maxAddByRSSFeeds?: number;
         trialMaxManualRefreshesPerHour?: number;
-        premiumMaxAddByRSSFeeds?: number;
         premiumMaxManualRefreshesPerHour?: number;
       } = {};
 
       if (value.freeTrialExpirationSeconds !== undefined) {
         updates.freeTrialExpirationSeconds = value.freeTrialExpirationSeconds;
       }
-      if (value.trialMaxAddByRSSFeeds !== undefined) {
-        updates.trialMaxAddByRSSFeeds = value.trialMaxAddByRSSFeeds;
+      if (value.maxAddByRSSFeeds !== undefined) {
+        updates.maxAddByRSSFeeds = value.maxAddByRSSFeeds;
       }
       if (value.trialMaxManualRefreshesPerHour !== undefined) {
         updates.trialMaxManualRefreshesPerHour = value.trialMaxManualRefreshesPerHour;
-      }
-      if (value.premiumMaxAddByRSSFeeds !== undefined) {
-        updates.premiumMaxAddByRSSFeeds = value.premiumMaxAddByRSSFeeds;
       }
       if (value.premiumMaxManualRefreshesPerHour !== undefined) {
         updates.premiumMaxManualRefreshesPerHour = value.premiumMaxManualRefreshesPerHour;
@@ -87,14 +83,11 @@ productMembershipRouter.patch(
       if (updates.freeTrialExpirationSeconds !== undefined) {
         afterSnapshot.free_trial_expiration_seconds = updates.freeTrialExpirationSeconds;
       }
-      if (updates.trialMaxAddByRSSFeeds !== undefined) {
-        afterSnapshot.trial_max_add_by_rss_feeds = updates.trialMaxAddByRSSFeeds;
+      if (updates.maxAddByRSSFeeds !== undefined) {
+        afterSnapshot.max_add_by_rss_feeds = updates.maxAddByRSSFeeds;
       }
       if (updates.trialMaxManualRefreshesPerHour !== undefined) {
         afterSnapshot.trial_max_manual_refreshes_per_hour = updates.trialMaxManualRefreshesPerHour;
-      }
-      if (updates.premiumMaxAddByRSSFeeds !== undefined) {
-        afterSnapshot.premium_max_add_by_rss_feeds = updates.premiumMaxAddByRSSFeeds;
       }
       if (updates.premiumMaxManualRefreshesPerHour !== undefined) {
         afterSnapshot.premium_max_manual_refreshes_per_hour =

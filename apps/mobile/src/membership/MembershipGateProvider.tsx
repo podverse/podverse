@@ -1,11 +1,14 @@
 import type { PropsWithChildren } from 'react';
 import { createContext, useCallback, useContext, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { Linking } from 'react-native';
 
 import type { AccessDenialReason } from '@podverse/helpers';
+import { parseAddByRssFeedLimitRefusal } from '@podverse/helpers-requests';
 
 import { useAuthPrompt } from '../auth/AuthPromptContext';
 import { ConfirmDialog } from '../components/feedback/ConfirmDialog';
+import { getMobileConfig } from '../config';
 import { mapMembershipDenial } from './membershipDenial';
 import {
   membershipGateConfirmDestination,
@@ -37,6 +40,8 @@ type GatePresentation = {
  * - `handleGateError(error)` — if `error` is a membership 403, open the gate and return `true`;
  *   otherwise return `false` so callers fall through to their normal error handling. A server 403
  *   never yields `needs_account`.
+ * - An Add by RSS feed-limit refusal opens its own dialog with the limit and an Email Support
+ *   action instead of the Membership gate.
  * - `runGated(action)` — await an API action; a membership 403 opens the gate (returns `undefined`),
  *   any other error rethrows.
  * - `goToMembership()` — navigate to the Membership screen, so gated affordances anywhere in the app
@@ -66,6 +71,10 @@ export function MembershipGateProvider({
     reason: 'needs_account',
     visible: false,
   });
+  const [feedLimitGate, setFeedLimitGate] = useState<{ limit: number; visible: boolean }>({
+    limit: 0,
+    visible: false,
+  });
 
   const openGate = useCallback((next: AccessDenialReason) => {
     setGate({ reason: next, visible: true });
@@ -75,7 +84,17 @@ export function MembershipGateProvider({
     setGate((current) => ({ ...current, visible: false }));
   }, []);
 
+  const closeFeedLimitGate = useCallback(() => {
+    setFeedLimitGate((current) => ({ ...current, visible: false }));
+  }, []);
+
   const handleGateError = useCallback((error: unknown): boolean => {
+    const feedLimitRefusal = parseAddByRssFeedLimitRefusal(error);
+    if (feedLimitRefusal !== null) {
+      setFeedLimitGate({ limit: feedLimitRefusal.limit, visible: true });
+      return true;
+    }
+
     const denial = mapMembershipDenial(error);
     if (denial === null) {
       return false;
@@ -83,6 +102,11 @@ export function MembershipGateProvider({
     setGate({ reason: denial.reason, visible: true });
     return true;
   }, []);
+
+  const onEmailSupport = useCallback(() => {
+    closeFeedLimitGate();
+    void Linking.openURL(`mailto:${getMobileConfig().contactEmail}`);
+  }, [closeFeedLimitGate]);
 
   const runGated = useCallback(
     async <T,>(action: () => Promise<T>): Promise<T | undefined> => {
@@ -134,6 +158,21 @@ export function MembershipGateProvider({
         testID="premium-gate-modal"
         title={t(messageKeys.titleKey)}
         visible={gate.visible}
+      />
+      <ConfirmDialog
+        body={t('membership.add_by_rss_feed_limit_reached', {
+          contactEmail: getMobileConfig().contactEmail,
+          limit: feedLimitGate.limit,
+        })}
+        cancelLabel={t('misc.close')}
+        cancelTestID="add-by-rss-feed-limit-close"
+        confirmLabel={t('membership.gate.email_support')}
+        confirmTestID="add-by-rss-feed-limit-email-support"
+        onCancel={closeFeedLimitGate}
+        onConfirm={onEmailSupport}
+        testID="add-by-rss-feed-limit-modal"
+        title={t('membership.gate.title_limit')}
+        visible={feedLimitGate.visible}
       />
     </MembershipGateContext.Provider>
   );

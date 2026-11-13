@@ -18,6 +18,7 @@ const {
   markFailedMock,
   parseAdminNotificationSendPayloadMock,
   parsePodcastIndexFeedDirectlyMock,
+  readFeedLastFinishedParseTimeMock,
   recheckRemoteChannelStubMock,
   releaseStaleRunningBeforeMock,
   repointRemoteChannelStubMock,
@@ -41,6 +42,7 @@ const {
   markFailedMock: vi.fn(),
   parseAdminNotificationSendPayloadMock: vi.fn(),
   parsePodcastIndexFeedDirectlyMock: vi.fn(),
+  readFeedLastFinishedParseTimeMock: vi.fn(),
   recheckRemoteChannelStubMock: vi.fn(),
   releaseStaleRunningBeforeMock: vi.fn(),
   repointRemoteChannelStubMock: vi.fn(),
@@ -135,6 +137,12 @@ vi.mock('@podverse/orm', () => {
           }
         : null,
     shouldAttemptFeedParseFromLifecycleAndPolicy: shouldAttemptFeedParseMock,
+    V4_MIGRATION_FEED_RETRY_JOB_TYPE: 'v4-migration-feed-retry',
+    getV4MigrationFeedRetryBackoffMs: (attempts: number) =>
+      ([1, 6, 24, 72, 168][Math.min(Math.max(attempts, 1), 5) - 1] ?? 0) * 60 * 60 * 1000,
+    parseV4MigrationFeedRetryPayload: (payload: { feedId?: unknown }) =>
+      typeof payload.feedId === 'number' ? { feedId: payload.feedId } : null,
+    readFeedLastFinishedParseTime: readFeedLastFinishedParseTimeMock,
   };
 });
 
@@ -149,6 +157,25 @@ const reparseJob = {
   max_attempts: 5,
   payload: { feedId: 55, reason: 'description_tier_change' },
 };
+
+const migrationRetryJob = {
+  attempts: 1,
+  created_at: new Date('2026-10-01T12:00:00.000Z'),
+  dedupe_key: 'v4-migration-feed-retry:56',
+  id: 32,
+  job_type: 'v4-migration-feed-retry',
+  max_attempts: 6,
+  payload: { feedId: 56 },
+};
+
+const migrationFeed = {
+  id: 56,
+  podcast_index_id: 9056,
+  feed_lifecycle_state: null,
+  feed_policy: null,
+};
+
+const HOUR_MS = 60 * 60 * 1000;
 
 const campaignJob = {
   attempts: 1,
@@ -346,6 +373,121 @@ describe('scheduledJobsRunDue', () => {
         suppressNewItemSideEffectsPublishedBeforeMs: reparseJob.created_at.getTime(),
       });
       expect(markCompletedMock).toHaveBeenCalledWith(31);
+    });
+  });
+
+  describe('v4-migration-feed-retry', () => {
+    const beforeJob = new Date('2026-10-01T11:00:00.000Z');
+    const afterJob = new Date('2026-10-01T13:00:00.000Z');
+
+    beforeEach(() => {
+      feedGetMock.mockReset();
+      readFeedLastFinishedParseTimeMock.mockReset();
+      claimDueBatchMock.mockResolvedValue([migrationRetryJob]);
+      feedGetMock.mockResolvedValue(migrationFeed);
+    });
+
+    it('completes without parsing when an ordinary parse already finished after the job', async () => {
+      readFeedLastFinishedParseTimeMock.mockResolvedValue(afterJob);
+
+      await scheduledJobsRunDue({ _: [] });
+
+      expect(parsePodcastIndexFeedDirectlyMock).not.toHaveBeenCalled();
+      expect(markCompletedMock).toHaveBeenCalledWith(32);
+    });
+
+    it('force parses and completes when the parse finishes', async () => {
+      readFeedLastFinishedParseTimeMock
+        .mockResolvedValueOnce(beforeJob)
+        .mockResolvedValueOnce(afterJob);
+
+      await scheduledJobsRunDue({ _: [] });
+
+      expect(parsePodcastIndexFeedDirectlyMock).toHaveBeenCalledWith(9056, true, {
+        enqueueFollowUpWork: true,
+        suppressNewItemSideEffectsPublishedBeforeMs: migrationRetryJob.created_at.getTime(),
+      });
+      expect(markCompletedMock).toHaveBeenCalledWith(32);
+    });
+
+    it('requeues on the migration ladder when the parse records a failure', async () => {
+      readFeedLastFinishedParseTimeMock.mockResolvedValue(null);
+      claimDueBatchMock.mockResolvedValue([{ ...migrationRetryJob, attempts: 2 }]);
+
+      await scheduledJobsRunDue({ _: [] });
+
+      expect(parsePodcastIndexFeedDirectlyMock).toHaveBeenCalledTimes(1);
+      expect(requeueWithBackoffMock).toHaveBeenCalledWith(
+        32,
+        'Migration feed parse did not finish',
+        6 * HOUR_MS
+      );
+      expect(markCompletedMock).not.toHaveBeenCalled();
+    });
+
+    it('requeues once with the parse error when the parse itself throws', async () => {
+      readFeedLastFinishedParseTimeMock.mockResolvedValue(null);
+      parsePodcastIndexFeedDirectlyMock.mockRejectedValue(new Error('No feedUrl found'));
+
+      await scheduledJobsRunDue({ _: [] });
+
+      expect(readFeedLastFinishedParseTimeMock).toHaveBeenCalledTimes(1);
+      expect(requeueWithBackoffMock).toHaveBeenCalledTimes(1);
+      expect(requeueWithBackoffMock).toHaveBeenCalledWith(32, 'No feedUrl found', HOUR_MS);
+    });
+
+    it('keeps the five-minute base backoff for other job types in the same batch', async () => {
+      readFeedLastFinishedParseTimeMock.mockResolvedValue(null);
+      claimDueBatchMock.mockResolvedValue([migrationRetryJob, campaignJob]);
+      campaignGetByIdTextMock.mockRejectedValue(new Error('database unavailable'));
+
+      await scheduledJobsRunDue({ _: [] });
+
+      expect(requeueWithBackoffMock).toHaveBeenCalledWith(
+        32,
+        'Migration feed parse did not finish',
+        HOUR_MS
+      );
+      expect(requeueWithBackoffMock).toHaveBeenCalledWith(
+        18,
+        'database unavailable',
+        10 * 60 * 1000
+      );
+    });
+
+    it('marks failed after the sixth attempt', async () => {
+      readFeedLastFinishedParseTimeMock.mockResolvedValue(null);
+      claimDueBatchMock.mockResolvedValue([{ ...migrationRetryJob, attempts: 6 }]);
+
+      await scheduledJobsRunDue({ _: [] });
+
+      expect(markFailedMock).toHaveBeenCalledWith(32, 'Migration feed parse did not finish');
+      expect(requeueWithBackoffMock).not.toHaveBeenCalled();
+    });
+
+    it('cancels when the feed no longer exists', async () => {
+      feedGetMock.mockResolvedValue(null);
+
+      await scheduledJobsRunDue({ _: [] });
+
+      expect(markCancelledMock).toHaveBeenCalledWith(32, 'Feed not found');
+      expect(parsePodcastIndexFeedDirectlyMock).not.toHaveBeenCalled();
+    });
+
+    it('cancels when the feed may not be parsed', async () => {
+      feedGetMock.mockResolvedValue({
+        ...migrationFeed,
+        feed_lifecycle_state: { feed_lifecycle_state_type: { state_key: 'merged' } },
+      });
+      shouldAttemptFeedParseMock.mockReturnValue(false);
+
+      await scheduledJobsRunDue({ _: [] });
+
+      expect(markCancelledMock).toHaveBeenCalledWith(
+        32,
+        'Feed may not be parsed (lifecycle=merged)'
+      );
+      expect(parsePodcastIndexFeedDirectlyMock).not.toHaveBeenCalled();
     });
   });
 

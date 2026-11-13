@@ -16,8 +16,9 @@ type NativeDouble = {
   onTokenRefresh: Mock<OnTokenRefresh>;
 };
 
-const native = vi.hoisted((): NativeDouble => ({
+const native = vi.hoisted((): NativeDouble & { firebaseLinked: boolean } => ({
   apps: ['default'],
+  firebaseLinked: true,
   os: 'ios',
   registered: false,
   token: 'fcm-registration-token',
@@ -62,6 +63,9 @@ vi.mock('react-native', () => ({
       return native.os;
     },
   },
+  TurboModuleRegistry: {
+    get: () => (native.firebaseLinked ? { name: 'NativeRNFBTurboApp' } : null),
+  },
 }));
 
 vi.mock('../config', () => ({
@@ -73,6 +77,7 @@ import { getFcmDeviceToken, onFcmDeviceTokenRefresh } from './fcmTransport';
 describe('fcmTransport', () => {
   beforeEach(() => {
     native.apps = ['default'];
+    native.firebaseLinked = true;
     native.os = 'ios';
     native.registered = false;
     native.token = 'fcm-registration-token';
@@ -86,6 +91,14 @@ describe('fcmTransport', () => {
     await expect(getFcmDeviceToken()).resolves.toBe('fcm-registration-token');
     expect(native.register).toHaveBeenCalledOnce();
     expect(native.getToken).toHaveBeenCalledOnce();
+  });
+
+  it('returns null when the native Firebase module is not in this binary', async () => {
+    native.firebaseLinked = false;
+    await expect(getFcmDeviceToken()).resolves.toBeNull();
+    expect(typeof onFcmDeviceTokenRefresh(() => {})).toBe('function');
+    expect(native.getToken).not.toHaveBeenCalled();
+    expect(native.onTokenRefresh).not.toHaveBeenCalled();
   });
 
   it('returns null when Firebase has no app', async () => {

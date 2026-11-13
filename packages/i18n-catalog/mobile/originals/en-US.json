@@ -29,7 +29,9 @@
   "features": {
     "add_by_rss": {
       "credentials_mobile_media_note": "This app sends them with audio, video, and artwork only when those files are on the same site as the feed.",
-      "credentials_remove_feed_confirm": "Remove this feed? Its username and password are deleted from this device too."
+      "credentials_page_host_note": "Your username and password stay on this device, so you need to enter them again on each device you use. This app sends them only to the feed's site.",
+      "credentials_remove_feed_confirm": "Remove this feed? Its username and password are deleted from this device too.",
+      "feed_limit_help": "Add by RSS holds up to {max_feeds} feeds."
     },
     "channel": {
       "section_requires_connection": "This section needs a connection. Try again once you are back online."
@@ -163,6 +165,15 @@
       "move_to_more": "Move to More",
       "add_to_bar": "Add to Tab Bar",
       "reorder_hint": "Moves this screen on the tab bar or into More"
+    },
+    "opml": {
+      "export_description_device": "Export the podcasts you subscribed to and the Add by RSS feeds on this device as an OPML file.",
+      "export_device_empty": "There are no subscriptions or Add by RSS feeds on this device to export.",
+      "export_device_looking_up": "Looking up podcast feeds: {done} of {total}",
+      "export_device_partial": "{count, plural, one {Exported, but # podcast you subscribed to was left out because its feed URL couldn't be loaded. Export again later to include it.} other {Exported, but # podcasts you subscribed to were left out because their feed URLs couldn't be loaded. Export again later to include them.}}",
+      "export_device_offline_mode": "{count, plural, one {Exported your Add by RSS feeds. Offline Mode is on, so # podcast you subscribed to was left out. Turn off Offline Mode and export again to include it.} other {Exported your Add by RSS feeds. Offline Mode is on, so # podcasts you subscribed to were left out. Turn off Offline Mode and export again to include them.}}",
+      "export_device_offline_mode_unavailable": "Offline Mode is on. Turn it off to export the podcasts you subscribed to, because their feed URLs are looked up online.",
+      "export_device_lookup_failed": "Couldn't load the feed URLs of the podcasts you subscribed to, so nothing was exported. Check your connection, then try again."
     }
   },
   "e2e": {
@@ -339,7 +350,22 @@
   },
   "authentication": {
     "account_created_title": "Account Created",
-    "account_created_body": "Check your email for a verification link."
+    "account_created_body": "Check your email for a verification link.",
+    "signup_add_by_rss_limit": {
+      "title": "Add by RSS Limit",
+      "summary": "New accounts can keep up to {limit} Add by RSS feeds, and this device has {feed_count}. If you sign up, Add by RSS may not work as expected, and you may lose the feed URLs over the limit.",
+      "export_recommendation": "Export OPML first to keep a copy of your Add by RSS feeds. You can import the file later to restore them.",
+      "details_title": "More Details",
+      "details_kept": "Your new account keeps the first {limit} Add by RSS feeds you followed on this device.",
+      "details_removed": "The rest are removed from this device the first time you log in to the new account, along with any usernames and passwords saved for them. They are not added later.",
+      "details_server": "After that, the server checks the feeds your account keeps for updates instead of this device, and they appear on your other signed-in devices.",
+      "details_subscriptions": "Podcasts you subscribed to from the directory are all kept.",
+      "details_restore": "To restore feeds later, log in and import your OPML file from More › OPML. Your account still holds no more than {limit} Add by RSS feeds.",
+      "details_alternatives": "To keep every feed on this device, stay signed out. Logging in to an account you already have does not remove any feeds from this device.",
+      "contact": "Questions? Contact {email}.",
+      "accept_label": "I understand that Add by RSS feeds over the limit will be removed from this device.",
+      "limit_unavailable": "Couldn't load the Add by RSS limit. Check your connection, then try again."
+    }
   },
   "membership": {
     "status_free_trial": "Free Trial",

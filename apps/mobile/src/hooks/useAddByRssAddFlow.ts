@@ -17,6 +17,7 @@ import {
 import type { AddByRssCredentials } from '../lib/addByRss/credentials';
 import {
   credentialNoticeKeyForParse,
+  resolveAddByRssCredentialWriteOwner,
   splitAddByRssPastedUrl,
   toAddByRssCredentials,
 } from '../lib/addByRss/credentials';
@@ -25,6 +26,7 @@ import { homeFeedRefresh } from '../lib/home/homeFeedRefresh';
 import { useMembershipGate } from '../membership/MembershipGateProvider';
 import { useAccessTier } from '../membership/useAccessTier';
 import { ADD_BY_RSS_ADD_LOG_KIND } from '../sync/syncJobKinds';
+import { useAddByRssParsePath } from './useAddByRssParsePath';
 
 type UseAddByRssAddFlowOptions = {
   inputValue: string;
@@ -59,7 +61,8 @@ export function useAddByRssAddFlow({
 }: UseAddByRssAddFlowOptions) {
   const { accessToken, account, clearSession, refreshToken, setTokens } = useAuth();
   const { handleGateError, openGate } = useMembershipGate();
-  const { evaluateFeature } = useAccessTier();
+  const { evaluateFeature, isTierKnown } = useAccessTier();
+  const parsePath = useAddByRssParsePath();
   const [isAdding, setIsAdding] = useState<boolean>(false);
   const [addErrorKey, setAddErrorKey] = useState<string | null>(null);
   const [useBasicAuth, setUseBasicAuthState] = useState<boolean>(false);
@@ -67,8 +70,9 @@ export function useAddByRssAddFlow({
   const [password, setPassword] = useState<string>('');
   const isAddingRef = useRef(false);
 
-  // Adding requires server-side feed parsing, so it is membership-tier. Feeds already added stay
-  // visible and playable when a membership lapses — only adding stops.
+  // Signed in, adding needs server-side parsing, so it is membership-tier, and feeds already
+  // added stay visible and playable when a membership lapses. Signed out, the phone parses the
+  // feed and nothing is gated.
   const addAccess = evaluateFeature('add_by_rss_add');
 
   const setUseBasicAuth = useCallback((next: boolean) => {
@@ -106,7 +110,7 @@ export function useAddByRssAddFlow({
       return;
     }
 
-    if (!addAccess.allowed) {
+    if (parsePath === 'server' && isTierKnown && !addAccess.allowed) {
       openGate(addAccess.reason);
       return;
     }
@@ -148,28 +152,35 @@ export function useAddByRssAddFlow({
     setAddErrorKey(null);
     onNotice(null);
     try {
-      // The follow only flags the feed; the username and password never leave in it.
-      await requestWithMobileAuthRefresh(authContext, async (api) =>
-        api.reqAccountFollowAddByRSSChannel({
-          feed_url: feedUrl,
-          image_url: null,
-          ...(credentials !== null ? { requires_credentials: true } : {}),
-          title: feedUrl,
-        })
-      );
+      // Signed in, the server follow is what the server parses and every device of the account
+      // syncs. Signed out, the feed stays on this phone.
+      if (parsePath === 'server') {
+        // The follow only flags the feed; the username and password never leave in it.
+        await requestWithMobileAuthRefresh(authContext, async (api) =>
+          api.reqAccountFollowAddByRSSChannel({
+            feed_url: feedUrl,
+            image_url: null,
+            ...(credentials !== null ? { requires_credentials: true } : {}),
+            title: feedUrl,
+          })
+        );
+      }
 
       // Saved before the parse so a rejected pair stays available to correct on the credentials
       // screen rather than having to be typed again.
-      const accountIdText = account?.id_text;
-      if (credentials !== null && accountIdText !== undefined) {
-        await addByRssCredentialStore.set(accountIdText, feedUrl, credentials);
+      const credentialOwner = resolveAddByRssCredentialWriteOwner(
+        parsePath,
+        account?.id_text ?? null
+      );
+      if (credentials !== null && credentialOwner !== null) {
+        await addByRssCredentialStore.set(credentialOwner, feedUrl, credentials);
       }
 
-      const { requestId, result } = await addByRssRepository.parseNow(
+      const { requestId, result } = await addByRssRepository.parseNowByPath(
         authContext,
         feedUrl,
         credentials,
-        { followed: true }
+        { followed: true, path: parsePath }
       );
       setInputValue('');
       setUsername('');
@@ -215,9 +226,11 @@ export function useAddByRssAddFlow({
     clearSession,
     handleGateError,
     inputValue,
+    isTierKnown,
     onAfterAdd,
     onNotice,
     openGate,
+    parsePath,
     password,
     refreshToken,
     setInputValue,

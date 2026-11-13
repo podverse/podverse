@@ -9,6 +9,8 @@ export interface UseDropdownKeyboardNavigationProps {
   onClose: () => void;
   buttonRef: RefObject<HTMLButtonElement | null>;
   menuRef: RefObject<HTMLUListElement | null>;
+  /** Extra root treated as inside the menu, such as a portaled panel around the list. */
+  insideRef?: RefObject<HTMLElement | null>;
   /** When false, Enter/Space on a menu item does not close the menu (default true). */
   closeOnItemSelect?: boolean;
 }
@@ -19,6 +21,7 @@ export function useDropdownKeyboardNavigation({
   onClose: _onClose,
   buttonRef,
   menuRef,
+  insideRef,
   closeOnItemSelect = true,
 }: UseDropdownKeyboardNavigationProps) {
   const [open, setOpen] = useState(false);
@@ -31,9 +34,11 @@ export function useDropdownKeyboardNavigation({
 
     function handleClickOutside(event: MouseEvent) {
       const target = event.target;
+      const inside = insideRef?.current ?? null;
       if (
         !(target instanceof Node) ||
         (menuRef.current !== null && menuRef.current.contains(target)) ||
+        (inside !== null && inside.contains(target)) ||
         (buttonRef.current !== null && buttonRef.current.contains(target))
       ) {
         return;
@@ -47,7 +52,7 @@ export function useDropdownKeyboardNavigation({
       document.removeEventListener('mousedown', handleClickOutside);
       document.removeEventListener('pointerdown', handleClickOutside);
     };
-  }, [open, buttonRef, menuRef]);
+  }, [open, buttonRef, insideRef, menuRef]);
 
   useEffect(() => {
     if (!open) {

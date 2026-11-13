@@ -1,0 +1,55 @@
+appId: com.podverse.app.next
+name: Add By RSS Anonymous Artist
+---
+# Signed out, the device parses the artist feed, matches the seeded directory album through the
+# public remote-item lookup, resolves the guid-only album through the public resolve route in
+# background sync, and fetches and parses the listed Add by RSS album itself. The feeds are static
+# test-assets fixtures on :2111.
+# Needs flow_needs_e2e_api + flow_needs_test_assets.
+
+- runFlow: shared/launch-and-connect.yaml
+
+- tapOn:
+    id: tab-my-library
+- tapOn:
+    id: library-nav-add-by-rss
+- tapOn:
+    id: rss-add-button
+- tapOn:
+    id: rss-url-input
+- inputText: http://localhost:2111/e2e/add-by-rss/artist.xml
+- tapOn:
+    id: rss-add-submit
+- extendedWaitUntil:
+    visible:
+      id: rss-root-screen
+    timeout: ${TIMEOUT_SLOWER}
+- runFlow:
+    file: shared/reveal-chip-row-trailing.yaml
+    env:
+      CHIP_ROW_ID: rss-media-type-selector
+      TRAILING_ID: rss-media-type-artists
+- tapOn:
+    id: rss-media-type-artists
+- extendedWaitUntil:
+    visible:
+      id: "home-feed-row-title-.*"
+      text: E2E Device Artist
+    timeout: ${TIMEOUT_SLOW}
+- tapOn:
+    id: "home-feed-row-title-.*"
+    text: E2E Device Artist
+- extendedWaitUntil:
+    visible:
+      id: add-by-rss-home-detail-screen
+    timeout: ${TIMEOUT_FAST}
+# Albums is the default section. The listed album appears once background sync has parsed it.
+- extendedWaitUntil:
+    visible:
+      id: add-by-rss-artist-album-row-0
+      text: E2E Device Album
+    timeout: ${TIMEOUT_SLOWER}
+- assertVisible:
+    id: add-by-rss-artist-album-row-1
+    text: E2E Music Album
+- takeScreenshot: add-by-rss-anonymous-artist-albums

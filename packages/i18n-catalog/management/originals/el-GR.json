@@ -464,9 +464,8 @@
       "freeTrialExpirationSeconds": "Διάρκεια δοκιμής (δευτερόλεπτα)",
       "premiumMembershipCostMonthly": "Μηνιαίο κόστος premium",
       "premiumMembershipCostAnnually": "Ετήσιο κόστος premium",
-      "trialMaxAddByRSSFeeds": "Μέγ. ροές Add-by-RSS σε δοκιμή",
+      "maxAddByRSSFeeds": "Μέγ. ροές προσθήκης μέσω RSS",
       "trialMaxManualRefreshesPerHour": "Μέγ. χειροκίνητες ανανεώσεις ανά ώρα (δοκιμή)",
-      "premiumMaxAddByRSSFeeds": "Μέγ. ροές Add-by-RSS premium",
       "premiumMaxManualRefreshesPerHour": "Μέγ. χειροκίνητες ανανεώσεις ανά ώρα (premium)"
     },
     "pricingTable": {
@@ -795,7 +794,7 @@
       "allowDirectoryAddByRss": "Επιτρέψτε την προσθήκη καταλόγου μέσω υπέρβασης RSS",
       "allowDirectoryAddByRssHelp": "Εάν ο χρήστης μπορεί να προσθέσει ροές από τον κατάλογο podcast. Προεπιλογή δοκιμής: {trialDefault}. Προεπιλογή Premium: {premiumDefault}.",
       "addByRssFeedLimit": "Περιορισμός προσθήκης μέσω υπέρβασης RSS",
-      "addByRssFeedLimitHelp": "Μέγιστος αριθμός ροών προσθήκη μέσω RSS για αυτόν τον λογαριασμό. Προεπιλογή επιπέδου δοκιμής: {trialDefault}. Προεπιλογή επιπέδου Premium: {premiumDefault}. Προεπιλογή επιλεγμένου επιπέδου για παρακάμψεις: {selectedDefault}.",
+      "addByRssFeedLimitHelp": "Μέγιστος αριθμός ροών προσθήκη μέσω RSS για αυτόν τον λογαριασμό. Προεπιλογή δοκιμής και Premium: {defaultLimit}. Προεπιλογή επιλεγμένου επιπέδου για παρακάμψεις: {selectedDefault}.",
       "manualRefreshPerHour": "Περιορισμός χειροκίνητης ανανέωσης/ώρα",
       "manualRefreshPerHourHelp": "Μέγιστος αριθμός χειροκίνητων ανανεώσεων ανά ώρα. Προεπιλογή επιπέδου δοκιμής: {trialDefault}. Προεπιλογή επιπέδου Premium: {premiumDefault}. Προεπιλογή επιλεγμένου επιπέδου για παρακάμψεις: {selectedDefault}.",
       "placeholderTierDefault": "Προεπιλογή: {count}",

@@ -38,7 +38,7 @@ foundation first: [DOCS-MOBILE-PROCESS-OVERVIEW.md](DOCS-MOBILE-PROCESS-OVERVIEW
 | Local settings                | Cookie (`apps/web/src/utils/localSettings/`)                                  | AsyncStorage/MMKV for prefs; app data in local DB                                        | Rebuild; sync prefs to server                                |
 | Deep links / routing          | Next routes (`apps/web/src/app/`)                                             | Universal/app links to same IDs                                                          | Rebuild mapping                                              |
 | V4V / boosts                  | `@podverse/v4v-*`; `metaboost` route                                          | Same packages; native LN provider                                                        | Logic reused                                                 |
-| Add-by-RSS                    | Server parse + poll; `@podverse/parser-mapping` + IndexedDB                   | Same parse/poll APIs; adopt `parser-mapping`; local DB                                   | API + mapping shared; storage differs                        |
+| Add-by-RSS                    | Server parse + poll; `@podverse/parser-mapping` + IndexedDB                   | Signed in: same server path. Signed out: `podverse-partytime/core` into the local DB     | Intentional: browsers block the website feed fetch           |
 | Livestream                    | Native element + `hls.js` (`MediaPlayerControllerLiveStream*`)                | Native HLS (deferred)                                                                    | Rebuild later                                                |
 
 ## 3. Endpoint reuse catalog
@@ -72,24 +72,30 @@ API route modules in `apps/api/src/routes/` map almost 1:1 to typed wrappers in
 
 ## 4. Package import allowlist / denylist
 
-| Allowed (mobile-safe)                                  | Forbidden (web/server-only)                                |
-| ------------------------------------------------------ | ---------------------------------------------------------- |
-| `@podverse/helpers`                                    | `@podverse/ui`                                             |
-| `@podverse/helpers-requests`                           | `@podverse/orm`                                            |
-| `@podverse/http-request-core`                          | `@podverse/parser` (server/worker only — fetches + parses) |
-| `@podverse/helpers-validation/client`                  | `@podverse/mq`                                             |
-| `@podverse/playback-core`                              | `@podverse/helpers-backend`                                |
-| `@podverse/parser-mapping` (post-parse client mapping) | `@podverse/helpers-browser`                                |
-| `@podverse/v4v-helpers`, `v4v-metaboost`, `v4v-btc-ln` | `@podverse/helpers-config`                                 |
-| `@podverse/design-tokens`                              | `@podverse/observability`, `@podverse/external-services-*` |
+| Allowed (mobile-safe)                                  | Forbidden (web/server-only)                                  |
+| ------------------------------------------------------ | ------------------------------------------------------------ |
+| `@podverse/helpers`                                    | `@podverse/ui`                                               |
+| `@podverse/helpers-requests`                           | `@podverse/orm`                                              |
+| `@podverse/http-request-core`                          | `@podverse/parser` (server/worker only — fetches + parses)   |
+| `@podverse/helpers-validation/client`                  | `@podverse/mq`                                               |
+| `@podverse/playback-core`                              | `@podverse/helpers-backend`                                  |
+| `@podverse/parser-mapping` (post-parse client mapping) | `@podverse/helpers-browser`                                  |
+| `podverse-partytime/core`                              | `podverse-partytime` package root, `podverse-partytime/dist` |
+| `@podverse/v4v-helpers`, `v4v-metaboost`, `v4v-btc-ln` | `@podverse/helpers-config`                                   |
+| `@podverse/design-tokens`                              | `@podverse/observability`, `@podverse/external-services-*`   |
 
 Detail and reasons: see
 [DOCS-MOBILE-MONOREPO-CURRENT-STATE.md](/docs/proposals/mobile/monorepo-llm-setup/DOCS-MOBILE-MONOREPO-CURRENT-STATE.md)
 section 3.
 
-## 4.1 Add-by-RSS: server-side parse, client-side mapping
+## 4.1 Add-by-RSS: server parse while signed in, on-device parse while signed out
 
-Neither web nor mobile parses RSS XML in the client. Both use the same async API:
+The website always uses the server parse. A browser cannot fetch another site's RSS, and that
+difference is intentional. A signed-in phone uses that same server path. A signed-out phone parses
+on the device through `podverse-partytime/core` only and maps with `@podverse/parser-mapping` into
+the local database. Signed-in mobile and the website do not parse RSS XML.
+
+The server path is this async API:
 
 1. `POST /account/follow/add-by-rss-channel` (follow)
 2. `POST /account/add-by-rss/parse` → `{ request_id }`
@@ -101,10 +107,10 @@ returns a `FeedObject` payload in the cache entry.
 
 **After parse:**
 
-| Surface | Post-parse work                                                               | Local storage                                     |
-| ------- | ----------------------------------------------------------------------------- | ------------------------------------------------- |
-| Web     | `@podverse/parser-mapping` `convertParsedRSSFeedToCompat` + item index        | IndexedDB (`apps/web/src/utils/addByRSS/storage`) |
-| Mobile  | Should adopt the same `parser-mapping` pipeline (today: slim `items[0]` only) | Offline-first local DB (see data-layer decision)  |
+| Surface | Post-parse work                                                        | Local storage                                     |
+| ------- | ---------------------------------------------------------------------- | ------------------------------------------------- |
+| Web     | `@podverse/parser-mapping` `convertParsedRSSFeedToCompat` + item index | IndexedDB (`apps/web/src/utils/addByRSS/storage`) |
+| Mobile  | `@podverse/parser-mapping` stores the mapped bundle                    | Offline-first local DB (see data-layer decision)  |
 
 Add-by-RSS items are **not** ORM entities. They use parallel types (`AddByRSSResourceData`,
 `AddByRSSMappedFeed`, `add_by_rss_hash_id`) because they lack DB channel/item IDs — that is why
@@ -119,7 +125,9 @@ hash, so clients match both (`getAddByRSSHashIds`). See
 `packages/helpers/src/lib/addByRSSHash.ts`.
 
 Do **not** import `@podverse/parser` in mobile (Node/ORM deps). Do import
-`@podverse/parser-mapping` for post-parse mapping (browser/mobile-safe).
+`@podverse/parser-mapping` for post-parse mapping (browser/mobile-safe). Import
+`podverse-partytime/core` only for the signed-out device parse. Do not import the
+`podverse-partytime` package root or `podverse-partytime/dist`.
 
 ## 5. Data loading pattern comparison
 
@@ -148,8 +156,11 @@ When implementing a mobile screen:
 3. **Do not port** SCSS, `@podverse/ui` components, Next.js routing, or SSR patterns.
 4. **Use bearer auth**, never cookie/`withCredentials`.
 5. **Match behavior** (sort defaults, pagination, tab data) even when the UI looks native.
-6. **Add-by-RSS:** use the server parse + poll APIs; map with `@podverse/parser-mapping`; never
-   parse RSS XML in the app.
+6. **Add-by-RSS:** while signed in, use the server parse and poll and do not parse RSS XML. While
+   signed out, parse on the phone through `podverse-partytime/core` only. Map with
+   `@podverse/parser-mapping` either way. Never import `@podverse/parser`, the partytime package
+   root, or `podverse-partytime/dist`. The website keeps the server parse because a browser cannot
+   fetch the feed host. That difference is intentional.
 7. **Visual:** prefer shared RN primitives + tokens; defer pixel polish — see
    [DOCS-MOBILE-PROCESS-VISUAL-PARITY.md](DOCS-MOBILE-PROCESS-VISUAL-PARITY.md).
 

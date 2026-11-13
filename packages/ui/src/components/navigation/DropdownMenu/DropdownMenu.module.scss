@@ -38,11 +38,9 @@
 }
 
 .panel {
-  position: absolute;
-  right: 0;
-  top: 100%;
-  z-index: 100;
-  margin-top: var(--spacing-md);
+  position: fixed;
+  z-index: 1000;
+  margin: 0;
   min-width: 12rem;
   max-width: min(18rem, 100vw - 2rem);
   padding: var(--spacing-md) 0;

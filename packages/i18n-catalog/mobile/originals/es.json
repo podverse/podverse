@@ -80,7 +80,9 @@
     },
     "add_by_rss": {
       "credentials_mobile_media_note": "Esta app los envía con el audio, el vídeo y las portadas solo cuando esos archivos están en el mismo sitio que el feed.",
-      "credentials_remove_feed_confirm": "¿Quitar este feed? También se borran de este dispositivo el usuario y la contraseña."
+      "credentials_page_host_note": "El usuario y la contraseña se quedan en este dispositivo, así que debes introducirlos de nuevo en cada dispositivo que uses. Esta app los envía solo al sitio del feed.",
+      "credentials_remove_feed_confirm": "¿Quitar este feed? También se borran de este dispositivo el usuario y la contraseña.",
+      "feed_limit_help": "Añadir por RSS admite hasta {max_feeds} feeds."
     }
   },
   "settings": {
@@ -163,6 +165,15 @@
       "move_to_more": "Mover a Más",
       "add_to_bar": "Añadir a la barra",
       "reorder_hint": "Mueve esta pantalla en la barra de pestañas o a Más"
+    },
+    "opml": {
+      "export_description_device": "Exporta como archivo OPML los podcasts a los que te suscribiste y los feeds de Add by RSS de este dispositivo.",
+      "export_device_empty": "No hay suscripciones ni feeds de Add by RSS en este dispositivo para exportar.",
+      "export_device_looking_up": "Buscando feeds de podcasts: {done} de {total}",
+      "export_device_partial": "{count, plural, one {Exportado, pero se omitió # podcast al que te suscribiste porque no se pudo cargar la URL de su feed. Vuelve a exportar más tarde para incluirlo.} other {Exportado, pero se omitieron # podcasts a los que te suscribiste porque no se pudieron cargar las URL de sus feeds. Vuelve a exportar más tarde para incluirlos.}}",
+      "export_device_offline_mode": "{count, plural, one {Se exportaron tus feeds de Add by RSS. El modo sin conexión está activado, así que se omitió # podcast al que te suscribiste. Desactiva el modo sin conexión y vuelve a exportar para incluirlo.} other {Se exportaron tus feeds de Add by RSS. El modo sin conexión está activado, así que se omitieron # podcasts a los que te suscribiste. Desactiva el modo sin conexión y vuelve a exportar para incluirlos.}}",
+      "export_device_offline_mode_unavailable": "El modo sin conexión está activado. Desactívalo para exportar los podcasts a los que te suscribiste, porque las URL de sus feeds se buscan en línea.",
+      "export_device_lookup_failed": "No se pudieron cargar las URL de los feeds de los podcasts a los que te suscribiste, así que no se exportó nada. Revisa tu conexión y vuelve a intentarlo."
     }
   },
   "e2e": {
@@ -314,7 +325,22 @@
   },
   "authentication": {
     "account_created_title": "Cuenta creada",
-    "account_created_body": "Revisa tu correo para el enlace de verificación."
+    "account_created_body": "Revisa tu correo para el enlace de verificación.",
+    "signup_add_by_rss_limit": {
+      "title": "Límite de Add by RSS",
+      "summary": "Las cuentas nuevas pueden conservar hasta {limit} feeds de Add by RSS, y este dispositivo tiene {feed_count}. Si creas una cuenta, Add by RSS puede no funcionar como se espera y puedes perder las URL de los feeds que superen el límite.",
+      "export_recommendation": "Exporta OPML primero para guardar una copia de tus feeds de Add by RSS. Puedes importar el archivo más tarde para restaurarlos.",
+      "details_title": "Más detalles",
+      "details_kept": "Tu cuenta nueva conserva los primeros {limit} feeds de Add by RSS que seguiste en este dispositivo.",
+      "details_removed": "El resto se quita de este dispositivo la primera vez que inicias sesión en la cuenta nueva, junto con los nombres de usuario y las contraseñas guardados para ellos. No se añaden después.",
+      "details_server": "Después, el servidor comprueba las actualizaciones de los feeds que conserva tu cuenta, en lugar de este dispositivo, y aparecen en tus otros dispositivos con la sesión iniciada.",
+      "details_subscriptions": "Los podcasts a los que te suscribiste desde el directorio se conservan todos.",
+      "details_restore": "Para restaurar feeds más tarde, inicia sesión e importa tu archivo OPML desde More › OPML. Tu cuenta sigue sin poder tener más de {limit} feeds de Add by RSS.",
+      "details_alternatives": "Para conservar todos los feeds en este dispositivo, permanece sin iniciar sesión. Iniciar sesión en una cuenta que ya tienes no elimina ningún feed de este dispositivo.",
+      "contact": "¿Preguntas? Contacta a {email}.",
+      "accept_label": "Entiendo que los feeds de Add by RSS que superen el límite se eliminarán de este dispositivo.",
+      "limit_unavailable": "No se pudo cargar el límite de Add by RSS. Revisa tu conexión e inténtalo de nuevo."
+    }
   },
   "membership": {
     "status_free_trial": "Prueba gratuita",

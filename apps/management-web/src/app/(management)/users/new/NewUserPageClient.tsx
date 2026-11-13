@@ -489,8 +489,7 @@ export function NewUserPageClient() {
                   id="max-add-by-rss-feeds"
                   eyebrow={t('advancedOverrides.addByRssFeedLimit')}
                   info={t('advancedOverrides.addByRssFeedLimitHelp', {
-                    trialDefault: trialEnt.maxAddByRSSFeeds,
-                    premiumDefault: premiumEnt.maxAddByRSSFeeds,
+                    defaultLimit: trialEnt.maxAddByRSSFeeds,
                     selectedDefault: selectedEnt.maxAddByRSSFeeds,
                   })}
                   min={0}

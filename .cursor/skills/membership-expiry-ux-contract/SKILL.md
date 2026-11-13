@@ -15,7 +15,7 @@ Use this skill for any membership-expired UX/API work.
 
 ## UI contract
 
-- Show a persistent expired-state reminder banner.
+- Show a persistent expired-state reminder (mobile: bottom-chrome strip above the mini player).
 - Show a blocked-action modal for protected actions.
 - Modal includes:
   - dismiss option

@@ -1,14 +1,6 @@
-import { getApps } from '@react-native-firebase/app';
-import {
-  getMessaging,
-  getToken,
-  isDeviceRegisteredForRemoteMessages,
-  onTokenRefresh,
-  registerDeviceForRemoteMessages,
-} from '@react-native-firebase/messaging';
 import Constants from 'expo-constants';
 import * as Notifications from 'expo-notifications';
-import { Linking, Platform } from 'react-native';
+import { Linking, Platform, TurboModuleRegistry } from 'react-native';
 
 import type { AccountFCMDevicePlatformValues } from '@podverse/helpers/dto';
 import { AccountFCMDevicePlatformEnum } from '@podverse/helpers/dto';
@@ -29,6 +21,87 @@ type PushPlatform = Extract<
 
 const ANDROID_APP_NOTIFICATION_SETTINGS = 'android.settings.APP_NOTIFICATION_SETTINGS';
 const ANDROID_EXTRA_APP_PACKAGE = 'android.provider.extra.APP_PACKAGE';
+/** Turbo module name from `@react-native-firebase/app`. Absent when this binary has no Firebase config. */
+const FIREBASE_APP_NATIVE_MODULE = 'NativeRNFBTurboApp';
+
+type FirebaseMessaging = object;
+
+type FirebaseModules = {
+  getApps: () => readonly unknown[];
+  getMessaging: () => FirebaseMessaging;
+  getToken: (messaging: FirebaseMessaging) => Promise<string>;
+  isDeviceRegisteredForRemoteMessages: (messaging: FirebaseMessaging) => boolean;
+  onTokenRefresh: (messaging: FirebaseMessaging, listener: (token: string) => void) => () => void;
+  registerDeviceForRemoteMessages: (messaging: FirebaseMessaging) => Promise<void>;
+};
+
+const isRecord = (value: unknown): value is Record<string, unknown> =>
+  typeof value === 'object' && value !== null;
+
+const isFunction = (value: unknown): value is (...args: unknown[]) => unknown =>
+  typeof value === 'function';
+
+/**
+ * Loads Firebase only when the native module is in this binary. A static import evaluates the
+ * package at startup and stops a build that left Firebase unlinked.
+ */
+const loadFirebaseModules = (): FirebaseModules | null => {
+  const nativeModule = TurboModuleRegistry.get(FIREBASE_APP_NATIVE_MODULE);
+  if (nativeModule === null || nativeModule === undefined) {
+    return null;
+  }
+
+  // eslint-disable-next-line @typescript-eslint/no-require-imports -- loaded only after the native module is registered
+  const app: unknown = require('@react-native-firebase/app');
+  // eslint-disable-next-line @typescript-eslint/no-require-imports -- loaded only after the native module is registered
+  const messaging: unknown = require('@react-native-firebase/messaging');
+  if (!isRecord(app) || !isRecord(messaging)) {
+    return null;
+  }
+
+  const { getApps } = app;
+  const {
+    getMessaging,
+    getToken,
+    isDeviceRegisteredForRemoteMessages,
+    onTokenRefresh,
+    registerDeviceForRemoteMessages,
+  } = messaging;
+  if (
+    !isFunction(getApps) ||
+    !isFunction(getMessaging) ||
+    !isFunction(getToken) ||
+    !isFunction(isDeviceRegisteredForRemoteMessages) ||
+    !isFunction(onTokenRefresh) ||
+    !isFunction(registerDeviceForRemoteMessages)
+  ) {
+    return null;
+  }
+
+  return {
+    getApps: () => {
+      const apps = getApps();
+      return Array.isArray(apps) ? apps : [];
+    },
+    getMessaging: () => {
+      const messaging = getMessaging();
+      return isRecord(messaging) ? messaging : {};
+    },
+    getToken: (instance) => Promise.resolve(getToken(instance)).then((token) => String(token)),
+    isDeviceRegisteredForRemoteMessages: (instance) =>
+      isDeviceRegisteredForRemoteMessages(instance) === true,
+    onTokenRefresh: (instance, listener) => {
+      const unsubscribe = onTokenRefresh(instance, listener);
+      return () => {
+        if (typeof unsubscribe === 'function') {
+          unsubscribe();
+        }
+      };
+    },
+    registerDeviceForRemoteMessages: (instance) =>
+      Promise.resolve(registerDeviceForRemoteMessages(instance)).then(() => undefined),
+  };
+};
 
 const isFcmPushEnabled = (): boolean => {
   return getMobileConfig().pushProvider === 'fcm';
@@ -109,16 +182,17 @@ export const requestFcmPermissionAfterUserAction =
   };
 
 const readFcmRegistrationToken = async (): Promise<string | null> => {
-  if (getApps().length === 0) {
+  const firebase = loadFirebaseModules();
+  if (firebase === null || firebase.getApps().length === 0) {
     return null;
   }
 
-  const messaging = getMessaging();
-  if (Platform.OS === 'ios' && !isDeviceRegisteredForRemoteMessages(messaging)) {
-    await registerDeviceForRemoteMessages(messaging);
+  const messaging = firebase.getMessaging();
+  if (Platform.OS === 'ios' && !firebase.isDeviceRegisteredForRemoteMessages(messaging)) {
+    await firebase.registerDeviceForRemoteMessages(messaging);
   }
 
-  const token = (await getToken(messaging)).trim();
+  const token = (await firebase.getToken(messaging)).trim();
   return token.length > 0 ? token : null;
 };
 
@@ -154,10 +228,11 @@ export const onFcmDeviceTokenRefresh = (
   }
 
   try {
-    if (getApps().length === 0) {
+    const firebase = loadFirebaseModules();
+    if (firebase === null || firebase.getApps().length === 0) {
       return () => {};
     }
-    return onTokenRefresh(getMessaging(), (nextToken) => {
+    return firebase.onTokenRefresh(firebase.getMessaging(), (nextToken) => {
       const token = nextToken.trim();
       if (token.length > 0) {
         onRefresh(token);

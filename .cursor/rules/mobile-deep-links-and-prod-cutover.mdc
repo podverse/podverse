@@ -58,12 +58,22 @@ When cutting over to prod, to make users' v4 apps upgrade in place:
    `expo-secure-store` keys, queue/downloads/prefs) or explicitly accept a reset.
 4. Plan a **re-auth path** against v5 infra (v4 sessions won't carry over) — friendly "sign in again".
 5. Keep `podverse://` registered and publish prod **AASA** (`apple-app-site-association`) +
-   `.well-known/assetlinks.json` for the prod id; list **both** `com.podverse.app` and
+   `.well-known/assetlinks.json` for the prod ids; list **both** the v4 ids and
    `com.podverse.app.next` during the transition so beta and prod builds verify.
 6. Use a **phased / staged rollout** with a rollback plan (this is effectively a full app replacement).
 
-## Open decisions to confirm with the operator (do not assume)
+## Decided: in-place upgrade under the v4 store ids
 
-- The exact **v4 production** bundle id / package name.
-- Option A (in-place upgrade under the v4 id) vs Option B (new listing; manual migration).
-- Whether a first-launch data migration from v4 storage is in scope.
+Option A is decided. Production v5 ships as an update to the existing listings. Details and
+remaining store questions:
+[03](/docs/proposals/v4-to-v5-migration/03-store-identity-and-signing.md).
+
+| Platform | Production id |
+| -------- | ------------- |
+| iOS | `com.podverse.fm` (notification extension `com.podverse.fm.ImageNotification`) |
+| Android Play | `com.podverse` |
+| F-Droid | `com.podverse.fdroid` (separate; not this cutover) |
+
+Alpha stays on `com.podverse.app.next` until cutover. On-device carryover for a build that
+uses these ids is [08](/docs/proposals/v4-to-v5-migration/08-mobile-first-launch-migration.md).
+Signing material stays on EAS.

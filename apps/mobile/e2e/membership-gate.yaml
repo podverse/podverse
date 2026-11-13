@@ -40,9 +40,8 @@ name: Membership Gate
 - assertVisible:
     id: more-screen
 
-# Anonymous tier: Add by RSS is membership-tier. The library list stays readable; tapping plus
-# opens the shared gate modal (Account required → Login). Search stays at its root for the Trial
-# 403 check below.
+# Anonymous tier: signed out, Add by RSS parses on this device, so the plus opens the add form
+# with no gate. Search stays at its root for the Trial 403 check below.
 - tapOn:
     id: tab-my-library
 - assertVisible:
@@ -54,14 +53,13 @@ name: Membership Gate
 - tapOn:
     id: rss-add-button
 - assertVisible:
+    id: rss-add-screen
+- assertNotVisible:
     id: premium-gate-modal
 - takeScreenshot: membership-gate-anonymous-add-by-rss
-- tapOn:
-    id: premium-gate-cancel
-- extendedWaitUntil:
-    notVisible:
-      id: premium-gate-modal
-    timeout: ${TIMEOUT_FAST}
+- runFlow: shared/stack-back.yaml
+- assertVisible:
+    id: rss-root-screen
 
 - openLink: podverse-next://podcast/e2ePodChnl001/episode/e2ePodChap0001
 - runFlow: shared/confirm-ios-open-dialog.yaml

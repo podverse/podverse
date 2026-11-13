@@ -464,9 +464,8 @@
       "freeTrialExpirationSeconds": "Duración de la prueba gratuita (segundos)",
       "premiumMembershipCostMonthly": "Coste mensual premium",
       "premiumMembershipCostAnnually": "Coste anual premium",
-      "trialMaxAddByRSSFeeds": "Máx. feeds Add-by-RSS en prueba",
+      "maxAddByRSSFeeds": "Máx. feeds de Añadir por RSS",
       "trialMaxManualRefreshesPerHour": "Máx. actualizaciones manuales por hora (prueba)",
-      "premiumMaxAddByRSSFeeds": "Máx. feeds Add-by-RSS premium",
       "premiumMaxManualRefreshesPerHour": "Máx. actualizaciones manuales por hora (premium)"
     },
     "pricingTable": {
@@ -795,7 +794,7 @@
       "allowDirectoryAddByRss": "Permitir sobreescritura de agregar directorio por RSS",
       "allowDirectoryAddByRssHelp": "Si el usuario puede añadir fuentes desde el directorio de podcasts. Valor por defecto en prueba: {trialDefault}. Valor por defecto en Premium: {premiumDefault}.",
       "addByRssFeedLimit": "Sobreescritura del límite de agregar por feed RSS",
-      "addByRssFeedLimitHelp": "Máximo de fuentes añadir por RSS para esta cuenta. Valor por defecto del nivel prueba: {trialDefault}. Valor por defecto del nivel Premium: {premiumDefault}. Valor por defecto del nivel seleccionado para anulaciones: {selectedDefault}.",
+      "addByRssFeedLimitHelp": "Máximo de fuentes añadir por RSS para esta cuenta. Valor por defecto de prueba y Premium: {defaultLimit}. Valor por defecto del nivel seleccionado para anulaciones: {selectedDefault}.",
       "manualRefreshPerHour": "Sobreescritura del límite de actualización manual por hora",
       "manualRefreshPerHourHelp": "Máximo de actualizaciones manuales por hora. Valor por defecto del nivel prueba: {trialDefault}. Valor por defecto del nivel Premium: {premiumDefault}. Valor por defecto del nivel seleccionado para anulaciones: {selectedDefault}.",
       "placeholderTierDefault": "Valor predeterminado: {count}",

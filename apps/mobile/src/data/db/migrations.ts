@@ -334,6 +334,17 @@ export const MIGRATIONS: Migration[] = [
     version: 2,
     statements: [`ALTER TABLE stats_listen_outbox ADD COLUMN media_duration_seconds REAL;`],
   },
+  {
+    version: 3,
+    statements: [
+      `ALTER TABLE add_by_rss_feed ADD COLUMN device_etag TEXT;`,
+      `ALTER TABLE add_by_rss_feed ADD COLUMN device_last_modified TEXT;`,
+      `ALTER TABLE add_by_rss_feed ADD COLUMN device_feed_hash TEXT;`,
+      `ALTER TABLE add_by_rss_feed ADD COLUMN device_checked_at INTEGER;`,
+      `ALTER TABLE add_by_rss_feed ADD COLUMN signed_out_owned INTEGER NOT NULL DEFAULT 0;`,
+      `ALTER TABLE add_by_rss_feed ADD COLUMN followed_at INTEGER;`,
+    ],
+  },
 ];
 
 export const LATEST_MIGRATION_VERSION: number = MIGRATIONS.reduce(

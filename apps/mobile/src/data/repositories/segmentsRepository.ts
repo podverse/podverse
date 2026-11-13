@@ -4,6 +4,7 @@ import type { AddByRSSMappedFeed } from '@podverse/parser-mapping';
 
 import { requestWithMobileAuthRefresh } from '../../auth/authRequestWithRefresh';
 import type { AddByRssCredentials } from '../../lib/addByRss/credentials';
+import { fetchAddByRssItemSectionsOnDevice } from '../../lib/addByRss/deviceItemSections';
 import type { AddByRssItemSections } from '../../lib/addByRss/itemSections';
 import {
   addByRssItemSectionUrls,
@@ -11,6 +12,7 @@ import {
   toAddByRssItemSections,
 } from '../../lib/addByRss/itemSections';
 import { addByRssCredentialStore } from './addByRssCredentialStore';
+import { addByRssRepository } from './addByRssRepository';
 import type { MobileAuthRequestContext } from './types';
 
 /**
@@ -32,10 +34,12 @@ export const segmentsRepository = {
   },
 
   /**
-   * Chapters and transcript for one Add by RSS item, fetched by the API from the URLs its parsed
-   * bundle links. The device's stored feed credentials go along only when one of those URLs is on
-   * the feed's credential scope. An item that links neither resolves to empty sections without a
-   * request.
+   * Chapters and transcript for one Add by RSS item, from the URLs its parsed bundle links.
+   * Signed in, the API fetches them, whatever the membership; signed out, the phone fetches them
+   * from the feed's host. The device's stored feed credentials are read only when one of those
+   * URLs is on the feed's credential scope. An item that links neither, or a feed this session
+   * hides (the signed-out user's feed while someone is signed in), resolves to empty sections
+   * without a request.
    */
   getAddByRssChaptersAndTranscript: async (
     context: MobileAuthRequestContext,
@@ -57,6 +61,19 @@ export const segmentsRepository = {
       } catch {
         credentials = null;
       }
+    }
+
+    if (context.accessToken === null) {
+      return fetchAddByRssItemSectionsOnDevice({
+        credentials,
+        feedUrl: input.feedUrl,
+        itemIdText: input.itemIdText,
+        urls,
+      });
+    }
+
+    if (await addByRssRepository.isFeedHiddenInSession(input.feedUrl)) {
+      return { chapters: [], transcriptRows: [] };
     }
 
     const response = await requestWithMobileAuthRefresh(context, async (api) =>

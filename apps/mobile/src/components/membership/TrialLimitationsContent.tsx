@@ -1,11 +1,12 @@
 import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { TextStyle } from 'react-native';
-import { Linking, StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
 
 import { getMobileConfig } from '../../config';
 import { typography } from '../../theme/typography';
 import { useTheme } from '../../theme/useTheme';
+import { ContactEmailText } from '../content/ContactEmailText';
 import { useMembershipComparisonDocument } from './useMembershipComparisonDocument';
 
 type MissingContentBulletProps = {
@@ -17,33 +18,15 @@ function MissingContentBullet({ emailLinkStyle, textStyle }: MissingContentBulle
   const { t } = useTranslation();
   const email = getMobileConfig().contactEmail;
   const message = t('membership.trial_limitations_missing_content', { email });
-  const emailIndex = email === '' ? -1 : message.indexOf(email);
-
-  if (emailIndex < 0) {
-    return (
-      <Text style={textStyle} testID="trial-limitations-missing-content">
-        {`• ${message}`}
-      </Text>
-    );
-  }
-
-  const before = message.slice(0, emailIndex);
-  const after = message.slice(emailIndex + email.length);
 
   return (
-    <Text style={textStyle} testID="trial-limitations-missing-content">
-      {`• ${before}`}
-      <Text
-        accessibilityRole="link"
-        onPress={() => {
-          void Linking.openURL(`mailto:${email}`);
-        }}
-        style={emailLinkStyle}
-      >
-        {email}
-      </Text>
-      {after}
-    </Text>
+    <ContactEmailText
+      email={email}
+      linkStyle={emailLinkStyle}
+      style={textStyle}
+      testID="trial-limitations-missing-content"
+      text={`• ${message}`}
+    />
   );
 }
 

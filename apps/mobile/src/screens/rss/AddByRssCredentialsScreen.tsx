@@ -12,6 +12,7 @@ import { MobileScreenContainer } from '../../components/screen/MobileScreenConta
 import { ListEmpty } from '../../components/state/ListEmpty';
 import { LoadingSection } from '../../components/state/LoadingSection';
 import { addByRssRepository } from '../../data';
+import { useAddByRssParsePath } from '../../hooks/useAddByRssParsePath';
 import { homeFeedRefresh } from '../../lib/home/homeFeedRefresh';
 import type { LibraryStackParamList } from '../../navigation';
 import type { MobileAddByRSSFeedRecord } from '../../prefs/addByRSSFeeds';
@@ -35,8 +36,13 @@ type AddByRssCredentialsScreenProps = NativeStackScreenProps<
 export function AddByRssCredentialsScreen({ navigation, route }: AddByRssCredentialsScreenProps) {
   const { feedIdText } = route.params;
   const { t } = useTranslation();
+  const parsePath = useAddByRssParsePath();
+  const credentialsNoteKey =
+    parsePath === 'device'
+      ? 'features.add_by_rss.credentials_page_host_note'
+      : 'features.add_by_rss.credentials_page_device_note';
   const { styles: themeStyles, tokens } = useTheme();
-  const { accessToken, clearSession, refreshToken, setTokens } = useAuth();
+  const { accessToken, clearSession, refreshToken, setTokens, status } = useAuth();
   const [feed, setFeed] = useState<MobileAddByRSSFeedRecord | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [isRemoving, setIsRemoving] = useState<boolean>(false);
@@ -108,12 +114,14 @@ export function AddByRssCredentialsScreen({ navigation, route }: AddByRssCredent
     isBusyRef.current = true;
     setIsRemoving(true);
     try {
-      try {
-        await requestWithMobileAuthRefresh(authContext, async (api) =>
-          api.reqAccountUnfollowAddByRSSChannel({ feed_url: feed.feedUrl })
-        );
-      } catch {
-        // The device copy goes regardless; the next follow-list sync settles the account.
+      if (status === 'authenticated') {
+        try {
+          await requestWithMobileAuthRefresh(authContext, async (api) =>
+            api.reqAccountUnfollowAddByRSSChannel({ feed_url: feed.feedUrl })
+          );
+        } catch {
+          // The device copy goes regardless; the next follow-list sync settles the account.
+        }
       }
       await addByRssRepository.removeFeed(feed.feedUrl);
       homeFeedRefresh.notify();
@@ -123,7 +131,7 @@ export function AddByRssCredentialsScreen({ navigation, route }: AddByRssCredent
       setIsRemoving(false);
       setShowRemoveConfirm(false);
     }
-  }, [authContext, feed, form.isSaving, navigation]);
+  }, [authContext, feed, form.isSaving, navigation, status]);
 
   if (isLoading || (feed !== null && !form.isReady)) {
     return (
@@ -156,7 +164,7 @@ export function AddByRssCredentialsScreen({ navigation, route }: AddByRssCredent
       <View style={styles.intro}>
         <Text style={styles.copy}>{t('features.add_by_rss.credentials_page_intro')}</Text>
         <Text style={styles.copy} testID="rss-credentials-device-note">
-          {t('features.add_by_rss.credentials_page_device_note')}
+          {t(credentialsNoteKey)}
         </Text>
         <Text style={styles.copy} testID="rss-credentials-media-note">
           {t('features.add_by_rss.credentials_mobile_media_note')}

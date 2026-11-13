@@ -17,7 +17,7 @@ roughly an order of magnitude more expensive than the one above it, so a claim b
 | Repository test with a fake or in-memory database | seconds                 | Persistence shape, ordering, dedupe, outbox rules                              |
 | One Maestro flow, one platform                    | minutes                 | That the wiring exists: navigation, boot, gating, reachability                 |
 | Both platforms                                    | double                  | Anything platform-specific: native modules, accessibility trees, back behavior |
-| Full suite (70 flows × 2)                         | an evening              | Pre-release regression only                                                    |
+| Full suite (81 flows × 2)                         | an evening              | Pre-release regression only                                                    |
 
 ## The extraction move
 
@@ -43,7 +43,7 @@ Layout arithmetic, copy, and policy are not in that list. Put those on a cheaper
 
 ## Area smoke versus area full
 
-`apps/mobile/e2e/` holds **73** top-level flows (`mobile:e2e:test:all` runs 70; `tablet` is
+`apps/mobile/e2e/` holds **84** top-level flows (`mobile:e2e:test:all` runs 81; `tablet` is
 opt-in, and `perf-chip-switch` / `perf-scroll` stay out of that suite). Running them all to learn
 whether one change broke something is the most expensive possible way to find out.
 
@@ -54,11 +54,11 @@ run passed and you need the second as proof.
 | Area                | Smoke              | The rest of the area                                                                                                                                                                                                                                                                          |
 | ------------------- | ------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Boot and shell      | `hello-world`      | `api-health`, `deep-link`, `locale-switch-home-smoke`, `taste-profile-consent` (`tablet` is opt-in only)                                                                                                                                                                                      |
-| Auth and membership | `auth-login`       | `auth-logout`, `membership-gate`, `terms-account-access`, `terms-taste-profile-consent`                                                                                                                                                                                                       |
+| Auth and membership | `auth-login`       | `auth-logout`, `membership-gate`, `terms-account-access`, `terms-taste-profile-consent`, `signup-add-by-rss-limit`                                                                                                                                                                            |
 | Discovery           | `home`             | `browse`, `search`, `search-unparsed`, `podcast-episode`, `artist`, `album`, `add-by-rss`, `add-by-rss-episode-sections`, `add-by-rss-track`, `add-by-rss-livestream`, `subscriptions-anonymous`, `detail-sort-prefs`                                                                         |
 | Library and queue   | `queue-screen`     | `queue-add`, `library-playlists`, `library-downloads`                                                                                                                                                                                                                                         |
 | Playback            | `play-mini-player` | `player-screen`, `track`, `playback-resume-on-relaunch`, `playback-multi-device-handoff`, `playback-ended-livestream-restore`, `livestream-player-controls`, `auto-queue-advance`, `video-transition`, `make-clip`, `alternate-enclosure`, `engine-audio-spike`, `tab-switch-playback`, `v4v` |
-| Sync and offline    | `offline-mode`     | `playback-offline-reconciliation`, `error-log`, `opml`                                                                                                                                                                                                                                        |
+| Sync and offline    | `offline-mode`     | `playback-offline-reconciliation`, `error-log`, `opml`, `opml-signed-out`                                                                                                                                                                                                                     |
 | Settings and more   | `settings-select`  | `settings-downloads`, `notifications-inbox`, `push`                                                                                                                                                                                                                                           |
 
 Recount the YAML under `apps/mobile/e2e/*.yaml` (not `shared/`) before treating this table as

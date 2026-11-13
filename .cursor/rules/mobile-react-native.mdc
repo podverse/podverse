@@ -57,8 +57,9 @@ alwaysApply: false
 - **List rows:** anything a row mounts, subscribes to, or builds is paid once per mounted row and
   again on every list switch — narrow contexts, lazy-mounted overlays, stable memo props,
   `useThemedStyles`, bounded HTML. See **mobile-row-render-cost**.
-- **Add-by-RSS:** server parse + poll only; map with `@podverse/parser-mapping`; never import
-  `@podverse/parser`.
+- **Add-by-RSS:** a signed-in user uses server parse and poll; a signed-out user parses on the
+  phone through `podverse-partytime/core` only; map with `@podverse/parser-mapping`; never import
+  `@podverse/parser`, the partytime package root, or `podverse-partytime/dist`.
 - **Visual:** prefer shared RN primitives (`components/primitives/`) + tokens. In **Phase 2**, polish
   is done per screen area from operator screenshots — see
   [PHASES.md](/docs/proposals/mobile/_master-plan_/PHASES.md) and

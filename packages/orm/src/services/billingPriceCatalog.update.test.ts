@@ -26,7 +26,7 @@ describe('BillingPriceCatalogService.updateProductMembershipSettings', () => {
     expect(calls.some((sql) => sql.includes('free_trial_expiration_seconds = $1'))).toBe(true);
   });
 
-  it('runs UPDATE with cap column when changing trial RSS cap', async () => {
+  it('runs UPDATE with the shared Add by RSS column', async () => {
     const read = createMockDataSource();
     const readWrite = createMockDataSource();
     const service = new BillingPriceCatalogService({
@@ -34,11 +34,11 @@ describe('BillingPriceCatalogService.updateProductMembershipSettings', () => {
       dataSourceReadWrite: readWrite,
     });
 
-    await service.updateProductMembershipSettings({ trialMaxAddByRSSFeeds: 7 });
+    await service.updateProductMembershipSettings({ maxAddByRSSFeeds: 7 });
 
     const calls = (readWrite.query as ReturnType<typeof vi.fn>).mock.calls.map((c: unknown[]) =>
       String(c[0])
     );
-    expect(calls.some((sql) => sql.includes('trial_max_add_by_rss_feeds = $1'))).toBe(true);
+    expect(calls.some((sql) => sql.includes('max_add_by_rss_feeds = $1'))).toBe(true);
   });
 });

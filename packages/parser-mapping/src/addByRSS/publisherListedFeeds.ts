@@ -9,6 +9,7 @@ import { canonicalAddByRSSFeedUrl } from '@podverse/helpers-validation';
 
 import { compatChannelRemoteItemDtos } from '../compat/partytime/channel.js';
 import type { FeedObject } from '../types/partytime.js';
+import type { AddByRSSMappedFeed } from './types.js';
 
 /** Distinct feeds kept from one publisher feed, in feed order. The rest are dropped. */
 export const ADD_BY_RSS_PUBLISHER_LISTED_FEEDS_MAX = 100;
@@ -56,16 +57,18 @@ const trimmedOrNull = (value: string | null): string | null => {
   return trimmed === '' ? null : trimmed;
 };
 
-/** Group a publisher feed's remote-item references into distinct listed feeds. */
-export const collectAddByRSSPublisherListedFeedRefs = (
-  parsedFeed: FeedObject,
+type ChannelRemoteItemDto = ReturnType<typeof compatChannelRemoteItemDtos>[number];
+
+const collectListedFeedRefs = (
+  ownGuidRaw: string | null | undefined,
+  remoteItems: readonly ChannelRemoteItemDto[],
   publisherFeedUrl: string
 ): CollectAddByRSSPublisherListedFeedRefsResult => {
-  const ownGuid = parsedFeed.guid?.trim().toLowerCase();
+  const ownGuid = ownGuidRaw?.trim().toLowerCase();
   const ownUrl = canonicalAddByRSSFeedUrl(publisherFeedUrl);
   const groups = new Map<string, ListedFeedGroup>();
 
-  for (const dto of compatChannelRemoteItemDtos(parsedFeed)) {
+  for (const dto of remoteItems) {
     const guid = dto.feed_guid.trim();
     if (guid === '') {
       continue;
@@ -131,6 +134,27 @@ export const collectAddByRSSPublisherListedFeedRefs = (
     droppedCount: ordered.length - kept.length,
   };
 };
+
+/** Group a publisher feed's remote-item references into distinct listed feeds. */
+export const collectAddByRSSPublisherListedFeedRefs = (
+  parsedFeed: FeedObject,
+  publisherFeedUrl: string
+): CollectAddByRSSPublisherListedFeedRefsResult =>
+  collectListedFeedRefs(parsedFeed.guid, compatChannelRemoteItemDtos(parsedFeed), publisherFeedUrl);
+
+/**
+ * The same refs from a mapped bundle, for a client that holds the bundle and not the parsed feed.
+ * The bundle's `remoteItems` are the same DTOs the parsed-feed entry point reads.
+ */
+export const collectAddByRSSPublisherListedFeedRefsFromMappedFeed = (
+  mappedFeed: AddByRSSMappedFeed,
+  publisherFeedUrl: string
+): CollectAddByRSSPublisherListedFeedRefsResult =>
+  collectListedFeedRefs(
+    mappedFeed.channel?.channel?.podcast_guid,
+    mappedFeed.channel?.remoteItems ?? [],
+    publisherFeedUrl
+  );
 
 export type AddByRSSDirectoryChannelMatch = {
   channelIdText: string;

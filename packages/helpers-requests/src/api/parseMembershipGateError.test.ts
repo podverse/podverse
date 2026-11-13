@@ -1,8 +1,10 @@
 import { describe, expect, it } from 'vitest';
 
 import {
+  ADD_BY_RSS_FEED_LIMIT_REACHED_CODE,
   MEMBERSHIP_GATE_I18N_KEYS,
   membershipDenialReason,
+  parseAddByRssFeedLimitRefusal,
   parseMembershipGateError,
 } from './parseMembershipGateError.js';
 
@@ -26,6 +28,7 @@ describe('parseMembershipGateError', () => {
       i18nKey: 'membership.membership_expired',
       message: 'Your membership has expired. Renew to use this feature.',
       renewPath: '/membership/renew',
+      limit: undefined,
     });
   });
 
@@ -49,6 +52,7 @@ describe('parseMembershipGateError', () => {
       errorWith(403, {
         code: 'add_by_rss_feed_limit_reached',
         i18nKey: 'membership.add_by_rss_feed_limit_reached',
+        limit: 100,
       })
     );
 
@@ -57,6 +61,7 @@ describe('parseMembershipGateError', () => {
       i18nKey: 'membership.add_by_rss_feed_limit_reached',
       message: undefined,
       renewPath: undefined,
+      limit: 100,
     });
   });
 
@@ -69,6 +74,46 @@ describe('parseMembershipGateError', () => {
     expect(parseMembershipGateError(errorWith(403, null))).toBeNull();
     expect(parseMembershipGateError(new Error('boom'))).toBeNull();
     expect(parseMembershipGateError(undefined)).toBeNull();
+  });
+});
+
+describe('parseAddByRssFeedLimitRefusal', () => {
+  const feedLimitBody = {
+    code: ADD_BY_RSS_FEED_LIMIT_REACHED_CODE,
+    i18nKey: 'membership.add_by_rss_feed_limit_reached',
+    limit: 100,
+  };
+
+  it('returns the limit for an Add by RSS feed-limit 403', () => {
+    expect(parseAddByRssFeedLimitRefusal(errorWith(403, feedLimitBody))).toEqual({ limit: 100 });
+  });
+
+  it('returns null when the feed-limit 403 has no limit', () => {
+    expect(
+      parseAddByRssFeedLimitRefusal(
+        errorWith(403, {
+          code: ADD_BY_RSS_FEED_LIMIT_REACHED_CODE,
+          i18nKey: 'membership.add_by_rss_feed_limit_reached',
+        })
+      )
+    ).toBeNull();
+  });
+
+  it('returns null for a manual-refresh limit that also carries a limit', () => {
+    expect(
+      parseAddByRssFeedLimitRefusal(
+        errorWith(403, {
+          code: 'manual_refresh_hourly_limit_reached',
+          i18nKey: 'membership.manual_refresh_hourly_limit_reached',
+          limit: 100,
+          renewPath: '/membership/renew',
+        })
+      )
+    ).toBeNull();
+  });
+
+  it('returns null for a 401', () => {
+    expect(parseAddByRssFeedLimitRefusal(errorWith(401, feedLimitBody))).toBeNull();
   });
 });
 

@@ -12,6 +12,7 @@ import { FormActions } from '../components/form';
 import { Button, Card } from '../components/primitives';
 import { getMobileConfig } from '../config';
 import { isMobileE2eFromEnv } from '../config/env';
+import { useOpmlExport } from '../hooks/useOpmlExport';
 import { formActionsTopGap } from '../theme/screenLayout';
 import { useTheme } from '../theme/useTheme';
 import { AccountAccessChangeEmail } from './AccountAccessChangeEmail';
@@ -38,7 +39,7 @@ export function AccountAccessPanel({ onReviewTerms }: AccountAccessPanelProps) {
   const [status, setStatus] = useState<DTOBillingStatus | null>(null);
   const [membershipFailed, setMembershipFailed] = useState(false);
   const [isDownloading, setIsDownloading] = useState(false);
-  const [isExporting, setIsExporting] = useState(false);
+  const opmlExport = useOpmlExport();
   const [isDeleting, setIsDeleting] = useState(false);
   const [deleteConfirmVisible, setDeleteConfirmVisible] = useState(false);
   const [noticeKey, setNoticeKey] = useState<string | null>(null);
@@ -144,6 +145,7 @@ export function AccountAccessPanel({ onReviewTerms }: AccountAccessPanelProps) {
   ).canUseEmailVerificationFlows;
 
   const handleDownload = async () => {
+    opmlExport.clearStatus();
     setIsDownloading(true);
     setErrorKey(null);
     setNoticeKey('settings.account.download_my_data_loading');
@@ -175,42 +177,8 @@ export function AccountAccessPanel({ onReviewTerms }: AccountAccessPanelProps) {
     }
   };
 
-  const handleExportOpml = async () => {
-    setIsExporting(true);
-    setErrorKey(null);
-    setNoticeKey('settings.opml.export_loading');
-
-    try {
-      const opmlText = await requestWithMobileAuthRefresh(
-        { accessToken, clearSession, refreshToken, setTokens },
-        async (api) => {
-          const result = await api.reqAccountOpmlExport({ responseType: 'text' });
-          if (typeof result !== 'string') {
-            throw new Error('Invalid OPML export response type');
-          }
-          return result;
-        }
-      );
-      const baseDirectory = FileSystem.cacheDirectory ?? FileSystem.documentDirectory;
-      if (baseDirectory === null) {
-        throw new Error('No writable mobile file-system directory');
-      }
-      const filename = `podverse-opml-export-${new Date().toISOString().split('T')[0]}.opml`;
-      const fileUri = `${baseDirectory}${filename}`;
-      await FileSystem.writeAsStringAsync(fileUri, opmlText);
-      if (!isMobileE2eFromEnv()) {
-        await Share.share({ title: filename, url: fileUri });
-      }
-      setNoticeKey('settings.opml.export_success');
-    } catch {
-      setErrorKey('settings.opml.export_error');
-      setNoticeKey(null);
-    } finally {
-      setIsExporting(false);
-    }
-  };
-
   const handleDelete = async () => {
+    opmlExport.clearStatus();
     setIsDeleting(true);
     setErrorKey(null);
     try {
@@ -226,6 +194,8 @@ export function AccountAccessPanel({ onReviewTerms }: AccountAccessPanelProps) {
       setDeleteConfirmVisible(false);
     }
   };
+
+  const shownErrorKey = opmlExport.errorKey ?? errorKey;
 
   return (
     <View>
@@ -251,8 +221,12 @@ export function AccountAccessPanel({ onReviewTerms }: AccountAccessPanelProps) {
         style={styles.primaryActions}
       />
 
-      {noticeKey !== null ? <Text style={styles.notice}>{t(noticeKey)}</Text> : null}
-      {errorKey !== null ? <Text style={styles.error}>{t(errorKey)}</Text> : null}
+      {opmlExport.notice !== null ? (
+        <Text style={styles.notice}>{t(opmlExport.notice.key, opmlExport.notice.params)}</Text>
+      ) : noticeKey !== null ? (
+        <Text style={styles.notice}>{t(noticeKey)}</Text>
+      ) : null}
+      {shownErrorKey !== null ? <Text style={styles.error}>{t(shownErrorKey)}</Text> : null}
 
       <Card style={styles.section}>
         <Text style={styles.sectionTitle}>{t('account_access.membership_heading')}</Text>
@@ -297,12 +271,14 @@ export function AccountAccessPanel({ onReviewTerms }: AccountAccessPanelProps) {
         <Text style={styles.sectionTitle}>{t('account_access.opml_heading')}</Text>
         <Text style={styles.description}>{t('account_access.opml_description')}</Text>
         <Button
-          disabled={isExporting}
+          disabled={opmlExport.isExporting}
           fullWidth
           label={t('account_access.opml_button')}
-          loading={isExporting}
+          loading={opmlExport.isExporting}
           onPress={() => {
-            void handleExportOpml();
+            setNoticeKey(null);
+            setErrorKey(null);
+            void opmlExport.exportOpml();
           }}
           size="form"
           testID="account-access-opml"

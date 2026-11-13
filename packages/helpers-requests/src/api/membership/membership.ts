@@ -18,9 +18,10 @@ export async function reqMembershipGetPricing(api: ApiRequestService) {
   });
 }
 
-/** Prices and the annual savings percent from the public product catalog. */
+/** Prices, the annual savings percent, and the default Add by RSS feed limit. */
 type ProductMembershipCatalog = {
   annuallySavingsPercent: number;
+  maxAddByRSSFeeds: number;
   premiumMembershipCostAnnually: number;
   premiumMembershipCostMonthly: number;
 };

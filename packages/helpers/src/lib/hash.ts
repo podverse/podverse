@@ -6,6 +6,13 @@ export const getMd5Hash = (data: unknown): string => {
 };
 
 /**
+ * The form of a raw feed body that change detection hashes: surrounding whitespace removed and
+ * CRLF line endings read as LF, so a host that flips line endings is not a new feed.
+ */
+export const normalizeRawFeedForHash = (rawFeed: string): string =>
+  rawFeed.trim().replace(/\r\n/g, '\n');
+
+/**
  * Returns the SHA-256 hash of the input as a hex string.
  * Accepts string, Buffer, or Uint8Array (e.g. for checksums of binary bodies).
  */

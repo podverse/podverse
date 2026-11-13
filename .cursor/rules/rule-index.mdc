@@ -25,6 +25,7 @@ file of theirs is in context.
   `bump-version.sh` → `reinstall-node-modules-after-linux-npm` (these leave host `node_modules`
   alone; do not add a reinstall step)
 - Legacy app, podverse-rn, or v4 mobile → `legacy-app-reference`
+- v4 / OGen API, entities, or prod-copy database (`V4_DATABASE_URL`) → `v4-backend-reference`
 - Popularity tracking, Taste Profile consent, listener ids, stats or taste tables →
   `popularity-listener-id-separation`
 - Adding or changing an authenticated API route, or a rate-limit wrapper that authenticates →

@@ -176,6 +176,7 @@ const ROUTE_CASES: RouteCase[] = [
   route('post', '/account/add-by-rss/parse', 'add_by_rss', 'create', { body: FEED_BODY }),
   route('post', '/account/add-by-rss/parse/all', 'add_by_rss', 'create', { body: PARSE_ALL_BODY }),
   route('get', `/account/add-by-rss/parse/status/${PLACEHOLDER_ID}`, 'add_by_rss', 'read'),
+  route('get', '/account/add-by-rss/feed-limit', 'add_by_rss', 'read'),
   route('post', '/mq/rss/add/on-demand', 'add_by_rss', 'create', { body: ON_DEMAND_BODY }),
   route('post', '/mq/rss/refresh/on-demand', 'add_by_rss', 'create', { body: ON_DEMAND_BODY }),
 ];
@@ -350,12 +351,12 @@ describe('API key access for account, subscriptions, and Add by RSS', () => {
   }
 
   it('covers every labeled account, subscription, and Add by RSS route', () => {
-    expect(ROUTE_CASES).toHaveLength(44);
+    expect(ROUTE_CASES).toHaveLength(45);
     expect(ROUTE_CASES.filter((routeCase) => routeCase.resource === 'account')).toHaveLength(6);
     expect(ROUTE_CASES.filter((routeCase) => routeCase.resource === 'subscriptions')).toHaveLength(
       27
     );
-    expect(ROUTE_CASES.filter((routeCase) => routeCase.resource === 'add_by_rss')).toHaveLength(11);
+    expect(ROUTE_CASES.filter((routeCase) => routeCase.resource === 'add_by_rss')).toHaveLength(12);
     expect(distinctRequirements(ROUTE_CASES)).toHaveLength(9);
   });
 

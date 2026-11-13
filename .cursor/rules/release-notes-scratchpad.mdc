@@ -22,6 +22,10 @@ config.
 No entry for: plan files, abcmemory, tests alone, comments, and refactors with no behavior
 change. When unsure, add the entry; abcreleasenotes can drop it.
 
+No entry for the v4-to-v5 migration inventory overnight pass
+([prompt](/.cursor/prompts/v4-to-v5-migration-inventory-overnight.md)): proposal docs,
+read-only SQL templates, the v4 membership export snippet, and abcmemory from that pass.
+
 ## Entry format
 
 Append at the end of the file. One entry per change, separated by a blank line:

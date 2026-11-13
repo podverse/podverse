@@ -4,11 +4,17 @@ import type { QueryParamsStatsRange } from '@podverse/helpers-requests';
 
 // Import directly from the request module (not the auth barrel) to avoid a cycle, mirroring
 // accountRepository (AuthProvider → accountRepository → auth barrel → AuthProvider).
-import { requestWithMobileAuthRefresh } from '../../auth/authRequestWithRefresh';
+import {
+  requestWithMobileAuthRefresh,
+  requestWithoutMobileAuth,
+} from '../../auth/authRequestWithRefresh';
 import {
   hydrateChannelActionChrome,
   snapshotPersistedChannelActionChrome,
 } from '../../lib/channelActionChrome';
+import { readMergedIntoRedirect } from '../../lib/mergeRedirect';
+import { getRateLimitRetryAfterMs } from '../../lib/rateLimit/handleRateLimitMessage';
+import { classifySyncError } from '../../sync/syncErrorClassification';
 import { getDb, initializeDatabase, schema } from '../db';
 import type { SubscribedChannelRow } from '../db/schema';
 import { addByRssRepository } from './addByRssRepository';
@@ -134,6 +140,38 @@ const unsubscribeLocalTarget = async (
   }
   await subscriptionsRepository.unsubscribeLocal(target.idText);
   return null;
+};
+
+/** A local directory follow, as the device OPML export names it. */
+export type DirectoryExportEntry = { idText: string; title: string };
+
+/** What the public channel route said about one directory follow's feed URL. */
+export type DirectoryFeedUrlLookup =
+  | { feedUrl: string; kind: 'found'; title: string | null }
+  | { kind: 'missing' }
+  | { kind: 'rate_limited'; retryAfterMs: number }
+  | { kind: 'unreachable' };
+
+const requestDirectoryFeedUrl = async (idText: string): Promise<DirectoryFeedUrlLookup> => {
+  const channel = await requestWithoutMobileAuth((api) => api.reqChannelGetByIdOrIdText(idText));
+  const feedUrl = channel.feed?.url.trim() ?? '';
+  if (feedUrl === '') {
+    return { kind: 'missing' };
+  }
+  return { feedUrl, kind: 'found', title: channel.title };
+};
+
+/** A 404, a 410, another 4xx, or a malformed body all mean this follow has no feed URL to give. */
+const classifyDirectoryFeedUrlError = (error: unknown): DirectoryFeedUrlLookup => {
+  const retryAfterMs = getRateLimitRetryAfterMs(error);
+  if (retryAfterMs !== null) {
+    return { kind: 'rate_limited', retryAfterMs };
+  }
+  const classification = classifySyncError(error);
+  if (classification.isOffline || classification.isServerUnreachable) {
+    return { kind: 'unreachable' };
+  }
+  return { kind: 'missing' };
 };
 
 /** One page of directory follows, plus where the walk goes next. */
@@ -393,6 +431,42 @@ export const subscriptionsRepository = {
       .select({ idText: schema.subscribedChannel.idText })
       .from(schema.subscribedChannel);
     return rows.map((row) => row.idText);
+  },
+
+  /** Local directory follows for the device OPML export, by title, then `id_text`. */
+  listDirectoryForExport: async (): Promise<DirectoryExportEntry[]> => {
+    await initializeDatabase();
+    const rows = await getDb()
+      .select({
+        idText: schema.subscribedChannel.idText,
+        title: schema.subscribedChannel.title,
+      })
+      .from(schema.subscribedChannel);
+    return rows.sort((left, right) => {
+      const byTitle = left.title.localeCompare(right.title, undefined, { sensitivity: 'base' });
+      return byTitle !== 0 ? byTitle : left.idText.localeCompare(right.idText);
+    });
+  },
+
+  /**
+   * One directory follow's feed URL from the public channel route, with no session. An absorbed
+   * channel is followed to its survivor once. Logs nothing: a podcast left out is an outcome the
+   * export reports, not a fault.
+   */
+  fetchDirectoryFeedUrl: async (idText: string): Promise<DirectoryFeedUrlLookup> => {
+    try {
+      return await requestDirectoryFeedUrl(idText);
+    } catch (error) {
+      const merged = readMergedIntoRedirect(error);
+      if (merged === null || merged.kind !== 'channel') {
+        return classifyDirectoryFeedUrlError(error);
+      }
+      try {
+        return await requestDirectoryFeedUrl(merged.idText);
+      } catch (survivorError) {
+        return classifyDirectoryFeedUrlError(survivorError);
+      }
+    }
   },
 
   /**

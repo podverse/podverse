@@ -1,0 +1,79 @@
+---
+description: Where to read v4 (OGen / Legacy) API, entities, and the prod-copy database. No PII in reports.
+globs:
+  - "docs/proposals/v4-to-v5-migration/**"
+  - "docs/billing/BILLING-OPERATIONS.md"
+alwaysApply: false
+---
+
+# v4 backend reference (OGen / Legacy)
+
+**v4 / OGen / Legacy** is current production. **v5 / NextGen** is this monorepo. Vocabulary:
+[abcmemory-vocabulary](/.cursor/rules/abcmemory-vocabulary.mdc). Layout:
+[01](/docs/proposals/v4-to-v5-migration/01-legacy-repos-and-reference-setup.md).
+
+## When to read
+
+Open these trees for v4-to-v5 migration inventory, v4 billing carryover, or when the operator
+asks for the v4 / OGen / Legacy backend. Do not browse them for ordinary NextGen tasks. Do not
+edit or publish those checkouts.
+
+| Path | Read for |
+| ---- | -------- |
+| `~/repos/pv/v4/podverse-api` | Entities, schema, scripts. Source of truth for columns. |
+| `~/repos/pv/v4/podverse-web` | Consumer web |
+| `~/repos/pv/v4/podverse-shared` | Shared types |
+| `~/repos/pv/v4/podverse-ops` | Prod compose and env layout (no secret values) |
+| `~/repos/pv/podverse-rn` | v4 mobile. Also **legacy-app-reference**. |
+
+Confirm the checkout is on `develop` or `master`, not `v5-develop`. `v5-develop` is split-era
+v5, not production v4. Prefer `podverse-api` entity files over guessed table names. v4 users
+live in `users` (`email`, `membershipExpiration`). They do not live in `account_credentials`.
+
+## `V4_DATABASE_URL`
+
+The prod-copy database is a snapshot, not live production. It is named only by
+**`V4_DATABASE_URL`**. Never commit the URL, a password, a dump, or a connection string.
+
+The value lives in one home file, outside the repo:
+
+`~/.config/podverse/v4-database-url`
+
+That file is `KEY=value` plus `#` comments. Tokens still starting with `REPLACE_WITH_` mean
+the file is unset. If the process environment is empty, read this file only. Do not search
+the machine for another URL.
+
+- Queries are read-only (`SELECT`, counts, null rates). No `INSERT`, `UPDATE`, `DELETE`, or DDL.
+- A connection error of "Operation not permitted" means this shell has no network
+  (Ask mode, or a read-only sandbox whose allowlist does not include the Tailscale
+  host). The URL file is still valid. Tailscale on the Mac does not reach through
+  that sandbox. Retry in Agent mode. Do not look for another database URL, and do
+  not treat an earlier successful read as proof that this shell can connect.
+- If the variable is unset, leave the SQL in the doc and write "not run" in
+  `docs/proposals/v4-to-v5-migration/_WAKE-UP.md`.
+- Reports are counts and timings. No emails, names, tokens, raw rows, or another user's
+  account id. The one account a committed file may name is in **public-repo-no-secrets**.
+- Count output goes in `_WAKE-UP.md` (counts only) or under `.artifacts/v4-rehearsal-counts/`
+  (already gitignored). Never commit a CSV of people.
+
+## Git
+
+The overnight inventory pass is finished. Further v4-to-v5 migration work follows
+[.cursor/prompts/v4-to-v5-migration-guided.md](/.cursor/prompts/v4-to-v5-migration-guided.md):
+one chunk, then stop and ask. Do not continue into the next chunk in the same turn.
+Do not commit or push. Leave edits in the working tree. Do not run `git commit` or
+`git push` unless the operator's current message explicitly asks for that command.
+
+## Public web URLs
+
+v4 pages on `podverse.fm` keep working after cutover. Migrated public entities
+keep their v4 shortid as `id_text`, so a matching path is the same URL. A
+changed path stays reserved: the old URL redirects to the v5 page. Before a
+migration chunk mints a new public id or assigns a new path, warn with both
+URLs. The table is in
+[11](/docs/proposals/v4-to-v5-migration/11-web-api-and-url-cutover.md).
+
+## Out of scope here
+
+Do not add migration workers, billing importers, or production writes from this reference.
+Those wait for a later plan.

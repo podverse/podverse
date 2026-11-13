@@ -90,6 +90,21 @@ describe('buildAddByRssParseFailureLog', () => {
   it('writes nothing for an unchanged feed', () => {
     expect(buildAddByRssParseFailureLog(parseInput('not_modified'))).toBeNull();
   });
+
+  it('leaves out the request id for a parse this device ran', () => {
+    const entry = buildAddByRssParseFailureLog({ ...parseInput('failed'), requestId: null });
+    expect(entry?.errorCode).toBe(ADD_BY_RSS_PARSE_FAILED_CODE);
+    expect(entry?.details !== undefined && 'request_id' in entry.details).toBe(false);
+  });
+
+  it('records the host status a parse returned without a server error', () => {
+    const entry = buildAddByRssParseFailureLog({
+      ...parseInput('failed'),
+      requestId: null,
+      result: { httpStatus: 404, mappedFeed: null, serverError: null, status: 'failed' },
+    });
+    expect(entry?.details?.http_status).toBe('404');
+  });
 });
 
 describe('buildAddByRssAddErrorLog', () => {

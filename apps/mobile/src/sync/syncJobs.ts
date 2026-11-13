@@ -9,6 +9,7 @@ import {
 } from '../auth/syncAccountPrefs';
 import type { NativeCacheBrowseNode } from '../data/nativeCache';
 import { accountRepository } from '../data/repositories/accountRepository';
+import { runAddByRssLoginSettle } from '../data/repositories/addByRssLoginSettle';
 import type { AddByRssRefreshTicket } from '../data/repositories/addByRssRepository';
 import { addByRssRepository } from '../data/repositories/addByRssRepository';
 import { autoDownloadRepository } from '../data/repositories/autoDownloadRepository';
@@ -30,6 +31,8 @@ import type { MobileAuthRequestContext } from '../data/repositories/types';
 import { shouldDeferAutoDownloadEvaluateToCatchUp } from '../downloads/autoDownloadCatchUpSession';
 import { runAutoDownloadEvaluate } from '../downloads/autoDownloadEvaluate';
 import { runAutoDownloadRegistration } from '../downloads/autoDownloadRegistration';
+import type { AddByRssParsePath } from '../lib/addByRss/parsePath';
+import { resolveAddByRssParsePath } from '../lib/addByRss/parsePath';
 import { readIsPlayingLocallyForSync } from '../playback/playbackSyncState';
 import {
   DEFAULT_HOME_RANGE,
@@ -37,6 +40,7 @@ import {
   homeSortToApiRange,
   readHomeListPrefs,
 } from '../prefs/homeListPrefs';
+import { termsBlocksAccountSync } from '../terms/termsSyncGate';
 import { publishPlaybackPositionAdoptions } from './playbackPositionAdoption';
 import { publishPlaybackReconcileConflicts } from './playbackReconcileConflict';
 import { publishQueueDataChanged } from './queueDataRevision';
@@ -214,10 +218,28 @@ const createChannelItemsScanJob = (deps: SyncJobDeps, priority: SyncJobPriority)
 const ADD_BY_RSS_LISTED_FEEDS_TIMEOUT_MS = 60000;
 
 /**
- * One run fetches every album an Add by RSS artist lists that is still waiting on its parse, and
- * fills artwork for the directory albums it lists. It polls all of them per round rather than
- * one job per album, so albums waiting on the server's background queue cannot hold the serial
- * queue for minutes. Membership-tier, like the refresh that produced the list.
+ * A phone fetches and parses the whole feed itself, which takes longer than polling a server
+ * result; the ceiling keeps one slow host from holding the serial queue.
+ */
+const ADD_BY_RSS_DEVICE_PARSE_TIMEOUT_MS = 60000;
+
+/** Above the resolve run's 80 s budget, so a run that waits out a 429 still ends on its own. */
+const ADD_BY_RSS_LISTED_RESOLVE_TIMEOUT_MS = 90000;
+
+/** Where this session parses Add by RSS feeds. */
+const readAddByRssParsePath = async (deps: SyncJobDeps): Promise<AddByRssParsePath> =>
+  resolveAddByRssParsePath(await accountRepository.getSnapshot(), {
+    isAuthenticated: deps.getAuthContext().accessToken !== null,
+  });
+
+/**
+ * One run handles every album an Add by RSS artist lists that is still waiting on its parse, and
+ * fills artwork for the directory albums it lists. It runs for every parse path. Signed in, it
+ * polls the server's parses of all of them per round rather than one job per album, so albums
+ * waiting on the server's background queue cannot hold the serial queue for minutes. Signed out,
+ * this device fetches and parses the albums itself; a large artist finishes over several runs,
+ * each queued by the one before while it still stores albums. Guid-only albums go on to the
+ * resolve job.
  */
 const createAddByRssListedFeedsJob = (deps: SyncJobDeps, priority: SyncJobPriority): SyncJob => {
   return buildJob(
@@ -225,22 +247,60 @@ const createAddByRssListedFeedsJob = (deps: SyncJobDeps, priority: SyncJobPriori
     priority,
     'add-by-rss-listed-feeds',
     async (context) => {
-      const account = await accountRepository.getSnapshot();
-      if (account === null) {
-        return;
-      }
-      const access = evaluateFeatureAccess('add_by_rss_refresh', deriveMembershipState(account));
-      if (!access.allowed) {
-        return;
-      }
-      await addByRssRepository.runListedFeedWork(
-        deps.getAuthContext(),
-        account.id_text,
+      const parsePath = await readAddByRssParsePath(deps);
+      const authContext = deps.getAuthContext();
+      const { deviceAlbumsLeft, deviceAlbumsStored } = await addByRssRepository.runListedFeedWork(
+        authContext,
+        parsePath,
         sleep,
         context.abortController.signal
       );
+      // A run that stored nothing does not queue another, so a host that keeps failing cannot loop.
+      if (deviceAlbumsLeft > 0 && deviceAlbumsStored > 0) {
+        context.enqueue(createAddByRssListedFeedsJob(deps, priority));
+      }
+      if (await addByRssRepository.hasListedFeedResolveWork(parsePath)) {
+        context.enqueue(createAddByRssListedResolveJob(deps, priority));
+      }
     },
     ADD_BY_RSS_LISTED_FEEDS_TIMEOUT_MS
+  );
+};
+
+/**
+ * Signed out, ask the public directory resolve about albums an Add by RSS artist names only by
+ * feed guid: one paced call at a time, waiting out a 429. An album whose directory channel is not
+ * ready yet is left for a later run once its retry time comes; nothing here waits for it. A run
+ * that settled an answer queues the album job for new albums to parse and artwork to fill, and
+ * queues itself again while guids are left.
+ */
+const createAddByRssListedResolveJob = (deps: SyncJobDeps, priority: SyncJobPriority): SyncJob => {
+  return buildJob(
+    'add-by-rss-listed-resolve',
+    priority,
+    'add-by-rss-listed-resolve',
+    async (context) => {
+      const parsePath = await readAddByRssParsePath(deps);
+      if (parsePath !== 'device') {
+        return;
+      }
+      const authContext = deps.getAuthContext();
+      const { applied, left } = await addByRssRepository.runListedFeedResolveWork(
+        authContext,
+        sleep,
+        context.abortController.signal
+      );
+      if (applied === 0) {
+        return;
+      }
+      if (await addByRssRepository.hasListedFeedWork(parsePath)) {
+        context.enqueue(createAddByRssListedFeedsJob(deps, priority));
+      }
+      if (left > 0) {
+        context.enqueue(createAddByRssListedResolveJob(deps, priority));
+      }
+    },
+    ADD_BY_RSS_LISTED_RESOLVE_TIMEOUT_MS
   );
 };
 
@@ -260,7 +320,7 @@ const createAddByRssParseJob = (
         ticket,
         account?.id_text ?? null
       );
-      if (await addByRssRepository.hasListedFeedWork()) {
+      if (await addByRssRepository.hasListedFeedWork(await readAddByRssParsePath(deps))) {
         context.enqueue(createAddByRssListedFeedsJob(deps, priority));
       }
       const settings = await autoDownloadRepository.getByChannelIdText(ticket.feedUrl);
@@ -275,20 +335,82 @@ const createAddByRssParseJob = (
   };
 };
 
+const createAddByRssDeviceParseJob = (
+  deps: SyncJobDeps,
+  priority: SyncJobPriority,
+  feedUrl: string
+): SyncJob => {
+  const job = buildJob(
+    'add-by-rss-device-parse',
+    priority,
+    `add-by-rss-device-parse:${feedUrl}`,
+    async (context) => {
+      const authContext = deps.getAuthContext();
+      // Queued signed out; someone signed in before it ran, and they never parse on the device.
+      if (authContext.accessToken !== null) {
+        return;
+      }
+      await addByRssRepository.refreshFeedOnDevice(authContext, feedUrl, {
+        signal: context.abortController.signal,
+      });
+      if (await addByRssRepository.hasListedFeedWork(await readAddByRssParsePath(deps))) {
+        context.enqueue(createAddByRssListedFeedsJob(deps, priority));
+      }
+      const settings = await autoDownloadRepository.getByChannelIdText(feedUrl);
+      if (settings?.enabled === true) {
+        enqueueAutoDownloadEvaluateIfReady(context, priority, [feedUrl]);
+      }
+    },
+    ADD_BY_RSS_DEVICE_PARSE_TIMEOUT_MS
+  );
+  return { ...job, logDetails: { feed_url: feedUrl } };
+};
+
 /**
  * Keep followed add-by-RSS feeds current.
  *
- * Refreshing a feed is server-side parsing work, so it is membership-tier. Checking before asking
- * is what makes a lapsed membership *degrade* rather than fail: those feeds stay readable and
- * playable from what is already stored, and the device does not spend every foreground transition
- * collecting denials in the error log.
+ * Signed out, the phone fetches and parses each followed feed itself, one job per feed; a
+ * background run skips feeds fetched in the last 15 minutes and a pull checks all of them. Album
+ * work an artist left, including guid-only albums now due for a resolve, follows the parse jobs.
+ *
+ * Signed in, refreshing is server-side parsing and so membership-tier. Checking before asking is
+ * what makes a lapsed membership *degrade* rather than fail: those feeds stay readable and playable
+ * from what is already stored, and the device does not collect denials in the error log. A
+ * signed-in session never parses on the phone. The first run after a login settles the phone's
+ * feeds for that account first.
  */
 const createAddByRssRefreshJob = (deps: SyncJobDeps, priority: SyncJobPriority): SyncJob => {
   return buildJob('add-by-rss-refresh', priority, 'add-by-rss-refresh', async (context) => {
+    const authContext = deps.getAuthContext();
+    if (authContext.accessToken === null) {
+      const feedUrls = await addByRssRepository.listDeviceRefreshFeedUrls({
+        nowMs: Date.now(),
+        priority,
+      });
+      context.enqueue(
+        feedUrls.map((feedUrl) => createAddByRssDeviceParseJob(deps, priority, feedUrl))
+      );
+      // Runs after the parse jobs, and picks up album work left when the app closed mid-run.
+      const parsePath = await readAddByRssParsePath(deps);
+      if (
+        parsePath === 'device' &&
+        ((await addByRssRepository.hasListedFeedWork(parsePath)) ||
+          (await addByRssRepository.hasListedFeedResolveWork(parsePath)))
+      ) {
+        context.enqueue(createAddByRssListedFeedsJob(deps, priority));
+      }
+      return;
+    }
+    if (termsBlocksAccountSync()) {
+      return;
+    }
+
     const account = await accountRepository.getSnapshot();
     if (account === null) {
       return;
     }
+
+    await runAddByRssLoginSettle(authContext, account);
 
     // Local only, and needed whatever the membership: credentials must not sit in a stored URL.
     await addByRssRepository.splitStoredUserinfo(account.id_text);
@@ -298,10 +420,7 @@ const createAddByRssRefreshJob = (deps: SyncJobDeps, priority: SyncJobPriority):
       return;
     }
 
-    const tickets = await addByRssRepository.requestRefreshAll(
-      deps.getAuthContext(),
-      account.id_text
-    );
+    const tickets = await addByRssRepository.requestRefreshAll(authContext, account.id_text);
     context.enqueue(tickets.map((ticket) => createAddByRssParseJob(deps, priority, ticket)));
   });
 };

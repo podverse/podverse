@@ -70,13 +70,16 @@ describe('bottom chrome overlay height', () => {
     }).overlayHeight;
     const offline = bottomChromeStripOverlayHeight(true, spacing);
     const segment = bottomChromeStripOverlayHeight(false, spacing);
+    const membership = bottomChromeStripOverlayHeight(true, spacing);
     const miniPlayer = miniPlayerOverlayHeight(true);
 
     expect(segment).toBe(0);
     expect(offline).toBe(bottomChromeStripHeight(spacing));
+    expect(membership).toBe(bottomChromeStripHeight(spacing));
     expect(miniPlayer).toBe(MINI_PLAYER_ARTWORK_SIZE + MINI_PLAYER_PROGRESS_EDGE_HEIGHT);
-    expect(activity + offline + segment + miniPlayer).toBe(
+    expect(activity + offline + segment + membership + miniPlayer).toBe(
       activity +
+        bottomChromeStripHeight(spacing) +
         bottomChromeStripHeight(spacing) +
         MINI_PLAYER_ARTWORK_SIZE +
         MINI_PLAYER_PROGRESS_EDGE_HEIGHT

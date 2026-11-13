@@ -24,7 +24,7 @@ vi.mock('./itemIndex', async (importOriginal) => {
   };
 });
 
-import { FeedType, Phase5Blocked } from 'podverse-partytime';
+import { FeedType, Phase5Blocked } from 'podverse-partytime/core';
 
 import { convertParsedRSSFeedToCompat } from '@podverse/parser-mapping';
 

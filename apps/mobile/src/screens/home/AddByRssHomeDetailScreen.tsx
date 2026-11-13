@@ -24,6 +24,7 @@ import {
   subscriptionsRepository,
 } from '../../data/repositories';
 import { useAddByRssArtworkHeaders } from '../../hooks/useAddByRssArtworkHeaders';
+import { useAddByRssParsePath } from '../../hooks/useAddByRssParsePath';
 import { addByRssPlaybackMediaId } from '../../lib/addByRss/resourceData';
 import { homeFeedRefresh } from '../../lib/home/homeFeedRefresh';
 import { useMembershipGate } from '../../membership/MembershipGateProvider';
@@ -124,8 +125,8 @@ const isTrackSort = (sort: AddByRssDetailSort): sort is AddByRssTrackSort =>
  * Clips are server rows keyed to a server item id, so this screen does not offer them. Boosts
  * is a web-only tab, and the podcast screen has no Boosts chip either. Chips come from the
  * parsed bundle already on the device. Unsubscribe removes a feed that no Add by RSS artist
- * on the device lists. An album an artist lists stays on this screen, and Subscribe follows it.
- * Signed out, a listed-only album shows neither button. The page is not shareable, and
+ * on the device lists. An album an artist lists stays on this screen, and Subscribe follows it
+ * in every session. The page is not shareable, and
  * notifications need a server channel, so this screen has neither share nor a
  * bell. Settings holds the feed check and the username and password, which stay on this device.
  * Notifications and auto-download are keyed to a server channel, so Settings does not show them.
@@ -137,8 +138,9 @@ export function AddByRssHomeDetailScreen({ navigation, route }: AddByRssHomeDeta
   const { boostSheet, openBoost } = useBoostSheet();
   const { artistUnsubscribeDialog, unsubscribeArtist } = useArtistUnsubscribe();
   const { accessToken, clearSession, refreshToken, setTokens, status } = useAuth();
-  const { openGate } = useMembershipGate();
-  const { evaluateFeature } = useAccessTier();
+  const { handleGateError, openGate } = useMembershipGate();
+  const { evaluateFeature, isTierKnown } = useAccessTier();
+  const parsePath = useAddByRssParsePath();
   const feedIdText = route.params.feedIdText;
   const [activeFeedId, setActiveFeedId] = useState(feedIdText);
   const [detail, setDetail] = useState<AddByRssHomeDetailData | null>(null);
@@ -486,12 +488,12 @@ export function AddByRssHomeDetailScreen({ navigation, route }: AddByRssHomeDeta
   ]);
 
   const handleSubscribe = useCallback(async () => {
-    if (detailForRoute === null || isRemoving || status !== 'authenticated') {
+    if (detailForRoute === null || isRemoving) {
       return;
     }
 
     const access = evaluateFeature('add_by_rss_add');
-    if (!access.allowed) {
+    if (parsePath === 'server' && isTierKnown && !access.allowed) {
       openGate(access.reason);
       return;
     }
@@ -503,21 +505,26 @@ export function AddByRssHomeDetailScreen({ navigation, route }: AddByRssHomeDeta
     setIsRemoving(true);
     setRemoveErrorKey(null);
     try {
-      await requestWithMobileAuthRefresh(
-        { accessToken, clearSession, refreshToken, setTokens },
-        (api) =>
-          api.reqAccountFollowAddByRSSChannel({
-            feed_url: feed.feedUrl,
-            image_url: feed.imageUrl,
-            title: headerTitle,
-            ...(feed.requiresCredentials === true ? { requires_credentials: true } : {}),
-          })
-      );
+      if (parsePath === 'server') {
+        await requestWithMobileAuthRefresh(
+          { accessToken, clearSession, refreshToken, setTokens },
+          (api) =>
+            api.reqAccountFollowAddByRSSChannel({
+              feed_url: feed.feedUrl,
+              image_url: feed.imageUrl,
+              title: headerTitle,
+              ...(feed.requiresCredentials === true ? { requires_credentials: true } : {}),
+            })
+        );
+      }
       await addByRssRepository.setFollowed(feed.feedUrl, true);
       homeFeedRefresh.notify();
       setIsLoading(true);
       await loadDetail({ silent: false });
-    } catch {
+    } catch (error) {
+      if (handleGateError(error)) {
+        return;
+      }
       setRemoveErrorKey('errors.generic');
     } finally {
       setIsRemoving(false);
@@ -527,12 +534,14 @@ export function AddByRssHomeDetailScreen({ navigation, route }: AddByRssHomeDeta
     clearSession,
     detailForRoute,
     evaluateFeature,
+    handleGateError,
     isRemoving,
+    isTierKnown,
     loadDetail,
     openGate,
+    parsePath,
     refreshToken,
     setTokens,
-    status,
   ]);
 
   const handleRemovePress = useCallback(() => {
@@ -639,7 +648,7 @@ export function AddByRssHomeDetailScreen({ navigation, route }: AddByRssHomeDeta
       variant="outline"
     />
   );
-  if (isListedOnly && status === 'authenticated') {
+  if (isListedOnly) {
     headerActions = (
       <Button
         label={t('features.subscribe')}
@@ -650,8 +659,6 @@ export function AddByRssHomeDetailScreen({ navigation, route }: AddByRssHomeDeta
         variant="primary"
       />
     );
-  } else if (isListedOnly) {
-    headerActions = null;
   }
 
   const channelHeader = (

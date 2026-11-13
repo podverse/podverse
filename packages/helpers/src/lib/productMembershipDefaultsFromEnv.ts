@@ -1,3 +1,4 @@
+import { DEFAULT_MAX_ADD_BY_RSS_FEEDS } from './accountTrust.js';
 import {
   DEFAULT_FREE_TRIAL_EXPIRATION,
   readOptionalPositiveExpirationEnv,
@@ -18,13 +19,12 @@ export type ProductMembershipDefaultsFromEnv = {
   freeTrialExpirationSeconds: number;
   premiumMembershipCostMonthly: number;
   premiumMembershipCostAnnually: number;
+  maxAddByRSSFeeds: number;
   trialAllowDirectoryAddByRSS: boolean;
-  trialMaxAddByRSSFeeds: number;
   trialMaxManualRefreshesPerHour: number;
   trialTrackStats: boolean;
   trialAllowNotifications: boolean;
   premiumAllowDirectoryAddByRSS: boolean;
-  premiumMaxAddByRSSFeeds: number;
   premiumMaxManualRefreshesPerHour: number;
   premiumTrackStats: boolean;
   premiumAllowNotifications: boolean;
@@ -33,18 +33,18 @@ export type ProductMembershipDefaultsFromEnv = {
 /**
  * Effective product membership defaults after merging env, `product_membership_settings`
  * (trial length / caps), and active `billing_price` rows (premium USD prices).
+ * `maxAddByRSSFeeds` is shared by Trial and Premium; the other caps are per tier.
  */
 export type ResolvedProductMembership = {
   freeTrialExpirationSeconds: number;
   premiumMembershipCostMonthly: number;
   premiumMembershipCostAnnually: number;
+  maxAddByRSSFeeds: number;
   trialAllowDirectoryAddByRSS: boolean;
-  trialMaxAddByRSSFeeds: number;
   trialMaxManualRefreshesPerHour: number;
   trialTrackStats: boolean;
   trialAllowNotifications: boolean;
   premiumAllowDirectoryAddByRSS: boolean;
-  premiumMaxAddByRSSFeeds: number;
   premiumMaxManualRefreshesPerHour: number;
   premiumTrackStats: boolean;
   premiumAllowNotifications: boolean;
@@ -53,13 +53,12 @@ export type ResolvedProductMembership = {
 /** Membership defaults used for entitlement resolution. */
 export type ProductMembershipEntitlementDefaults = Pick<
   ResolvedProductMembership,
+  | 'maxAddByRSSFeeds'
   | 'trialAllowDirectoryAddByRSS'
-  | 'trialMaxAddByRSSFeeds'
   | 'trialMaxManualRefreshesPerHour'
   | 'trialTrackStats'
   | 'trialAllowNotifications'
   | 'premiumAllowDirectoryAddByRSS'
-  | 'premiumMaxAddByRSSFeeds'
   | 'premiumMaxManualRefreshesPerHour'
   | 'premiumTrackStats'
   | 'premiumAllowNotifications'
@@ -83,11 +82,14 @@ export function resolveProductMembershipDefaultsFromEnv(): ProductMembershipDefa
       'MEMBERSHIP_PREMIUM_COST_ANNUALLY',
       30
     ),
+    maxAddByRSSFeeds: parseNonNegativeIntEnv(
+      'MEMBERSHIP_MAX_ADD_BY_RSS_FEEDS',
+      DEFAULT_MAX_ADD_BY_RSS_FEEDS
+    ),
     trialAllowDirectoryAddByRSS: parseBooleanEnv(
       'MEMBERSHIP_TRIAL_ALLOW_DIRECTORY_ADD_BY_RSS',
       false
     ),
-    trialMaxAddByRSSFeeds: parseNonNegativeIntEnv('MEMBERSHIP_TRIAL_MAX_ADD_BY_RSS_FEEDS', 10),
     trialMaxManualRefreshesPerHour: parseNonNegativeIntEnv(
       'MEMBERSHIP_TRIAL_MAX_MANUAL_REFRESHES_PER_HOUR',
       5
@@ -98,7 +100,6 @@ export function resolveProductMembershipDefaultsFromEnv(): ProductMembershipDefa
       'MEMBERSHIP_PREMIUM_ALLOW_DIRECTORY_ADD_BY_RSS',
       true
     ),
-    premiumMaxAddByRSSFeeds: parseNonNegativeIntEnv('MEMBERSHIP_PREMIUM_MAX_ADD_BY_RSS_FEEDS', 100),
     premiumMaxManualRefreshesPerHour: parseNonNegativeIntEnv(
       'MEMBERSHIP_PREMIUM_MAX_MANUAL_REFRESHES_PER_HOUR',
       20

@@ -36,6 +36,17 @@ When changing Add-by-RSS data, trace this complete path:
    `add_by_rss_feed.mapped_feed_json`.
 3. **Mobile record:** `MobileAddByRSSFeedRecord`, `AddByRssFeedRow`, `schema.ts`, and
    `migrations.ts` define scalar offline list fields and their SQLite representation.
+   `add_by_rss_feed` also stores `device_etag`, `device_last_modified`, `device_feed_hash`,
+   `device_checked_at`, `signed_out_owned`, and `followed_at`. `device_feed_hash` is a device
+   hash, compared only on that phone, and is never compared with a server hash. A device parse
+   does not produce an `AddByRSSParseCacheEntry`; it stores the same `AddByRSSMappedFeed` in
+   `mapped_feed_json`. The server-record step stays the contract for the server parse, and that
+   path does not read or write the four `device_*` columns. `signed_out_owned = 1` means the
+   signed-out user of this phone follows the feed and no signed-in account has claimed it.
+   `followed_at` is when this phone last started following the feed. There is no pending-follow
+   column, and no column for a `directory_unavailable` retry time: that retry lives in memory
+   and a restart clears it. `resolve_no_match` is a reason on the existing listing row, not a
+   new column.
 4. **Playback:** `getMappedFeedByUrl`, `safeJsonParse`, and `toAddByRssItemPlaybackResourceData`
    reconstruct playback data from the bundle and per-account playback position.
 

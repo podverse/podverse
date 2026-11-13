@@ -17,7 +17,7 @@ import { handleParsedItemSoundbite } from '@parser/lib/rss/item/itemSoundbite.js
 import { handleParsedItemTranscript } from '@parser/lib/rss/item/itemTranscript.js';
 import { handleParsedItemTxt } from '@parser/lib/rss/item/itemTxt.js';
 import { handleParsedItemValue } from '@parser/lib/rss/item/itemValue.js';
-import type { Episode } from 'podverse-partytime';
+import type { Episode } from 'podverse-partytime/core';
 
 import { chunkArray, DATABASE_CONSTANTS, formatGuidEnclosureUrl } from '@podverse/helpers';
 import type { Channel, ChannelSeasonIndex, EntityManager } from '@podverse/orm';

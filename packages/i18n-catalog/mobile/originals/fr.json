@@ -80,7 +80,9 @@
     },
     "add_by_rss": {
       "credentials_mobile_media_note": "Cette app les envoie avec l'audio, la vidéo et les visuels seulement lorsque ces fichiers sont sur le même site que le flux.",
-      "credentials_remove_feed_confirm": "Retirer ce flux ? L'identifiant et le mot de passe sont aussi effacés de cet appareil."
+      "credentials_page_host_note": "L'identifiant et le mot de passe restent sur cet appareil : vous devez les saisir à nouveau sur chaque appareil. Cette app les envoie uniquement au site du flux.",
+      "credentials_remove_feed_confirm": "Retirer ce flux ? L'identifiant et le mot de passe sont aussi effacés de cet appareil.",
+      "feed_limit_help": "Ajouter par RSS accepte jusqu'à {max_feeds} flux."
     }
   },
   "settings": {
@@ -163,6 +165,15 @@
       "move_to_more": "Déplacer vers Plus",
       "add_to_bar": "Ajouter à la barre",
       "reorder_hint": "Déplace cet écran dans la barre d'onglets ou vers Plus"
+    },
+    "opml": {
+      "export_description_device": "Exportez au format OPML les podcasts auxquels vous êtes abonné et les flux Add by RSS de cet appareil.",
+      "export_device_empty": "Aucun abonnement ni flux Add by RSS à exporter sur cet appareil.",
+      "export_device_looking_up": "Recherche des flux de podcasts : {done} sur {total}",
+      "export_device_partial": "{count, plural, one {Export terminé, mais # podcast auquel vous êtes abonné a été omis, car l'URL de son flux n'a pas pu être chargée. Exportez à nouveau plus tard pour l'inclure.} other {Export terminé, mais # podcasts auxquels vous êtes abonné ont été omis, car les URL de leurs flux n'ont pas pu être chargées. Exportez à nouveau plus tard pour les inclure.}}",
+      "export_device_offline_mode": "{count, plural, one {Vos flux Add by RSS ont été exportés. Le mode hors ligne est activé, donc # podcast auquel vous êtes abonné a été omis. Désactivez le mode hors ligne et exportez à nouveau pour l'inclure.} other {Vos flux Add by RSS ont été exportés. Le mode hors ligne est activé, donc # podcasts auxquels vous êtes abonné ont été omis. Désactivez le mode hors ligne et exportez à nouveau pour les inclure.}}",
+      "export_device_offline_mode_unavailable": "Le mode hors ligne est activé. Désactivez-le pour exporter les podcasts auxquels vous êtes abonné, car les URL de leurs flux sont recherchées en ligne.",
+      "export_device_lookup_failed": "Impossible de charger les URL des flux des podcasts auxquels vous êtes abonné, donc rien n'a été exporté. Vérifiez votre connexion, puis réessayez."
     }
   },
   "e2e": {
@@ -314,7 +325,22 @@
   },
   "authentication": {
     "account_created_title": "Compte créé",
-    "account_created_body": "Vérifiez votre e-mail pour le lien de vérification."
+    "account_created_body": "Vérifiez votre e-mail pour le lien de vérification.",
+    "signup_add_by_rss_limit": {
+      "title": "Limite Add by RSS",
+      "summary": "Les nouveaux comptes peuvent conserver jusqu'à {limit} flux Add by RSS, et cet appareil en a {feed_count}. Si vous créez un compte, Add by RSS peut ne pas fonctionner comme prévu, et vous pouvez perdre les URL des flux au-delà de la limite.",
+      "export_recommendation": "Exportez d'abord un fichier OPML pour garder une copie de vos flux Add by RSS. Vous pourrez importer le fichier plus tard pour les restaurer.",
+      "details_title": "Plus de détails",
+      "details_kept": "Votre nouveau compte conserve les {limit} premiers flux Add by RSS que vous avez suivis sur cet appareil.",
+      "details_removed": "Les autres sont retirés de cet appareil la première fois que vous vous connectez au nouveau compte, ainsi que les identifiants et les mots de passe enregistrés pour eux. Ils ne sont pas ajoutés plus tard.",
+      "details_server": "Ensuite, le serveur vérifie les mises à jour des flux que votre compte conserve, à la place de cet appareil, et ils apparaissent sur vos autres appareils connectés.",
+      "details_subscriptions": "Les podcasts auxquels vous vous êtes abonné depuis le répertoire sont tous conservés.",
+      "details_restore": "Pour restaurer des flux plus tard, connectez-vous et importez votre fichier OPML depuis More › OPML. Votre compte ne contient toujours pas plus de {limit} flux Add by RSS.",
+      "details_alternatives": "Pour garder chaque flux sur cet appareil, restez déconnecté. Vous connecter à un compte que vous avez déjà ne retire aucun flux de cet appareil.",
+      "contact": "Des questions ? Contactez {email}.",
+      "accept_label": "Je comprends que les flux Add by RSS au-delà de la limite seront retirés de cet appareil.",
+      "limit_unavailable": "Impossible de charger la limite Add by RSS. Vérifiez votre connexion, puis réessayez."
+    }
   },
   "membership": {
     "status_free_trial": "Essai gratuit",

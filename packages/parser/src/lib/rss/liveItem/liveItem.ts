@@ -6,8 +6,7 @@ import { createItemTimerAccumulator, handleParsedItem } from '@parser/lib/rss/it
 import { dedupeByStableKey, getParsedItemStableKey } from '@parser/lib/rss/itemStableKey.js';
 import { markChannelMayHaveLiveItems } from '@parser/lib/rss/liveItem/channelLiveItemFlag.js';
 import { resolveLiveItemsLeavingFeed } from '@parser/lib/rss/liveItem/liveItemArchive.js';
-import type { Episode } from 'podverse-partytime';
-import type { Phase4PodcastLiveItem } from 'podverse-partytime/dist/parser/phase/phase-4.js';
+import type { Episode, Phase4PodcastLiveItem } from 'podverse-partytime/core';
 
 import { chunkArray, getLiveItemStatusEnumValue, LiveItemStatusEnum } from '@podverse/helpers';
 import type { Channel, ChannelSeasonIndex, EntityManager, LiveItem } from '@podverse/orm';

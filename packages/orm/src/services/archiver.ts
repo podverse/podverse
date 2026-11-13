@@ -28,6 +28,27 @@ const ARCHIVED_ITEM_ORPHAN_DELETE_BATCH_SIZE = 1000;
 const PENDING_ARCHIVE_MAX_FEEDS_PER_RUN = 1000;
 const PENDING_ARCHIVE_ITEM_CHUNK = 1000;
 
+/**
+ * True when a row still points at the item: a clip, a playlist row on the item or one of its
+ * soundbites, or a channel merge map. Merge maps keep old item URLs redirecting, and their
+ * item foreign keys have no ON DELETE, so a mapped item is archived rather than deleted.
+ */
+export function itemRetainedByReferenceSql(itemRef: string): string {
+  return `(
+    EXISTS (SELECT 1 FROM clip WHERE clip.item_id = ${itemRef})
+    OR EXISTS (SELECT 1 FROM playlist_resource WHERE playlist_resource.item_id = ${itemRef})
+    OR EXISTS (
+      SELECT 1 FROM playlist_resource
+      INNER JOIN item_soundbite ON item_soundbite.id = playlist_resource.item_soundbite_id
+      WHERE item_soundbite.item_id = ${itemRef}
+    )
+    OR EXISTS (
+      SELECT 1 FROM item_merge_map
+      WHERE item_merge_map.from_item_id = ${itemRef} OR item_merge_map.to_item_id = ${itemRef}
+    )
+  )`;
+}
+
 export type ChannelDeleteQuery = {
   sql: string;
   params: (channelId: number) => unknown[];
@@ -231,7 +252,13 @@ export class ArchiverService {
         where: { item: { id: item.id } },
       }));
 
-      if (hasPlaylistResource || hasClip) {
+      const mergeMapRows: unknown = await this.itemRepositoryReadWrite.query(
+        `SELECT 1 FROM item_merge_map WHERE from_item_id = $1 OR to_item_id = $1 LIMIT 1`,
+        [item.id]
+      );
+      const hasMergeMap = Array.isArray(mergeMapRows) && mergeMapRows.length > 0;
+
+      if (hasPlaylistResource || hasClip || hasMergeMap) {
         item.item_flag_status = archivedStatus;
         await this.itemRepositoryReadWrite.save(item);
       } else {
@@ -241,8 +268,8 @@ export class ArchiverService {
   }
 
   /**
-   * Removes `Archived` items without `Clip` or `playlist_resource` rows, counting playlist rows
-   * that point at one of the item's soundbites. Deleting such an item would null that row's
+   * Removes `Archived` items that no row points at (`itemRetainedByReferenceSql`). Deleting an
+   * item that a playlist row points at, directly or through a soundbite, would null that row's
    * only reference, which the playlist_resource CHECK rejects.
    * Retention at archive time (`processItems`) keeps items only for those relationships; this pass
    * drops archived rows after users remove clips or playlists.
@@ -254,13 +281,7 @@ export class ArchiverService {
       const rows = (await this.itemRepositoryReadWrite.query(
         `SELECT i.id AS id FROM item i
          WHERE i.item_flag_status_id = $1
-           AND NOT EXISTS (SELECT 1 FROM clip c WHERE c.item_id = i.id)
-           AND NOT EXISTS (SELECT 1 FROM playlist_resource pr WHERE pr.item_id = i.id)
-           AND NOT EXISTS (
-             SELECT 1 FROM playlist_resource pr
-             INNER JOIN item_soundbite sb ON sb.id = pr.item_soundbite_id
-             WHERE sb.item_id = i.id
-           )
+           AND NOT ${itemRetainedByReferenceSql('i.id')}
          LIMIT $2`,
         [archivedId, ARCHIVED_ITEM_ORPHAN_DELETE_BATCH_SIZE]
       )) as { id: number }[];
@@ -338,10 +359,7 @@ export class ArchiverService {
     );
   }
 
-  /**
-   * Keeps the same clip and playlist retention as `processItems`, including a playlist row that
-   * points at one of the item's soundbites.
-   */
+  /** Keeps the same retention as `processItems` (`itemRetainedByReferenceSql`). */
   private async archiveItemsWithClipOrPlaylist(
     channelIds: number[],
     archivedStatusId: number
@@ -351,15 +369,7 @@ export class ArchiverService {
        SET item_flag_status_id = $1
        WHERE channel_id = ANY($2::int[])
          AND item_flag_status_id = ANY($3::int[])
-         AND (
-           EXISTS (SELECT 1 FROM clip WHERE clip.item_id = item.id)
-           OR EXISTS (SELECT 1 FROM playlist_resource WHERE playlist_resource.item_id = item.id)
-           OR EXISTS (
-             SELECT 1 FROM playlist_resource
-             INNER JOIN item_soundbite ON item_soundbite.id = playlist_resource.item_soundbite_id
-             WHERE item_soundbite.item_id = item.id
-           )
-         )`,
+         AND ${itemRetainedByReferenceSql('item.id')}`,
       [
         archivedStatusId,
         channelIds,
@@ -379,13 +389,7 @@ export class ArchiverService {
         `SELECT i.id AS id FROM item i
          WHERE i.channel_id = ANY($1::int[])
            AND i.item_flag_status_id = ANY($2::int[])
-           AND NOT EXISTS (SELECT 1 FROM clip WHERE clip.item_id = i.id)
-           AND NOT EXISTS (SELECT 1 FROM playlist_resource WHERE playlist_resource.item_id = i.id)
-           AND NOT EXISTS (
-             SELECT 1 FROM playlist_resource
-             INNER JOIN item_soundbite ON item_soundbite.id = playlist_resource.item_soundbite_id
-             WHERE item_soundbite.item_id = i.id
-           )
+           AND NOT ${itemRetainedByReferenceSql('i.id')}
          LIMIT $3`,
         [
           channelIds,

@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0" xmlns:itunes="http://www.itunes.com/dtds/podcast-1.0.dtd" xmlns:podcast="https://podcastindex.org/namespace/1.0">
+  <channel>
+    <title>E2E Device Artist</title>
+    <link>http://localhost:2111/e2e/add-by-rss/artist.xml</link>
+    <description>An Add by RSS artist parsed on a signed-out device. It lists an Add by RSS album, the seeded directory album, and an album known only by its feed guid.</description>
+    <language>en</language>
+    <podcast:guid>e2e0de71-0000-4000-8000-0000000000a3</podcast:guid>
+    <podcast:medium>publisher</podcast:medium>
+    <podcast:remoteItem feedGuid="e2e0de71-0000-4000-8000-0000000000b3" feedUrl="http://localhost:2111/e2e/add-by-rss/album.xml" medium="music"/>
+    <podcast:remoteItem feedGuid="11111111-2222-4333-8444-555555555501" feedUrl="https://e2e-seed-music.example/album.xml" medium="music"/>
+    <podcast:remoteItem feedGuid="e2e0a5f0-0000-4000-8000-0000000000f1" medium="music"/>
+  </channel>
+</rss>

@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0" xmlns:itunes="http://www.itunes.com/dtds/podcast-1.0.dtd" xmlns:podcast="https://podcastindex.org/namespace/1.0">
+  <channel>
+    <title>E2E Device Album</title>
+    <link>http://localhost:2111/e2e/add-by-rss/album.xml</link>
+    <description>An album an Add by RSS artist lists, parsed on a signed-out device.</description>
+    <language>en</language>
+    <podcast:guid>e2e0de71-0000-4000-8000-0000000000b3</podcast:guid>
+    <podcast:medium>music</podcast:medium>
+    <itunes:author>E2E Device Artist</itunes:author>
+    <item>
+      <title>E2E Device Track</title>
+      <guid isPermaLink="false">e2e-device-album-track-1</guid>
+      <pubDate>Mon, 01 Jan 2024 00:00:00 GMT</pubDate>
+      <enclosure url="http://localhost:2111/e2e/audio/e2e-addbyrss-fresh-60s-440hz.mp3" length="960000" type="audio/mpeg"/>
+      <itunes:duration>60</itunes:duration>
+    </item>
+  </channel>
+</rss>

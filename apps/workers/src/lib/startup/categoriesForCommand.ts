@@ -32,6 +32,9 @@ export type ConfigCategory =
 const BASE_ORM_COMMANDS = [
   'billingCheckoutChannelEnable',
   'billingImportLegacyMembershipExpiry',
+  'v4CopyAccountLibrary',
+  'v4ReplayLegacyRows',
+  'v4SeedAccountIdentity',
   'billingProcessorProductAdd',
   'notificationsPlatformPurge',
   'accountContentLogPurge',
@@ -65,7 +68,11 @@ const BASE_ORM_MQ_PODCAST_INDEX_COMMANDS = [
   'mqRSSAddTrendingPodcastsFromPodcastIndex',
 ] as const;
 
-const BASE_ORM_MQ_COMMANDS = ['mqRSSRunDlqConsumer', 'mqRSSAddAll'] as const;
+const BASE_ORM_MQ_COMMANDS = [
+  'mqRSSRunDlqConsumer',
+  'mqRSSAddAll',
+  'v4SeedAccountCatalog',
+] as const;
 
 const BASE_MQ_COMMANDS = ['devPiBulkFeedsAddFromFile'] as const;
 

@@ -20,11 +20,25 @@ const isUsableCredential = (value: string | null | undefined): value is string =
   typeof value === 'string' && value.length > 0 && value.length <= ADD_BY_RSS_CREDENTIAL_MAX_LENGTH;
 
 /**
- * Canonical add-by-RSS feed URL: userinfo removed, then canonicalized. This is the form the API
- * stores on follow rows, so clients key device-held credentials by it. Null when not http(s).
+ * A path slash at the end of an add-by-RSS feed is not a different feed. The host root stays
+ * `https://example.com/` because that slash is the empty path.
+ */
+function withoutTrailingPathSlash(url: string): string {
+  const parsed = new URL(url);
+  if (parsed.pathname.length > 1 && parsed.pathname.endsWith('/')) {
+    parsed.pathname = parsed.pathname.replace(/\/+$/, '');
+  }
+  return parsed.href;
+}
+
+/**
+ * Canonical add-by-RSS feed URL: userinfo removed, then canonicalized, then a trailing path slash
+ * removed. This is the form the API stores on follow rows, so clients key device-held credentials
+ * by it. Null when not http(s).
  */
 export function canonicalAddByRSSFeedUrl(feedUrl: string): string | null {
-  return canonicalHttpOrHttpsUrl(splitFeedUrlUserinfo(feedUrl).feedUrl);
+  const canonical = canonicalHttpOrHttpsUrl(splitFeedUrlUserinfo(feedUrl).feedUrl);
+  return canonical === null ? null : withoutTrailingPathSlash(canonical);
 }
 
 /**
@@ -38,7 +52,7 @@ export function resolveAddByRSSFeedUrlCredentials(
   password?: string | null
 ): ResolvedAddByRSSFeedUrlCredentials | null {
   const split = splitFeedUrlUserinfo(feedUrl);
-  const canonicalUrl = canonicalHttpOrHttpsUrl(split.feedUrl);
+  const canonicalUrl = canonicalAddByRSSFeedUrl(split.feedUrl);
   if (canonicalUrl === null) {
     return null;
   }

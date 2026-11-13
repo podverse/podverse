@@ -32,8 +32,9 @@ the app can work out for free the moment a screen renders.
 - Derive the state with **`getMembershipExpiryNotice`** from `@podverse/helpers`, which returns
   `none` / `expiring_soon` / `expired` plus `daysRemaining`, using the shared
   `MEMBERSHIP_EXPIRY_WARNING_DAYS` window so surfaces cannot drift.
-- Present it **in-app**: web's `MembershipExpirationToast`, mobile's `MembershipExpiredBanner`, the
-  persistent More row, and the blocked-action `ConfirmDialog` (`openGate`).
+- Present it **in-app**: web's `MembershipExpirationToast`, mobile's `MembershipExpiredBanner` in
+  the bottom chrome above the mini player, the persistent More row, and the blocked-action
+  `ConfirmDialog` (`openGate`).
 - Remember a dismissal with **`getMembershipExpiryDismissalKey`** (`@podverse/helpers`).
   Expiring-soon is stored as `expiring_soon:${expiresAt}`, so a later expiry shows the notice
   again. Expired returns null: that dismissal lasts for the session and returns on the next launch.

@@ -28,10 +28,13 @@ Offline data layer decision:
 - **Offline-first data.** Screens and hooks read through **repositories** backed by a local DB;
   the API syncs in the background. See
   [DOCS-MOBILE-DATA-LAYER-OFFLINE.md](/docs/proposals/mobile/initial-decisions/DOCS-MOBILE-DATA-LAYER-OFFLINE.md).
-- **Add-by-RSS: server-side parse, client-side mapping.** Neither web nor mobile parses RSS XML in
-  the client. Both call `POST /account/add-by-rss/parse` and poll status; a worker runs
-  `@podverse/parser`. Clients then map with `@podverse/parser-mapping` (browser/mobile-safe) and
-  store locally (web: IndexedDB; mobile: offline DB). Do not import `@podverse/parser` in mobile.
+- **Add-by-RSS.** The website and a signed-in phone use the server parse and poll
+  (`POST /account/add-by-rss/parse`); a worker runs `@podverse/parser`. A signed-out phone parses
+  through `podverse-partytime/core` and maps with `@podverse/parser-mapping` into the local
+  database. The website has no on-device parse, because a browser cannot fetch the feed. That
+  difference is intentional. Do not import `@podverse/parser`, the partytime package root, or
+  `podverse-partytime/dist`. Longer write-up:
+  [DOCS-MOBILE-PROCESS-SHARED-VS-DIVERGENT.md § 4.1](DOCS-MOBILE-PROCESS-SHARED-VS-DIVERGENT.md).
 
 ## 2. Assumed stack
 
@@ -206,8 +209,12 @@ When implementing mobile screens or hooks:
 1. **Read through repositories**, not `req*` directly from screens. Repositories own local DB reads
    and background API sync
    ([DOCS-MOBILE-DATA-LAYER-OFFLINE.md](/docs/proposals/mobile/initial-decisions/DOCS-MOBILE-DATA-LAYER-OFFLINE.md)).
-2. **Add-by-RSS:** server parse + poll only; map with `@podverse/parser-mapping`; never parse XML
-   in the app; never import `@podverse/parser`.
+2. **Add-by-RSS:** while signed in, server parse and poll, and do not parse RSS XML. While signed
+   out, parse on the phone through `podverse-partytime/core` only. Map with
+   `@podverse/parser-mapping` either way. Never import `@podverse/parser`, the partytime package
+   root, or `podverse-partytime/dist`. The website keeps the server parse because a browser cannot
+   fetch the feed host. That difference is intentional. See
+   [DOCS-MOBILE-PROCESS-SHARED-VS-DIVERGENT.md § 4.1](DOCS-MOBILE-PROCESS-SHARED-VS-DIVERGENT.md).
 3. **Visual:** prefer shared RN primitives (`Card`, `ListRow`, …) + design tokens; defer pixel
    polish to a later phase
    ([DOCS-MOBILE-PROCESS-VISUAL-PARITY.md](DOCS-MOBILE-PROCESS-VISUAL-PARITY.md)).

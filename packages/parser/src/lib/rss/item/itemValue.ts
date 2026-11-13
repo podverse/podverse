@@ -1,4 +1,4 @@
-import type { Episode } from 'podverse-partytime';
+import type { Episode } from 'podverse-partytime/core';
 
 import { hasValidFeedUuid } from '@podverse/helpers';
 import type { Channel, EntityManager, Item } from '@podverse/orm';

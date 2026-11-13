@@ -2,8 +2,8 @@ import { config } from '@api/config/index.js';
 import { handleGenericErrorResponse } from '@api/controllers/helpers/error.js';
 import { indexProvider } from '@api/factories/indexProvider.js';
 import { isE2eRemoteItemNotFoundRef } from '@api/lib/addByRSSE2eRemoteItemFixture.js';
-import { ensureAuthenticated } from '@api/lib/auth/index.js';
-import { rateLimitAuthEndpoint } from '@api/lib/rateLimiter.js';
+import { optionalEnsureAuthenticated } from '@api/lib/auth/index.js';
+import { rateLimitOptionalAuthEndpoint } from '@api/lib/rateLimiter.js';
 import type { Request, Response } from 'express';
 import Joi from 'joi';
 
@@ -145,12 +145,23 @@ function toIndexProviderFeedTarget(stub: ReturnType<typeof toDTORemoteChannelStu
   };
 }
 
-export const addByRssRemoteItemResolveRateLimit = rateLimitAuthEndpoint({
-  windowMs: config.rateLimits.accountAddByRssRemoteItemResolve.windowMs,
-  max: config.rateLimits.accountAddByRssRemoteItemResolve.max,
+export const addByRssRemoteItemResolveRateLimit = rateLimitOptionalAuthEndpoint({
+  account: {
+    windowMs: config.rateLimits.accountAddByRssRemoteItemResolve.windowMs,
+    max: config.rateLimits.accountAddByRssRemoteItemResolve.max,
+  },
+  address: {
+    windowMs: config.rateLimits.accountAddByRssRemoteItemResolveAnon.windowMs,
+    max: config.rateLimits.accountAddByRssRemoteItemResolveAnon.max,
+  },
   apiKeyAccess: { resource: 'add_by_rss', action: 'read' },
 });
 
+/**
+ * Lookup and resolve match references from a feed the client already holds against the directory
+ * and the remote stub tables. A session is optional: signed-out clients that parse feeds
+ * themselves call both. A token or API key that is sent must still be valid.
+ */
 export class AccountAddByRSSRemoteItemController {
   private static readonly directoryMatchService = new ChannelAddByRSSDirectoryMatchService();
   private static readonly itemService = new ItemService();
@@ -158,7 +169,7 @@ export class AccountAddByRSSRemoteItemController {
   private static readonly remoteItemStubService = new RemoteItemStubService();
 
   static async lookup(req: Request, res: Response): Promise<void> {
-    ensureAuthenticated(
+    optionalEnsureAuthenticated(
       req,
       res,
       async () => {
@@ -378,7 +389,7 @@ export class AccountAddByRSSRemoteItemController {
   }
 
   static async resolve(req: Request, res: Response): Promise<void> {
-    ensureAuthenticated(
+    optionalEnsureAuthenticated(
       req,
       res,
       async () => {

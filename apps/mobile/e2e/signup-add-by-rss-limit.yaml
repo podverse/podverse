@@ -1,0 +1,172 @@
+appId: com.podverse.app.next
+name: Sign Up Add by RSS Limit
+---
+# Signed out, with more Add by RSS feeds on the device than a new account can keep, Sign Up
+# opens a warning before the form. The E2E harness treats that limit as 1, so two device feeds
+# cross it. Continue stays off until the checkbox is checked, and accepting lasts while this
+# auth sheet stays open. Needs the E2E API (the sign-up form loads terms) and test-assets
+# (the device fetches the :2111 feeds).
+
+- runFlow: shared/launch-and-connect.yaml
+
+- tapOn:
+    id: tab-my-library
+- assertVisible:
+    id: library-hub-screen
+- tapOn:
+    id: library-nav-add-by-rss
+- assertVisible:
+    id: rss-root-screen
+- tapOn:
+    id: rss-add-button
+- assertVisible:
+    id: rss-add-screen
+- tapOn:
+    id: rss-url-input
+- inputText: http://localhost:2111/feeds/feed-podcast-1.rss
+- assertVisible:
+    id: rss-add-submit
+    enabled: true
+- tapOn:
+    id: rss-add-submit
+- extendedWaitUntil:
+    visible:
+      id: rss-root-screen
+    timeout: ${TIMEOUT_SLOWER}
+- extendedWaitUntil:
+    notVisible:
+      id: rss-feeds-empty
+    timeout: ${TIMEOUT_SLOW}
+
+- tapOn:
+    id: rss-add-button
+- assertVisible:
+    id: rss-add-screen
+- tapOn:
+    id: rss-url-input
+- inputText: http://localhost:2111/feeds/feed-1.rss
+- assertVisible:
+    id: rss-add-submit
+    enabled: true
+- tapOn:
+    id: rss-add-submit
+- extendedWaitUntil:
+    visible:
+      id: rss-root-screen
+    timeout: ${TIMEOUT_SLOWER}
+
+- tapOn:
+    id: tab-more
+- tapOn:
+    id: more-nav-opml
+- assertVisible:
+    id: opml-export-button
+    enabled: true
+- tapOn:
+    id: opml-export-button
+- extendedWaitUntil:
+    visible:
+      id: opml-export-notice
+      text: "OPML Export Downloaded Successfully."
+    timeout: ${TIMEOUT_FAST}
+- runFlow: shared/stack-back.yaml
+- extendedWaitUntil:
+    visible:
+      id: more-screen
+    timeout: ${TIMEOUT_FAST}
+
+# More keeps its scroll offset, and a row above the viewport still counts as visible, so return
+# to the top before tapping Sign Up.
+- runFlow: shared/scroll-hub-to-top.yaml
+- scrollUntilVisible:
+    element:
+      id: anonymous-signup-cta
+    direction: DOWN
+    timeout: ${TIMEOUT_FAST}
+- tapOn:
+    id: anonymous-signup-cta
+- extendedWaitUntil:
+    visible:
+      id: signup-add-by-rss-limit-summary
+    timeout: ${TIMEOUT_SLOW}
+- assertVisible:
+    id: signup-add-by-rss-limit-continue
+    enabled: false
+- takeScreenshot: signup-add-by-rss-limit-warning
+
+- scrollUntilVisible:
+    element:
+      id: signup-add-by-rss-limit-export
+    direction: DOWN
+    timeout: ${TIMEOUT_FAST}
+- tapOn:
+    id: signup-add-by-rss-limit-export
+- extendedWaitUntil:
+    visible:
+      id: signup-add-by-rss-limit-export-notice
+      text: "OPML Export Downloaded Successfully."
+    timeout: ${TIMEOUT_FAST}
+
+- scrollUntilVisible:
+    element:
+      id: signup-add-by-rss-limit-details-toggle
+    direction: DOWN
+    timeout: ${TIMEOUT_FAST}
+- tapOn:
+    id: signup-add-by-rss-limit-details-toggle
+- scrollUntilVisible:
+    element:
+      id: signup-add-by-rss-limit-details-removed
+    direction: DOWN
+    timeout: ${TIMEOUT_FAST}
+- assertVisible:
+    id: signup-add-by-rss-limit-details-removed
+- takeScreenshot: signup-add-by-rss-limit-details
+
+- scrollUntilVisible:
+    element:
+      id: signup-add-by-rss-limit-accept
+    direction: DOWN
+    timeout: ${TIMEOUT_FAST}
+- tapOn:
+    id: signup-add-by-rss-limit-accept
+- scrollUntilVisible:
+    element:
+      id: signup-add-by-rss-limit-continue
+    direction: DOWN
+    timeout: ${TIMEOUT_FAST}
+- assertVisible:
+    id: signup-add-by-rss-limit-continue
+    enabled: true
+- tapOn:
+    id: signup-add-by-rss-limit-continue
+- extendedWaitUntil:
+    visible:
+      id: signup-form
+    timeout: ${TIMEOUT_SLOW}
+- takeScreenshot: signup-add-by-rss-limit-signup-form
+
+- scrollUntilVisible:
+    element:
+      id: auth-switch-login
+    direction: DOWN
+    timeout: ${TIMEOUT_FAST}
+- tapOn:
+    id: auth-switch-login
+- assertVisible:
+    id: login-screen
+- scrollUntilVisible:
+    element:
+      id: auth-switch-signup
+    direction: DOWN
+    timeout: ${TIMEOUT_FAST}
+- tapOn:
+    id: auth-switch-signup
+- assertVisible:
+    id: signup-form
+- tapOn:
+    id: auth-dismiss
+- extendedWaitUntil:
+    visible:
+      id: more-screen
+    timeout: ${TIMEOUT_SLOW}

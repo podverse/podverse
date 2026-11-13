@@ -76,9 +76,8 @@ const FIELD_ORDER: (keyof ResolvedProductMembership)[] = [
   'freeTrialExpirationSeconds',
   'premiumMembershipCostMonthly',
   'premiumMembershipCostAnnually',
-  'trialMaxAddByRSSFeeds',
+  'maxAddByRSSFeeds',
   'trialMaxManualRefreshesPerHour',
-  'premiumMaxAddByRSSFeeds',
   'premiumMaxManualRefreshesPerHour',
 ];
 
@@ -194,9 +193,8 @@ export function ProductMembershipsPageClient() {
         }
 
         if (
-          editingField === 'trialMaxAddByRSSFeeds' ||
+          editingField === 'maxAddByRSSFeeds' ||
           editingField === 'trialMaxManualRefreshesPerHour' ||
-          editingField === 'premiumMaxAddByRSSFeeds' ||
           editingField === 'premiumMaxManualRefreshesPerHour'
         ) {
           const parsed = Number.parseInt(raw, 10);
@@ -205,14 +203,12 @@ export function ProductMembershipsPageClient() {
             return;
           }
           let response: Awaited<ReturnType<typeof updateProductMembershipSettings>>;
-          if (editingField === 'trialMaxAddByRSSFeeds') {
-            response = await updateProductMembershipSettings({ trialMaxAddByRSSFeeds: parsed });
+          if (editingField === 'maxAddByRSSFeeds') {
+            response = await updateProductMembershipSettings({ maxAddByRSSFeeds: parsed });
           } else if (editingField === 'trialMaxManualRefreshesPerHour') {
             response = await updateProductMembershipSettings({
               trialMaxManualRefreshesPerHour: parsed,
             });
-          } else if (editingField === 'premiumMaxAddByRSSFeeds') {
-            response = await updateProductMembershipSettings({ premiumMaxAddByRSSFeeds: parsed });
           } else {
             response = await updateProductMembershipSettings({
               premiumMaxManualRefreshesPerHour: parsed,

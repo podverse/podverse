@@ -4,23 +4,12 @@ import {
   classifyAddByRSSParseFailure,
   nextRequiresCredentials,
   readUpstreamHttpFailure,
-  toAuthChallenge,
 } from './classifyAddByRSSParseFailure.js';
 
 const httpError = (status: number, headers: Record<string, unknown> = {}) => ({
   message: `Request failed with status code ${status}`,
   response: { status, headers },
   config: { headers: { Authorization: 'Basic c2VjcmV0' } },
-});
-
-describe('toAuthChallenge', () => {
-  it('recognizes Basic among one or several challenges', () => {
-    expect(toAuthChallenge('Basic realm="feed"')).toBe('basic');
-    expect(toAuthChallenge('Bearer realm="x", basic realm="feed"')).toBe('basic');
-    expect(toAuthChallenge('Bearer realm="x"')).toBe('other');
-    expect(toAuthChallenge(undefined)).toBe('none');
-    expect(toAuthChallenge('  ')).toBe('none');
-  });
 });
 
 describe('readUpstreamHttpFailure', () => {

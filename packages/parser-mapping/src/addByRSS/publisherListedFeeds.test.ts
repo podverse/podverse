@@ -1,11 +1,13 @@
 import { describe, expect, it } from 'vitest';
 
+import { convertParsedRSSFeedToCompat } from '../compat/partytime/compatFull.js';
 import type { FeedObject, Phase6RemoteItem } from '../types/partytime.js';
 import { Phase4Medium } from '../types/partytime.js';
 import type { AddByRSSPublisherListedFeedRef } from './publisherListedFeeds.js';
 import {
   ADD_BY_RSS_PUBLISHER_LISTED_FEEDS_MAX,
   collectAddByRSSPublisherListedFeedRefs,
+  collectAddByRSSPublisherListedFeedRefsFromMappedFeed,
   planAddByRSSPublisherListedFeeds,
 } from './publisherListedFeeds.js';
 
@@ -215,6 +217,33 @@ describe('collectAddByRSSPublisherListedFeedRefs', () => {
     expect(result.droppedCount).toBe(1);
     expect(result.refs[0]?.feedGuid).toBe('guid-0');
     expect(result.refs[99]?.feedGuid).toBe('guid-99');
+  });
+});
+
+describe('collectAddByRSSPublisherListedFeedRefsFromMappedFeed', () => {
+  it('returns the same refs as the parsed-feed entry point and skips the feed own guid', () => {
+    const parsedFeed = feed({
+      guid: 'Artist-GUID',
+      podcastRemoteItems: [
+        remote('artist-guid', { feedUrl: 'https://elsewhere.example/own.xml' }),
+        remote('album-a', { feedUrl: 'https://album-a.example/a.xml', title: 'Album A' }),
+        remote('album-b', { itemGuid: 'track-1', title: 'Track credit' }),
+        remote('album-c', { title: 'Guid only' }),
+      ],
+    });
+
+    const fromParsed = collectAddByRSSPublisherListedFeedRefs(parsedFeed, publisherFeedUrl);
+    const fromMapped = collectAddByRSSPublisherListedFeedRefsFromMappedFeed(
+      convertParsedRSSFeedToCompat(parsedFeed),
+      publisherFeedUrl
+    );
+
+    expect(fromMapped).toEqual(fromParsed);
+    expect(fromMapped.refs.map((listed) => listed.feedGuid)).toEqual([
+      'album-a',
+      'album-b',
+      'album-c',
+    ]);
   });
 });
 

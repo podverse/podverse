@@ -7,9 +7,9 @@ import { RefreshControl, StyleSheet, Text, View } from 'react-native';
 import { matchesTitleFilter } from '@podverse/helpers';
 import type { DTOItem } from '@podverse/helpers/dto';
 
-import { useAuthPrompt } from '../../auth/AuthPromptContext';
 import { useAuth } from '../../auth/AuthProvider';
 import { AddByRssNeedsCredentialsSection } from '../../components/content/AddByRssNeedsCredentialsSection';
+import { HelperNote } from '../../components/feedback/HelperNote';
 import type { MenuSelectChipOption } from '../../components/form';
 import {
   ChipAction,
@@ -23,7 +23,9 @@ import { ListEmpty } from '../../components/state/ListEmpty';
 import { ListError } from '../../components/state/ListError';
 import { LoadingSection } from '../../components/state/LoadingSection';
 import { subscriptionsRepository } from '../../data/repositories';
+import { useAddByRssParsePath } from '../../hooks/useAddByRssParsePath';
 import { useAddByRssPlayback } from '../../hooks/useAddByRssPlayback';
+import { fetchAccountAddByRssFeedLimit } from '../../lib/addByRss/feedLimit';
 import { addByRssLiveItemKey } from '../../lib/addByRss/liveItemDetail';
 import type { AddByRssLiveTarget } from '../../lib/addByRss/liveRows';
 import { homeFeedRefresh } from '../../lib/home/homeFeedRefresh';
@@ -179,14 +181,14 @@ function LibraryFeedListItem({
  */
 export function AddByRssRootScreen({ navigation }: AddByRssRootScreenProps) {
   const { t } = useTranslation();
-  const { onRequestLogin } = useAuthPrompt();
   const { accessToken, clearSession, refreshToken, setTokens, status } = useAuth();
   const { artistUnsubscribeDialog, unsubscribeArtist } = useArtistUnsubscribe();
   const { columns: rowColumns, width } = useResponsive();
   const { styles: themeStyles, tokens } = useTheme();
   const { requestSync, state: syncState } = useSync();
   const { openGate } = useMembershipGate();
-  const { evaluateFeature } = useAccessTier();
+  const { evaluateFeature, isTierKnown } = useAccessTier();
+  const parsePath = useAddByRssParsePath();
   const addAccess = evaluateFeature('add_by_rss_add');
 
   const [selectedMediaType, setSelectedMediaType] = useState<AddByRssLibraryMediaType>(
@@ -209,7 +211,9 @@ export function AddByRssRootScreen({ navigation }: AddByRssRootScreenProps) {
   const [isFeedRefreshing, setIsFeedRefreshing] = useState<boolean>(false);
   const [playbackNoticeKey, setPlaybackNoticeKey] = useState<string | null>(null);
   const [actionErrorKey, setActionErrorKey] = useState<string | null>(null);
+  const [feedLimit, setFeedLimit] = useState<number | null>(null);
   const feedRequestIdRef = useRef(0);
+  const feedLimitRequestIdRef = useRef(0);
   const isFeedRefreshingRef = useRef(false);
   const unsubscribingIdsRef = useRef<Set<string>>(new Set());
 
@@ -294,12 +298,8 @@ export function AddByRssRootScreen({ navigation }: AddByRssRootScreenProps) {
   );
 
   const handleCheckUpdates = useCallback(() => {
-    if (status !== 'authenticated') {
-      onRequestLogin();
-      return;
-    }
     void loadFeed('refresh');
-  }, [loadFeed, onRequestLogin, status]);
+  }, [loadFeed]);
 
   useEffect(() => {
     if (!arePrefsHydrated) {
@@ -312,6 +312,31 @@ export function AddByRssRootScreen({ navigation }: AddByRssRootScreenProps) {
     setNeedsCredentials([]);
     void loadFeed('initial');
   }, [arePrefsHydrated, loadFeed, selectedMediaType]);
+
+  const loadFeedLimit = useCallback(async () => {
+    feedLimitRequestIdRef.current += 1;
+    const requestId = feedLimitRequestIdRef.current;
+    if (status !== 'authenticated') {
+      setFeedLimit(null);
+      return;
+    }
+    const limit = await fetchAccountAddByRssFeedLimit({
+      accessToken,
+      clearSession,
+      refreshToken,
+      setTokens,
+    });
+    if (requestId === feedLimitRequestIdRef.current) {
+      setFeedLimit(limit);
+    }
+  }, [accessToken, clearSession, refreshToken, setTokens, status]);
+
+  useEffect(() => {
+    void loadFeedLimit();
+    return navigation.addListener('focus', () => {
+      void loadFeedLimit();
+    });
+  }, [loadFeedLimit, navigation]);
 
   // After sync finishes a refresh, reread the local list so new titles appear.
   const previousSyncStatusRef = useRef(syncState.status);
@@ -370,12 +395,12 @@ export function AddByRssRootScreen({ navigation }: AddByRssRootScreenProps) {
   );
 
   const handleAddPress = useCallback(() => {
-    if (!addAccess.allowed) {
+    if (parsePath === 'server' && isTierKnown && !addAccess.allowed) {
       openGate(addAccess.reason);
       return;
     }
     navigation.navigate(LIBRARY_STACK_ROUTES.AddByRssAdd);
-  }, [addAccess, navigation, openGate]);
+  }, [addAccess, isTierKnown, navigation, openGate, parsePath]);
 
   useLayoutEffect(() => {
     navigation.setOptions({
@@ -807,6 +832,14 @@ export function AddByRssRootScreen({ navigation }: AddByRssRootScreenProps) {
                 testID="rss-check-updates"
               />
             </>
+          }
+          actionsNote={
+            status === 'authenticated' && feedLimit !== null ? (
+              <HelperNote
+                message={t('features.add_by_rss.feed_limit_help', { max_feeds: feedLimit })}
+                testID="rss-feed-limit-help"
+              />
+            ) : undefined
           }
           actionsTestID="rss-list-actions"
         >

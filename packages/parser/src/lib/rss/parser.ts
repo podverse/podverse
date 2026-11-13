@@ -22,8 +22,8 @@ import {
   deleteRemoteStubsForParsedFeed,
   resolveRemoteItemStubsForChannel,
 } from '@parser/lib/rss/remoteItemStubs.js';
-import type { FeedObject } from 'podverse-partytime';
-import { parseFeed } from 'podverse-partytime';
+import type { FeedObject } from 'podverse-partytime/core';
+import { parseFeed } from 'podverse-partytime/core';
 
 import type { ImageShrinkHint } from '@podverse/helpers';
 import {

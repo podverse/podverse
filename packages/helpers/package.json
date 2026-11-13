@@ -71,6 +71,10 @@
       "types": "./dist/lib/opml/opmlImportErrors.d.ts",
       "default": "./dist/lib/opml/opmlImportErrors.js"
     },
+    "./opml/generate": {
+      "types": "./dist/lib/opml/generateOpml.d.ts",
+      "default": "./dist/lib/opml/generateOpml.js"
+    },
     "./descriptionClocks": {
       "types": "./dist/lib/descriptionClocks.d.ts",
       "default": "./dist/lib/descriptionClocks.js"
