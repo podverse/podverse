@@ -16,6 +16,7 @@ import { getBoostEligibilityForContent } from '@podverse/v4v-metaboost';
 import { IMAGES } from '../../../../constants/images';
 import { useAccount } from '../../../../contexts/Account';
 import { useModals } from '../../../../contexts/Modals';
+import { useMembershipGate } from '../../../../hooks/useMembershipGate';
 import {
   followAddByRSSChannelAndQueue,
   unfollowAddByRSSChannelAndClear,
@@ -51,6 +52,7 @@ export const AddByRSSAlbumHeader: React.FC<AddByRSSAlbumHeaderProps> = ({ feed }
   const tMisc = useTranslations('misc');
   const { loggedInAccount, setLoggedInAccount } = useAccount();
   const { setModalLoginRequired, setModalBoost } = useModals();
+  const { tryHandleMembershipGateError } = useMembershipGate();
   const [isUpdating, setIsUpdating] = useState(false);
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const title = feed.mappedFeed?.channel?.channel?.title ?? feed.title ?? feed.feedUrl;
@@ -107,6 +109,9 @@ export const AddByRSSAlbumHeader: React.FC<AddByRSSAlbumHeaderProps> = ({ feed }
         emitAddByRSSFeedChanged(feedUrl);
       }
     } catch (error) {
+      if (tryHandleMembershipGateError(error)) {
+        return;
+      }
       console.error(error);
       window.alert('Error performing action.');
     } finally {

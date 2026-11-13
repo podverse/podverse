@@ -89,10 +89,6 @@ function fallbackMessages(
     },
     premium: t('premium'),
     trialDirectory: t('trial_limitations_directory_add_by_rss'),
-    trialFeedLimit: t('trial_limitations_add_by_rss_feed_limit', {
-      premium_feeds: '{premium_feeds}',
-      trial_feeds: '{trial_feeds}',
-    }),
     trialRefreshLimit: t('trial_limitations_manual_refresh_limit', {
       premium_refreshes: '{premium_refreshes}',
       trial_refreshes: '{trial_refreshes}',
@@ -119,10 +115,8 @@ export function useMembershipComparison(
       locale,
       {
         premiumAllowDirectoryAddByRSS: defaults.premiumAllowDirectoryAddByRSS,
-        premiumMaxAddByRSSFeeds: defaults.premiumMaxAddByRSSFeeds,
         premiumMaxManualRefreshesPerHour: defaults.premiumMaxManualRefreshesPerHour,
         trialAllowDirectoryAddByRSS: defaults.trialAllowDirectoryAddByRSS,
-        trialMaxAddByRSSFeeds: defaults.trialMaxAddByRSSFeeds,
         trialMaxManualRefreshesPerHour: defaults.trialMaxManualRefreshesPerHour,
       },
       fallbackMessages(t, tMisc)

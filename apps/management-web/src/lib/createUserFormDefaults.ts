@@ -25,13 +25,12 @@ export function fallbackProductMembershipFromEnv(): ResolvedProductMembership {
     freeTrialExpirationSeconds: DEFAULT_FREE_TRIAL_EXPIRATION,
     premiumMembershipCostMonthly: 3,
     premiumMembershipCostAnnually: 30,
+    maxAddByRSSFeeds: 100,
     trialAllowDirectoryAddByRSS: false,
-    trialMaxAddByRSSFeeds: 10,
     trialMaxManualRefreshesPerHour: 5,
     trialTrackStats: false,
     trialAllowNotifications: true,
     premiumAllowDirectoryAddByRSS: true,
-    premiumMaxAddByRSSFeeds: 100,
     premiumMaxManualRefreshesPerHour: 20,
     premiumTrackStats: true,
     premiumAllowNotifications: true,
@@ -81,7 +80,7 @@ export function resolvedTierEntitlements(
   if (tier === AccountMembershipEnum.Premium) {
     return {
       allowDirectoryAddByRSS: product.premiumAllowDirectoryAddByRSS,
-      maxAddByRSSFeeds: product.premiumMaxAddByRSSFeeds,
+      maxAddByRSSFeeds: product.maxAddByRSSFeeds,
       maxManualRefreshesPerHour: product.premiumMaxManualRefreshesPerHour,
       trackStats: product.premiumTrackStats,
       allowNotifications: product.premiumAllowNotifications,
@@ -90,7 +89,7 @@ export function resolvedTierEntitlements(
 
   return {
     allowDirectoryAddByRSS: product.trialAllowDirectoryAddByRSS,
-    maxAddByRSSFeeds: product.trialMaxAddByRSSFeeds,
+    maxAddByRSSFeeds: product.maxAddByRSSFeeds,
     maxManualRefreshesPerHour: product.trialMaxManualRefreshesPerHour,
     trackStats: product.trialTrackStats,
     allowNotifications: product.trialAllowNotifications,

@@ -212,20 +212,22 @@ replacement so the FOSS reproducibility audit (Track 20.3) can assert the exclus
 
 ## 12. Add-by-RSS on mobile
 
-- **Web:** Server-side parse via `POST /account/add-by-rss/parse` + status poll; then
-  `@podverse/parser-mapping` (`convertParsedRSSFeedToCompat`) and IndexedDB for the feed/item
-  index. Dedicated AddByRSS UI because items are not DB entities (`AddByRSSResourceData`,
-  `add_by_rss_hash_id`). See
+- **Web, and a signed-in phone:** Server-side parse via `POST /account/add-by-rss/parse` + status
+  poll, then `@podverse/parser-mapping` (`convertParsedRSSFeedToCompat`). Web stores the feed/item
+  index in IndexedDB. Dedicated AddByRSS UI because items are not DB entities
+  (`AddByRSSResourceData`, `add_by_rss_hash_id`). See
   [DOCS-MOBILE-PROCESS-SHARED-VS-DIVERGENT.md §4.1](DOCS-MOBILE-PROCESS-SHARED-VS-DIVERGENT.md).
-- **Mobile requirement:** Same parse/poll contract; play/queue add-by-RSS items offline-capable;
-  rich item index (not only a slim `items[0]` preview).
+- **Signed-out phone:** parses through `podverse-partytime/core` and still maps with
+  `@podverse/parser-mapping` into the local database. Play and queue stay offline-capable.
 - **Recommended approach:**
-  1. Follow + enqueue parse + poll (already shared with web — no client XML parse).
-  2. On `parsed`, run `@podverse/parser-mapping` to build the same mapped feed / item index as web.
-  3. Persist feeds + mapped items in the **offline-first local DB** (not AsyncStorage-only prefs).
-  4. Play via `PlaybackTarget.kind: 'add-by-rss'` from `@podverse/playback-core` + native bridge.
-- **LLM guidance:** Never import `@podverse/parser` in mobile. Do use `@podverse/parser-mapping`.
-  Do not invent a second add-by-RSS type model — reuse helpers DTOs + parser-mapping outputs.
+  1. Signed in: follow, enqueue the server parse, and poll (shared with web).
+  2. Signed out: parse on the phone through `podverse-partytime/core` only.
+  3. Map with `@podverse/parser-mapping` into the same mapped feed and item index.
+  4. Persist feeds and mapped items in the **offline-first local DB** (not AsyncStorage-only prefs).
+  5. Play via `PlaybackTarget.kind: 'add-by-rss'` from `@podverse/playback-core` + native bridge.
+- **LLM guidance:** Never import `@podverse/parser` in mobile. Do not import the partytime package
+  root or `podverse-partytime/dist`. Do use `@podverse/parser-mapping`. Do not invent a second
+  add-by-RSS type model — reuse helpers DTOs + parser-mapping outputs.
 
 ## Feature priority (v1 MVP)
 
@@ -266,18 +268,18 @@ flowchart TD
 
 ## LLM pitfalls
 
-| Category         | Common mistake                       | Correct approach                          |
-| ---------------- | ------------------------------------ | ----------------------------------------- |
-| Data layer       | Call `req*` from screens directly    | Repositories + local DB + background sync |
-| Downloads        | Reuse web `fileDownloader.ts`        | Native download module + local DB rows    |
-| Background audio | JS timers/intervals for playback     | Native service (`podverse-media-engine`)  |
-| CarPlay/Auto     | JS-only browse tree                  | Native services + native cache            |
-| Push             | Port Web Push + service worker       | FCM device endpoints                      |
-| Auth             | Cookies / AsyncStorage for tokens    | Bearer + secure storage                   |
-| Settings         | New pref keys                        | Reuse web keys/semantics                  |
-| Add-by-RSS       | Client-side XML parse / invent types | Server parse + `@podverse/parser-mapping` |
-| Membership       | Assume PayPal WebView passes review  | Verify store policy; plan IAP             |
-| Lifecycle        | Assume SSR-style initial data        | On-launch hydration from local DB + sync  |
+| Category         | Common mistake                                                                      | Correct approach                                                                                                |
+| ---------------- | ----------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------- |
+| Data layer       | Call `req*` from screens directly                                                   | Repositories + local DB + background sync                                                                       |
+| Downloads        | Reuse web `fileDownloader.ts`                                                       | Native download module + local DB rows                                                                          |
+| Background audio | JS timers/intervals for playback                                                    | Native service (`podverse-media-engine`)                                                                        |
+| CarPlay/Auto     | JS-only browse tree                                                                 | Native services + native cache                                                                                  |
+| Push             | Port Web Push + service worker                                                      | FCM device endpoints                                                                                            |
+| Auth             | Cookies / AsyncStorage for tokens                                                   | Bearer + secure storage                                                                                         |
+| Settings         | New pref keys                                                                       | Reuse web keys/semantics                                                                                        |
+| Add-by-RSS       | Import `@podverse/parser`, invent a second type model, or parse XML while signed in | Server parse while signed in, `podverse-partytime/core` while signed out, `@podverse/parser-mapping` either way |
+| Membership       | Assume PayPal WebView passes review                                                 | Verify store policy; plan IAP                                                                                   |
+| Lifecycle        | Assume SSR-style initial data                                                       | On-launch hydration from local DB + sync                                                                        |
 
 ## Diagram: mobile platform services
 

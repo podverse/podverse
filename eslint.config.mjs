@@ -229,12 +229,22 @@ export default tseslint.config(
               message:
                 'Only packages/orm/src/services/stats/listenerIdentity/ may read the listener-id mapping (see .cursor/rules/popularity-listener-id-separation.mdc).',
             },
+            {
+              name: 'podverse-partytime',
+              message:
+                'Import podverse-partytime/core. The package root loads Node-only modules (dotenv, pino, node-fetch, fs) and does not bundle for mobile.',
+            },
           ],
           patterns: [
             {
               group: ['**/statsListener', '**/statsListener.js'],
               message:
                 'Only packages/orm/src/services/stats/listenerIdentity/ may read the listener-id mapping (see .cursor/rules/popularity-listener-id-separation.mdc).',
+            },
+            {
+              group: ['podverse-partytime/dist/*'],
+              message:
+                'Import podverse-partytime/core; it exports the Phase types, including Phase4LiveStatus and Phase4PodcastLiveItem.',
             },
           ],
         },
@@ -259,6 +269,11 @@ export default tseslint.config(
               message:
                 'Only packages/orm/src/services/stats/listenerIdentity/ may read the listener-id mapping (see .cursor/rules/popularity-listener-id-separation.mdc).',
             },
+            {
+              name: 'podverse-partytime',
+              message:
+                'Import podverse-partytime/core. The package root loads Node-only modules (dotenv, pino, node-fetch, fs) and does not bundle for mobile.',
+            },
           ],
           patterns: [
             {
@@ -270,6 +285,11 @@ export default tseslint.config(
               group: ['**/statsListener', '**/statsListener.js'],
               message:
                 'Only packages/orm/src/services/stats/listenerIdentity/ may read the listener-id mapping (see .cursor/rules/popularity-listener-id-separation.mdc).',
+            },
+            {
+              group: ['podverse-partytime/dist/*'],
+              message:
+                'Import podverse-partytime/core; it exports the Phase types, including Phase4LiveStatus and Phase4PodcastLiveItem.',
             },
           ],
         },

@@ -464,9 +464,8 @@
       "freeTrialExpirationSeconds": "",
       "premiumMembershipCostMonthly": "",
       "premiumMembershipCostAnnually": "",
-      "trialMaxAddByRSSFeeds": "",
+      "maxAddByRSSFeeds": "",
       "trialMaxManualRefreshesPerHour": "",
-      "premiumMaxAddByRSSFeeds": "",
       "premiumMaxManualRefreshesPerHour": ""
     },
     "pricingTable": {

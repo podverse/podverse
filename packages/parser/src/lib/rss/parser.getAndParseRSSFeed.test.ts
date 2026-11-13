@@ -4,11 +4,11 @@ vi.mock('../_request.js', () => ({
   _request: vi.fn(),
 }));
 
-vi.mock('podverse-partytime', () => ({
+vi.mock('podverse-partytime/core', () => ({
   parseFeed: vi.fn(),
 }));
 
-import { parseFeed } from 'podverse-partytime';
+import { parseFeed } from 'podverse-partytime/core';
 
 import { _request } from '../_request.js';
 import { getAndParseRSSFeed } from './parser.js';

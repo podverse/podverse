@@ -171,18 +171,19 @@ export type AddByRssPollResult = {
   status: ParseStatusPayload['status'] | 'pending';
 };
 
-function resolveParseResult(
-  statusResponse: ParseStatusPayload
-): Omit<AddByRssPollResult, 'serverError' | 'status'> {
-  const payload = statusResponse.payload;
+/** `mappedFeed` and `preview` from a parse payload, the same for the server and device parses. */
+export function resolveAddByRssParsePayload(
+  status: ParseStatusPayload['status'],
+  payload: unknown
+): Pick<AddByRssPollResult, 'mappedFeed' | 'preview'> {
   if (
-    (statusResponse.status === 'parsed' || statusResponse.status === 'not_modified') &&
+    (status === 'parsed' || status === 'not_modified') &&
     payload !== undefined &&
     payload !== null
   ) {
     try {
       const mappedFeed = convertParsedRSSFeedToCompat(
-        // The server parse payload is a partytime FeedObject; it arrives typed as `unknown`.
+        // A parse payload is a partytime FeedObject; it arrives typed as `unknown`.
         // Single documented assertion (see avoid-type-assertions rule).
         payload as Parameters<typeof convertParsedRSSFeedToCompat>[0]
       );
@@ -211,7 +212,7 @@ export async function pollAddByRssParseStatus(
       statusResponse.status === 'failed'
     ) {
       return {
-        ...resolveParseResult(statusResponse),
+        ...resolveAddByRssParsePayload(statusResponse.status, statusResponse.payload),
         authChallenge: statusResponse.authChallenge,
         credentialsState: statusResponse.credentialsState,
         failureReason: statusResponse.failureReason,

@@ -212,6 +212,14 @@ const validateAllEnvironmentVariables = (env: StartupEnv, command?: string): Val
   results.push(
     validateOptional(
       env,
+      'MEMBERSHIP_MAX_ADD_BY_RSS_FEEDS',
+      'Membership',
+      'Blank uses default (100); Trial and Premium share it'
+    )
+  );
+  results.push(
+    validateOptional(
+      env,
       'MEMBERSHIP_PREMIUM_COST_MONTHLY',
       'Membership pricing',
       'Optional; aligns with main API pricing env'

@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import type { FeedObject } from 'podverse-partytime';
+import type { FeedObject } from 'podverse-partytime/core';
 
 import { getMd5Hash } from '@podverse/helpers';
 

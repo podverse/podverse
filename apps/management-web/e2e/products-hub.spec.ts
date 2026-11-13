@@ -13,7 +13,7 @@ test.describe('Management-web products hub', () => {
   }, testInfo) => {
     test.setTimeout(45_000);
     let freeTrialExpirationSeconds = 86400;
-    let trialMaxAddByRSSFeeds = 2;
+    let maxAddByRSSFeeds = 2;
     let premiumMembershipCostMonthly = 5;
     let patchRequested = false;
     let scheduleRequested = false;
@@ -25,8 +25,8 @@ test.describe('Management-web products hub', () => {
         if (typeof postData.freeTrialExpirationSeconds === 'number') {
           freeTrialExpirationSeconds = postData.freeTrialExpirationSeconds;
         }
-        if (typeof postData.trialMaxAddByRSSFeeds === 'number') {
-          trialMaxAddByRSSFeeds = postData.trialMaxAddByRSSFeeds;
+        if (typeof postData.maxAddByRSSFeeds === 'number') {
+          maxAddByRSSFeeds = postData.maxAddByRSSFeeds;
         }
         await route.fulfill({
           status: 200,
@@ -37,12 +37,11 @@ test.describe('Management-web products hub', () => {
               premiumMembershipCostMonthly: premiumMembershipCostMonthly,
               premiumMembershipCostAnnually: 50,
               trialAllowDirectoryAddByRSS: false,
-              trialMaxAddByRSSFeeds: trialMaxAddByRSSFeeds,
+              maxAddByRSSFeeds: maxAddByRSSFeeds,
               trialMaxManualRefreshesPerHour: 3,
               trialTrackStats: false,
               trialAllowNotifications: true,
               premiumAllowDirectoryAddByRSS: true,
-              premiumMaxAddByRSSFeeds: 10,
               premiumMaxManualRefreshesPerHour: 20,
               premiumTrackStats: true,
               premiumAllowNotifications: true,
@@ -64,12 +63,11 @@ test.describe('Management-web products hub', () => {
             premiumMembershipCostMonthly: premiumMembershipCostMonthly,
             premiumMembershipCostAnnually: 50,
             trialAllowDirectoryAddByRSS: false,
-            trialMaxAddByRSSFeeds: trialMaxAddByRSSFeeds,
+            maxAddByRSSFeeds: maxAddByRSSFeeds,
             trialMaxManualRefreshesPerHour: 3,
             trialTrackStats: false,
             trialAllowNotifications: true,
             premiumAllowDirectoryAddByRSS: true,
-            premiumMaxAddByRSSFeeds: 10,
             premiumMaxManualRefreshesPerHour: 20,
             premiumTrackStats: true,
             premiumAllowNotifications: true,
@@ -174,8 +172,8 @@ test.describe('Management-web products hub', () => {
     expect(scheduleRequested).toBe(true);
 
     patchRequested = false;
-    await page.getByRole('button', { name: 'Edit Trial max Add-by-RSS feeds' }).click();
-    await page.getByRole('dialog').getByLabel('Trial max Add-by-RSS feeds').fill('9');
+    await page.getByRole('button', { name: 'Edit Max Add by RSS Feeds' }).click();
+    await page.getByRole('dialog').getByLabel('Max Add by RSS Feeds').fill('9');
     await page.getByRole('dialog').getByRole('button', { name: 'Save changes' }).click();
     await expect(page.getByText('9')).toBeVisible();
     expect(patchRequested).toBe(true);

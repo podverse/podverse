@@ -23,10 +23,10 @@ Migration never writes Unlimited. The highest tier it may write is 10000. A libr
 | 10000 | The highest tier migration may write. |
 | Unlimited | Management only. Migration never writes this. |
 
-Trial stays at 10 (`MEMBERSHIP_TRIAL_MAX_ADD_BY_RSS_FEEDS`). That is the membership gate
-below this ladder. A trial account still sees the existing renew sentence,
-`membership.add_by_rss_feed_limit_reached`, until it has Premium. This plan does not raise
-Trial from 10 to 100.
+Trial and Premium share one default, `MEMBERSHIP_MAX_ADD_BY_RSS_FEEDS` (100), read as
+`maxAddByRSSFeeds`. There is no separate Trial number below this ladder, and no renew path at
+the limit. A Trial account with an empty override gets the same 100 as Premium and the same
+at-limit refusal.
 
 Premium with an empty override stays at 100. The existing free-number override
 `max_add_by_rss_feeds` on account membership status becomes this tier select. A value that
@@ -58,18 +58,14 @@ count. Removing a feed still works at the cap. Unlimited is not refused.
 
 ## What the user sees
 
-Two different refusals:
+One refusal, at the account's limit (the shared 100, or a raised tier), on Trial and Premium
+alike: the 403 `add_by_rss_feed_limit_reached` with `i18nKey`
+`membership.add_by_rss_feed_limit_reached`, the account's `limit`, and no renew path.
+Management raises the tier. A purchase does not.
 
-- Under this ladder, at the Trial number: keep the current 403
-  `add_by_rss_feed_limit_reached`, the renew path, and
-  `membership.add_by_rss_feed_limit_reached`.
-- At the account's tier (100 or a raised tier): a different 403, with its own `code` and
-  `i18nKey`, and no renew path. Management raises the tier. A purchase does not.
-
-Catalog sentence, in the consumer originals for en-US, es, fr, and el-GR. The number is
-the account's tier:
-
-"You can add up to {limit} Add by RSS feeds."
+That catalog key already says the limit was reached and to email support to raise it, with
+`{limit}` and `{contactEmail}`, in the consumer originals for en-US, es, fr, and el-GR. The
+number is the account's tier. This plan adds no second refusal and no second key.
 
 Show it on the add action on web and mobile, and in the OPML result when that import is
 what hit the tier.

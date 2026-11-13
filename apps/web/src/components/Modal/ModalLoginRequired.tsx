@@ -35,7 +35,11 @@ export const ModalLoginRequired: React.FC = () => {
     const actionHref = modalLoginRequired.actionHref;
     clearModalLoginRequired();
     if (actionHref) {
-      router.push(actionHref);
+      if (actionHref.startsWith('mailto:')) {
+        window.location.href = actionHref;
+      } else {
+        router.push(actionHref);
+      }
     }
   };
 

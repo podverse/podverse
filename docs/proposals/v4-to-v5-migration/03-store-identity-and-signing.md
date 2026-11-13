@@ -14,12 +14,12 @@ Draft. Needs operator review. Decision to use v4 store ids is **made**.
 
 ### v4 production identities
 
-| Platform | Id |
-| -------- | -- |
-| iOS      | `com.podverse.fm` (notification extension `com.podverse.fm.ImageNotification`). App Store Connect Apple ID `1390888454`. SKU `podverse.fm`. Team `DF9KG8H54B`. |
-| Android Play | `com.podverse`. Play App Signing is on. Google signs the releases people install. The whole install base uses that key. |
-| F-Droid  | `com.podverse.fdroid` (separate; see [14](14-fdroid.md)) |
-| Version  | App `4.16.4`; Android `versionCode` **5280** |
+| Platform     | Id                                                                                                                                                             |
+| ------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| iOS          | `com.podverse.fm` (notification extension `com.podverse.fm.ImageNotification`). App Store Connect Apple ID `1390888454`. SKU `podverse.fm`. Team `DF9KG8H54B`. |
+| Android Play | `com.podverse`. Play App Signing is on. Google signs the releases people install. The whole install base uses that key.                                        |
+| F-Droid      | `com.podverse.fdroid` (separate; see [14](14-fdroid.md))                                                                                                       |
+| Version      | App `4.16.4`; Android `versionCode` **5280**                                                                                                                   |
 
 Sources: `podverse-rn` Xcode project and `android/app/build.gradle`.
 

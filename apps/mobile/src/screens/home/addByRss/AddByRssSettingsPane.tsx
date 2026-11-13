@@ -5,6 +5,7 @@ import { ScrollView, StyleSheet, View } from 'react-native';
 import { ChannelFeedSettingsGroup, useFeedParseStatusLines } from '../../../components/channel';
 import { SettingsGroup, SettingsRowDescription } from '../../../components/form';
 import { Button } from '../../../components/primitives/Button';
+import { useAddByRssParsePath } from '../../../hooks/useAddByRssParsePath';
 import {
   BottomChromeScrollSpacer,
   useBottomChromeScrollIndicatorInsets,
@@ -58,6 +59,11 @@ export function AddByRssSettingsPane({
   onCredentialsSaved,
 }: AddByRssSettingsPaneProps) {
   const { t } = useTranslation();
+  const parsePath = useAddByRssParsePath();
+  const credentialsNoteKey =
+    parsePath === 'device'
+      ? 'features.add_by_rss.credentials_page_host_note'
+      : 'features.add_by_rss.credentials_page_device_note';
   const styles = useThemedStyles(createStyles);
   const scrollIndicatorInsets = useBottomChromeScrollIndicatorInsets();
   const setNoticeKeyRef = useRef<(noticeKey: string | null) => void>(() => undefined);
@@ -106,9 +112,7 @@ export function AddByRssSettingsPane({
       >
         <View style={styles.cardInner}>
           <View style={styles.notes}>
-            <SettingsRowDescription>
-              {t('features.add_by_rss.credentials_page_device_note')}
-            </SettingsRowDescription>
+            <SettingsRowDescription>{t(credentialsNoteKey)}</SettingsRowDescription>
             <SettingsRowDescription>
               {t('features.add_by_rss.credentials_mobile_media_note')}
             </SettingsRowDescription>

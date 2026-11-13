@@ -57,10 +57,8 @@ export class MembershipController {
         locale,
         {
           premiumAllowDirectoryAddByRSS: flat.premiumAllowDirectoryAddByRSS,
-          premiumMaxAddByRSSFeeds: flat.premiumMaxAddByRSSFeeds,
           premiumMaxManualRefreshesPerHour: flat.premiumMaxManualRefreshesPerHour,
           trialAllowDirectoryAddByRSS: flat.trialAllowDirectoryAddByRSS,
-          trialMaxAddByRSSFeeds: flat.trialMaxAddByRSSFeeds,
           trialMaxManualRefreshesPerHour: flat.trialMaxManualRefreshesPerHour,
         },
         loadMembershipComparisonMessages(locale)

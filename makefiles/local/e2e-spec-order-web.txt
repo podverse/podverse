@@ -34,5 +34,6 @@ apps/web/e2e/podcast-podroll-stubs.spec.ts
 apps/web/e2e/channel-remote-item-list.spec.ts
 apps/web/e2e/add-by-rss-artist-albums.spec.ts
 apps/web/e2e/add-by-rss-remote-items.spec.ts
+apps/web/e2e/add-by-rss-feed-limit-reached.spec.ts
 apps/web/e2e/artist-unsubscribe-albums-prompt.spec.ts
 apps/web/e2e/cloudflare-web-analytics-disabled.spec.ts

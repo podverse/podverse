@@ -63,11 +63,11 @@ Alpha in `k.podcastdj.com` routes four hosts. The public API puts the
 environment after `api-`. Management puts the environment after the first
 dot. Beta uses the same shape on `podverse.fm`.
 
-| Role | Alpha | Beta |
-| ---- | ----- | ---- |
-| Web | `alpha.podcastdj.com` | `beta.podverse.fm` |
-| API | `api-alpha.podcastdj.com` | `api-beta.podverse.fm` |
-| Management web | `management.alpha.podcastdj.com` | `management.beta.podverse.fm` |
+| Role           | Alpha                                | Beta                              |
+| -------------- | ------------------------------------ | --------------------------------- |
+| Web            | `alpha.podcastdj.com`                | `beta.podverse.fm`                |
+| API            | `api-alpha.podcastdj.com`            | `api-beta.podverse.fm`            |
+| Management web | `management.alpha.podcastdj.com`     | `management.beta.podverse.fm`     |
 | Management API | `management-api.alpha.podcastdj.com` | `management-api.beta.podverse.fm` |
 
 Alpha CORS also lists `api.alpha.podcastdj.com`. That name is not on the

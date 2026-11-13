@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0" xmlns:itunes="http://www.itunes.com/dtds/podcast-1.0.dtd" xmlns:podcast="https://podcastindex.org/namespace/1.0">
+  <channel>
+    <title>E2E Device Podroll Channel</title>
+    <link>http://localhost:2111/e2e/add-by-rss/podroll.xml</link>
+    <description>A podcast parsed on a signed-out device. Its podroll names the seeded directory album by feed guid only.</description>
+    <language>en</language>
+    <podcast:guid>e2e0de71-0000-4000-8000-0000000000c3</podcast:guid>
+    <podcast:medium>podcast</podcast:medium>
+    <podcast:podroll>
+      <podcast:remoteItem feedGuid="11111111-2222-4333-8444-555555555501"/>
+    </podcast:podroll>
+    <item>
+      <title>E2E Device Podroll Episode</title>
+      <guid isPermaLink="false">e2e-device-podroll-episode</guid>
+      <pubDate>Wed, 01 Jan 2025 00:00:00 GMT</pubDate>
+      <enclosure url="http://localhost:2111/e2e/audio/e2e-addbyrss-fresh-60s-440hz.mp3" length="0" type="audio/mpeg"/>
+    </item>
+  </channel>
+</rss>

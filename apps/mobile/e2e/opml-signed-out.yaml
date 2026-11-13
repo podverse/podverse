@@ -1,0 +1,80 @@
+appId: com.podverse.app.next
+name: OPML Export Signed Out
+---
+# Signed out, Export OPML builds the file on the device from the local subscriptions and Add by
+# RSS feeds. Never runs shared/login-seeded-user.yaml — the whole point is the signed-out path.
+# Needs Mobile E2E API (:4230) for Search and the public channel route that returns feed URLs.
+# The native share sheet is skipped in the mobile E2E env; the notice proves the file was written.
+
+- runFlow: shared/launch-and-connect.yaml
+
+# A clean device has nothing to export, and says so instead of writing an empty file.
+- tapOn:
+    id: tab-more
+- tapOn:
+    id: more-nav-opml
+- assertVisible:
+    id: more-opml-screen
+- assertVisible:
+    id: opml-export-button
+    enabled: true
+- tapOn:
+    id: opml-export-button
+- extendedWaitUntil:
+    visible:
+      id: opml-export-notice
+      text: "There are no subscriptions or Add by RSS feeds on this device to export."
+    timeout: ${TIMEOUT_FAST}
+- takeScreenshot: opml-signed-out-empty
+- runFlow: shared/stack-back.yaml
+
+# Subscribe signed out. The follow is device-local, so it is what the export reads.
+- tapOn:
+    id: tab-home
+- tapOn:
+    id: home-list-empty-search
+- tapOn:
+    id: search-input
+- inputText: podcast
+- tapOn:
+    id: search-result-row-0
+- assertVisible:
+    id: podcast-detail-screen
+- tapOn:
+    id: podcast-detail-subscribe-toggle
+- assertVisible: "Unsubscribe"
+- runFlow: shared/stack-back.yaml
+
+# The export looks up the subscription's feed URL from the public channel route. A success
+# notice means every directory subscription was found; a lookup that failed would name a count.
+- tapOn:
+    id: tab-more
+- tapOn:
+    id: more-nav-opml
+- tapOn:
+    id: opml-export-button
+- extendedWaitUntil:
+    visible:
+      id: opml-export-notice
+      text: "OPML Export Downloaded Successfully."
+    timeout: ${TIMEOUT_SLOW}
+- takeScreenshot: opml-signed-out-exported
+- runFlow: shared/stack-back.yaml
+
+# Offline Mode makes no lookups. With only a directory subscription there is nothing to write,
+# so the screen asks to turn Offline Mode off.
+- tapOn:
+    id: more-offline-mode-switch
+- tapOn:
+    id: more-nav-opml
+- tapOn:
+    id: opml-export-button
+- extendedWaitUntil:
+    visible:
+      id: opml-export-error
+      text: "Offline Mode is on. Turn it off to export the podcasts you subscribed to, because their feed URLs are looked up online."
+    timeout: ${TIMEOUT_FAST}
+- takeScreenshot: opml-signed-out-offline-mode
+- runFlow: shared/stack-back.yaml
+- tapOn:
+    id: more-offline-mode-switch

@@ -137,9 +137,14 @@ import { defineConfig } from 'vitest/config';
  * `src/data/nativeCache/advanceWindow.ts` — the store readers are mocked; the writer hook stays
  * out of this suite), the source saved beside the window and how adoption continues it
  * (`src/lib/playback/nativeAdvanceSource.ts` — the SQLite half stays in
- * `nativeAdvanceSourceRepository.ts`), and the Add by RSS media URL the player loads
- * (`src/lib/addByRss/playbackUrl.ts`),
- * reading a 404 as an empty list (`src/lib/apiErrorStatus.ts`),
+ * `nativeAdvanceSourceRepository.ts`), the Add by RSS media URL the player loads
+ * (`src/lib/addByRss/playbackUrl.ts`), and the Add by RSS device fetch and parse engine
+ * (`src/lib/addByRss/deviceParseEngine.ts` — fetch, clock, and sleep are injected; the
+ * `expo/fetch` wiring stays in `deviceParse.ts`) with the chapters and transcript built from the
+ * files it fetches (`src/lib/addByRss/deviceItemSections.ts` — `deviceParse.ts` is mocked),
+ * reading a 404 as an empty list (`src/lib/apiErrorStatus.ts`), the signed-out OPML export's
+ * feed URL lookup pool and file builder (`src/lib/opml/directoryFeedUrlLookup.ts`,
+ * `src/lib/opml/opmlExportFile.ts` — the lookup is injected; the hook stays out of this suite),
  * and whether a server refresh should replace what a cache-first screen already painted
  * (`src/lib/cachedValue.ts`), the E2E-gated perf mark/counter buffer
  * (`src/lib/perf/perfSpans.ts` — env is mocked so both flag states are reachable in node), the
@@ -208,6 +213,9 @@ export default defineConfig({
       'src/lib/addByRss/addByRssArtistIndex.test.ts',
       'src/lib/addByRss/addByRssErrorLog.test.ts',
       'src/lib/addByRss/credentials.test.ts',
+      'src/lib/addByRss/deviceItemSections.test.ts',
+      'src/lib/addByRss/deviceListedFeeds.test.ts',
+      'src/lib/addByRss/deviceParseEngine.test.ts',
       'src/lib/addByRss/domain.test.ts',
       'src/lib/addByRss/feedWalk.test.ts',
       'src/lib/addByRss/publisherRefs.test.ts',
@@ -225,6 +233,8 @@ export default defineConfig({
       'src/lib/cachedValue.test.ts',
       'src/lib/device/deviceModel.test.ts',
       'src/lib/home/homeFeedRefresh.test.ts',
+      'src/lib/opml/directoryFeedUrlLookup.test.ts',
+      'src/lib/opml/opmlExportFile.test.ts',
       'src/lib/queue/queueScreenResources.test.ts',
       'src/lib/perf/frameStats.test.ts',
       'src/lib/perf/perfSpans.test.ts',
@@ -238,6 +248,7 @@ export default defineConfig({
       'src/lib/playback/resolvePlaybackUrl.test.ts',
       'src/lib/playback/restoredItemLoad.test.ts',
       'src/lib/playback/verifiedArtists.test.ts',
+      'src/lib/rateLimit/handleRateLimitMessage.test.ts',
       'src/lib/rows/homeRowMappers.test.ts',
       'src/lib/rows/liveItemRows.test.ts',
       'src/lib/share/shareSheetPassthrough.test.ts',
@@ -309,6 +320,7 @@ export default defineConfig({
       'src/shims/intlPolyfills.test.ts',
       'src/shims/nodeCryptoShim.test.ts',
       'src/sync/syncErrorClassification.test.ts',
+      'src/sync/syncJobKinds.test.ts',
       'src/sync/syncQueue.test.ts',
       'src/theme/bottomChromeOverlay.test.ts',
       'src/theme/resolveColumns.test.ts',

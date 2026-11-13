@@ -464,9 +464,8 @@
       "freeTrialExpirationSeconds": "Durée d’essai gratuit (secondes)",
       "premiumMembershipCostMonthly": "Coût mensuel premium",
       "premiumMembershipCostAnnually": "Coût annuel premium",
-      "trialMaxAddByRSSFeeds": "Max. flux Add-by-RSS en essai",
+      "maxAddByRSSFeeds": "Max. flux Ajouter par RSS",
       "trialMaxManualRefreshesPerHour": "Max. actualisations manuelles par heure (essai)",
-      "premiumMaxAddByRSSFeeds": "Max. flux Add-by-RSS premium",
       "premiumMaxManualRefreshesPerHour": "Max. actualisations manuelles par heure (premium)"
     },
     "pricingTable": {
@@ -795,7 +794,7 @@
       "allowDirectoryAddByRss": "Autoriser l'ajout au répertoire par remplacement RSS",
       "allowDirectoryAddByRssHelp": "Si l'utilisateur peut ajouter des flux depuis l'annuaire de podcasts. Valeur par défaut essai : {trialDefault}. Valeur par défaut Premium : {premiumDefault}.",
       "addByRssFeedLimit": "Remplacement de la limite d'ajout par flux RSS",
-      "addByRssFeedLimitHelp": "Nombre maximal de flux ajouter par RSS pour ce compte. Défaut niveau essai : {trialDefault}. Défaut niveau Premium : {premiumDefault}. Défaut du niveau sélectionné pour les dérogations : {selectedDefault}.",
+      "addByRssFeedLimitHelp": "Nombre maximal de flux ajouter par RSS pour ce compte. Défaut essai et Premium : {defaultLimit}. Défaut du niveau sélectionné pour les dérogations : {selectedDefault}.",
       "manualRefreshPerHour": "Remplacement de la limite de rafraîchissement manuel par heure",
       "manualRefreshPerHourHelp": "Nombre maximal de rafraîchissements manuels par heure. Défaut niveau essai : {trialDefault}. Défaut niveau Premium : {premiumDefault}. Défaut du niveau sélectionné pour les dérogations : {selectedDefault}.",
       "placeholderTierDefault": "Valeur par défaut : {count}",

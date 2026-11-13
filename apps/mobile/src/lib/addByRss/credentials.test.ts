@@ -1,15 +1,22 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 
 import { ADD_BY_RSS_CREDENTIAL_MAX_LENGTH } from '@podverse/helpers-validation/client';
 
+import type { AddByRssCredentialOwnerStore, AddByRssCredentials } from './credentials';
 import {
   buildAddByRssCredentialKey,
+  copySignedOutAddByRssCredentialsToAccount,
   credentialNoticeKeyForParse,
   getAddByRssCredentialsNeed,
+  isAccountCredentialOwner,
   parseStoredAddByRssCredentials,
   partitionAddByRssFeedsByCredentials,
+  resolveAddByRssCredentialOwner,
   resolveAddByRssCredentialStatus,
+  resolveAddByRssCredentialWriteOwner,
   serializeAddByRssCredentials,
+  settleSignedOutAddByRssCredentials,
+  SIGNED_OUT_CREDENTIAL_OWNER,
   splitAddByRssPastedUrl,
   toAddByRssCredentialFeedUrl,
   toAddByRssCredentials,
@@ -165,5 +172,263 @@ describe('credentialNoticeKeyForParse', () => {
       })
     ).toBe('features.add_by_rss.credentials_withheld');
     expect(credentialNoticeKeyForParse({ status: 'parsed' })).toBeNull();
+  });
+});
+
+const ACCOUNT_ID = 'abc1234';
+const REMOVED_FEED_URL = 'https://removed.example/feed.xml';
+const KEPT_FEED_URL = 'https://kept.example/feed.xml';
+const OTHER_FEED_URL = 'https://other.example/feed.xml';
+
+const pair = (username: string, password: string): AddByRssCredentials => ({ password, username });
+
+const ownerStoreKey = (owner: string, feedUrl: string): string => `${owner}|${feedUrl}`;
+
+const createOwnerStore = () => {
+  const entries = new Map<string, AddByRssCredentials>();
+  const read = (owner: string, feedUrl: string): AddByRssCredentials | null =>
+    entries.get(ownerStoreKey(owner, feedUrl)) ?? null;
+  const store: AddByRssCredentialOwnerStore = {
+    delete: async (owner, feedUrl) => {
+      entries.delete(ownerStoreKey(owner, feedUrl));
+    },
+    get: async (owner, feedUrl) => read(owner, feedUrl),
+    set: async (owner, feedUrl, credentials) => {
+      entries.set(ownerStoreKey(owner, feedUrl), {
+        password: credentials.password,
+        username: credentials.username,
+      });
+    },
+  };
+  const snapshot = () =>
+    [...entries.entries()]
+      .map(([key, credentials]) => ({
+        key,
+        password: credentials.password,
+        username: credentials.username,
+      }))
+      .sort((left, right) => left.key.localeCompare(right.key));
+  return { read, snapshot, store };
+};
+
+describe('signed-out credential owner', () => {
+  it('names the signed-out user when there is no account and keeps that owner in the key', () => {
+    expect(resolveAddByRssCredentialOwner(null)).toBe(SIGNED_OUT_CREDENTIAL_OWNER);
+    expect(resolveAddByRssCredentialOwner(ACCOUNT_ID)).toBe(ACCOUNT_ID);
+    expect(SIGNED_OUT_CREDENTIAL_OWNER.length).toBeGreaterThan(15);
+    const key = buildAddByRssCredentialKey(SIGNED_OUT_CREDENTIAL_OWNER, FEED_URL);
+    expect(key.startsWith('abrss-cred.signed-out-device.')).toBe(true);
+  });
+
+  it('saves a device path under the signed-out owner and a server path under the account', () => {
+    expect(resolveAddByRssCredentialWriteOwner('device', null)).toBe(SIGNED_OUT_CREDENTIAL_OWNER);
+    expect(resolveAddByRssCredentialWriteOwner('device', ACCOUNT_ID)).toBe(
+      SIGNED_OUT_CREDENTIAL_OWNER
+    );
+    expect(resolveAddByRssCredentialWriteOwner('server', ACCOUNT_ID)).toBe(ACCOUNT_ID);
+    expect(resolveAddByRssCredentialWriteOwner('server', null)).toBeNull();
+  });
+
+  it('treats an account id as an account owner and the signed-out owner as not one', () => {
+    expect(isAccountCredentialOwner(SIGNED_OUT_CREDENTIAL_OWNER)).toBe(false);
+    expect(isAccountCredentialOwner(ACCOUNT_ID)).toBe(true);
+  });
+});
+
+describe('settleSignedOutAddByRssCredentials', () => {
+  it('moves saved feeds, deletes removed feeds, and keeps a feed in neither list', async () => {
+    const { read, store } = createOwnerStore();
+    const saved = pair('saved-user', 'saved-pass');
+    const removed = pair('removed-user', 'removed-pass');
+    const kept = pair('kept-user', 'kept-pass');
+    await store.set(ACCOUNT_ID, FEED_URL, pair('old-user', 'old-pass'));
+    await store.set(SIGNED_OUT_CREDENTIAL_OWNER, FEED_URL, saved);
+    await store.set(SIGNED_OUT_CREDENTIAL_OWNER, REMOVED_FEED_URL, removed);
+    await store.set(SIGNED_OUT_CREDENTIAL_OWNER, KEPT_FEED_URL, kept);
+
+    await settleSignedOutAddByRssCredentials(store, {
+      accountIdText: ACCOUNT_ID,
+      removedFeedUrls: [REMOVED_FEED_URL],
+      savedFeedUrls: [FEED_URL],
+    });
+
+    expect(read(ACCOUNT_ID, FEED_URL)).toEqual(saved);
+    expect(read(SIGNED_OUT_CREDENTIAL_OWNER, FEED_URL)).toBeNull();
+    expect(read(SIGNED_OUT_CREDENTIAL_OWNER, REMOVED_FEED_URL)).toBeNull();
+    expect(read(ACCOUNT_ID, REMOVED_FEED_URL)).toBeNull();
+    expect(read(SIGNED_OUT_CREDENTIAL_OWNER, KEPT_FEED_URL)).toEqual(kept);
+    expect(read(ACCOUNT_ID, KEPT_FEED_URL)).toBeNull();
+  });
+
+  it('leaves the account pair alone when the signed-out owner has nothing saved', async () => {
+    const { read, store } = createOwnerStore();
+    const existing = pair('member', 'account-pass');
+    await store.set(ACCOUNT_ID, FEED_URL, existing);
+
+    await settleSignedOutAddByRssCredentials(store, {
+      accountIdText: ACCOUNT_ID,
+      removedFeedUrls: [],
+      savedFeedUrls: [FEED_URL],
+    });
+
+    expect(read(ACCOUNT_ID, FEED_URL)).toEqual(existing);
+    expect(read(SIGNED_OUT_CREDENTIAL_OWNER, FEED_URL)).toBeNull();
+  });
+
+  it('changes nothing when the same settle runs again', async () => {
+    const { snapshot, store } = createOwnerStore();
+    await store.set(SIGNED_OUT_CREDENTIAL_OWNER, FEED_URL, pair('saved-user', 'saved-pass'));
+    await store.set(
+      SIGNED_OUT_CREDENTIAL_OWNER,
+      REMOVED_FEED_URL,
+      pair('removed-user', 'removed-pass')
+    );
+    const settle = {
+      accountIdText: ACCOUNT_ID,
+      removedFeedUrls: [REMOVED_FEED_URL],
+      savedFeedUrls: [FEED_URL],
+    };
+
+    await settleSignedOutAddByRssCredentials(store, settle);
+    const afterOnce = snapshot();
+    await settleSignedOutAddByRssCredentials(store, settle);
+
+    expect(snapshot()).toEqual(afterOnce);
+  });
+
+  it('changes nothing when the account id is the signed-out owner or empty', async () => {
+    const { snapshot, store } = createOwnerStore();
+    await store.set(SIGNED_OUT_CREDENTIAL_OWNER, FEED_URL, pair('listener', 'secret'));
+    await store.set(ACCOUNT_ID, OTHER_FEED_URL, pair('member', 'account-pass'));
+    const before = snapshot();
+    const lists = { removedFeedUrls: [FEED_URL], savedFeedUrls: [OTHER_FEED_URL] };
+
+    await settleSignedOutAddByRssCredentials(store, {
+      accountIdText: SIGNED_OUT_CREDENTIAL_OWNER,
+      ...lists,
+    });
+    await settleSignedOutAddByRssCredentials(store, { accountIdText: '', ...lists });
+
+    expect(snapshot()).toEqual(before);
+  });
+});
+
+describe('copySignedOutAddByRssCredentialsToAccount', () => {
+  it('copies a signed-out pair onto an empty account entry and keeps it', async () => {
+    const { read, store } = createOwnerStore();
+    const signedOut = pair('listener', 'signed-out-pass');
+    await store.set(SIGNED_OUT_CREDENTIAL_OWNER, FEED_URL, signedOut);
+
+    await copySignedOutAddByRssCredentialsToAccount(store, {
+      accountIdText: ACCOUNT_ID,
+      feedUrls: [FEED_URL],
+    });
+
+    expect(read(ACCOUNT_ID, FEED_URL)).toEqual(signedOut);
+    expect(read(SIGNED_OUT_CREDENTIAL_OWNER, FEED_URL)).toEqual(signedOut);
+  });
+
+  it('keeps a different pair the account already holds', async () => {
+    const { read, store } = createOwnerStore();
+    const signedOut = pair('listener', 'signed-out-pass');
+    const accountPair = pair('member', 'account-pass');
+    await store.set(SIGNED_OUT_CREDENTIAL_OWNER, FEED_URL, signedOut);
+    await store.set(ACCOUNT_ID, FEED_URL, accountPair);
+
+    await copySignedOutAddByRssCredentialsToAccount(store, {
+      accountIdText: ACCOUNT_ID,
+      feedUrls: [FEED_URL],
+    });
+
+    expect(read(ACCOUNT_ID, FEED_URL)).toEqual(accountPair);
+    expect(read(SIGNED_OUT_CREDENTIAL_OWNER, FEED_URL)).toEqual(signedOut);
+  });
+
+  it('writes nothing under the account when the signed-out owner has no pair', async () => {
+    const { read, store } = createOwnerStore();
+
+    await copySignedOutAddByRssCredentialsToAccount(store, {
+      accountIdText: ACCOUNT_ID,
+      feedUrls: [FEED_URL],
+    });
+
+    expect(read(ACCOUNT_ID, FEED_URL)).toBeNull();
+  });
+
+  it('does not copy a signed-out feed that is not in the list', async () => {
+    const { read, store } = createOwnerStore();
+    const signedOut = pair('listener', 'signed-out-pass');
+    await store.set(SIGNED_OUT_CREDENTIAL_OWNER, FEED_URL, signedOut);
+
+    await copySignedOutAddByRssCredentialsToAccount(store, {
+      accountIdText: ACCOUNT_ID,
+      feedUrls: [OTHER_FEED_URL],
+    });
+
+    expect(read(ACCOUNT_ID, FEED_URL)).toBeNull();
+    expect(read(ACCOUNT_ID, OTHER_FEED_URL)).toBeNull();
+    expect(read(SIGNED_OUT_CREDENTIAL_OWNER, FEED_URL)).toEqual(signedOut);
+  });
+
+  it('changes nothing when the same copy runs again', async () => {
+    const { snapshot, store } = createOwnerStore();
+    await store.set(SIGNED_OUT_CREDENTIAL_OWNER, FEED_URL, pair('listener', 'signed-out-pass'));
+    const copy = { accountIdText: ACCOUNT_ID, feedUrls: [FEED_URL] };
+
+    await copySignedOutAddByRssCredentialsToAccount(store, copy);
+    const afterOnce = snapshot();
+    await copySignedOutAddByRssCredentialsToAccount(store, copy);
+
+    expect(snapshot()).toEqual(afterOnce);
+  });
+
+  it('changes nothing when the account id is the signed-out owner or empty', async () => {
+    const { snapshot, store } = createOwnerStore();
+    await store.set(SIGNED_OUT_CREDENTIAL_OWNER, FEED_URL, pair('listener', 'secret'));
+    await store.set(ACCOUNT_ID, FEED_URL, pair('member', 'account-pass'));
+    const before = snapshot();
+
+    await copySignedOutAddByRssCredentialsToAccount(store, {
+      accountIdText: SIGNED_OUT_CREDENTIAL_OWNER,
+      feedUrls: [FEED_URL],
+    });
+    await copySignedOutAddByRssCredentialsToAccount(store, {
+      accountIdText: '',
+      feedUrls: [FEED_URL],
+    });
+
+    expect(snapshot()).toEqual(before);
+  });
+
+  it('never calls delete', async () => {
+    const entries = new Map<string, AddByRssCredentials>();
+    const deleteCredentials = vi.fn(async (owner: string, feedUrl: string) => {
+      entries.delete(ownerStoreKey(owner, feedUrl));
+    });
+    const store: AddByRssCredentialOwnerStore = {
+      delete: deleteCredentials,
+      get: async (owner, feedUrl) => entries.get(ownerStoreKey(owner, feedUrl)) ?? null,
+      set: async (owner, feedUrl, credentials) => {
+        entries.set(ownerStoreKey(owner, feedUrl), {
+          password: credentials.password,
+          username: credentials.username,
+        });
+      },
+    };
+    const signedOut = pair('listener', 'signed-out-pass');
+    const accountPair = pair('member', 'account-pass');
+    await store.set(SIGNED_OUT_CREDENTIAL_OWNER, FEED_URL, signedOut);
+    await store.set(SIGNED_OUT_CREDENTIAL_OWNER, OTHER_FEED_URL, signedOut);
+    await store.set(ACCOUNT_ID, OTHER_FEED_URL, accountPair);
+
+    await copySignedOutAddByRssCredentialsToAccount(store, {
+      accountIdText: ACCOUNT_ID,
+      feedUrls: [FEED_URL, OTHER_FEED_URL, KEPT_FEED_URL],
+    });
+
+    expect(deleteCredentials).not.toHaveBeenCalled();
+    expect(entries.get(ownerStoreKey(ACCOUNT_ID, FEED_URL))).toEqual(signedOut);
+    expect(entries.get(ownerStoreKey(SIGNED_OUT_CREDENTIAL_OWNER, FEED_URL))).toEqual(signedOut);
+    expect(entries.get(ownerStoreKey(ACCOUNT_ID, OTHER_FEED_URL))).toEqual(accountPair);
   });
 });

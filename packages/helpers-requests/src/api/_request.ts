@@ -50,6 +50,7 @@ import {
   reqAccountAddByRSSChaptersTranscript,
   type ReqAccountAddByRSSChaptersTranscriptParams,
 } from './account/addByRSSChaptersTranscript.js';
+import { reqAccountAddByRSSFeedLimitGet } from './account/addByRSSFeedLimit.js';
 import {
   reqAccountAddByRSSRemoteItemLookup,
   reqAccountAddByRSSRemoteItemResolve,
@@ -374,6 +375,7 @@ export type {
   AddByRSSChapterResponse,
   ReqAccountAddByRSSChaptersTranscriptParams,
 } from './account/addByRSSChaptersTranscript.js';
+export type { ReqAccountAddByRSSFeedLimitResponse } from './account/addByRSSFeedLimit.js';
 export type {
   AddByRSSRemoteItemLookupRef,
   AddByRSSRemoteItemRef,
@@ -870,6 +872,10 @@ export class ApiRequestService {
 
   reqAccountAddByRSSChaptersTranscript(params: ReqAccountAddByRSSChaptersTranscriptParams) {
     return reqAccountAddByRSSChaptersTranscript(this, params);
+  }
+
+  reqAccountAddByRSSFeedLimitGet() {
+    return reqAccountAddByRSSFeedLimitGet(this);
   }
 
   reqAccountAddByRSSRemoteItemLookup(refs: AddByRSSRemoteItemLookupRef[]) {

@@ -7,7 +7,7 @@ import { DATABASE_CONSTANTS } from '@podverse/helpers';
 @Entity()
 @Check(
   'chk_account_email_change_verification_pending_lowercase',
-  'pending_email_address = lower(btrim(pending_email_address))',
+  'pending_email_address = lower(btrim(pending_email_address))'
 )
 export class AccountEmailChangeVerification {
   @PrimaryGeneratedColumn()

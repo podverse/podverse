@@ -18,6 +18,12 @@ name: Add By RSS Flow
     id: library-nav-add-by-rss
 - assertVisible:
     id: rss-root-screen
+# Signed in, the line under Add Feed states this account's Add by RSS limit from the server.
+- extendedWaitUntil:
+    visible:
+      id: rss-feed-limit-help
+      text: "Add by RSS holds up to [0-9]+ feeds\\."
+    timeout: ${TIMEOUT_SLOW}
 - takeScreenshot: add-by-rss-library-initial
 
 # The seeded account already follows the test-assets feed, so the library is not empty. The

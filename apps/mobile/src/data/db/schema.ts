@@ -148,6 +148,29 @@ export const addByRssFeed = sqliteTable('add_by_rss_feed', {
    * an empty array means looked up and nothing matched.
    */
   publisherDirectoryJson: text('publisher_directory_json'),
+  /**
+   * The conditional cache from this device's last fetch of the feed, sent back on the next device
+   * fetch only while the row holds a stored bundle. The server path never reads or writes them.
+   */
+  deviceEtag: text('device_etag'),
+  deviceLastModified: text('device_last_modified'),
+  deviceFeedHash: text('device_feed_hash'),
+  /**
+   * Epoch ms of this device's last completed fetch of the feed (parsed, unchanged, or failed with
+   * a host answer). Null when this device has never fetched it.
+   */
+  deviceCheckedAt: integer('device_checked_at'),
+  /**
+   * 1 when the feed was followed by the signed-out user of this phone and no signed-in account has
+   * claimed it. Such a row is hidden from every list while someone is signed in, and shows again
+   * after sign-out.
+   */
+  signedOutOwned: integer('signed_out_owned').notNull().default(0),
+  /**
+   * Epoch ms when this phone last started following the feed. Null for rows followed before this
+   * column existed; they sort before every stamped row.
+   */
+  followedAt: integer('followed_at'),
 });
 
 export type AddByRssFeedRow = typeof addByRssFeed.$inferSelect;

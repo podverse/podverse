@@ -1211,13 +1211,11 @@ components:
           type: integer
           minimum: 60
           maximum: 31536000
-        trialMaxAddByRSSFeeds:
+        maxAddByRSSFeeds:
           type: integer
           minimum: 0
+          description: "Add by RSS feed limit shared by Trial and Premium; a per-account override still wins."
         trialMaxManualRefreshesPerHour:
-          type: integer
-          minimum: 0
-        premiumMaxAddByRSSFeeds:
           type: integer
           minimum: 0
         premiumMaxManualRefreshesPerHour:
@@ -1232,12 +1230,11 @@ components:
         - premiumMembershipCostMonthly
         - premiumMembershipCostAnnually
         - trialAllowDirectoryAddByRSS
-        - trialMaxAddByRSSFeeds
+        - maxAddByRSSFeeds
         - trialMaxManualRefreshesPerHour
         - trialTrackStats
         - trialAllowNotifications
         - premiumAllowDirectoryAddByRSS
-        - premiumMaxAddByRSSFeeds
         - premiumMaxManualRefreshesPerHour
         - premiumTrackStats
         - premiumAllowNotifications
@@ -1253,9 +1250,10 @@ components:
           minimum: 0
         trialAllowDirectoryAddByRSS:
           type: boolean
-        trialMaxAddByRSSFeeds:
+        maxAddByRSSFeeds:
           type: integer
           minimum: 0
+          description: "Add by RSS feed limit shared by Trial and Premium; a per-account override still wins."
         trialMaxManualRefreshesPerHour:
           type: integer
           minimum: 0
@@ -1265,9 +1263,6 @@ components:
           type: boolean
         premiumAllowDirectoryAddByRSS:
           type: boolean
-        premiumMaxAddByRSSFeeds:
-          type: integer
-          minimum: 0
         premiumMaxManualRefreshesPerHour:
           type: integer
           minimum: 0

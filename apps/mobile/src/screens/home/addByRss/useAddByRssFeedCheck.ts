@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../../auth/AuthProvider';
 import { addByRssCredentialStore, addByRssRepository } from '../../../data';
 import { syncEventLogRepository } from '../../../data/repositories';
+import { useAddByRssParsePath } from '../../../hooks/useAddByRssParsePath';
 import { buildAddByRssParseFailureLog } from '../../../lib/addByRss/addByRssErrorLog';
 import { credentialNoticeKeyForParse } from '../../../lib/addByRss/credentials';
 import { homeFeedRefresh } from '../../../lib/home/homeFeedRefresh';
@@ -26,10 +27,11 @@ export type AddByRssFeedCheck = {
 /**
  * Check one add-by-RSS feed for updates.
  *
- * Credentials are read from the device store and sent only on the parse request
- * (**add-by-rss-client-held-credentials**). An interactive check asks for membership first. A
- * pull while refresh is not allowed re-reads the device copy and does not ask the server, the
- * same way a lapsed membership keeps feeds readable and stops refreshing them.
+ * Credentials are read from the device store and sent only to the feed host (signed out, the
+ * phone parses) or on the parse request (signed in, the server parses). Signed in, an interactive
+ * check asks for membership first, and a pull while refresh is not allowed re-reads the device
+ * copy without asking the server, the same way a lapsed membership keeps feeds readable and stops
+ * refreshing them. Signed out, nothing is gated.
  */
 export function useAddByRssFeedCheck({
   feedUrl,
@@ -41,7 +43,8 @@ export function useAddByRssFeedCheck({
   const { t } = useTranslation();
   const { accessToken, clearSession, refreshToken, setTokens } = useAuth();
   const { handleGateError, openGate } = useMembershipGate();
-  const { evaluateFeature } = useAccessTier();
+  const { evaluateFeature, isTierKnown } = useAccessTier();
+  const parsePath = useAddByRssParsePath();
   const [isChecking, setIsChecking] = useState<boolean>(false);
   const [noticeKey, setNoticeKey] = useState<string | null>(null);
   const isBusyRef = useRef(false);
@@ -72,7 +75,7 @@ export function useAddByRssFeedCheck({
       }
 
       const access = evaluateFeature('add_by_rss_refresh');
-      if (!access.allowed) {
+      if (parsePath === 'server' && isTierKnown && !access.allowed) {
         if (mode === 'pull') {
           await onChecked();
         } else {
@@ -91,16 +94,17 @@ export function useAddByRssFeedCheck({
 
       try {
         const credentials = await addByRssCredentialStore.getForCurrentAccount(feedUrl);
-        const { requestId, result } = await addByRssRepository.parseNow(
+        const { requestId, result } = await addByRssRepository.parseNowByPath(
           authContext,
           feedUrl,
-          credentials
+          credentials,
+          { path: parsePath }
         );
         homeFeedRefresh.notify();
 
         const failureLog = buildAddByRssParseFailureLog({
           feedUrl,
-          jobKind: 'add-by-rss-parse',
+          jobKind: parsePath === 'device' ? 'add-by-rss-device-parse' : 'add-by-rss-parse',
           occurredAt: Date.now(),
           requestId,
           result,
@@ -135,7 +139,17 @@ export function useAddByRssFeedCheck({
         }
       }
     },
-    [authContext, evaluateFeature, feedUrl, handleGateError, onChecked, openGate, t]
+    [
+      authContext,
+      evaluateFeature,
+      feedUrl,
+      handleGateError,
+      isTierKnown,
+      onChecked,
+      openGate,
+      parsePath,
+      t,
+    ]
   );
 
   return { checkFeed, isChecking, noticeKey };

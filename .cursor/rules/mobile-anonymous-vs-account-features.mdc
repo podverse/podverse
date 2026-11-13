@@ -50,26 +50,31 @@ Design the lapsed state deliberately per feature: some membership features degra
 others disappear behind an upgrade affordance. Say which in the plan.
 
 Current lapsed behavior for add-by-RSS: existing feeds stay visible and playable but **stop
-refreshing** until renewal; adding new feeds is blocked behind the renewal prompt.
+refreshing** until renewal; adding new feeds is blocked behind the renewal prompt. That remains
+true for a signed-in lapsed membership. A signed-out user parses and refreshes on the phone with
+no feed limit, and those feeds are hidden and not refreshed while someone is signed in. The shared
+limit is help text on the mobile Add by RSS screen for a signed-in user whose limit is known. The
+Trial limitations list does not state it.
 
 Expiry is surfaced **in-app only**, derived on demand — never push, email, or a scheduled job. See
 [`no-membership-expiry-notifications`](/.cursor/rules/no-membership-expiry-notifications.mdc).
 
 ## Tier assignments
 
-| Capability                                  | Tier       | Why                                            |
-| ------------------------------------------- | ---------- | ---------------------------------------------- |
-| Subscribe — **local only**, signed out      | Anonymous  | Device-local record; nothing reaches the server |
-| **Unsubscribe** — always                    | Anonymous  | Never blocked, in any tier or membership state  |
-| Local subscription list, filter, sort       | Anonymous  | Reads local storage                            |
-| Download episodes, offline playback         | Anonymous  | Device-local                                   |
-| Per-channel seen state (local)              | Anonymous  | A local last-seen timestamp per channel        |
-| **Subscribe — server-side follow**          | Membership | `POST /account/follow/channel` is gated today  |
-| Cross-device sync of seen state             | Account    | Server write, but not a paid capability        |
-| **Queue and history**                       | Membership | Signed-in only; see the offline note below     |
-| **Add by RSS**                              | Membership | Requires server-side feed parsing              |
-| **Notifications** (inbox and push)          | Membership | Requires server-side storage and push delivery |
-| **Auto download** (new episodes)            | Membership | Needs silent push / background wake on iOS; device prefs stay local |
+| Capability                                                    | Tier       | Why                                                                                                                                                                                       |
+| ------------------------------------------------------------- | ---------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Subscribe — **local only**, signed out                        | Anonymous  | Device-local record; nothing reaches the server                                                                                                                                           |
+| **Unsubscribe** — always                                      | Anonymous  | Never blocked, in any tier or membership state                                                                                                                                            |
+| Local subscription list, filter, sort                         | Anonymous  | Reads local storage                                                                                                                                                                       |
+| Download episodes, offline playback                           | Anonymous  | Device-local                                                                                                                                                                              |
+| Per-channel seen state (local)                                | Anonymous  | A local last-seen timestamp per channel                                                                                                                                                   |
+| **Subscribe — server-side follow**                            | Membership | `POST /account/follow/channel` is gated today                                                                                                                                             |
+| Cross-device sync of seen state                               | Account    | Server write, but not a paid capability                                                                                                                                                   |
+| **Queue and history**                                         | Membership | Signed-in only; see the offline note below                                                                                                                                                |
+| **Add by RSS on mobile, signed out**                          | Anonymous  | The phone parses the feed. No feed limit. No server job                                                                                                                                   |
+| **Add by RSS while signed in, and Add by RSS on the website** | Membership | Server parse. A free or lapsed membership cannot add, and existing feeds stop refreshing, as today. The website has no on-device parse, because a browser cannot fetch another site's RSS |
+| **Notifications** (inbox and push)                            | Membership | Requires server-side storage and push delivery                                                                                                                                            |
+| **Auto download** (new episodes)                              | Membership | Needs silent push / background wake on iOS; device prefs stay local                                                                                                                       |
 
 ### Subscribing has three distinct behaviors
 
@@ -90,7 +95,8 @@ therefore replaces the local rows with the account's.
 
 **Signing out discards nothing local.** Subscriptions, add-by-RSS feeds, and the car/watch browse
 index are all retained — this is the same data offline mode depends on. Only the account identity is
-cleared.
+cleared. Feeds the signed-out user followed show again after sign-out and refresh on the phone.
+Sign-out clears the account's Add by RSS credentials and keeps the signed-out owner's.
 
 Queue, history, and per-channel seen state reconcile on sign-in rather than following the sign-up-only
 rule above, because they are per-device activity rather than a library the account owns. Seen state

@@ -1,7 +1,7 @@
-import type { CredentialScopeDecision } from '@podverse/helpers';
-import { resolveCredentialScope } from '@podverse/helpers';
+import type { AddByRSSCredentialsWithheldDecision } from '@podverse/helpers';
+import { createAddByRSSRedirectCredentialTracker } from '@podverse/helpers';
 
-export type CredentialsWithheldDecision = Exclude<CredentialScopeDecision, 'send'>;
+export type CredentialsWithheldDecision = AddByRSSCredentialsWithheldDecision;
 
 export type BuildCredentialScopedBeforeRedirectOptions = {
   feedUrl: string;
@@ -37,20 +37,22 @@ export const buildCredentialScopedBeforeRedirect = ({
   allowInsecure,
   onCredentialsWithheld,
 }: BuildCredentialScopedBeforeRedirectOptions): ((options: Record<string, unknown>) => void) => {
-  let withheld = false;
+  const tracker = createAddByRSSRedirectCredentialTracker({
+    allowInsecure,
+    credentialsAttached,
+    feedUrl,
+  });
 
   return (redirectOptions) => {
-    if (!credentialsAttached || withheld) {
-      stripAuthorizationHeaders(redirectOptions.headers);
-      return;
-    }
+    const alreadyWithheld = tracker.withheldDecision() !== null;
     const targetUrl = typeof redirectOptions.href === 'string' ? redirectOptions.href : '';
-    const decision = resolveCredentialScope(feedUrl, targetUrl, { allowInsecure });
-    if (decision === 'send') {
+    if (tracker.allowsCredentialsTo(targetUrl)) {
       return;
     }
-    withheld = true;
     stripAuthorizationHeaders(redirectOptions.headers);
-    onCredentialsWithheld?.(decision);
+    const decision = tracker.withheldDecision();
+    if (!alreadyWithheld && decision !== null) {
+      onCredentialsWithheld?.(decision);
+    }
   };
 };

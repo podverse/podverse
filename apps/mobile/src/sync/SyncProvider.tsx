@@ -29,6 +29,7 @@ import {
 } from '../downloads/autoDownloadWifiRetry';
 import { downloadManager } from '../downloads/downloadManager';
 import { useQueueResourcesLoadActive } from '../hooks/useQueueResourcesLoadActive';
+import { homeFeedRefresh } from '../lib/home/homeFeedRefresh';
 import {
   getConnectivity,
   reportUserNetworkAction,
@@ -238,6 +239,8 @@ export function SyncProvider({ children }: PropsWithChildren) {
   // account's saved feed credentials may have fetched. Waiting banner cards are that account's
   // notifications, so they are cleared too. Banner kind switches are device preferences and stay.
   // The cross-device device list and what the other devices play are account data as well.
+  // Add by RSS feeds the signed-out user kept are listed again once signed out, so Home and the
+  // car library reload.
   useEffect(() => {
     if (status !== 'anonymous') {
       return;
@@ -248,6 +251,10 @@ export function SyncProvider({ children }: PropsWithChildren) {
     resetNotificationsInboxCache();
     clearBannerNotificationQueue();
     nowPlayingAddByRssSections.reset();
+    homeFeedRefresh.notify();
+    void import('../data/nativeCache/carCacheReproject')
+      .then(({ reprojectLibraryIndex }) => reprojectLibraryIndex())
+      .catch(() => undefined);
     publishPlaybackReconcileConflicts([]);
     publishPlaybackPositionAdoptions([]);
     setQueues([]);

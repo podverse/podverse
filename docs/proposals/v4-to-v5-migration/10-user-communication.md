@@ -28,13 +28,13 @@ message is earlier than the real grace end.
 
 ### Timeline of messages
 
-| Phase | Channel | Intent |
-| ----- | ------- | ------ |
-| Before store submit | Email; Play/App Store "what's new" draft | Short heads-up. |
-| Store live (grace start) | Email + listing | Update when ready; data migrates on login; keep using v4 until you switch |
-| Mid grace | Reminder email to not-yet-migrated (if measurable) | Nudge. |
-| Grace end approaching | Email | A public date, earlier than the real end. After it, people who have not updated to NextGen are told we will migrate them. |
-| Grace end | Raise `MINIMUM_MOBILE_VERSION` | The real end, which can be later than the announced date. Force update path to the NextGen build on the same listing. |
+| Phase                    | Channel                                            | Intent                                                                                                                    |
+| ------------------------ | -------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------- |
+| Before store submit      | Email; Play/App Store "what's new" draft           | Short heads-up.                                                                                                           |
+| Store live (grace start) | Email + listing                                    | Update when ready; data migrates on login; keep using v4 until you switch                                                 |
+| Mid grace                | Reminder email to not-yet-migrated (if measurable) | Nudge.                                                                                                                    |
+| Grace end approaching    | Email                                              | A public date, earlier than the real end. After it, people who have not updated to NextGen are told we will migrate them. |
+| Grace end                | Raise `MINIMUM_MOBILE_VERSION`                     | The real end, which can be later than the announced date. Force update path to the NextGen build on the same listing.     |
 
 ### Reply when someone asks
 

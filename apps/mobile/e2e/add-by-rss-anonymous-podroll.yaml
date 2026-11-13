@@ -1,0 +1,75 @@
+appId: com.podverse.app.next
+name: Add By RSS Anonymous Podroll
+---
+# Signed out, a podroll row with only a feed guid gets its title from the public remote-item
+# lookup and opens the directory album it names.
+#
+# Needs flow_needs_e2e_api + flow_needs_test_assets.
+
+- runFlow: shared/launch-and-connect.yaml
+- tapOn:
+    id: tab-my-library
+- tapOn:
+    id: library-nav-add-by-rss
+- tapOn:
+    id: rss-add-button
+- tapOn:
+    id: rss-url-input
+- inputText: http://localhost:2111/e2e/add-by-rss/podroll.xml
+- tapOn:
+    id: rss-add-submit
+- extendedWaitUntil:
+    visible:
+      id: rss-root-screen
+    timeout: ${TIMEOUT_SLOWER}
+- extendedWaitUntil:
+    visible:
+      text: "E2E Device Podroll Channel"
+    timeout: ${TIMEOUT_SLOW}
+- tapOn:
+    text: "E2E Device Podroll Channel"
+- extendedWaitUntil:
+    visible:
+      id: add-by-rss-home-detail-screen
+    timeout: ${TIMEOUT_SLOW}
+# Podroll sits after About. Off-screen chips stay out of the hierarchy until the row moves.
+- repeat:
+    times: 4
+    commands:
+      - runFlow:
+          file: shared/reveal-chip-row-trailing.yaml
+          env:
+            CHIP_ROW_ID: add-by-rss-home-sections
+            TRAILING_ID: add-by-rss-home-section-podroll
+      - runFlow:
+          when:
+            notVisible:
+              id: add-by-rss-home-section-podroll
+          commands:
+            - extendedWaitUntil:
+                visible:
+                  id: add-by-rss-home-section-podroll
+                timeout: ${TIMEOUT_FASTEST}
+                optional: true
+- swipe:
+    from:
+      id: add-by-rss-home-sections
+    direction: LEFT
+- tapOn:
+    id: add-by-rss-home-section-podroll
+- extendedWaitUntil:
+    visible:
+      id: add-by-rss-podroll-section
+    timeout: ${TIMEOUT_FAST}
+- extendedWaitUntil:
+    visible:
+      text: "E2E Music Album"
+    timeout: ${TIMEOUT_SLOW}
+- takeScreenshot: add-by-rss-anonymous-podroll
+- tapOn:
+    text: "E2E Music Album"
+- extendedWaitUntil:
+    visible:
+      id: album-detail-screen
+    timeout: ${TIMEOUT_SLOW}
+- takeScreenshot: add-by-rss-anonymous-podroll-album

@@ -1,5 +1,6 @@
 import { randomUUID } from 'node:crypto';
 
+import { config } from '@api/config/index.js';
 import type { Express } from 'express';
 import type { Server } from 'http';
 import request from 'supertest';
@@ -355,6 +356,7 @@ describe('account add-by-rss remote item endpoints', () => {
     const { addByRssRemoteItemResolveRateLimit } =
       await import('../controllers/account/accountAddByRSSRemoteItem.js');
     addByRssRemoteItemResolveRateLimit.resetForUser(TEST_USER_ID);
+    await addByRssRemoteItemResolveRateLimit.resetAddressBudgets();
   });
 
   it('lookup returns channel/provider_feed/none for channel refs without provider calls', async () => {
@@ -446,7 +448,7 @@ describe('account add-by-rss remote item endpoints', () => {
     expect(providerMocks.resolveItem).not.toHaveBeenCalled();
   });
 
-  it('lookup enforces max refs and session auth', async () => {
+  it('lookup enforces max refs and answers signed-out callers', async () => {
     const seeded = requireWorld();
     const tooMany = Array.from({ length: 101 }, () => ({
       feed_guid: seeded.directory.feedGuid,
@@ -460,12 +462,61 @@ describe('account add-by-rss remote item endpoints', () => {
       .send({ refs: tooMany });
     expect(tooManyResponse.status).toBe(400);
 
-    const unauthorized = await request(requireApp())
+    const signedOut = await request(requireApp())
       .post(lookupPath())
       .send({
         refs: [{ feed_guid: seeded.directory.feedGuid, feed_url: null, item_guid: null }],
       });
-    expect(unauthorized.status).toBe(401);
+    expect(signedOut.status).toBe(200);
+    const results = readResults(signedOut.body);
+    expect(results).toHaveLength(1);
+    expect(readKind(results[0])).toBe('channel');
+  });
+
+  it('lookup refuses a malformed bearer token', async () => {
+    const seeded = requireWorld();
+    const response = await request(requireApp())
+      .post(lookupPath())
+      .set('Authorization', 'Bearer not-a-token')
+      .send({
+        refs: [{ feed_guid: seeded.directory.feedGuid, feed_url: null, item_guid: null }],
+      });
+    expect(response.status).toBe(401);
+  });
+
+  it('resolve answers a signed-out caller for a directory ref without calling the provider', async () => {
+    const seeded = requireWorld();
+    const response = await request(requireApp())
+      .post(resolvePath())
+      .send({ feed_guid: seeded.directory.feedGuid, feed_url: seeded.directory.feedUrl });
+
+    expect(response.status).toBe(200);
+    expect(response.body.kind).toBe('channel');
+    expect(response.body.channel?.id_text).toBe(seeded.directory.idText);
+    expect(providerMocks.resolveFeedsByGuid).not.toHaveBeenCalled();
+    expect(providerMocks.resolveFeed).not.toHaveBeenCalled();
+  });
+
+  it('resolve counts signed-out callers per address and signed-in callers per account', async () => {
+    const seeded = requireWorld();
+    const body = { feed_guid: seeded.directory.feedGuid, feed_url: seeded.directory.feedUrl };
+    const max = config.rateLimits.accountAddByRssRemoteItemResolveAnon.max;
+
+    for (let sent = 0; sent < max; sent += 1) {
+      const allowed = await request(requireApp()).post(resolvePath()).send(body);
+      expect(allowed.status).toBe(200);
+    }
+
+    const limited = await request(requireApp()).post(resolvePath()).send(body);
+    expect(limited.status).toBe(429);
+    expect(limited.body.tooManyRequests).toBe(true);
+
+    const signedIn = await request(requireApp())
+      .post(resolvePath())
+      .set(authHeaders(TEST_USER_ID))
+      .send(body);
+    expect(signedIn.status).toBe(200);
+    expect(signedIn.body.kind).toBe('channel');
   });
 
   it('resolve returns channel for directory refs and bypasses provider', async () => {

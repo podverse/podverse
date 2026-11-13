@@ -1,7 +1,30 @@
 import { describe, expect, it } from 'vitest';
 
 import { AccountMembershipEnum } from './accountMembership.js';
-import { membershipCountsTowardPopularity, membershipStoresListens } from './accountTrust.js';
+import {
+  membershipCountsTowardPopularity,
+  membershipStoresListens,
+  resolveAccountEntitlements,
+} from './accountTrust.js';
+
+describe('resolveAccountEntitlements Add by RSS limit', () => {
+  it('gives Trial and Premium the same default and lets an override win on either tier', () => {
+    expect(resolveAccountEntitlements(AccountMembershipEnum.Trial, null).maxAddByRSSFeeds).toBe(
+      100
+    );
+    expect(resolveAccountEntitlements(AccountMembershipEnum.Premium, null).maxAddByRSSFeeds).toBe(
+      100
+    );
+    expect(
+      resolveAccountEntitlements(AccountMembershipEnum.Trial, { max_add_by_rss_feeds: 7 })
+        .maxAddByRSSFeeds
+    ).toBe(7);
+    expect(
+      resolveAccountEntitlements(AccountMembershipEnum.Premium, { max_add_by_rss_feeds: 7 })
+        .maxAddByRSSFeeds
+    ).toBe(7);
+  });
+});
 
 describe('membershipStoresListens', () => {
   it('stores a trial listen whether or not trackStats is on', () => {

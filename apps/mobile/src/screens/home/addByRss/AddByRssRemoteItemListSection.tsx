@@ -13,7 +13,6 @@ import {
 } from '@podverse/parser-mapping';
 
 import { requestWithMobileAuthRefresh } from '../../../auth';
-import { useAuthPrompt } from '../../../auth/AuthPromptContext';
 import { useAuth } from '../../../auth/AuthProvider';
 import { AlbumListRow } from '../../../components/content';
 import { HelperNote } from '../../../components/feedback/HelperNote';
@@ -111,7 +110,6 @@ export function AddByRssRemoteItemListSection({
 }: AddByRssSectionPaneProps & { list: AddByRSSRemoteItemList }): ReactElement {
   const { t } = useTranslation();
   const navigation = useNavigation<RemoteListNavigation>();
-  const { onRequestLogin } = useAuthPrompt();
   const { enabled: offlineModeEnabled } = useOfflineMode();
   const { accessToken, clearSession, refreshToken, setTokens } = useAuth();
   const untitledLabel = t('misc.untitled');
@@ -175,7 +173,7 @@ export function AddByRssRemoteItemListSection({
         setIsInitialLoading(false);
 
         const stillReferences = next.some((entry) => entry.kind === 'reference');
-        if (offlineModeEnabled || accessToken === null || !stillReferences) {
+        if (offlineModeEnabled || !stillReferences) {
           return;
         }
 
@@ -317,10 +315,6 @@ export function AddByRssRemoteItemListSection({
             setNotice(t(OFFLINE_UNAVAILABLE_MESSAGE_KEY));
             return;
           }
-          if (accessToken === null) {
-            onRequestLogin();
-            return;
-          }
 
           openingRef.current = true;
           setOpeningKey(entry.key);
@@ -380,16 +374,7 @@ export function AddByRssRemoteItemListSection({
         }
       }
     },
-    [
-      accessToken,
-      authContext,
-      navigation,
-      offlineModeEnabled,
-      onRequestLogin,
-      openChannel,
-      openItem,
-      t,
-    ]
+    [authContext, navigation, offlineModeEnabled, openChannel, openItem, t]
   );
 
   const handleRefresh = useCallback(() => {

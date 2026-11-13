@@ -80,7 +80,9 @@
     },
     "add_by_rss": {
       "credentials_mobile_media_note": "",
-      "credentials_remove_feed_confirm": ""
+      "credentials_page_host_note": "",
+      "credentials_remove_feed_confirm": "",
+      "feed_limit_help": ""
     }
   },
   "settings": {
@@ -163,6 +165,15 @@
       "move_to_more": "",
       "add_to_bar": "",
       "reorder_hint": ""
+    },
+    "opml": {
+      "export_description_device": "",
+      "export_device_empty": "",
+      "export_device_looking_up": "",
+      "export_device_partial": "",
+      "export_device_offline_mode": "",
+      "export_device_offline_mode_unavailable": "",
+      "export_device_lookup_failed": ""
     }
   },
   "e2e": {
@@ -314,7 +325,22 @@
   },
   "authentication": {
     "account_created_title": "",
-    "account_created_body": ""
+    "account_created_body": "",
+    "signup_add_by_rss_limit": {
+      "title": "",
+      "summary": "",
+      "export_recommendation": "",
+      "details_title": "",
+      "details_kept": "",
+      "details_removed": "",
+      "details_server": "",
+      "details_subscriptions": "",
+      "details_restore": "",
+      "details_alternatives": "",
+      "contact": "",
+      "accept_label": "",
+      "limit_unavailable": ""
+    }
   },
   "membership": {
     "status_free_trial": "",

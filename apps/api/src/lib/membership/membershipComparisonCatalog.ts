@@ -126,10 +126,6 @@ export function loadMembershipComparisonMessages(locale: string): MembershipComp
       'membership',
       'trial_limitations_directory_add_by_rss',
     ]),
-    trialFeedLimit: message(original, override, [
-      'membership',
-      'trial_limitations_add_by_rss_feed_limit',
-    ]),
     trialRefreshLimit: message(original, override, [
       'membership',
       'trial_limitations_manual_refresh_limit',

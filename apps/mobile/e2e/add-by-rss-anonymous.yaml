@@ -1,0 +1,58 @@
+appId: com.podverse.app.next
+name: Add By RSS Anonymous
+---
+# Signed out, Add by RSS fetches and parses the feed on this device: no gate, no account, and no
+# Podverse parse request. The feed is the test-assets feed on :2111; on Android the device fetch
+# reaches the host through the same E2E loopback rewrite media uses (resolveE2eMediaUrl).
+# Needs flow_needs_e2e_api + flow_needs_test_assets.
+
+- runFlow: shared/launch-and-connect.yaml
+
+- tapOn:
+    id: tab-my-library
+- assertVisible:
+    id: library-hub-screen
+- tapOn:
+    id: library-nav-add-by-rss
+- assertVisible:
+    id: rss-root-screen
+- assertVisible:
+    id: rss-feeds-empty
+- takeScreenshot: add-by-rss-anonymous-empty
+
+- tapOn:
+    id: rss-add-button
+- assertVisible:
+    id: rss-add-screen
+- assertNotVisible:
+    id: premium-gate-modal
+- tapOn:
+    id: rss-url-input
+- inputText: http://localhost:2111/feeds/feed-podcast-1.rss
+- assertVisible:
+    id: rss-add-submit
+    enabled: true
+- tapOn:
+    id: rss-add-submit
+
+# The form pops back to the library list once the device parse has stored the feed.
+- extendedWaitUntil:
+    visible:
+      id: rss-root-screen
+    timeout: ${TIMEOUT_SLOWER}
+- extendedWaitUntil:
+    notVisible:
+      id: rss-feeds-empty
+    timeout: ${TIMEOUT_SLOW}
+- takeScreenshot: add-by-rss-anonymous-feed-listed
+
+# Signed out there is no Add by RSS limit, so the limit line is absent.
+- assertNotVisible:
+    id: rss-feed-limit-help
+
+# Check for Updates refreshes on this device instead of asking a signed-out user to sign in.
+- tapOn:
+    id: rss-check-updates
+- assertVisible:
+    id: rss-root-screen
+- takeScreenshot: add-by-rss-anonymous-after-check

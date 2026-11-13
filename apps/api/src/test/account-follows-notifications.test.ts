@@ -2,12 +2,14 @@ import type { Server } from 'http';
 import request from 'supertest';
 import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 
+import type { ProductMembershipCapDefaults } from '@podverse/helpers';
 import {
   AccountMembershipEnum,
   MAX_BULK_FOLLOW_CHANNELS,
   MAX_BULK_UNFOLLOW_FEEDS,
 } from '@podverse/helpers';
 import type { ORMContext } from '@podverse/orm';
+import { BillingPriceCatalogService } from '@podverse/orm';
 
 import {
   authHeaders,
@@ -783,10 +785,107 @@ describe('account follows and notification routes', () => {
       );
     });
 
+    it('returns 403 with the limit and no renew path when the account is at its Add by RSS limit', async () => {
+      const capDefaults: ProductMembershipCapDefaults = {
+        maxAddByRSSFeeds: 1000,
+        premiumAllowDirectoryAddByRSS: true,
+        premiumAllowNotifications: true,
+        premiumMaxManualRefreshesPerHour: 1000,
+        premiumTrackStats: true,
+        trialAllowDirectoryAddByRSS: true,
+        trialAllowNotifications: true,
+        trialMaxManualRefreshesPerHour: 1000,
+        trialTrackStats: true,
+      };
+      const resolveCaps = vi
+        .spyOn(BillingPriceCatalogService.prototype, 'resolveProductMembershipCapDefaults')
+        .mockResolvedValue(capDefaults);
+      hasFollowedAddByRSSChannelMock.mockResolvedValueOnce(false);
+      getFollowedAddByRSSChannelCountMock.mockResolvedValueOnce(capDefaults.maxAddByRSSFeeds);
+
+      try {
+        const res = await request(app)
+          .post(`${accountBase}/follow/add-by-rss-channel`)
+          .set(authHeaders(TEST_USER_ID))
+          .send({ feed_url: 'https://example.com/at-the-limit.xml' });
+
+        expect(res.status).toBe(403);
+        expect(res.body.code).toBe('add_by_rss_feed_limit_reached');
+        expect(res.body.i18nKey).toBe('membership.add_by_rss_feed_limit_reached');
+        expect(res.body.limit).toBe(capDefaults.maxAddByRSSFeeds);
+        expect(res.body.renewPath).toBeUndefined();
+        expect(addOrUpdateRSSChannelMock).not.toHaveBeenCalled();
+      } finally {
+        resolveCaps.mockRestore();
+      }
+    });
+
     it('returns 401 without auth', async () => {
       const res = await request(app)
         .post(`${accountBase}/follow/add-by-rss-channel`)
         .send({ feed_url: 'https://example.com/feed.xml' });
+
+      expect(res.status).toBe(401);
+    });
+  });
+
+  describe('GET /add-by-rss/feed-limit', () => {
+    const capDefaults: ProductMembershipCapDefaults = {
+      maxAddByRSSFeeds: 1000,
+      premiumAllowDirectoryAddByRSS: true,
+      premiumAllowNotifications: true,
+      premiumMaxManualRefreshesPerHour: 1000,
+      premiumTrackStats: true,
+      trialAllowDirectoryAddByRSS: true,
+      trialAllowNotifications: true,
+      trialMaxManualRefreshesPerHour: 1000,
+      trialTrackStats: true,
+    };
+
+    beforeAll(() => {
+      vi.spyOn(
+        BillingPriceCatalogService.prototype,
+        'resolveProductMembershipCapDefaults'
+      ).mockResolvedValue(capDefaults);
+    });
+
+    afterAll(() => {
+      vi.mocked(
+        BillingPriceCatalogService.prototype.resolveProductMembershipCapDefaults
+      ).mockRestore();
+    });
+
+    it("returns 200 with the account's resolved limit", async () => {
+      const res = await request(app)
+        .get(`${accountBase}/add-by-rss/feed-limit`)
+        .set(authHeaders(TEST_USER_ID));
+
+      expect(res.status).toBe(200);
+      expect(res.body.data.maxAddByRSSFeeds).toBe(capDefaults.maxAddByRSSFeeds);
+
+      const accountWithOverride = {
+        id: TEST_USER_ID,
+        id_text: TEST_USER_ACCOUNT_ID_TEXT,
+        account_credentials: { email: TEST_EMAIL },
+        account_membership_status: {
+          membership_expires_at: new Date(Date.now() + 86400000 * 365),
+          account_membership: { id: AccountMembershipEnum.Premium },
+          max_add_by_rss_feeds: 17,
+        },
+        sharable_status: { id: 1 },
+      };
+      getAccountMock.mockResolvedValueOnce(accountWithOverride);
+
+      const overrideRes = await request(app)
+        .get(`${accountBase}/add-by-rss/feed-limit`)
+        .set(authHeaders(TEST_USER_ID));
+
+      expect(overrideRes.status).toBe(200);
+      expect(overrideRes.body.data.maxAddByRSSFeeds).toBe(17);
+    });
+
+    it('returns 401 without auth', async () => {
+      const res = await request(app).get(`${accountBase}/add-by-rss/feed-limit`);
 
       expect(res.status).toBe(401);
     });

@@ -6,8 +6,13 @@ import { canSubmitAddByRssCredentials } from '@podverse/helpers-validation/clien
 import { useAuth } from '../../auth/AuthProvider';
 import { addByRssCredentialStore, addByRssRepository } from '../../data';
 import { syncEventLogRepository } from '../../data/repositories';
+import { useAddByRssParsePath } from '../../hooks/useAddByRssParsePath';
 import { buildAddByRssParseFailureLog } from '../../lib/addByRss/addByRssErrorLog';
-import { credentialNoticeKeyForParse, toAddByRssCredentials } from '../../lib/addByRss/credentials';
+import {
+  credentialNoticeKeyForParse,
+  resolveAddByRssCredentialWriteOwner,
+  toAddByRssCredentials,
+} from '../../lib/addByRss/credentials';
 import { homeFeedRefresh } from '../../lib/home/homeFeedRefresh';
 import { useMembershipGate } from '../../membership/MembershipGateProvider';
 import { useAccessTier } from '../../membership/useAccessTier';
@@ -29,7 +34,8 @@ export type AddByRssCredentialsForm = {
 };
 
 /**
- * Username and password for one add-by-RSS feed, kept on this device.
+ * Username and password for one add-by-RSS feed, kept on this device for the signed-in account,
+ * or for the signed-out user.
  *
  * The fields are filled from `addByRssCredentialStore` when the feed URL changes. A later reload
  * of the same URL leaves whatever was typed. Save and Check stores the pair, parses, and calls
@@ -44,7 +50,8 @@ export function useAddByRssCredentialsForm({
 }): AddByRssCredentialsForm {
   const { accessToken, account, clearSession, refreshToken, setTokens } = useAuth();
   const { handleGateError, openGate } = useMembershipGate();
-  const { evaluateFeature } = useAccessTier();
+  const { evaluateFeature, isTierKnown } = useAccessTier();
+  const parsePath = useAddByRssParsePath();
   const [username, setUsernameState] = useState<string>('');
   const [password, setPasswordState] = useState<string>('');
   const [noticeKey, setNoticeKey] = useState<string | null>(null);
@@ -107,7 +114,7 @@ export function useAddByRssCredentialsForm({
       return;
     }
     const checkAccess = evaluateFeature('add_by_rss_add');
-    if (!checkAccess.allowed) {
+    if (parsePath === 'server' && isTierKnown && !checkAccess.allowed) {
       openGate(checkAccess.reason);
       return;
     }
@@ -116,8 +123,11 @@ export function useAddByRssCredentialsForm({
       setNoticeKey('features.add_by_rss.basic_auth_required_both');
       return;
     }
-    const accountIdText = account?.id_text;
-    if (accountIdText === undefined) {
+    const credentialOwner = resolveAddByRssCredentialWriteOwner(
+      parsePath,
+      account?.id_text ?? null
+    );
+    if (credentialOwner === null) {
       setNoticeKey('features.add_by_rss.credentials_check_failed');
       return;
     }
@@ -127,11 +137,12 @@ export function useAddByRssCredentialsForm({
     setIsSaving(true);
     setNoticeKey(null);
     try {
-      await addByRssCredentialStore.set(accountIdText, feed.feedUrl, credentials);
-      const { requestId, result } = await addByRssRepository.parseNow(
+      await addByRssCredentialStore.set(credentialOwner, feed.feedUrl, credentials);
+      const { requestId, result } = await addByRssRepository.parseNowByPath(
         authContext,
         feed.feedUrl,
-        credentials
+        credentials,
+        { path: parsePath }
       );
       // Home stays mounted under its tab, so it will not pick up the new state on its own.
       homeFeedRefresh.notify();
@@ -166,8 +177,10 @@ export function useAddByRssCredentialsForm({
     evaluateFeature,
     feed,
     handleGateError,
+    isTierKnown,
     onSaved,
     openGate,
+    parsePath,
     password,
     username,
   ]);

@@ -1,18 +1,16 @@
-import * as FileSystem from 'expo-file-system/legacy';
-import { useMemo, useState } from 'react';
+import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Pressable, Share, StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import type { OpmlImportStatusResponse } from '@podverse/helpers-requests';
 
-import { requestWithMobileAuthRefresh } from '../../auth';
 import { useAuth } from '../../auth/AuthProvider';
 import { FormActions } from '../../components/form';
 import { AppOverlay, OverlayPanel, OverlayScrim } from '../../components/overlay';
 import { Button, Card } from '../../components/primitives';
 import { MobileScreenContainer } from '../../components/screen/MobileScreenContainer';
 import { ListEmpty } from '../../components/state/ListEmpty';
-import { isMobileE2eFromEnv } from '../../config/env';
+import { useOpmlExport } from '../../hooks/useOpmlExport';
 import { useOpmlImport } from '../../hooks/useOpmlImport';
 import { stopPropagation } from '../../lib/gesture/stopPropagation';
 import { OFFLINE_UNAVAILABLE_MESSAGE_KEY } from '../../lib/offlineModeViews';
@@ -45,11 +43,9 @@ const outcomeI18nKey = (outcome: OpmlImportOutcome): string => {
 export function MoreOpmlScreen() {
   const { t } = useTranslation();
   const { styles: themeStyles, tokens } = useTheme();
-  const { accessToken, clearSession, refreshToken, setTokens, status } = useAuth();
+  const { status } = useAuth();
   const { enabled: offlineModeEnabled } = useOfflineMode();
-  const [isExporting, setIsExporting] = useState<boolean>(false);
-  const [errorKey, setErrorKey] = useState<string | null>(null);
-  const [noticeKey, setNoticeKey] = useState<string | null>(null);
+  const opmlExport = useOpmlExport();
   const {
     closeRateLimitModal,
     importErrorKey,
@@ -145,56 +141,6 @@ export function MoreOpmlScreen() {
     [themeStyles, tokens]
   );
 
-  const handleExport = async () => {
-    if (status !== 'authenticated') {
-      setErrorKey('authentication.login_required');
-      setNoticeKey(null);
-      return;
-    }
-
-    setIsExporting(true);
-    setErrorKey(null);
-    setNoticeKey('settings.opml.export_loading');
-
-    try {
-      const opmlText = await requestWithMobileAuthRefresh(
-        {
-          accessToken,
-          clearSession,
-          refreshToken,
-          setTokens,
-        },
-        async (api) => {
-          const result = await api.reqAccountOpmlExport({ responseType: 'text' });
-          if (typeof result !== 'string') {
-            throw new Error('Invalid OPML export response type');
-          }
-          return result;
-        }
-      );
-
-      const baseDirectory = FileSystem.cacheDirectory ?? FileSystem.documentDirectory;
-      if (baseDirectory === null) {
-        throw new Error('No writable mobile file-system directory');
-      }
-
-      const filename = `podverse-opml-export-${new Date().toISOString().split('T')[0]}.opml`;
-      const fileUri = `${baseDirectory}${filename}`;
-      await FileSystem.writeAsStringAsync(fileUri, opmlText);
-
-      if (!isMobileE2eFromEnv()) {
-        await Share.share({ title: filename, url: fileUri });
-      }
-
-      setNoticeKey('settings.opml.export_success');
-    } catch {
-      setErrorKey('settings.opml.export_error');
-      setNoticeKey(null);
-    } finally {
-      setIsExporting(false);
-    }
-  };
-
   const processedCount = importReport?.results.length ?? 0;
   const totalCount = importReport?.totals.total ?? 0;
   const showResults =
@@ -208,26 +154,38 @@ export function MoreOpmlScreen() {
       <View style={styles.cardStack}>
         <Card style={styles.cardBody}>
           <Text style={styles.sectionTitle}>{t('settings.opml.export_title')}</Text>
-          <Text style={styles.description}>{t('settings.opml.export_description')}</Text>
+          <Text style={styles.description}>
+            {opmlExport.source === 'account'
+              ? t('settings.opml.export_description')
+              : t('settings.opml.export_description_device')}
+          </Text>
           <Button
-            disabled={status !== 'authenticated' || isExporting}
+            disabled={opmlExport.source === 'unavailable' || opmlExport.isExporting}
             fullWidth
             label={t('settings.opml.export_button')}
-            loading={isExporting}
+            loading={opmlExport.isExporting}
             onPress={() => {
-              void handleExport();
+              void opmlExport.exportOpml();
             }}
             size="form"
             testID="opml-export-button"
           />
-          {noticeKey !== null ? (
-            <Text style={styles.statusText} testID="opml-export-notice">
-              {t(noticeKey)}
+          {opmlExport.notice !== null ? (
+            <Text
+              accessibilityLiveRegion="polite"
+              style={styles.statusText}
+              testID="opml-export-notice"
+            >
+              {t(opmlExport.notice.key, opmlExport.notice.params)}
             </Text>
           ) : null}
-          {errorKey !== null ? (
-            <Text style={styles.statusText} testID="opml-export-error">
-              {t(errorKey)}
+          {opmlExport.errorKey !== null ? (
+            <Text
+              accessibilityLiveRegion="polite"
+              style={styles.statusText}
+              testID="opml-export-error"
+            >
+              {t(opmlExport.errorKey)}
             </Text>
           ) : null}
         </Card>

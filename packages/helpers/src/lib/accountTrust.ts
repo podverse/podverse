@@ -36,9 +36,12 @@ export type AccountTrustOverrides = {
   allow_notifications?: boolean | null;
 };
 
+/** Trial and Premium share this Add by RSS limit; a per-account override wins over it. */
+export const DEFAULT_MAX_ADD_BY_RSS_FEEDS = 100;
+
 export const DEFAULT_UNTRUSTED_ACCOUNT_ENTITLEMENTS: AccountTrustEntitlements = {
   allowDirectoryAddByRSS: false,
-  maxAddByRSSFeeds: 10,
+  maxAddByRSSFeeds: DEFAULT_MAX_ADD_BY_RSS_FEEDS,
   maxManualRefreshesPerHour: 5,
   trackStats: false,
   allowNotifications: true,
@@ -46,7 +49,7 @@ export const DEFAULT_UNTRUSTED_ACCOUNT_ENTITLEMENTS: AccountTrustEntitlements = 
 
 export const DEFAULT_TRUSTED_ACCOUNT_ENTITLEMENTS: AccountTrustEntitlements = {
   allowDirectoryAddByRSS: true,
-  maxAddByRSSFeeds: 100,
+  maxAddByRSSFeeds: DEFAULT_MAX_ADD_BY_RSS_FEEDS,
   maxManualRefreshesPerHour: 20,
   trackStats: true,
   allowNotifications: true,

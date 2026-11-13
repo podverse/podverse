@@ -33,22 +33,18 @@ export type SyncPlanInput = {
  *
  * Which follows exist is an account question; what those follows have published is not. A
  * signed-out device holds its own subscriptions and their episodes are public, so it syncs
- * episodes even though it has no account state to reconcile.
+ * episodes even though it has no account state to reconcile, and it keeps its own Add by RSS
+ * feeds current.
  */
 export const planSyncRun = ({ isAuthenticated, trigger }: SyncPlanInput): PlannedSyncJob[] => {
   // Pull on the Add by RSS library only refreshes those feeds. Home pull stays the full plan.
   if (trigger === 'add-by-rss-pull-to-refresh') {
-    if (!isAuthenticated) {
-      return [];
-    }
     return [{ kind: 'add-by-rss-refresh', priority: 'user' }];
   }
 
-  // An Add by RSS artist's parse listed albums still to fetch. Nobody is watching this one.
+  // An Add by RSS artist's parse listed albums still to fetch or resolve, signed in or out. Nobody
+  // is watching this one.
   if (trigger === 'add-by-rss-listed-feeds') {
-    if (!isAuthenticated) {
-      return [];
-    }
     return [{ kind: 'add-by-rss-listed-feeds', priority: 'background' }];
   }
 
@@ -64,6 +60,8 @@ export const planSyncRun = ({ isAuthenticated, trigger }: SyncPlanInput): Planne
   ];
 
   if (!isAuthenticated) {
+    // A signed-out device refreshes the Add by RSS feeds it follows itself, on the phone.
+    planned.push({ kind: 'add-by-rss-refresh', priority });
     return planned;
   }
 
@@ -80,8 +78,8 @@ export const planSyncRun = ({ isAuthenticated, trigger }: SyncPlanInput): Planne
 
   planned.push({ kind: 'queue-hydrate', priority });
 
-  // Membership-tier and checked when the job runs, so a lapsed member keeps their feeds without
-  // the device asking for work the server would refuse.
+  // Signed in, refreshing is membership-tier and checked when the job runs, so a lapsed member
+  // keeps their feeds without the device asking for work the server would refuse.
   planned.push({ kind: 'add-by-rss-refresh', priority });
   planned.push({ kind: 'home-clips', priority });
   planned.push({ kind: 'home-livestreams', priority });

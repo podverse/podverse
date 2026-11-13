@@ -12,6 +12,7 @@ import {
   mapParsedFeedToPreview,
   mergeLocalAndRemoteAddByRssFeeds,
   pollAddByRssParseStatus,
+  resolveAddByRssParsePayload,
   toAddByRssLiveItemPlaybackResourceData,
 } from './domain';
 import { addByRssPlaybackMediaId } from './resourceData';
@@ -30,6 +31,30 @@ const localFeed = (
   title: 'E2E Add-by-RSS Channel',
   updatedAt: '2026-01-01T00:00:00.000Z',
   ...overrides,
+});
+
+describe('resolveAddByRssParsePayload', () => {
+  const emptyPreview = {
+    enclosureUrl: null,
+    imageUrl: null,
+    latestItemPubDateMs: null,
+    playbackPosition: null,
+    title: null,
+  };
+
+  it('returns no bundle and an empty preview for a failed parse without a payload', () => {
+    expect(resolveAddByRssParsePayload('failed', undefined)).toEqual({
+      mappedFeed: null,
+      preview: emptyPreview,
+    });
+  });
+
+  it('returns no bundle and an empty preview for an unchanged feed without a payload', () => {
+    expect(resolveAddByRssParsePayload('not_modified', null)).toEqual({
+      mappedFeed: null,
+      preview: emptyPreview,
+    });
+  });
 });
 
 describe('localFeedForServerFollow', () => {

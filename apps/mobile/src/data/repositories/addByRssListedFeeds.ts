@@ -1,6 +1,11 @@
 import type { AddByRSSPublisherListedFeed } from '@podverse/helpers';
+import type { DTOAddByRSSRemoteItemResolveResult } from '@podverse/helpers/dto';
 import { canonicalAddByRSSFeedUrl } from '@podverse/helpers-validation/client';
 
+import {
+  DEVICE_LISTED_REQUEST_ID_PREFIX,
+  isResolvableListedRef,
+} from '../../lib/addByRss/deviceListedFeeds';
 import type { AddByRssPollResult } from '../../lib/addByRss/domain';
 import type { AddByRssAuthFailure } from '../../prefs/addByRSSFeeds';
 import type { AddByRssListedFeedInsert, AddByRssListedFeedRow } from '../db/schema';
@@ -244,6 +249,7 @@ export const listedAlbumAuthFailure = (result: ListedAlbumResult): AddByRssAuthF
 
 export type ListedAlbumStoreAction =
   | { kind: 'keep-pending' }
+  | { kind: 'unchanged' }
   | { kind: 'update-existing' }
   | { kind: 'skip-duplicate' }
   | { kind: 'insert-parsed' }
@@ -262,6 +268,10 @@ export const decideListedAlbumStore = (params: {
   if (result.status === 'pending') {
     return { kind: 'keep-pending' };
   }
+  // A device fetch sent its stored validators and the host answered 304.
+  if (result.status === 'not_modified' && result.mappedFeed === null) {
+    return { kind: 'unchanged' };
+  }
   if (result.mappedFeed !== null) {
     if (hasRowForUrl) {
       return { kind: 'update-existing' };
@@ -272,6 +282,136 @@ export const decideListedAlbumStore = (params: {
     return hasRowForUrl ? { kind: 'update-existing' } : { kind: 'insert-needs-credentials' };
   }
   return { kind: 'log-failure' };
+};
+
+/**
+ * A mobile-only `unresolvedReason`: the directory resolve was asked and does not know the guid
+ * (`not_found`, a 400, or a provider feed with no usable URL). The column is free text; the shared
+ * reasons come from `AddByRSSPublisherListedFeedUnresolvedReason`. The artist's next plan replaces
+ * the row, so the guid is asked again only after the artist feed changes. A directory channel
+ * that is not ready yet never gets this reason.
+ */
+export const LISTED_FEED_RESOLVE_NO_MATCH_REASON = 'resolve_no_match';
+
+/** A guid-only listing the paced directory resolve still has to ask about. */
+export const listedFeedNeedsResolve = (listing: AddByRssListedFeedRecord): boolean =>
+  listing.kind === 'unresolved' &&
+  listing.unresolvedReason === 'no_feed_url' &&
+  isResolvableListedRef(listing);
+
+/** A listing row, by its primary key. */
+export type ListedFeedKey = { publisherFeedUrl: string; feedGuid: string };
+
+/** One resolve call, and every listing that names its guid. */
+export type ListedFeedResolveGroup = {
+  feedGuid: string;
+  keys: ListedFeedKey[];
+};
+
+/** One group per lowercased guid, in first-seen order: two artists listing one album cost one call. */
+export const groupListedFeedResolveWork = (
+  listings: readonly AddByRssListedFeedRecord[]
+): ListedFeedResolveGroup[] => {
+  const byGuid = new Map<string, ListedFeedResolveGroup>();
+  for (const listing of listings) {
+    const guid = listing.feedGuid.toLowerCase();
+    const key: ListedFeedKey = {
+      publisherFeedUrl: listing.publisherFeedUrl,
+      feedGuid: listing.feedGuid,
+    };
+    const group = byGuid.get(guid);
+    if (group === undefined) {
+      byGuid.set(guid, { feedGuid: guid, keys: [key] });
+    } else {
+      group.keys.push(key);
+    }
+  }
+  return [...byGuid.values()];
+};
+
+export type ListedFeedResolveAction =
+  | {
+      kind: 'directory';
+      channelIdText: string;
+      channelTitle: string | null;
+      mediumId: number | null;
+    }
+  | { kind: 'add_by_rss'; feedUrl: string; requestId: string }
+  | { kind: 'no_match' }
+  | { kind: 'retry_later' };
+
+/** What one resolve answer does to the listings of its guid. */
+export const decideListedFeedResolve = (
+  result: DTOAddByRSSRemoteItemResolveResult,
+  newUuid: () => string
+): ListedFeedResolveAction => {
+  switch (result.kind) {
+    case 'channel':
+      return {
+        kind: 'directory',
+        channelIdText: result.channel.id_text,
+        channelTitle: result.channel.title,
+        mediumId: result.channel.medium_id,
+      };
+    case 'provider_feed': {
+      const feedUrl = canonicalAddByRSSFeedUrl(result.provider_feed.feed_url);
+      return feedUrl === null
+        ? { kind: 'no_match' }
+        : { kind: 'add_by_rss', feedUrl, requestId: DEVICE_LISTED_REQUEST_ID_PREFIX + newUuid() };
+    }
+    case 'not_found':
+      return { kind: 'no_match' };
+    case 'directory_unavailable':
+      return { kind: 'retry_later' };
+    default: {
+      const unhandled: never = result;
+      return unhandled;
+    }
+  }
+};
+
+/**
+ * Retry timing for a guid whose directory channel is not ready yet. The entry lives in memory for
+ * the app session; nothing sleeps toward it. A later sync trigger picks the guid up once it is due,
+ * so the k-th answer delays the next ask by `BASE × 2^(k−1)`, capped at `MAX`, for at most
+ * `MAX_RETRIES` retries per session.
+ */
+export const LISTED_FEED_RESOLVE_RETRY_BASE_MS = 60000;
+export const LISTED_FEED_RESOLVE_RETRY_MAX_MS = 1800000;
+export const LISTED_FEED_RESOLVE_RETRY_MAX_RETRIES = 6;
+
+/**
+ * `attempts` counts `directory_unavailable` answers this session; `nextAttemptAtMs: null` means
+ * no more attempts this session.
+ */
+export type ListedFeedResolveRetry = { attempts: number; nextAttemptAtMs: number | null };
+
+export const nextListedFeedResolveRetry = (
+  previous: ListedFeedResolveRetry | undefined,
+  nowMs: number
+): ListedFeedResolveRetry => {
+  const attempts = (previous?.attempts ?? 0) + 1;
+  if (attempts > LISTED_FEED_RESOLVE_RETRY_MAX_RETRIES) {
+    return { attempts, nextAttemptAtMs: null };
+  }
+  const delayMs = Math.min(
+    LISTED_FEED_RESOLVE_RETRY_BASE_MS * 2 ** (attempts - 1),
+    LISTED_FEED_RESOLVE_RETRY_MAX_MS
+  );
+  return { attempts, nextAttemptAtMs: nowMs + delayMs };
+};
+
+export const isListedFeedResolveDue = (
+  retry: ListedFeedResolveRetry | undefined,
+  nowMs: number
+): boolean => {
+  if (retry === undefined) {
+    return true;
+  }
+  if (retry.nextAttemptAtMs === null) {
+    return false;
+  }
+  return nowMs >= retry.nextAttemptAtMs;
 };
 
 /** True when a pointer lookup is due: never looked up, or the stored guids differ. */

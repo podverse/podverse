@@ -35,6 +35,23 @@ export const readSignupMergeEmail = async (): Promise<string | null> => {
   return rows[0]?.value ?? null;
 };
 
+export type SignupMergeMarker = { email: string; writtenAtMs: number | null };
+
+/** The pending sign-up email and when this device created that account. */
+export const readSignupMergeMarker = async (): Promise<SignupMergeMarker | null> => {
+  await initializeDatabase();
+  const rows = await getDb()
+    .select({ updatedAt: schema.kvMeta.updatedAt, value: schema.kvMeta.value })
+    .from(schema.kvMeta)
+    .where(eq(schema.kvMeta.key, SIGNUP_MERGE_EMAIL_KEY))
+    .limit(1);
+  const row = rows[0];
+  if (row === undefined || row.value === null) {
+    return null;
+  }
+  return { email: row.value, writtenAtMs: row.updatedAt };
+};
+
 export const clearSignupMergeEmail = async (): Promise<void> => {
   await initializeDatabase();
   await getDb().delete(schema.kvMeta).where(eq(schema.kvMeta.key, SIGNUP_MERGE_EMAIL_KEY));

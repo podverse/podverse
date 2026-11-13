@@ -13,12 +13,12 @@ Draft. Needs operator review.
 
 ### v4 mobile without a new release
 
-| Lever | How it works | Message control |
-| ----- | ------------ | --------------- |
-| Min version | `GET /api/v1/meta/app-info` → `MINIMUM_MOBILE_VERSION` | Blocking overlay; **hardcoded English** copy; button opens the store |
-| Scheduled maintenance | Same endpoint + `MAINTENANCE_MODE_SCHEDULED_*` | Overlay with i18n maintenance strings and server times |
-| Live maintenance | `MAINTENANCE_MODE_ENABLED` → API 503 | Offline-style UX; not an announcement channel |
-| Free-text announcement | None | There is no DB- or env-driven banner body |
+| Lever                  | How it works                                           | Message control                                                      |
+| ---------------------- | ------------------------------------------------------ | -------------------------------------------------------------------- |
+| Min version            | `GET /api/v1/meta/app-info` → `MINIMUM_MOBILE_VERSION` | Blocking overlay; **hardcoded English** copy; button opens the store |
+| Scheduled maintenance  | Same endpoint + `MAINTENANCE_MODE_SCHEDULED_*`         | Overlay with i18n maintenance strings and server times               |
+| Live maintenance       | `MAINTENANCE_MODE_ENABLED` → API 503                   | Offline-style UX; not an announcement channel                        |
+| Free-text announcement | None                                                   | There is no DB- or env-driven banner body                            |
 
 Sources: `podverse-api@develop` `src/routes/meta.ts`; `podverse-rn` `src/services/meta.ts`,
 `UpdateRequiredOverlay`, `MaintenanceScheduledOverlay`.
@@ -36,16 +36,16 @@ Sources: `podverse-api@develop` `src/routes/meta.ts`; `podverse-rn` `src/service
 
 ### Data and auth carryover
 
-| Item | Outlook |
-| ---- | ------- |
-| Password hashes | Likely portable: v4 `bcryptjs` 10 rounds; v5 `bcrypt` 10 rounds |
-| v4 JWT sessions | Do not work against v5. People sign in with the copied password. No session exchange |
-| Logged-in server data | One v4 account at v5 sign-in. Bulk copy only at grace end, outside the v4 app |
-| Signed-out local data | Only if v5 uses the same store ids (decided: yes) |
-| Downloaded files | Best-effort if paths remain readable under the same app id |
-| Membership expiry | Existing worker path after accounts exist; see billing ops |
-| Store / PayPal purchase rows | Need a separate design; not covered by the expiry CSV import |
-| Clips on deleted/missing episodes | May be unrecoverable |
+| Item                              | Outlook                                                                              |
+| --------------------------------- | ------------------------------------------------------------------------------------ |
+| Password hashes                   | Likely portable: v4 `bcryptjs` 10 rounds; v5 `bcrypt` 10 rounds                      |
+| v4 JWT sessions                   | Do not work against v5. People sign in with the copied password. No session exchange |
+| Logged-in server data             | One v4 account at v5 sign-in. Bulk copy only at grace end, outside the v4 app        |
+| Signed-out local data             | Only if v5 uses the same store ids (decided: yes)                                    |
+| Downloaded files                  | Best-effort if paths remain readable under the same app id                           |
+| Membership expiry                 | Existing worker path after accounts exist; see billing ops                           |
+| Store / PayPal purchase rows      | Need a separate design; not covered by the expiry CSV import                         |
+| Clips on deleted/missing episodes | May be unrecoverable                                                                 |
 
 ## Proposed approach
 

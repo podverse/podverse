@@ -6,10 +6,7 @@ import { DATABASE_CONSTANTS } from '@podverse/helpers';
 
 @Entity()
 @Check('chk_account_credentials_email_or_username', 'email IS NOT NULL OR username IS NOT NULL')
-@Check(
-  'chk_account_credentials_email_lowercase',
-  'email IS NULL OR email = lower(btrim(email))',
-)
+@Check('chk_account_credentials_email_lowercase', 'email IS NULL OR email = lower(btrim(email))')
 export class AccountCredentials {
   @PrimaryGeneratedColumn()
   id!: number;

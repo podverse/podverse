@@ -2,12 +2,40 @@ import type { DTOAccount } from '@podverse/helpers/dto';
 import { getErrorResponseStatus } from '@podverse/helpers/error';
 
 import { accountRepository } from '../data/repositories/accountRepository';
+import { writeAddByRssLoginSettle } from '../data/repositories/addByRssLoginSettle';
+import type { SignupMergeMarker } from '../data/repositories/subscriptionsSignupMarker';
+import { readSignupMergeMarker } from '../data/repositories/subscriptionsSignupMarker';
 import { runSignupSubscriptionMerge } from '../data/repositories/subscriptionsSignupMerge';
+import { isSignupLoginFor } from '../data/repositories/subscriptionsSignupPlan';
+import { requestAddByRssRefresh } from '../sync/requestAddByRssRefresh';
 import type { ClearSession } from './forcedLogoutNotice';
 import { loginWithMobileToken } from './loginWithMobileToken';
 import { reconcileAccountPrefsFromAccount } from './syncAccountPrefs';
 
 type SetTokens = (params: { accessToken: string; refreshToken: string }) => Promise<void>;
+
+/**
+ * The next Add by RSS refresh settles which feeds on the phone belong to this account, and after
+ * a sign-up on this phone carries the signed-out user's feeds into it. Never throws: the login
+ * succeeds either way.
+ */
+const markAddByRssLoginSettle = async (
+  accountIdText: string,
+  signupMarker: SignupMergeMarker | null,
+  email: string
+): Promise<void> => {
+  try {
+    const signup = isSignupLoginFor(signupMarker?.email ?? null, email);
+    await writeAddByRssLoginSettle({
+      accountIdText,
+      signedUpAtMs: signup ? (signupMarker?.writtenAtMs ?? null) : null,
+      signup,
+    });
+    requestAddByRssRefresh();
+  } catch (error) {
+    console.warn('Failed to mark the Add by RSS sign-in settle', error);
+  }
+};
 
 export type CompleteMobilePasswordLoginError =
   | 'account_load_failed'
@@ -61,6 +89,7 @@ export const completeMobilePasswordLogin = async ({
 
     // Before the refresh below, which makes the account authoritative over local subscriptions.
     // Only does anything when this device just created this account; never throws.
+    const signupMarker = await readSignupMergeMarker().catch(() => null);
     await runSignupSubscriptionMerge(email, authContext);
 
     try {
@@ -69,6 +98,7 @@ export const completeMobilePasswordLogin = async ({
       // by the sign-in trigger, because none of it is worth holding the caller for.
       const account = await accountRepository.refreshSnapshot(authContext);
       setAccount(account);
+      await markAddByRssLoginSettle(account.id_text, signupMarker, email);
       try {
         await reconcileAccountPrefsFromAccount(account);
       } catch (error) {

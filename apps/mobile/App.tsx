@@ -41,6 +41,7 @@ import {
 } from './src/push/notificationRouting';
 import { ForgotPasswordScreen } from './src/screens/auth/ForgotPasswordScreen';
 import { LoginScreen } from './src/screens/auth/LoginScreen';
+import { SignUpAddByRssLimitScreen } from './src/screens/auth/SignUpAddByRssLimitScreen';
 import { SignUpScreen } from './src/screens/auth/SignUpScreen';
 import { SyncProvider } from './src/sync';
 import { TermsAcceptanceProvider } from './src/terms/TermsAcceptanceProvider';
@@ -268,14 +269,16 @@ function AppBody({ onConsumePendingDeepLink, pendingDeepLinkUrl }: AppBodyProps)
   const { logout, status } = useAuth();
   // Login, sign-up, and forgot password are optional overlays for anonymous users.
   // Authenticated users always see tabs.
-  const [authMode, setAuthMode] = useState<'anonymous' | 'forgot-password' | 'login' | 'signup'>(
-    'anonymous'
-  );
+  const [authMode, setAuthMode] = useState<
+    'anonymous' | 'forgot-password' | 'login' | 'signup' | 'signup-add-by-rss-limit'
+  >('anonymous');
+  const [signUpLimitAccepted, setSignUpLimitAccepted] = useState(false);
   const [authModalAnimation, setAuthModalAnimation] = useState<'none' | 'slide'>('slide');
 
   useEffect(() => {
     if (status === 'authenticated') {
       setAuthMode('anonymous');
+      setSignUpLimitAccepted(false);
     }
   }, [status]);
 
@@ -292,23 +295,34 @@ function AppBody({ onConsumePendingDeepLink, pendingDeepLinkUrl }: AppBodyProps)
     }
   }, [authMode, pendingDeepLinkUrl, status]);
 
-  const openAuthSheet = (mode: 'forgot-password' | 'login' | 'signup') => {
+  const openAuthSheet = (
+    mode: 'forgot-password' | 'login' | 'signup' | 'signup-add-by-rss-limit'
+  ) => {
     setAuthModalAnimation('slide');
     setAuthMode(mode);
   };
 
+  const openSignUp = () => {
+    openAuthSheet(signUpLimitAccepted ? 'signup' : 'signup-add-by-rss-limit');
+  };
+
   const dismissAuthSheet = () => {
     setAuthMode('anonymous');
+    setSignUpLimitAccepted(false);
   };
 
   const dismissAuthSheetByDrag = () => {
     setAuthModalAnimation('none');
     setAuthMode('anonymous');
+    setSignUpLimitAccepted(false);
   };
 
   const showAuthSheet =
     status === 'anonymous' &&
-    (authMode === 'login' || authMode === 'signup' || authMode === 'forgot-password');
+    (authMode === 'login' ||
+      authMode === 'signup' ||
+      authMode === 'forgot-password' ||
+      authMode === 'signup-add-by-rss-limit');
 
   useEffect(() => {
     if (!showAuthSheet) {
@@ -333,7 +347,7 @@ function AppBody({ onConsumePendingDeepLink, pendingDeepLinkUrl }: AppBodyProps)
             if (status !== 'anonymous') {
               return;
             }
-            openAuthSheet('signup');
+            openSignUp();
           }}
         >
           <MembershipGateProvider onNavigateToMembership={navigateToMembershipScreen}>
@@ -360,7 +374,7 @@ function AppBody({ onConsumePendingDeepLink, pendingDeepLinkUrl }: AppBodyProps)
                     if (status !== 'anonymous') {
                       return;
                     }
-                    openAuthSheet('signup');
+                    openSignUp();
                   }}
                 />
               </OverlayA11yShield>
@@ -384,7 +398,18 @@ function AppBody({ onConsumePendingDeepLink, pendingDeepLinkUrl }: AppBodyProps)
       >
         <View accessibilityViewIsModal style={styles.authSheet}>
           <SafeAreaProvider>
-            {authMode === 'signup' ? (
+            {authMode === 'signup-add-by-rss-limit' ? (
+              <SignUpAddByRssLimitScreen
+                onDismiss={dismissAuthSheet}
+                onDragDismiss={dismissAuthSheetByDrag}
+                onProceed={(reason) => {
+                  if (reason === 'accepted') {
+                    setSignUpLimitAccepted(true);
+                  }
+                  setAuthMode('signup');
+                }}
+              />
+            ) : authMode === 'signup' ? (
               <SignUpScreen
                 onDismiss={dismissAuthSheet}
                 onDragDismiss={dismissAuthSheetByDrag}
@@ -406,11 +431,12 @@ function AppBody({ onConsumePendingDeepLink, pendingDeepLinkUrl }: AppBodyProps)
                   openAuthSheet('forgot-password');
                 }}
                 onSwitchToSignUp={() => {
-                  openAuthSheet('signup');
+                  openSignUp();
                 }}
               />
             )}
           </SafeAreaProvider>
+          <ShareSheetPassthroughOverlay />
         </View>
       </Modal>
       <E2eQuickLogin />

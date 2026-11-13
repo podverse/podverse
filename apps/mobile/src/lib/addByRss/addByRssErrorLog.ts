@@ -8,9 +8,10 @@ import type { AddByRssPollResult } from './domain';
 /**
  * Error-log rows for add-by-RSS.
  *
- * The server fetches and parses the feed from the creator's own host, so most failures here are the
- * host's: unreachable, an HTTP error, or a document that is not a feed. The row keeps the feed URL
- * and whatever the server recorded so support can show a listener exactly which address failed.
+ * The feed is fetched from the creator's own host and parsed by the Podverse server for a signed-in
+ * session or, signed out, by this device. Either way most failures here are the host's:
+ * unreachable, an HTTP error, or a document that is not a feed. The row keeps the feed URL and
+ * whatever the parse recorded so support can show a listener exactly which address failed.
  */
 
 export const ADD_BY_RSS_PARSE_FAILED_CODE = 'add_by_rss_parse_failed';
@@ -33,10 +34,11 @@ type ParseFailureInput = {
   feedUrl: string;
   jobKind: string;
   occurredAt: number;
-  requestId: string;
+  /** The server parse request, or null for a parse this device ran. */
+  requestId: string | null;
   result: Pick<
     AddByRssPollResult,
-    'credentialsState' | 'failureReason' | 'mappedFeed' | 'serverError' | 'status'
+    'credentialsState' | 'failureReason' | 'httpStatus' | 'mappedFeed' | 'serverError' | 'status'
   >;
 };
 
@@ -80,9 +82,12 @@ export const buildAddByRssParseFailureLog = ({
       // Whether credentials went with the feed request, or why not. Never the credentials.
       basic_auth: result.credentialsState,
       feed_url: feedUrl,
-      http_status: hostStatusFromServerError(result.serverError),
+      http_status:
+        typeof result.httpStatus === 'number'
+          ? String(result.httpStatus)
+          : hostStatusFromServerError(result.serverError),
       parse_status: result.status,
-      request_id: requestId,
+      ...(requestId !== null ? { request_id: requestId } : {}),
     },
     errorCode,
     jobKind,

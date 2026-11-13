@@ -4,7 +4,6 @@ import { loggerService } from '@api/factories/loggerService.js';
 import { _request } from '@api/lib/_request.js';
 import { joiAddByRssCredentialField } from '@api/lib/addByRSSCredentials.js';
 import { ensureAuthenticated } from '@api/lib/auth/index.js';
-import { assignChapterEndTimes } from '@api/lib/chapters.js';
 import { normalizeTranscriptResponseData } from '@api/lib/transcript.js';
 import { validateBodyObject } from '@api/lib/validation/index.js';
 import type { Request, Response } from 'express';
@@ -16,7 +15,7 @@ import type { AddByRSSChapterResponse, AxiosRequestConfig } from '@podverse/help
 import { resolveAddByRSSFeedUrlCredentials } from '@podverse/helpers-validation';
 import { buildCredentialScopedBeforeRedirect } from '@podverse/parser';
 import type { PIChapter } from '@podverse/parser-mapping';
-import { compatParsedChapters } from '@podverse/parser-mapping';
+import { buildAddByRSSChapterResponses } from '@podverse/parser-mapping';
 
 const bodySchema = Joi.object({
   itemIdText: Joi.string().required(),
@@ -149,12 +148,7 @@ export class AccountAddByRSSChaptersTranscriptController {
               );
               const data = response.data;
               if (data?.chapters && Array.isArray(data.chapters)) {
-                const createChapters = compatParsedChapters(data.chapters);
-                const withEndTimes = assignChapterEndTimes(createChapters);
-                chapters = withEndTimes.map((ch, i) => ({
-                  ...ch,
-                  id_text: `${itemIdText}-ch-${i}`,
-                }));
+                chapters = buildAddByRSSChapterResponses(itemIdText, data.chapters);
               }
             }
 

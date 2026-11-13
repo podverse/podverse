@@ -73,7 +73,7 @@ export const MEMBERSHIP_COMPARISON_FEATURES: readonly MembershipComparisonFeatur
   { nameKey: 'opml', free: true, premium: true },
   { nameKey: 'sleep_timer', free: true, premium: true },
   { nameKey: 'screen_reader', free: true, premium: true },
-  { nameKey: 'add_rss', free: false, premium: true },
+  { nameKey: 'add_rss', free: true, premium: true, freeOnMobileOnly: true },
   { nameKey: 'sync', free: false, premium: true },
   { nameKey: 'playback_handoff', free: false, premium: true },
   { nameKey: 'queue', free: false, premium: true },
@@ -90,14 +90,15 @@ export const MEMBERSHIP_COMPARISON_FEATURES: readonly MembershipComparisonFeatur
 /** Caps that change which Trial limitation sentences are shown, and the numbers in them. */
 export type MembershipComparisonCaps = {
   premiumAllowDirectoryAddByRSS: boolean;
-  premiumMaxAddByRSSFeeds: number;
   premiumMaxManualRefreshesPerHour: number;
   trialAllowDirectoryAddByRSS: boolean;
-  trialMaxAddByRSSFeeds: number;
   trialMaxManualRefreshesPerHour: number;
 };
 
-/** Catalog strings for one locale. Limit sentences still contain `{trial_feeds}` and the rest. */
+/**
+ * Catalog strings for one locale. The refresh limit sentence still contains `{trial_refreshes}`
+ * and `{premium_refreshes}`.
+ */
 export type MembershipComparisonMessages = {
   available: string;
   availableOnMobileApp: string;
@@ -110,7 +111,6 @@ export type MembershipComparisonMessages = {
   names: Record<MembershipComparisonNameKey, string>;
   premium: string;
   trialDirectory: string;
-  trialFeedLimit: string;
   trialRefreshLimit: string;
   trialStats: string;
   trialSummary: string;
@@ -208,14 +208,6 @@ export function buildMembershipComparisonDocument(
   const items: string[] = [];
   if (!caps.trialAllowDirectoryAddByRSS && caps.premiumAllowDirectoryAddByRSS) {
     items.push(messages.trialDirectory);
-  }
-  if (caps.trialMaxAddByRSSFeeds < caps.premiumMaxAddByRSSFeeds) {
-    items.push(
-      fillMembershipComparisonTemplate(messages.trialFeedLimit, {
-        premium_feeds: caps.premiumMaxAddByRSSFeeds,
-        trial_feeds: caps.trialMaxAddByRSSFeeds,
-      })
-    );
   }
   if (caps.trialMaxManualRefreshesPerHour < caps.premiumMaxManualRefreshesPerHour) {
     items.push(

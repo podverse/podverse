@@ -274,12 +274,12 @@ describe('createSyncQueue', () => {
 });
 
 describe('planSyncRun', () => {
-  it('syncs episodes for a signed-out device but nothing that needs an account', () => {
+  it('syncs episodes and Add by RSS feeds for a signed-out device but nothing that needs an account', () => {
     const kinds = planSyncRun({ isAuthenticated: false, trigger: 'app-start' }).map(
       (planned) => planned.kind
     );
 
-    expect(kinds).toEqual(['identity-remap', 'channel-items-scan']);
+    expect(kinds).toEqual(['identity-remap', 'channel-items-scan', 'add-by-rss-refresh']);
     expect(kinds).not.toContain('home-livestreams');
   });
 
@@ -354,17 +354,25 @@ describe('planSyncRun', () => {
     });
 
     expect(planned).toEqual([{ kind: 'add-by-rss-refresh', priority: 'user' }]);
+    expect(planSyncRun({ isAuthenticated: false, trigger: 'add-by-rss-pull-to-refresh' })).toEqual([
+      { kind: 'add-by-rss-refresh', priority: 'user' },
+    ]);
   });
 
-  it('plans the one album-sync job for the listed-feeds trigger, and nothing signed out', () => {
+  it('plans the one album-sync job for the listed-feeds trigger, signed in or out', () => {
     expect(planSyncRun({ isAuthenticated: true, trigger: 'add-by-rss-listed-feeds' })).toEqual([
       { kind: 'add-by-rss-listed-feeds', priority: 'background' },
     ]);
-    expect(planSyncRun({ isAuthenticated: false, trigger: 'add-by-rss-listed-feeds' })).toEqual([]);
+    expect(planSyncRun({ isAuthenticated: false, trigger: 'add-by-rss-listed-feeds' })).toEqual([
+      { kind: 'add-by-rss-listed-feeds', priority: 'background' },
+    ]);
   });
 
   it('plans only roots, leaving discovered work to the job that finds it', () => {
     const kinds = planSyncRun({ isAuthenticated: true, trigger: 'app-start' }).map(
+      (planned) => planned.kind
+    );
+    const signedOutKinds = planSyncRun({ isAuthenticated: false, trigger: 'app-start' }).map(
       (planned) => planned.kind
     );
 
@@ -372,5 +380,7 @@ describe('planSyncRun', () => {
     expect(kinds).not.toContain('subscriptions-commit');
     expect(kinds).not.toContain('channel-items');
     expect(kinds).not.toContain('add-by-rss-parse');
+    expect(kinds).not.toContain('add-by-rss-listed-resolve');
+    expect(signedOutKinds).not.toContain('add-by-rss-listed-resolve');
   });
 });

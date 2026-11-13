@@ -360,6 +360,12 @@ describe('external services, feed, medium-value, membership, claim, metaboost, m
         free: true,
         premium: true,
       });
+      const addRss = features.find((row: { id?: string }) => row.id === 'add_rss');
+      expect(addRss).toMatchObject({
+        name: 'Añadir feeds RSS personalizados *',
+        free: true,
+        premium: true,
+      });
       expect(res.body.data.trialLimitations.title).toBe('Limitaciones de la prueba');
       expect(Array.isArray(res.body.data.trialLimitations.items)).toBe(true);
     });
@@ -396,13 +402,12 @@ describe('external services, feed, medium-value, membership, claim, metaboost, m
         freeTrialDays: expect.any(Number),
         premiumMembershipCostMonthly: expect.any(Number),
         premiumMembershipCostAnnually: expect.any(Number),
+        maxAddByRSSFeeds: expect.any(Number),
         trialAllowDirectoryAddByRSS: expect.any(Boolean),
-        trialMaxAddByRSSFeeds: expect.any(Number),
         trialMaxManualRefreshesPerHour: expect.any(Number),
         trialTrackStats: expect.any(Boolean),
         trialAllowNotifications: expect.any(Boolean),
         premiumAllowDirectoryAddByRSS: expect.any(Boolean),
-        premiumMaxAddByRSSFeeds: expect.any(Number),
         premiumMaxManualRefreshesPerHour: expect.any(Number),
         premiumTrackStats: expect.any(Boolean),
         premiumAllowNotifications: expect.any(Boolean),

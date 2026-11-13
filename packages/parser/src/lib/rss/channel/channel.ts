@@ -19,7 +19,7 @@ import { handleParsedChannelTxt } from '@parser/lib/rss/channel/channelTxt.js';
 import { handleParsedChannelValue } from '@parser/lib/rss/channel/channelValue.js';
 import { handleParsedChannelVerifiedPublisher } from '@parser/lib/rss/channel/channelVerifiedPublisher.js';
 import type { DescriptionIngestContext } from '@parser/lib/rss/descriptionIngestContext.js';
-import type { FeedObject } from 'podverse-partytime';
+import type { FeedObject } from 'podverse-partytime/core';
 
 import type { RemoteItemDto } from '@podverse/helpers';
 import type { Channel, ChannelSeasonIndex, EntityManager } from '@podverse/orm';

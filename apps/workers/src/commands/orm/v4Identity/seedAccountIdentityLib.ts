@@ -13,8 +13,7 @@ export type V4IdentitySource = {
 export type V4IdentityParseFailure = 'bad_email' | 'bad_name' | 'bad_password' | 'bad_verified';
 
 export type V4IdentityParseResult =
-  | { ok: true; source: V4IdentitySource }
-  | { ok: false; reason: V4IdentityParseFailure };
+  { ok: true; source: V4IdentitySource } | { ok: false; reason: V4IdentityParseFailure };
 
 export type IdentitySeedAction = 'create' | 'repair' | 'skip_existing_email' | 'skip_id_taken';
 

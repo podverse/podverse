@@ -397,8 +397,7 @@ export function EditUserPageClient({ userId, initialTab }: Props) {
                         id="edit-user-rss-limit"
                         eyebrow={t('advancedOverrides.addByRssFeedLimit')}
                         info={t('advancedOverrides.addByRssFeedLimitHelp', {
-                          trialDefault: trialEnt.maxAddByRSSFeeds,
-                          premiumDefault: premiumEnt.maxAddByRSSFeeds,
+                          defaultLimit: trialEnt.maxAddByRSSFeeds,
                           selectedDefault: selectedEnt.maxAddByRSSFeeds,
                         })}
                         min={0}

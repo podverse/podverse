@@ -1,6 +1,20 @@
 import { describe, expect, it } from 'vitest';
 
-import { resolveSignupMergePlan } from './subscriptionsSignupPlan';
+import { isSignupLoginFor, resolveSignupMergePlan } from './subscriptionsSignupPlan';
+
+describe('isSignupLoginFor', () => {
+  it('is false when no sign-up is pending', () => {
+    expect(isSignupLoginFor(null, 'listener@example.com')).toBe(false);
+  });
+
+  it('matches the same email regardless of case or surrounding spaces', () => {
+    expect(isSignupLoginFor('  Listener@Example.com ', 'listener@example.com')).toBe(true);
+  });
+
+  it('is false for a different email', () => {
+    expect(isSignupLoginFor('listener@example.com', 'someone-else@example.com')).toBe(false);
+  });
+});
 
 describe('resolveSignupMergePlan', () => {
   const localChannelIdTexts = ['channel-a', 'channel-b'];

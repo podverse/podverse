@@ -464,9 +464,8 @@
       "freeTrialExpirationSeconds": "Free trial duration (seconds)",
       "premiumMembershipCostMonthly": "Premium monthly cost",
       "premiumMembershipCostAnnually": "Premium annual cost",
-      "trialMaxAddByRSSFeeds": "Trial max Add-by-RSS feeds",
+      "maxAddByRSSFeeds": "Max Add by RSS Feeds",
       "trialMaxManualRefreshesPerHour": "Trial max manual refreshes per hour",
-      "premiumMaxAddByRSSFeeds": "Premium max Add-by-RSS feeds",
       "premiumMaxManualRefreshesPerHour": "Premium max manual refreshes per hour"
     },
     "pricingTable": {
@@ -795,7 +794,7 @@
       "allowDirectoryAddByRss": "Allow directory Add by RSS override",
       "allowDirectoryAddByRssHelp": "Whether the user may add feeds from the podcast directory. Trial default: {trialDefault}. Premium default: {premiumDefault}.",
       "addByRssFeedLimit": "Add by RSS feed limit override",
-      "addByRssFeedLimitHelp": "Maximum Add by RSS feeds for this account. Trial tier default: {trialDefault}. Premium tier default: {premiumDefault}. Selected tier default for overrides: {selectedDefault}.",
+      "addByRssFeedLimitHelp": "Maximum Add by RSS feeds for this account. Trial and Premium default: {defaultLimit}. Selected tier default for overrides: {selectedDefault}.",
       "manualRefreshPerHour": "Manual refresh/hour limit override",
       "manualRefreshPerHourHelp": "Maximum manual refreshes per hour. Trial tier default: {trialDefault}. Premium tier default: {premiumDefault}. Selected tier default for overrides: {selectedDefault}.",
       "placeholderTierDefault": "Default: {count}",

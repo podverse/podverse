@@ -44,17 +44,23 @@ export function useAddByRssFeeds({ onNotice }: UseAddByRssFeedsOptions) {
     const allFeeds = await addByRssRepository.listAllFeeds();
     const followedFeeds = allFeeds.filter((feed) => feed.followed !== false);
 
-    // Viewing add-by-RSS feeds is anonymous tier (`add_by_rss_view`): adding and refreshing need a
-    // membership because they need server-side parsing, but feeds already on the device stay
-    // readable and playable signed out. Only the remote reconciliation below needs an account.
-    // Listed-only rows stay out of this list; they are passed into the merge so a server follow
-    // reuses the row this device already stored.
+    // Viewing is anonymous tier. Signed out, the phone's own feeds are the whole list. Signed in,
+    // the account's follow list is merged in. Listed-only rows stay out of this list; they are
+    // passed into the merge so a server follow reuses the row this device already stored.
     if (status !== 'authenticated' || account?.id_text === undefined) {
       await showPartitioned(followedFeeds);
       setErrorKey(null);
       setIsLoading(false);
       return;
     }
+
+    // Feeds the signed-out user kept are inputs for id reuse only: listed and written back as
+    // followed, they would be claimed by this account.
+    const hiddenFeedUrls = await addByRssRepository.listHiddenFeedUrls();
+    const mergeInput = allFeeds.map((feed) =>
+      hiddenFeedUrls.has(feed.feedUrl) ? { ...feed, followed: false } : feed
+    );
+    const visibleFollowedFeeds = followedFeeds.filter((feed) => !hiddenFeedUrls.has(feed.feedUrl));
 
     try {
       const remoteFeeds = await requestWithMobileAuthRefresh(
@@ -70,7 +76,7 @@ export function useAddByRssFeeds({ onNotice }: UseAddByRssFeedsOptions) {
           })
       );
 
-      const mergedFeeds = mergeLocalAndRemoteAddByRssFeeds(allFeeds, remoteFeeds);
+      const mergedFeeds = mergeLocalAndRemoteAddByRssFeeds(mergeInput, remoteFeeds);
       await showPartitioned(mergedFeeds);
       // Persist merged records without a bundle so each parsed mapped feed is preserved.
       for (const feed of mergedFeeds) {
@@ -78,8 +84,8 @@ export function useAddByRssFeeds({ onNotice }: UseAddByRssFeedsOptions) {
       }
     } catch {
       // Offline / API error: fall back to the last-synced feeds from SQLite so the list still renders.
-      if (followedFeeds.length > 0) {
-        await showPartitioned(followedFeeds);
+      if (visibleFollowedFeeds.length > 0) {
+        await showPartitioned(visibleFollowedFeeds);
         setErrorKey(null);
       } else {
         setErrorKey('errors.generic');
@@ -108,21 +114,23 @@ export function useAddByRssFeeds({ onNotice }: UseAddByRssFeedsOptions) {
       const result = await removeGuard.run(feedUrl, async () => {
         setRemovingFeedUrl(feedUrl);
         try {
-          try {
-            await requestWithMobileAuthRefresh(
-              {
-                accessToken,
-                clearSession,
-                refreshToken,
-                setTokens,
-              },
-              async (api) =>
-                api.reqAccountUnfollowAddByRSSChannel({
-                  feed_url: feedUrl,
-                })
-            );
-          } catch {
-            onNotice('errors.generic');
+          if (status === 'authenticated') {
+            try {
+              await requestWithMobileAuthRefresh(
+                {
+                  accessToken,
+                  clearSession,
+                  refreshToken,
+                  setTokens,
+                },
+                async (api) =>
+                  api.reqAccountUnfollowAddByRSSChannel({
+                    feed_url: feedUrl,
+                  })
+              );
+            } catch {
+              onNotice('errors.generic');
+            }
           }
 
           await addByRssRepository.unfollowFeed(feedUrl);
@@ -135,7 +143,16 @@ export function useAddByRssFeeds({ onNotice }: UseAddByRssFeedsOptions) {
       });
       return result !== false;
     },
-    [accessToken, clearSession, onNotice, refreshLocal, refreshToken, removeGuard, setTokens]
+    [
+      accessToken,
+      clearSession,
+      onNotice,
+      refreshLocal,
+      refreshToken,
+      removeGuard,
+      setTokens,
+      status,
+    ]
   );
 
   return {

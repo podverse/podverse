@@ -1,16 +1,21 @@
-import { and, asc, desc, eq, isNotNull, ne } from 'drizzle-orm';
+import type { SQL } from 'drizzle-orm';
+import { and, asc, desc, eq, inArray, isNotNull, ne, or, sql } from 'drizzle-orm';
 
 import type {
   AddByRSSParseCacheEntry,
   AddByRSSPublisherListedFeed,
   DTOAccountFollowingAddByRSSChannel,
 } from '@podverse/helpers';
-import { primaryChannelListArtworkUrl } from '@podverse/helpers';
-import { getErrorMessage } from '@podverse/helpers/error';
+import { primaryChannelListArtworkUrl, resolveCredentialScope } from '@podverse/helpers';
+import type { DTOAddByRSSRemoteItemLookupResult } from '@podverse/helpers/dto';
+import { ADD_BY_RSS_REMOTE_ITEM_LOOKUP_MAX_REFS } from '@podverse/helpers/dto';
+import { getErrorMessage, getErrorResponseStatus } from '@podverse/helpers/error';
 import { canonicalAddByRSSFeedUrl } from '@podverse/helpers-validation/client';
 import type { AddByRSSMappedFeed } from '@podverse/parser-mapping';
 import {
   addByRSSFeedMayHaveLivestreams,
+  addByRSSResourceTypeListsFeeds,
+  collectAddByRSSPublisherListedFeedRefsFromMappedFeed,
   getAddByRSSResourceTypeFromMappedFeed,
   toAddByRSSResourceType,
 } from '@podverse/parser-mapping';
@@ -18,6 +23,7 @@ import {
 // Import directly from the request module (not the auth barrel) to avoid a cycle, mirroring
 // accountRepository (AuthProvider → accountRepository → auth barrel → AuthProvider).
 import { requestWithMobileAuthRefresh } from '../../auth/authRequestWithRefresh';
+import { isAddByRssInsecureCredentialsAllowedFromEnv } from '../../config/env';
 import { buildAddByRssParseFailureLog } from '../../lib/addByRss/addByRssErrorLog';
 import type {
   AddByRssCredentials,
@@ -31,12 +37,22 @@ import {
   splitAddByRssPastedUrl,
   toAddByRssCredentialFeedUrl,
 } from '../../lib/addByRss/credentials';
+import type { DeviceListedFeedMatches } from '../../lib/addByRss/deviceListedFeeds';
+import {
+  deviceListedFeedLookupRefs,
+  deviceListedFeedMatches,
+  isDeviceListedRequestId,
+  planDeviceListedFeeds,
+} from '../../lib/addByRss/deviceListedFeeds';
+import { parseAddByRssFeedOnDevice } from '../../lib/addByRss/deviceParse';
+import type { AddByRssDeviceParseResult } from '../../lib/addByRss/deviceParseEngine';
 import type { AddByRssPollResult } from '../../lib/addByRss/domain';
 import {
   buildAddByRssFeedRecord,
   localFeedForServerFollow,
   pollAddByRssParseStatus,
 } from '../../lib/addByRss/domain';
+import type { AddByRssParsePath } from '../../lib/addByRss/parsePath';
 import type { AddByRssDirectoryPublisherMatch } from '../../lib/addByRss/publisherRefs';
 import {
   addByRssPublisherRefsFromMappedFeed,
@@ -44,29 +60,49 @@ import {
   parseStoredPublisherGuids,
   publisherRefColumnsFromMappedFeed,
 } from '../../lib/addByRss/publisherRefs';
+import { createUuid } from '../../lib/createUuid';
+import { getRateLimitRetryAfterMs } from '../../lib/rateLimit/handleRateLimitMessage';
 import type { MobileAddByRSSFeedRecord } from '../../prefs/addByRSSFeeds';
 import { requestAddByRssListedFeedsSync } from '../../sync/requestAddByRssRefresh';
 import { classifySyncError } from '../../sync/syncErrorClassification';
 import type { SyncJobKind } from '../../sync/syncJobKinds';
+import type { SyncJobPriority } from '../../sync/syncQueue';
 import { getDb, initializeDatabase, safeJsonParse, schema } from '../db';
 import { reloadAddByRssArtistIndex } from '../db/readAddByRssArtistIndex';
-import type { AddByRssFeedRow } from '../db/schema';
+import type { AddByRssFeedRow, AddByRssListedFeedInsert } from '../db/schema';
 import { addByRssCredentialStore } from './addByRssCredentialStore';
+import type { AddByRssDeviceCache, AddByRssDeviceRefreshEntry } from './addByRssDevicePath';
+import {
+  addByRssFollowOwnershipValues,
+  deviceCacheForFetch,
+  deviceCacheToStore,
+  isAddByRssFeedHiddenInSession,
+  selectDeviceRefreshFeedUrls,
+} from './addByRssDevicePath';
 import type {
   AddByRssListedFeedRecord,
+  ListedFeedKey,
+  ListedFeedResolveAction,
+  ListedFeedResolveRetry,
   PendingListedAlbum,
   PendingListingRef,
 } from './addByRssListedFeeds';
 import {
   decideListedAlbumStore,
+  decideListedFeedResolve,
   directoryLookupDue,
+  groupListedFeedResolveWork,
   groupPendingListedAlbums,
   isFeedListed,
+  isListedFeedResolveDue,
   LISTED_FEED_POLL_DELAY_MS,
   LISTED_FEED_POLL_ROUNDS,
+  LISTED_FEED_RESOLVE_NO_MATCH_REASON,
   listedAlbumAuthFailure,
+  listedFeedNeedsResolve,
   listedFeedNeedsWork,
   listedOnlyFeedUrlsToRemove,
+  nextListedFeedResolveRetry,
   rowToListedFeedRecord,
   toListedFeedInserts,
 } from './addByRssListedFeeds';
@@ -115,6 +151,12 @@ const feedColumnsWithoutBundle = () => ({
   podcastGuid: schema.addByRssFeed.podcastGuid,
   publisherGuidsJson: schema.addByRssFeed.publisherGuidsJson,
   publisherDirectoryJson: schema.addByRssFeed.publisherDirectoryJson,
+  deviceEtag: schema.addByRssFeed.deviceEtag,
+  deviceLastModified: schema.addByRssFeed.deviceLastModified,
+  deviceFeedHash: schema.addByRssFeed.deviceFeedHash,
+  deviceCheckedAt: schema.addByRssFeed.deviceCheckedAt,
+  signedOutOwned: schema.addByRssFeed.signedOutOwned,
+  followedAt: schema.addByRssFeed.followedAt,
 });
 
 /** A stored feed with the guid columns that tie artists and albums together. */
@@ -134,6 +176,19 @@ const LISTED_FEED_INSERT_CHUNK_SIZE = 50;
 const afterArtistRelationsChanged = async (): Promise<void> => {
   await reloadAddByRssArtistIndex();
 };
+
+const isSignedInSession = async (): Promise<boolean> =>
+  (await addByRssCredentialStore.currentAccountIdText()) !== null;
+
+/**
+ * Rows the current session may list. While someone is signed in, a followed row the signed-out
+ * user kept is left out; signed out, every row is listed. The SQL form of
+ * `isAddByRssFeedHiddenInSession`; the two are the same rule.
+ */
+const sessionVisibleFeedsCondition = async (): Promise<SQL | undefined> =>
+  (await isSignedInSession())
+    ? or(eq(schema.addByRssFeed.followed, 0), eq(schema.addByRssFeed.signedOutOwned, 0))
+    : undefined;
 
 const seedAutoDownloadRule = (feedUrl: string): void => {
   void autoDownloadRepository
@@ -207,22 +262,23 @@ const isExpectedMissingCredentials = (result: AddByRssPollResult): boolean =>
  */
 const loggedRefreshFailures = new Set<string>();
 
+/** `requestId` is null for a parse this device ran. */
 const recordRefreshFailure = (
-  ticket: AddByRssRefreshTicket,
+  parse: { feedUrl: string; requestId: string | null },
   result: AddByRssPollResult,
   jobKind: SyncJobKind
 ): void => {
   const entry = buildAddByRssParseFailureLog({
-    feedUrl: ticket.feedUrl,
+    feedUrl: parse.feedUrl,
     jobKind,
     occurredAt: Date.now(),
-    requestId: ticket.requestId,
+    requestId: parse.requestId,
     result,
   });
   if (entry === null) {
     return;
   }
-  const key = `${ticket.feedUrl}\u0000${entry.errorCode ?? ''}\u0000${entry.message ?? ''}`;
+  const key = `${parse.feedUrl}\u0000${entry.errorCode ?? ''}\u0000${entry.message ?? ''}`;
   if (loggedRefreshFailures.has(key)) {
     return;
   }
@@ -409,7 +465,9 @@ const storeArtistRelations = async (
     try {
       await addByRssRepository.replaceListedFeeds(feedUrl, result.publisherListedFeeds);
       const listings = await addByRssRepository.listListedFeeds(feedUrl);
-      if (listings.some(listedFeedNeedsWork)) {
+      if (
+        listings.some((listing) => listedFeedNeedsWork(listing) || listedFeedNeedsResolve(listing))
+      ) {
         requestAddByRssListedFeedsSync();
       }
     } catch (error) {
@@ -457,16 +515,119 @@ const storeArtistRelations = async (
   }
 };
 
+/**
+ * An artist parsed on this device, with its listings planned by the shared planner. Directory
+ * matches come from the public remote-item lookup. A private artist (credentials were sent) plans
+ * with none, so its references never leave the phone. `listingsResolved` is false when the lookup
+ * failed: the stored listings stay, and the caller clears the conditional cache so the next fetch
+ * plans again instead of answering not modified.
+ */
+const withDeviceListedFeeds = async (
+  context: MobileAuthRequestContext,
+  feedUrl: string,
+  result: AddByRssDeviceParseResult
+): Promise<{ result: AddByRssDeviceParseResult; listingsResolved: boolean }> => {
+  const { mappedFeed } = result;
+  if (
+    result.status !== 'parsed' ||
+    mappedFeed === null ||
+    !addByRSSResourceTypeListsFeeds(getAddByRSSResourceTypeFromMappedFeed(mappedFeed))
+  ) {
+    return { result, listingsResolved: true };
+  }
+  const { refs } = collectAddByRSSPublisherListedFeedRefsFromMappedFeed(mappedFeed, feedUrl);
+  let matches: DeviceListedFeedMatches | null = null;
+  if (result.credentialsState !== 'sent') {
+    try {
+      const lookupRefs = deviceListedFeedLookupRefs(refs);
+      const results: DTOAddByRSSRemoteItemLookupResult[] = [];
+      for (
+        let offset = 0;
+        offset < lookupRefs.length;
+        offset += ADD_BY_RSS_REMOTE_ITEM_LOOKUP_MAX_REFS
+      ) {
+        const chunk = lookupRefs.slice(offset, offset + ADD_BY_RSS_REMOTE_ITEM_LOOKUP_MAX_REFS);
+        const response = await requestWithMobileAuthRefresh(context, async (apiRequestService) =>
+          apiRequestService.reqAccountAddByRSSRemoteItemLookup(chunk)
+        );
+        results.push(...response.results);
+      }
+      matches = deviceListedFeedMatches(refs, results);
+    } catch (error) {
+      warnArtistRelationsFailure('listed feed lookup', error);
+      return { result: { ...result, publisherListedFeeds: undefined }, listingsResolved: false };
+    }
+  }
+  return {
+    result: {
+      ...result,
+      publisherListedFeeds: planDeviceListedFeeds({ refs, matches, newUuid: createUuid }),
+    },
+    listingsResolved: true,
+  };
+};
+
+/**
+ * Listings the listed-feed and resolve jobs work on: every listing except those of artists this
+ * session hides, whose rows wait for sign-out. The server path also leaves out albums this device
+ * planned; the server has no record of their ids, and the artist's next server parse replaces them.
+ */
+const readWorkListings = async (
+  parsePath: AddByRssParsePath
+): Promise<AddByRssListedFeedRecord[]> => {
+  const [listings, hiddenFeedUrls] = await Promise.all([
+    addByRssRepository.listAllListedFeeds(),
+    addByRssRepository.listHiddenFeedUrls(),
+  ]);
+  return listings.filter(
+    (listing) =>
+      !hiddenFeedUrls.has(listing.publisherFeedUrl) &&
+      !(
+        parsePath === 'server' &&
+        listing.pendingRequestId !== null &&
+        isDeviceListedRequestId(listing.pendingRequestId)
+      )
+  );
+};
+
+/**
+ * Credentials for a listed album parsed on this device: its own, else those of the first listing
+ * artist whose credentials may go to the album's host. Only its own count as `own`, which is what
+ * the stored credential state records, as on the server path.
+ */
+const listedAlbumDeviceCredentials = async (
+  album: PendingListedAlbum
+): Promise<{ credentials: AddByRssCredentials | null; own: boolean }> => {
+  const ownCredentials = await addByRssCredentialStore.getForCurrentAccount(album.feedUrl);
+  if (ownCredentials !== null) {
+    return { credentials: ownCredentials, own: true };
+  }
+  const allowInsecure = isAddByRssInsecureCredentialsAllowedFromEnv();
+  for (const listing of album.listings) {
+    if (
+      resolveCredentialScope(listing.publisherFeedUrl, album.feedUrl, { allowInsecure }) !== 'send'
+    ) {
+      continue;
+    }
+    const artistCredentials = await addByRssCredentialStore.getForCurrentAccount(
+      listing.publisherFeedUrl
+    );
+    if (artistCredentials !== null) {
+      return { credentials: artistCredentials, own: false };
+    }
+  }
+  return { credentials: null, own: false };
+};
+
 /** Send this device's own parse request for an album it holds credentials for. */
 const withOwnAlbumParseRequest = async (
   context: MobileAuthRequestContext,
-  accountIdText: string,
   album: PendingListedAlbum
 ): Promise<PendingListedAlbum> => {
   if (ownAlbumParseRequestIds.has(album.requestId)) {
     return album;
   }
-  const credentials = await addByRssCredentialStore.get(accountIdText, album.feedUrl);
+  const credentials = await addByRssCredentialStore.getForCurrentAccount(album.feedUrl);
   if (credentials === null) {
     return album;
   }
@@ -486,11 +647,16 @@ const withOwnAlbumParseRequest = async (
   };
 };
 
-/** Store one listed album's finished parse the way `decideListedAlbumStore` says. */
+/**
+ * Store one listed album's finished parse the way `decideListedAlbumStore` says.
+ * `sentCredentials` is true when the album's own stored credentials went with the parse;
+ * `requestId` is the logged parse request, null for a parse this device ran.
+ */
 const storeListedAlbumResult = async (
   context: MobileAuthRequestContext,
   album: PendingListedAlbum,
-  result: AddByRssPollResult
+  result: AddByRssPollResult,
+  parse: { requestId: string | null; sentCredentials: boolean }
 ): Promise<void> => {
   const canonicalUrl = canonicalAddByRSSFeedUrl(album.feedUrl);
   const existing =
@@ -507,7 +673,7 @@ const storeListedAlbumResult = async (
     podcastGuid !== null &&
     (await hasFeedWithPodcastGuid(podcastGuid, album.feedUrl));
   const action = decideListedAlbumStore({ result, hasRowForUrl: existing !== null, hasRowForGuid });
-  const sentCredentials = ownAlbumParseRequestIds.has(album.requestId);
+  const { sentCredentials } = parse;
 
   switch (action.kind) {
     case 'update-existing': {
@@ -574,12 +740,13 @@ const storeListedAlbumResult = async (
       return;
     case 'log-failure':
       recordRefreshFailure(
-        { feedUrl: album.feedUrl, requestId: album.requestId },
+        { feedUrl: album.feedUrl, requestId: parse.requestId },
         result,
         LISTED_FEEDS_JOB_KIND
       );
       return;
     case 'keep-pending':
+    case 'unchanged':
     case 'skip-duplicate':
       return;
   }
@@ -608,13 +775,215 @@ const settleListedAlbum = async (
     return 'pending';
   }
   try {
-    await storeListedAlbumResult(context, album, result);
+    await storeListedAlbumResult(context, album, result, {
+      requestId: album.requestId,
+      sentCredentials: ownAlbumParseRequestIds.has(album.requestId),
+    });
   } catch (error) {
     warnArtistRelationsFailure('storing a listed album', error);
     return 'unreadable';
   }
   await moveListingsPending(album.listings, null);
   return 'settled';
+};
+
+/**
+ * Fetch and parse pending listed albums on this device, once each in listing order, until
+ * `shouldStop` says so. A throw (offline, Offline Mode, abort) ends the pass with that album still
+ * pending. `deviceAlbumsLeft` counts the albums still pending afterwards.
+ */
+const parseListedAlbumsOnDevice = async (
+  context: MobileAuthRequestContext,
+  albums: readonly PendingListedAlbum[],
+  shouldStop: () => boolean,
+  signal?: AbortSignal
+): Promise<{ deviceAlbumsLeft: number; deviceAlbumsStored: number }> => {
+  let deviceAlbumsStored = 0;
+  let deviceAlbumsFailed = 0;
+  for (const [index, album] of albums.entries()) {
+    const notStarted = albums.length - index;
+    if (shouldStop()) {
+      return { deviceAlbumsLeft: notStarted + deviceAlbumsFailed, deviceAlbumsStored };
+    }
+    let result: AddByRssDeviceParseResult;
+    let ownCredentials: boolean;
+    try {
+      const { credentials, own } = await listedAlbumDeviceCredentials(album);
+      ownCredentials = own;
+      const state = await addByRssRepository.getDeviceFetchState(album.feedUrl);
+      result = await parseAddByRssFeedOnDevice({
+        conditionalCache: state?.cache ?? null,
+        credentials,
+        feedUrl: album.feedUrl,
+        signal,
+      });
+    } catch {
+      return { deviceAlbumsLeft: notStarted + deviceAlbumsFailed, deviceAlbumsStored };
+    }
+    try {
+      await storeListedAlbumResult(context, album, result, {
+        requestId: null,
+        sentCredentials: ownCredentials,
+      });
+      if ((await addByRssRepository.getDeviceFetchState(album.feedUrl)) !== null) {
+        await addByRssRepository.setDeviceFetchState(album.feedUrl, {
+          cache: deviceCacheToStore(result),
+          checkedAtMs: Date.now(),
+        });
+      }
+    } catch (error) {
+      warnArtistRelationsFailure('storing a listed album', error);
+      deviceAlbumsFailed += 1;
+      continue;
+    }
+    await moveListingsPending(album.listings, null);
+    deviceAlbumsStored += 1;
+  }
+  return { deviceAlbumsLeft: deviceAlbumsFailed, deviceAlbumsStored };
+};
+
+/**
+ * Retry times for guids whose directory channel was not ready yet, keyed by lowercased guid. Held
+ * for the app session only, like the sync queue's work. It is device data about public directory
+ * guids, so sign-out leaves it.
+ */
+const listedFeedResolveRetries = new Map<string, ListedFeedResolveRetry>();
+
+/** How long one resolve run keeps calling; longer than a one-minute rate-limit window. */
+const LISTED_FEED_RESOLVE_BUDGET_MS = 80000;
+
+/** The gap between resolve calls, which keeps a large artist under the signed-out rate limit. */
+const LISTED_FEED_RESOLVE_SPACING_MS = 500;
+
+/**
+ * Guid-only listings the resolve job may ask about now. Listings of an artist with stored
+ * credentials are left out, so a private artist's guids never leave the phone, and so are guids
+ * whose retry time has not come.
+ */
+const listListedFeedResolveWork = async (): Promise<AddByRssListedFeedRecord[]> => {
+  const listings = (await readWorkListings('device')).filter(listedFeedNeedsResolve);
+  const nowMs = Date.now();
+  const hasCredentialsByPublisher = new Map<string, boolean>();
+  const work: AddByRssListedFeedRecord[] = [];
+  for (const listing of listings) {
+    if (
+      !isListedFeedResolveDue(listedFeedResolveRetries.get(listing.feedGuid.toLowerCase()), nowMs)
+    ) {
+      continue;
+    }
+    let hasCredentials = hasCredentialsByPublisher.get(listing.publisherFeedUrl);
+    if (hasCredentials === undefined) {
+      hasCredentials = await addByRssCredentialStore
+        .getForCurrentAccount(listing.publisherFeedUrl)
+        .then(
+          (credentials) => credentials !== null,
+          // An unreadable entry may still be a private artist's.
+          () => true
+        );
+      hasCredentialsByPublisher.set(listing.publisherFeedUrl, hasCredentials);
+    }
+    if (!hasCredentials) {
+      work.push(listing);
+    }
+  }
+  return work;
+};
+
+type SettledListedFeedResolve = Exclude<ListedFeedResolveAction, { kind: 'retry_later' }>;
+
+const listedFeedResolveColumns = (
+  action: SettledListedFeedResolve
+): Partial<AddByRssListedFeedInsert> => {
+  switch (action.kind) {
+    case 'directory':
+      return {
+        artworkChecked: 0,
+        channelIdText: action.channelIdText,
+        channelTitle: action.channelTitle,
+        kind: 'directory',
+        mediumId: action.mediumId,
+        unresolvedReason: null,
+      };
+    case 'add_by_rss':
+      return {
+        feedUrl: action.feedUrl,
+        kind: 'add_by_rss',
+        pendingRequestId: action.requestId,
+        unresolvedReason: null,
+      };
+    case 'no_match':
+      return { unresolvedReason: LISTED_FEED_RESOLVE_NO_MATCH_REASON };
+  }
+};
+
+/**
+ * Store one settled resolve answer on every listing of its guid. A row changes only while it is
+ * still a guid-only unresolved row, so an artist re-plan that replaced it in between wins.
+ */
+const applyListedFeedResolve = async (
+  keys: readonly ListedFeedKey[],
+  action: SettledListedFeedResolve
+): Promise<void> => {
+  const values = listedFeedResolveColumns(action);
+  await getDb().transaction(async (transaction) => {
+    for (const key of keys) {
+      await transaction
+        .update(schema.addByRssListedFeed)
+        .set(values)
+        .where(
+          and(
+            eq(schema.addByRssListedFeed.publisherFeedUrl, key.publisherFeedUrl),
+            eq(schema.addByRssListedFeed.feedGuid, key.feedGuid),
+            eq(schema.addByRssListedFeed.kind, 'unresolved'),
+            eq(schema.addByRssListedFeed.unresolvedReason, 'no_feed_url')
+          )
+        );
+    }
+  });
+  await afterArtistRelationsChanged();
+};
+
+/**
+ * One resolve answer for a guid. A 429 is waited out and asked again while the wait fits the
+ * budget; a 400 is a ref the route refuses, so no match. Null stops the run: the budget is spent,
+ * or the index provider or the API answered an error. An error with no HTTP status (offline,
+ * unreachable) is thrown.
+ */
+const requestListedFeedResolve = async (
+  context: MobileAuthRequestContext,
+  feedGuid: string,
+  sleep: (ms: number) => Promise<unknown>,
+  remainingMs: () => number
+): Promise<ListedFeedResolveAction | null> => {
+  while (remainingMs() > 0) {
+    try {
+      const answer = await requestWithMobileAuthRefresh(context, async (apiRequestService) =>
+        apiRequestService.reqAccountAddByRSSRemoteItemResolve({
+          feed_guid: feedGuid,
+          feed_url: null,
+        })
+      );
+      return decideListedFeedResolve(answer, createUuid);
+    } catch (error) {
+      const waitMs = getRateLimitRetryAfterMs(error);
+      if (waitMs !== null) {
+        if (waitMs >= remainingMs()) {
+          return null;
+        }
+        await sleep(waitMs);
+        continue;
+      }
+      const status = getErrorResponseStatus(error);
+      if (status === 400) {
+        return { kind: 'no_match' };
+      }
+      if (status !== undefined) {
+        return null;
+      }
+      throw error;
+    }
+  }
+  return null;
 };
 
 /** Fill artwork for directory listings not checked yet, one read per directory channel. */
@@ -663,6 +1032,42 @@ const fillDirectoryListingArtwork = async (
   }
 };
 
+/**
+ * Store an interactive parse result, wherever the parse ran. A feed already on the device keeps its
+ * stored episodes when the parse yields none; a new feed is written either way so the add lands.
+ * `followed` is written only when set.
+ */
+const storeInteractiveParseResult = async (
+  context: MobileAuthRequestContext,
+  feedUrl: string,
+  credentials: AddByRssCredentials | null,
+  result: AddByRssPollResult,
+  options?: { followed?: boolean }
+): Promise<void> => {
+  const existingFeed = await addByRssRepository.getFeedByUrl(feedUrl);
+  const previousPublisherState =
+    result.mappedFeed === null ? null : await addByRssRepository.getPublisherState(feedUrl);
+  const credentialStatus = resolveAddByRssCredentialStatus({
+    credentialsState: result.credentialsState,
+    current: credentials !== null || existingFeed?.requiresCredentials === true,
+    failureReason: result.failureReason,
+    status: result.status,
+  });
+  const record = buildAddByRssFeedRecord(feedUrl, existingFeed ?? undefined, result.preview);
+  await addByRssRepository.upsertFeed(
+    {
+      ...record,
+      ...(credentials !== null ? { requiresCredentials: true } : {}),
+      ...credentialStatus,
+      ...(options?.followed !== undefined ? { followed: options.followed } : {}),
+    },
+    existingFeed === null ? result.mappedFeed : (result.mappedFeed ?? undefined)
+  );
+  if (result.mappedFeed !== null) {
+    await storeArtistRelations(context, feedUrl, result, previousPublisherState);
+  }
+};
+
 export type AddByRssFeedsByCredentials = {
   needsCredentials: AddByRssNeedsCredentialsFeed<MobileAddByRSSFeedRecord>[];
   ready: MobileAddByRSSFeedRecord[];
@@ -682,15 +1087,16 @@ export type AddByRssFeedsByCredentials = {
  */
 export const addByRssRepository = {
   /**
-   * The member's followed Add by RSS feeds, most-recently-updated first (offline-capable list).
-   * Feeds held only because an Add by RSS artist lists them are left out.
+   * The followed Add by RSS feeds this session shows, most-recently-updated first
+   * (offline-capable list). Feeds held only because an Add by RSS artist lists them are left out,
+   * and so, while someone is signed in, are feeds the signed-out user followed.
    */
   listFeeds: async (): Promise<MobileAddByRSSFeedRecord[]> => {
     await initializeDatabase();
     const rows = await getDb()
       .select()
       .from(schema.addByRssFeed)
-      .where(eq(schema.addByRssFeed.followed, 1))
+      .where(and(eq(schema.addByRssFeed.followed, 1), await sessionVisibleFeedsCondition()))
       .orderBy(desc(schema.addByRssFeed.updatedAt));
 
     return rows.map(rowToRecord);
@@ -707,12 +1113,16 @@ export const addByRssRepository = {
     return rows.map(rowToRecord);
   },
 
-  /** Every stored Add by RSS row (followed or listed-only) with its guid columns. No bundles. */
+  /**
+   * Every Add by RSS row this session lists (followed or listed-only) with its guid columns. No
+   * bundles.
+   */
   listFeedsWithRefs: async (): Promise<AddByRssFeedWithRefs[]> => {
     await initializeDatabase();
     const rows = await getDb()
       .select(feedColumnsWithoutBundle())
       .from(schema.addByRssFeed)
+      .where(await sessionVisibleFeedsCondition())
       .orderBy(desc(schema.addByRssFeed.updatedAt));
 
     return rows.map((row) => ({
@@ -772,14 +1182,21 @@ export const addByRssRepository = {
     return raw === null ? null : safeJsonParse<AddByRSSMappedFeed>(raw);
   },
 
-  /** Followed feed URLs that already have a parsed bundle stored, for parse-status display. */
+  /**
+   * Followed feed URLs this session shows that already have a parsed bundle stored, for
+   * parse-status display.
+   */
   listParsedFeedUrls: async (): Promise<string[]> => {
     await initializeDatabase();
     const rows = await getDb()
       .select({ feedUrl: schema.addByRssFeed.feedUrl })
       .from(schema.addByRssFeed)
       .where(
-        and(isNotNull(schema.addByRssFeed.mappedFeedJson), eq(schema.addByRssFeed.followed, 1))
+        and(
+          isNotNull(schema.addByRssFeed.mappedFeedJson),
+          eq(schema.addByRssFeed.followed, 1),
+          await sessionVisibleFeedsCondition()
+        )
       );
 
     return rows.map((row) => row.feedUrl);
@@ -801,6 +1218,8 @@ export const addByRssRepository = {
    *
    * `followed` is written only when the record sets it: an update without it keeps the stored
    * value, and an insert without it is a follow. A listed-only feed gets no auto-download rule.
+   * A write that follows the feed also records who follows it, the signed-out user or the
+   * signed-in account, and when the follow started.
    */
   upsertFeed: async (
     record: MobileAddByRSSFeedRecord,
@@ -811,6 +1230,7 @@ export const addByRssRepository = {
     const existingRows = await getDb()
       .select({
         feedUrl: schema.addByRssFeed.feedUrl,
+        followed: schema.addByRssFeed.followed,
         mayHaveLivestreams: schema.addByRssFeed.mayHaveLivestreams,
       })
       .from(schema.addByRssFeed)
@@ -818,6 +1238,15 @@ export const addByRssRepository = {
       .limit(1);
     const isNewFeed = existingRows.length === 0;
     const seedsAutoDownload = isNewFeed && record.followed !== false;
+    const followsFeed = record.followed === true || (isNewFeed && record.followed === undefined);
+    const ownershipValues: { followedAt?: number; signedOutOwned?: 0 | 1 } = followsFeed
+      ? addByRssFollowOwnershipValues({
+          isNewFeed,
+          isSignedIn: await isSignedInSession(),
+          nowMs: Date.now(),
+          wasFollowed: existingRows[0]?.followed === 1,
+        })
+      : {};
 
     const baseValues = {
       feedUrl: record.feedUrl,
@@ -831,6 +1260,7 @@ export const addByRssRepository = {
       updatedAt: record.updatedAt,
       ...credentialColumnValues(record),
       ...(record.followed !== undefined ? { followed: record.followed ? 1 : 0 } : {}),
+      ...ownershipValues,
     };
 
     if (mappedFeed !== undefined) {
@@ -887,16 +1317,35 @@ export const addByRssRepository = {
 
   /**
    * Mark a stored feed as followed or listed-only. Following it seeds its auto-download rule the
-   * way a new follow does.
+   * way a new follow does, and records who follows it, the signed-out user or the signed-in
+   * account, and when the follow started.
    */
   setFollowed: async (feedUrl: string, followed: boolean): Promise<void> => {
     await initializeDatabase();
-    await getDb()
-      .update(schema.addByRssFeed)
-      .set({ followed: followed ? 1 : 0 })
-      .where(eq(schema.addByRssFeed.feedUrl, feedUrl));
     if (followed) {
+      const rows = await getDb()
+        .select({ followed: schema.addByRssFeed.followed })
+        .from(schema.addByRssFeed)
+        .where(eq(schema.addByRssFeed.feedUrl, feedUrl))
+        .limit(1);
+      await getDb()
+        .update(schema.addByRssFeed)
+        .set({
+          followed: 1,
+          ...addByRssFollowOwnershipValues({
+            isNewFeed: false,
+            isSignedIn: await isSignedInSession(),
+            nowMs: Date.now(),
+            wasFollowed: rows[0]?.followed === 1,
+          }),
+        })
+        .where(eq(schema.addByRssFeed.feedUrl, feedUrl));
       seedAutoDownloadRule(feedUrl);
+    } else {
+      await getDb()
+        .update(schema.addByRssFeed)
+        .set({ followed: 0 })
+        .where(eq(schema.addByRssFeed.feedUrl, feedUrl));
     }
     await afterArtistRelationsChanged();
   },
@@ -1043,6 +1492,220 @@ export const addByRssRepository = {
       .where(eq(schema.addByRssFeed.feedUrl, feedUrl));
   },
 
+  /** Feed URLs this session hides: none signed out; signed in, the signed-out user's follows. */
+  listHiddenFeedUrls: async (): Promise<Set<string>> => {
+    await initializeDatabase();
+    if (!(await isSignedInSession())) {
+      return new Set();
+    }
+    const rows = await getDb()
+      .select({ feedUrl: schema.addByRssFeed.feedUrl })
+      .from(schema.addByRssFeed)
+      .where(and(eq(schema.addByRssFeed.followed, 1), eq(schema.addByRssFeed.signedOutOwned, 1)));
+    return new Set(rows.map((row) => row.feedUrl));
+  },
+
+  /** Whether this session leaves the stored row for this URL out of its lists. */
+  isFeedHiddenInSession: async (feedUrl: string): Promise<boolean> => {
+    await initializeDatabase();
+    const rows = await getDb()
+      .select({
+        followed: schema.addByRssFeed.followed,
+        signedOutOwned: schema.addByRssFeed.signedOutOwned,
+      })
+      .from(schema.addByRssFeed)
+      .where(eq(schema.addByRssFeed.feedUrl, feedUrl))
+      .limit(1);
+    const row = rows[0];
+    if (row === undefined) {
+      return false;
+    }
+    return isAddByRssFeedHiddenInSession({
+      followed: row.followed === 1,
+      isSignedIn: await isSignedInSession(),
+      signedOutOwned: row.signedOutOwned === 1,
+    });
+  },
+
+  /**
+   * The signed-out user's followed feeds, oldest follow first. Signed out, that is every followed
+   * row, because everything a signed-out session lists is the signed-out user's. Signed in, it is
+   * the followed rows the signed-out user owns. Rows followed before follow times were recorded
+   * sort first, in insert order. No bundles.
+   */
+  listSignedOutFollowedFeeds: async (): Promise<
+    {
+      feedUrl: string;
+      followedAtMs: number | null;
+      requiresCredentials: boolean;
+      title: string | null;
+    }[]
+  > => {
+    await initializeDatabase();
+    const isSignedIn = await isSignedInSession();
+    const rows = await getDb()
+      .select({
+        feedUrl: schema.addByRssFeed.feedUrl,
+        followedAt: schema.addByRssFeed.followedAt,
+        requiresCredentials: schema.addByRssFeed.requiresCredentials,
+        title: schema.addByRssFeed.title,
+      })
+      .from(schema.addByRssFeed)
+      .where(
+        and(
+          eq(schema.addByRssFeed.followed, 1),
+          isSignedIn ? eq(schema.addByRssFeed.signedOutOwned, 1) : undefined
+        )
+      )
+      .orderBy(asc(schema.addByRssFeed.followedAt), asc(sql`rowid`));
+    return rows.map((row) => ({
+      feedUrl: row.feedUrl,
+      followedAtMs: row.followedAt,
+      requiresCredentials: row.requiresCredentials === 1,
+      title: row.title,
+    }));
+  },
+
+  /** Every followed feed on the phone, oldest follow first, with who owns it. */
+  listFollowedOwnership: async (): Promise<
+    { feedUrl: string; followedAtMs: number | null; signedOutOwned: boolean }[]
+  > => {
+    await initializeDatabase();
+    const rows = await getDb()
+      .select({
+        feedUrl: schema.addByRssFeed.feedUrl,
+        followedAt: schema.addByRssFeed.followedAt,
+        signedOutOwned: schema.addByRssFeed.signedOutOwned,
+      })
+      .from(schema.addByRssFeed)
+      .where(eq(schema.addByRssFeed.followed, 1))
+      .orderBy(asc(schema.addByRssFeed.followedAt), asc(sql`rowid`));
+    return rows.map((row) => ({
+      feedUrl: row.feedUrl,
+      followedAtMs: row.followedAt,
+      signedOutOwned: row.signedOutOwned === 1,
+    }));
+  },
+
+  /** Set or clear the signed-out ownership flag on these feeds. */
+  setSignedOutOwned: async (
+    feedUrls: readonly string[],
+    signedOutOwned: boolean
+  ): Promise<void> => {
+    await initializeDatabase();
+    if (feedUrls.length === 0) {
+      return;
+    }
+    for (let index = 0; index < feedUrls.length; index += LISTED_FEED_INSERT_CHUNK_SIZE) {
+      await getDb()
+        .update(schema.addByRssFeed)
+        .set({ signedOutOwned: signedOutOwned ? 1 : 0 })
+        .where(
+          inArray(
+            schema.addByRssFeed.feedUrl,
+            feedUrls.slice(index, index + LISTED_FEED_INSERT_CHUNK_SIZE)
+          )
+        );
+    }
+    await afterArtistRelationsChanged();
+  },
+
+  /** What a device fetch of this feed needs to know. Null when no row has this URL. */
+  getDeviceFetchState: async (
+    feedUrl: string
+  ): Promise<{
+    cache: AddByRssDeviceCache | null;
+    checkedAtMs: number | null;
+    followed: boolean;
+    requiresCredentials: boolean;
+  } | null> => {
+    await initializeDatabase();
+    const rows = await getDb()
+      .select({
+        deviceCheckedAt: schema.addByRssFeed.deviceCheckedAt,
+        deviceEtag: schema.addByRssFeed.deviceEtag,
+        deviceFeedHash: schema.addByRssFeed.deviceFeedHash,
+        deviceLastModified: schema.addByRssFeed.deviceLastModified,
+        followed: schema.addByRssFeed.followed,
+        hasBundle: sql<number>`${schema.addByRssFeed.mappedFeedJson} IS NOT NULL`,
+        requiresCredentials: schema.addByRssFeed.requiresCredentials,
+      })
+      .from(schema.addByRssFeed)
+      .where(eq(schema.addByRssFeed.feedUrl, feedUrl))
+      .limit(1);
+    const row = rows[0];
+    if (row === undefined) {
+      return null;
+    }
+    return {
+      cache: deviceCacheForFetch({
+        deviceEtag: row.deviceEtag,
+        deviceFeedHash: row.deviceFeedHash,
+        deviceLastModified: row.deviceLastModified,
+        hasBundle: row.hasBundle === 1,
+      }),
+      checkedAtMs: row.deviceCheckedAt,
+      followed: row.followed === 1,
+      requiresCredentials: row.requiresCredentials === 1,
+    };
+  },
+
+  /**
+   * Record a completed device fetch. `cache` as an object replaces the stored cache, `null`
+   * clears it, and leaving it out keeps it.
+   */
+  setDeviceFetchState: async (
+    feedUrl: string,
+    state: { cache?: AddByRssDeviceCache | null; checkedAtMs: number }
+  ): Promise<void> => {
+    await initializeDatabase();
+    const cacheValues =
+      state.cache === undefined
+        ? {}
+        : {
+            deviceEtag: state.cache?.etag ?? null,
+            deviceFeedHash: state.cache?.feedHash ?? null,
+            deviceLastModified: state.cache?.lastModified ?? null,
+          };
+    await getDb()
+      .update(schema.addByRssFeed)
+      .set({ deviceCheckedAt: state.checkedAtMs, ...cacheValues })
+      .where(eq(schema.addByRssFeed.feedUrl, feedUrl));
+  },
+
+  /** The followed feeds this session shows, with what a device refresh decides from. */
+  listDeviceRefreshEntries: async (): Promise<AddByRssDeviceRefreshEntry[]> => {
+    await initializeDatabase();
+    const [feeds, checkedRows, feedUrlsWithCredentials] = await Promise.all([
+      addByRssRepository.listFeeds(),
+      getDb()
+        .select({
+          deviceCheckedAt: schema.addByRssFeed.deviceCheckedAt,
+          feedUrl: schema.addByRssFeed.feedUrl,
+        })
+        .from(schema.addByRssFeed)
+        .where(eq(schema.addByRssFeed.followed, 1)),
+      addByRssCredentialStore.listFeedUrlsForCurrentAccount(),
+    ]);
+    const checkedAtByUrl = new Map(checkedRows.map((row) => [row.feedUrl, row.deviceCheckedAt]));
+    return feeds.map((feed) => ({
+      checkedAtMs: checkedAtByUrl.get(feed.feedUrl) ?? null,
+      feedUrl: feed.feedUrl,
+      hasCredentials: feedUrlsWithCredentials.has(toAddByRssCredentialFeedUrl(feed.feedUrl)),
+      requiresCredentials: feed.requiresCredentials === true,
+    }));
+  },
+
+  /** The feeds a device refresh at this priority fetches now. */
+  listDeviceRefreshFeedUrls: async (params: {
+    nowMs: number;
+    priority: SyncJobPriority;
+  }): Promise<string[]> =>
+    selectDeviceRefreshFeedUrls({
+      entries: await addByRssRepository.listDeviceRefreshEntries(),
+      ...params,
+    }),
+
   /**
    * Move `user:pass@` out of stored feed URLs and into SecureStore. Rows only carry userinfo when
    * they were added before credentials moved to the device, so once rewritten the scan finds
@@ -1150,30 +1813,67 @@ export const addByRssRepository = {
       readParseStatus(context, requestId)
     );
 
-    const existingFeed = await addByRssRepository.getFeedByUrl(feedUrl);
-    const previousPublisherState =
-      result.mappedFeed === null ? null : await addByRssRepository.getPublisherState(feedUrl);
-    const credentialStatus = resolveAddByRssCredentialStatus({
-      credentialsState: result.credentialsState,
-      current: credentials !== null || existingFeed?.requiresCredentials === true,
-      failureReason: result.failureReason,
-      status: result.status,
-    });
-    const record = buildAddByRssFeedRecord(feedUrl, existingFeed ?? undefined, result.preview);
-    await addByRssRepository.upsertFeed(
-      {
-        ...record,
-        ...(credentials !== null ? { requiresCredentials: true } : {}),
-        ...credentialStatus,
-        ...(options?.followed !== undefined ? { followed: options.followed } : {}),
-      },
-      existingFeed === null ? result.mappedFeed : (result.mappedFeed ?? undefined)
-    );
-    if (result.mappedFeed !== null) {
-      await storeArtistRelations(context, feedUrl, result, previousPublisherState);
-    }
+    await storeInteractiveParseResult(context, feedUrl, credentials, result, options);
 
     return { requestId: parseRequestId, result };
+  },
+
+  /**
+   * The device counterpart of `parseNow`, for a signed-out device: this device fetches and parses
+   * the feed and stores the result through the same write. A follow it writes is stamped as the
+   * signed-out user's by `upsertFeed`. No Podverse API request is made for the feed itself, and
+   * credentials go only to the feed host. `context` is still needed for the public directory
+   * lookups: an artist's listed albums, and an album's publisher pointers.
+   *
+   * Throws while Offline Mode is on and when `signal` aborts; a host that answered with an error,
+   * or could not be reached, is a `failed` result.
+   */
+  parseNowOnDevice: async (
+    context: MobileAuthRequestContext,
+    feedUrl: string,
+    credentials: AddByRssCredentials | null,
+    options?: { followed?: boolean; signal?: AbortSignal }
+  ): Promise<{ requestId: null; result: AddByRssPollResult }> => {
+    const state = await addByRssRepository.getDeviceFetchState(feedUrl);
+    const parsed = await parseAddByRssFeedOnDevice({
+      conditionalCache: state?.cache ?? null,
+      credentials,
+      feedUrl,
+      signal: options?.signal,
+    });
+    const { result, listingsResolved } = await withDeviceListedFeeds(context, feedUrl, parsed);
+
+    await storeInteractiveParseResult(
+      context,
+      feedUrl,
+      credentials,
+      result,
+      options?.followed !== undefined ? { followed: options.followed } : undefined
+    );
+    // After the write above, so a new feed already has its row.
+    await addByRssRepository.setDeviceFetchState(feedUrl, {
+      cache: listingsResolved ? deviceCacheToStore(result) : null,
+      checkedAtMs: Date.now(),
+    });
+
+    return { requestId: null, result };
+  },
+
+  /**
+   * The one interactive parse every screen calls. The path comes from
+   * `resolveAddByRssParsePath`. The server path is never retried on the device.
+   */
+  parseNowByPath: async (
+    context: MobileAuthRequestContext,
+    feedUrl: string,
+    credentials: AddByRssCredentials | null,
+    options: { followed?: boolean; path: AddByRssParsePath }
+  ): Promise<{ requestId: string | null; result: AddByRssPollResult }> => {
+    const followedOption =
+      options.followed !== undefined ? { followed: options.followed } : undefined;
+    return options.path === 'device'
+      ? addByRssRepository.parseNowOnDevice(context, feedUrl, credentials, followedOption)
+      : addByRssRepository.parseNow(context, feedUrl, credentials, followedOption);
   },
 
   /**
@@ -1270,56 +1970,190 @@ export const addByRssRepository = {
     return true;
   },
 
-  /** True when any listed album waits on a parse or any directory row lacks checked artwork. */
-  hasListedFeedWork: async (): Promise<boolean> => {
-    const listings = await addByRssRepository.listAllListedFeeds();
+  /**
+   * Fetch and parse one followed feed on this device and adopt the result. Returns true when a new
+   * bundle was stored. Only the signed-out device refresh calls it.
+   *
+   * Same keep-the-stored-bundle rule as `applyRefreshResult`: an unchanged feed, a failure, or a
+   * payload that could not be read leaves the stored episodes as they are, and a failure is still
+   * recorded in the error log. Listed-only rows are skipped, and so is a feed that needs
+   * credentials this device does not hold.
+   *
+   * `followed` is not written: the row is already followed, and writing it would undo an unfollow
+   * that landed while the fetch ran. That also leaves the row's signed-out ownership as it is.
+   */
+  refreshFeedOnDevice: async (
+    context: MobileAuthRequestContext,
+    feedUrl: string,
+    options?: { signal?: AbortSignal }
+  ): Promise<boolean> => {
+    const state = await addByRssRepository.getDeviceFetchState(feedUrl);
+    if (state === null || !state.followed) {
+      return false;
+    }
+    const credentials = await addByRssCredentialStore.getForCurrentAccount(feedUrl);
+    if (state.requiresCredentials && credentials === null) {
+      return false;
+    }
+
+    const parsed = await parseAddByRssFeedOnDevice({
+      conditionalCache: state.cache,
+      credentials,
+      feedUrl,
+      signal: options?.signal,
+    });
+    const { result, listingsResolved } = await withDeviceListedFeeds(context, feedUrl, parsed);
+    await addByRssRepository.setDeviceFetchState(feedUrl, {
+      cache: listingsResolved ? deviceCacheToStore(result) : null,
+      checkedAtMs: Date.now(),
+    });
+
+    const { mappedFeed, preview } = result;
+    const existingFeed = await addByRssRepository.getFeedByUrl(feedUrl);
+    // Removed while the fetch ran; an insert here would follow the feed again.
+    if (existingFeed === null) {
+      return false;
+    }
+    const credentialStatus = resolveAddByRssCredentialStatus({
+      credentialsState: result.credentialsState,
+      current: existingFeed.requiresCredentials === true,
+      failureReason: result.failureReason,
+      status: result.status,
+    });
+
+    if (mappedFeed === null) {
+      if (credentialStatus !== null) {
+        await addByRssRepository.setCredentialStatus(feedUrl, credentialStatus);
+      }
+      // An unchanged feed has no payload by design; its stored episodes are current.
+      if (!isExpectedMissingCredentials(result) && result.status !== 'not_modified') {
+        recordRefreshFailure({ feedUrl, requestId: null }, result, 'add-by-rss-device-parse');
+      }
+      return false;
+    }
+
+    const previousPublisherState = await addByRssRepository.getPublisherState(feedUrl);
+    const record = buildAddByRssFeedRecord(feedUrl, existingFeed, preview);
+    await addByRssRepository.upsertFeed({ ...record, ...credentialStatus }, mappedFeed);
+    await storeArtistRelations(context, feedUrl, result, previousPublisherState);
+    return true;
+  },
+
+  /**
+   * True when a listed album this parse path handles waits on a parse, or a directory row lacks
+   * checked artwork. Listings of artists this session hides are left out.
+   */
+  hasListedFeedWork: async (parsePath: AddByRssParsePath): Promise<boolean> => {
+    const listings = await readWorkListings(parsePath);
     return listings.some(listedFeedNeedsWork);
   },
 
   /**
+   * True when a guid-only listing is due for a directory resolve. Signed out only; a guid waiting
+   * on its retry time does not count, so no empty job is queued for it.
+   */
+  hasListedFeedResolveWork: async (parsePath: AddByRssParsePath): Promise<boolean> =>
+    parsePath === 'device' && (await listListedFeedResolveWork()).length > 0,
+
+  /**
    * Fetch every pending album parse, store the results, and fill directory artwork.
    *
-   * One run reads each pending album's status once per round, for up to `LISTED_FEED_POLL_ROUNDS`
-   * rounds, so the serial queue is never held for long by an artist with many albums. An album
-   * still pending afterwards keeps its request id for the next run, and the artist's next parse
-   * replaces it. An album this device holds credentials for is parsed with them by its own request
-   * instead of the server's, which only sends an artist's credentials to its own domain.
+   * On the server path, one run reads each pending album's status once per round, for up to
+   * `LISTED_FEED_POLL_ROUNDS` rounds, so the serial queue is never held for long by an artist with
+   * many albums. An album still pending afterwards keeps its request id for the next run, and the
+   * artist's next parse replaces it. An album this device holds credentials for is parsed with
+   * them by its own request instead of the server's, which only sends an artist's credentials to
+   * its own domain.
+   *
+   * On the device path, this device fetches and parses each pending album itself, once, within
+   * `LISTED_FEED_WORK_BUDGET_MS`; the albums not reached keep their pending ids and are counted in
+   * `deviceAlbumsLeft`.
    */
   runListedFeedWork: async (
     context: MobileAuthRequestContext,
-    accountIdText: string,
+    parsePath: AddByRssParsePath,
     sleep: (ms: number) => Promise<unknown>,
     signal?: AbortSignal
-  ): Promise<void> => {
+  ): Promise<{ deviceAlbumsLeft: number; deviceAlbumsStored: number }> => {
     const startedAt = Date.now();
-    const listings = await addByRssRepository.listAllListedFeeds();
+    const shouldStop = () =>
+      signal?.aborted === true || Date.now() - startedAt > LISTED_FEED_WORK_BUDGET_MS;
+    const listings = await readWorkListings(parsePath);
+    const albums = groupPendingListedAlbums(listings);
+    let deviceOutcome = { deviceAlbumsLeft: 0, deviceAlbumsStored: 0 };
 
-    let pending: PendingListedAlbum[] = [];
-    for (const album of groupPendingListedAlbums(listings)) {
-      pending.push(await withOwnAlbumParseRequest(context, accountIdText, album));
+    if (parsePath === 'device') {
+      deviceOutcome = await parseListedAlbumsOnDevice(context, albums, shouldStop, signal);
+    } else {
+      let pending: PendingListedAlbum[] = [];
+      for (const album of albums) {
+        pending.push(await withOwnAlbumParseRequest(context, album));
+      }
+
+      for (let round = 0; round < LISTED_FEED_POLL_ROUNDS && pending.length > 0; round += 1) {
+        if (round > 0) {
+          await sleep(LISTED_FEED_POLL_DELAY_MS);
+        }
+        const stillPending: PendingListedAlbum[] = [];
+        for (const album of pending) {
+          if (signal?.aborted === true) {
+            return deviceOutcome;
+          }
+          if ((await settleListedAlbum(context, album)) === 'pending') {
+            stillPending.push(album);
+          }
+        }
+        pending = stillPending;
+      }
     }
 
-    for (let round = 0; round < LISTED_FEED_POLL_ROUNDS && pending.length > 0; round += 1) {
-      if (round > 0) {
-        await sleep(LISTED_FEED_POLL_DELAY_MS);
+    await fillDirectoryListingArtwork(context, listings, shouldStop);
+    return deviceOutcome;
+  },
+
+  /**
+   * Ask the public directory resolve about each due guid-only listing, one guid at a time,
+   * `LISTED_FEED_RESOLVE_SPACING_MS` apart and within `LISTED_FEED_RESOLVE_BUDGET_MS`. Each
+   * settled answer is stored at once, so an open artist screen fills in as answers arrive. A guid
+   * whose directory channel is not ready yet gets a retry time and counts as `deferred`; `left`
+   * counts the guids this run did not reach.
+   */
+  runListedFeedResolveWork: async (
+    context: MobileAuthRequestContext,
+    sleep: (ms: number) => Promise<unknown>,
+    signal?: AbortSignal
+  ): Promise<{ applied: number; deferred: number; left: number }> => {
+    const startedAt = Date.now();
+    const remainingMs = () => LISTED_FEED_RESOLVE_BUDGET_MS - (Date.now() - startedAt);
+    const groups = groupListedFeedResolveWork(await listListedFeedResolveWork());
+    let applied = 0;
+    let deferred = 0;
+
+    for (const [index, group] of groups.entries()) {
+      if (signal?.aborted === true || remainingMs() <= 0) {
+        break;
       }
-      const stillPending: PendingListedAlbum[] = [];
-      for (const album of pending) {
-        if (signal?.aborted === true) {
-          return;
-        }
-        if ((await settleListedAlbum(context, album)) === 'pending') {
-          stillPending.push(album);
-        }
+      if (index > 0) {
+        await sleep(LISTED_FEED_RESOLVE_SPACING_MS);
       }
-      pending = stillPending;
+      const action = await requestListedFeedResolve(context, group.feedGuid, sleep, remainingMs);
+      if (action === null) {
+        break;
+      }
+      if (action.kind === 'retry_later') {
+        listedFeedResolveRetries.set(
+          group.feedGuid,
+          nextListedFeedResolveRetry(listedFeedResolveRetries.get(group.feedGuid), Date.now())
+        );
+        deferred += 1;
+        continue;
+      }
+      listedFeedResolveRetries.delete(group.feedGuid);
+      await applyListedFeedResolve(group.keys, action);
+      applied += 1;
     }
 
-    await fillDirectoryListingArtwork(
-      context,
-      listings,
-      () => signal?.aborted === true || Date.now() - startedAt > LISTED_FEED_WORK_BUDGET_MS
-    );
+    return { applied, deferred, left: groups.length - applied - deferred };
   },
 
   /**

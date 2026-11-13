@@ -16,6 +16,7 @@ import { getBoostEligibilityForContent } from '@podverse/v4v-metaboost';
 import { IMAGES } from '../../../constants/images';
 import { useAccount } from '../../../contexts/Account';
 import { useModals } from '../../../contexts/Modals';
+import { useMembershipGate } from '../../../hooks/useMembershipGate';
 import type { AddByRSSArtistFollowedAlbums } from '../../../lib/artistUnsubscribe';
 import { countAddByRSSArtistFollowedAlbums } from '../../../lib/artistUnsubscribe';
 import {
@@ -55,6 +56,7 @@ export const AddByRSSArtistHeader: React.FC<AddByRSSArtistHeaderProps> = ({ feed
   const tMisc = useTranslations('misc');
   const { loggedInAccount, setLoggedInAccount } = useAccount();
   const { setModalLoginRequired, setModalBoost } = useModals();
+  const { tryHandleMembershipGateError } = useMembershipGate();
   const [isUpdating, setIsUpdating] = useState(false);
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [promptAlbums, setPromptAlbums] = useState<AddByRSSArtistFollowedAlbums | null>(null);
@@ -132,6 +134,9 @@ export const AddByRSSArtistHeader: React.FC<AddByRSSArtistHeaderProps> = ({ feed
         setLoggedInAccount(nextAccount);
       }
     } catch (error) {
+      if (tryHandleMembershipGateError(error)) {
+        return;
+      }
       console.error(error);
       window.alert('Error performing action.');
     } finally {

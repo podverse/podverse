@@ -60,12 +60,11 @@ const { resolveProductMembershipMock } = vi.hoisted(() => ({
     premiumMembershipCostMonthly: 3,
     premiumMembershipCostAnnually: 30,
     trialAllowDirectoryAddByRSS: false,
-    trialMaxAddByRSSFeeds: 10,
+    maxAddByRSSFeeds: 10,
     trialMaxManualRefreshesPerHour: 5,
     trialTrackStats: false,
     trialAllowNotifications: true,
     premiumAllowDirectoryAddByRSS: true,
-    premiumMaxAddByRSSFeeds: 100,
     premiumMaxManualRefreshesPerHour: 20,
     premiumTrackStats: true,
     premiumAllowNotifications: true,
@@ -96,9 +95,8 @@ vi.mock('@podverse/orm', async (importOriginal) => {
 
     async updateProductMembershipSettings(params: {
       freeTrialExpirationSeconds?: number;
-      trialMaxAddByRSSFeeds?: number;
+      maxAddByRSSFeeds?: number;
       trialMaxManualRefreshesPerHour?: number;
-      premiumMaxAddByRSSFeeds?: number;
       premiumMaxManualRefreshesPerHour?: number;
     }) {
       return updateProductMembershipSettingsMock(params);
@@ -148,12 +146,11 @@ describe('/products/membership', () => {
       premiumMembershipCostMonthly: expect.any(Number),
       premiumMembershipCostAnnually: expect.any(Number),
       trialAllowDirectoryAddByRSS: expect.any(Boolean),
-      trialMaxAddByRSSFeeds: expect.any(Number),
+      maxAddByRSSFeeds: expect.any(Number),
       trialMaxManualRefreshesPerHour: expect.any(Number),
       trialTrackStats: expect.any(Boolean),
       trialAllowNotifications: expect.any(Boolean),
       premiumAllowDirectoryAddByRSS: expect.any(Boolean),
-      premiumMaxAddByRSSFeeds: expect.any(Number),
       premiumMaxManualRefreshesPerHour: expect.any(Number),
       premiumTrackStats: expect.any(Boolean),
       premiumAllowNotifications: expect.any(Boolean),
@@ -194,12 +191,11 @@ describe('/products/membership', () => {
       premiumMembershipCostMonthly: 3,
       premiumMembershipCostAnnually: 30,
       trialAllowDirectoryAddByRSS: false,
-      trialMaxAddByRSSFeeds: 10,
+      maxAddByRSSFeeds: 10,
       trialMaxManualRefreshesPerHour: 5,
       trialTrackStats: false,
       trialAllowNotifications: true,
       premiumAllowDirectoryAddByRSS: true,
-      premiumMaxAddByRSSFeeds: 100,
       premiumMaxManualRefreshesPerHour: 20,
       premiumTrackStats: true,
       premiumAllowNotifications: true,
@@ -223,12 +219,11 @@ describe('/products/membership', () => {
       premiumMembershipCostMonthly: 3,
       premiumMembershipCostAnnually: 30,
       trialAllowDirectoryAddByRSS: false,
-      trialMaxAddByRSSFeeds: 12,
+      maxAddByRSSFeeds: 12,
       trialMaxManualRefreshesPerHour: 5,
       trialTrackStats: false,
       trialAllowNotifications: true,
       premiumAllowDirectoryAddByRSS: true,
-      premiumMaxAddByRSSFeeds: 100,
       premiumMaxManualRefreshesPerHour: 20,
       premiumTrackStats: true,
       premiumAllowNotifications: true,
@@ -236,12 +231,12 @@ describe('/products/membership', () => {
     const res = await request(app)
       .patch(canonicalPath)
       .set(superuserAuthHeaders())
-      .send({ trialMaxAddByRSSFeeds: 12 })
+      .send({ maxAddByRSSFeeds: 12 })
       .expect(200);
 
     expect(updateProductMembershipSettingsMock).toHaveBeenCalledWith({
-      trialMaxAddByRSSFeeds: 12,
+      maxAddByRSSFeeds: 12,
     });
-    expect(res.body.data.trialMaxAddByRSSFeeds).toBe(12);
+    expect(res.body.data.maxAddByRSSFeeds).toBe(12);
   });
 });

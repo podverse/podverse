@@ -1,5 +1,7 @@
-import type { DTOItemChapter } from '@podverse/helpers';
+import type { DTOItemChapter, DTOItemChapterCreate } from '@podverse/helpers';
 
+import { assignChapterEndTimes, compatParsedChapters } from '../compat/chapters/chapters.js';
+import type { PIChapter } from '../types/partytime.js';
 import type { AddByRSSMappedFeed } from './types.js';
 
 /**
@@ -58,3 +60,19 @@ export function mapAddByRSSChaptersToDTOItemChapters(
     item_chapters_feed: null,
   }));
 }
+
+/** A chapter row as the chapters-transcript endpoint returns it and the device builds it. */
+export type AddByRSSChapterWithIdText = DTOItemChapterCreate & { id_text: string };
+
+/**
+ * Chapter rows for one Add by RSS item from the `chapters` array of its chapters JSON: end times
+ * filled from the next table-of-contents chapter, then ids `<itemIdText>-ch-<index>`.
+ */
+export const buildAddByRSSChapterResponses = (
+  itemIdText: string,
+  chapters: PIChapter[]
+): AddByRSSChapterWithIdText[] =>
+  assignChapterEndTimes(compatParsedChapters(chapters)).map((chapter, index) => ({
+    ...chapter,
+    id_text: `${itemIdText}-ch-${index}`,
+  }));

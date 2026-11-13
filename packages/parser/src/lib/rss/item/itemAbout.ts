@@ -1,4 +1,4 @@
-import type { Episode } from 'podverse-partytime';
+import type { Episode } from 'podverse-partytime/core';
 
 import type { EntityManager, Item } from '@podverse/orm';
 import { ItemAboutService } from '@podverse/orm';

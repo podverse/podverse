@@ -1,6 +1,181 @@
 # Add-by-RSS
 
-Add-by-RSS lets users follow RSS feeds (podcasts, music) that are not in the main directory. Feeds are parsed by workers and kept in each device's add-by-RSS library; the account's follow list syncs which feeds a user follows across devices. On mobile, that library is My Library → Add by RSS (chips for podcasts, episodes, artists, albums, and tracks; plus to add). Mobile Home lists those feeds beside directory follows. Home shows no Needs username and password section; feeds still waiting on a username and password stay in the Add by RSS library. Web Subscribed (`/`) does the same with this browser's feeds, and the web library is one page, `/add-by-rss`, with the same chips. CarPlay and Android Auto keep add-by-RSS follows in the native library index.
+Add-by-RSS lets users follow RSS feeds (podcasts, music) that are not in the main directory.
+Workers parse feeds for every signed-in user. Those feeds stay in each device's add-by-RSS
+library, and the account's follow list syncs which feeds a user follows across devices. A
+signed-out user on mobile parses the feed on the phone into the same library, with no feed limit.
+The website always uses the workers, because a browser cannot fetch the feed. That difference is
+intentional. On mobile, that library is My Library → Add by RSS (chips for podcasts, episodes,
+artists, albums, and tracks; plus to add). Mobile Home lists those feeds beside directory
+follows. Home shows no Needs username and password section; feeds still waiting on a username and
+password stay in the Add by RSS library. Web Subscribed (`/`) does the same with this browser's
+feeds, and the web library is one page, `/add-by-rss`, with the same chips. CarPlay and Android
+Auto keep add-by-RSS follows in the native library index.
+
+## Where a feed is parsed
+
+Only a signed-out user parses on the phone. A signed-in user always uses the server parse, whatever
+the membership, including while the account snapshot has not loaded. `resolveAddByRssParsePath`
+(`apps/mobile/src/lib/addByRss/parsePath.ts`) returns `'device'` when there is no signed-in session
+(a null account and `isAuthenticated` not true) and `'server'` for every signed-in session. There
+is no move from a server refusal onto the device. "Needs membership" and "membership expired" open
+the membership gate, as today. Signed-out adds have no feed-count limit. A signed-in free or lapsed
+account behaves as today: adding is blocked behind the membership prompt, existing feeds stay
+playable and stop refreshing, and there is no device parse and no saved-for-later state for them.
+
+`parseAddByRssFeedOnDevice` does not request the feed body from the Podverse API. Only a signed-out
+user calls it. Import `podverse-partytime/core` only. Do not import the package root,
+`podverse-partytime/dist`, or `@podverse/parser`. Map with `@podverse/parser-mapping`. At startup
+the app sets the partytime log to silent; `core` otherwise logs to the console at warn. The device
+and the server share the failure, redirect credential, host-spacing, and raw-body normalization
+rules in `@podverse/helpers`.
+
+The website cannot parse a feed itself. Browsers block the cross-site fetch, so the website always
+uses the workers. That difference is intentional.
+
+### What the feed host sees on the device path
+
+These differences are on purpose, and only on the device path:
+
+- The feed host sees the phone's IP address and the User-Agent
+  `<app name with spaces removed>/<app version> (<ios|android>)`.
+- The deadline is 30 seconds, with at most 10 redirects. Redirects are manual so a password is
+  re-checked on every hop.
+- wavlake.com requests from one phone are at least 5 seconds apart, counted from that phone's
+  previous request.
+- There is no server-side private-address block, so a feed on the home network works on the phone
+  and is still refused by the Podverse servers.
+- `device_feed_hash` is an opaque string that starts with the app version. It is a device hash,
+  compared only on that phone, never with the server's md5 hash. After an app update each
+  device-parsed feed is fetched once without conditional headers, then conditional requests resume.
+- While anyone is signed in, the signed-out user's feeds are not parsed.
+
+### Storage on the phone
+
+SQLite `add_by_rss_feed` (migration 3) stores `device_etag`, `device_last_modified`,
+`device_feed_hash`, `device_checked_at`, `signed_out_owned`, and `followed_at`. The server path
+does not read or write the four `device_*` columns. `signed_out_owned = 1` means the signed-out
+user of this phone follows the feed and no signed-in account has claimed it. While a session is
+signed in, that row is hidden from every list and is not refreshed, fanned out, or used for
+chapters and transcripts. After sign-out it shows again and refreshes on the phone. A feed both
+the signed-out user and the account follow belongs to the account (`signed_out_owned = 0`): it
+shows while signed in, the server refreshes it, and it still shows after sign-out. `followed_at`
+is when this phone last started following the feed. There is no pending-follow column.
+
+A device parse does not produce an `AddByRSSParseCacheEntry`. It stores the same
+`AddByRSSMappedFeed` in `mapped_feed_json`.
+
+### One shared limit
+
+Trial and Premium share one default, `MEMBERSHIP_MAX_ADD_BY_RSS_FEEDS` (100), read as
+`maxAddByRSSFeeds`. A per-account `max_add_by_rss_feeds` override still wins.
+
+The public `GET /product/membership` returns that default. Authenticated
+`GET /account/add-by-rss/feed-limit` returns the signed-in account's own limit. The phone reads
+both, so a limit change needs no app release.
+
+The limit is not a Trial limitations sentence. The key
+`membership.trial_limitations_add_by_rss_feed_limit` is removed. The web membership page, the
+mobile membership screen, and `GET /product/membership/comparison` do not state the limit.
+
+On mobile the limit is help text on the Add by RSS library screen (`AddByRssRootScreen`), under
+the Add Feed action band, catalog key `features.add_by_rss.feed_limit_help`. It shows only while
+signed in, and only when the account's own limit is known. Signed out, the line is hidden, because
+signed-out adds have no limit. A free or lapsed account does not see it. Web's Add by RSS pages do
+not show this line. A web user learns the number from the at-limit refusal. That difference is
+intentional.
+
+A signed-in save past the limit is refused. The refusal names the limit and points at the support
+email. It has no renew path. The manual-refresh hourly limit is unchanged.
+
+### Sign-up, sign-in, sign-out, and a lapse
+
+Before the sign-up form, when the phone's followed Add by RSS feeds are over the public default
+limit, one screen states the limit, warns that feeds over it may be lost, recommends Export OPML,
+has a show/hide control with a longer explanation, names support, and requires a checkbox before
+Continue. When the limit cannot be loaded, that screen retries and does not open sign-up. At or
+under the limit, sign-up opens directly. Web has no such screen: web has no signed-out Add by RSS
+library. That difference is intentional.
+
+At the first login after a sign-up on this phone, the oldest followed device feeds, up to the new
+account's limit, are saved to the account and stop being the signed-out user's. The rest that were
+followed at or before the account was created are removed from the phone, and nothing retries them.
+A feed followed after the account was created stays the signed-out user's. When the count is at or
+under the limit, nothing is removed. When the account's limit cannot be loaded, that run removes
+nothing and tries again on a later refresh.
+
+Sign-in to an existing account pushes nothing. Feeds the account does not have stay on the phone,
+hidden and not refreshed while signed in. After sign-out they show again and refresh on the phone.
+
+Sign-out keeps the signed-out user's feeds. Feeds the account followed stay on the phone and show
+too, because a signed-out session lists every followed row.
+
+A lapse and a renewal stay as they are today: the membership gate blocks add and refresh while
+lapsed or free, and a valid membership resumes the server refresh. Nothing is parsed on the phone
+in between.
+
+### Credentials while signed out
+
+While signed out, mobile stores the username and password under the owner `signed-out-device`,
+still keyed by the canonical feed URL. At sign-up, the credentials of feeds saved to the account
+move to the account, and the credentials of removed feeds are deleted. At sign-in to an existing
+account, nothing moves except one copy. For a feed both the signed-out user and the account follow,
+the signed-out username and password are copied to the account's entry on this phone unless the
+account already has a pair there. The store method is `copySignedOutCredentialsAtSignIn`; the pure
+rule is `copySignedOutAddByRssCredentialsToAccount`. The signed-out copy stays and is used again
+after sign-out. The copy is SecureStore to SecureStore on this phone. Nothing is sent to Podverse.
+A feed that stays the signed-out user's gets no credential change. Sign-out clears only the
+account's credentials and keeps the signed-out owner's. On the device parse, the phone sends the
+username and password only to the feed host, re-checked on every redirect hop, and does not send
+them to the Podverse API. The transit envelope is the server parse.
+
+### Signed-out Export OPML
+
+Signed-out Export OPML, from the sign-up warning and from More › OPML, is built on the phone. It
+includes the followed Add by RSS feeds and the directory podcasts. Each directory feed URL is
+looked up from the public `GET /channel/:idOrIdText` route by `id_text`. Directory outlines come
+first, matching the server export. The file never contains a password. When some lookups fail, the
+file keeps what was found and the message says how many directory podcasts were left out. In
+Offline Mode the phone makes no lookups: it exports the Add by RSS feeds and the message gives the
+directory count left out; with no Add by RSS feeds it writes no file and asks the user to turn
+Offline Mode off. If the connection drops mid-export, it stops at the first unreachable answer and
+saves what it has, counting the rest as left out. Signed in, export still downloads the account's
+file from the server. Web has no signed-out export. That difference is intentional.
+
+### Listed feeds, chapters, and resolve while signed out
+
+A signed-in user keeps the server path for all of this.
+
+Listed albums, podroll, and remote items work signed out. When the device parse sent credentials,
+the artist's references are not sent for lookup or resolve. Albums that have a URL are still
+fetched from their host.
+
+Chapters and transcripts follow sign-in, not membership. A signed-in user always uses the API. A
+signed-out user fetches the files on the phone. A feed hidden in the signed-in session returns
+nothing and makes no request.
+
+`POST /account/add-by-rss/remote-item/lookup` and `/resolve` answer without a session. Lookup has
+no rate limit. The device sends at most 100 references per lookup request. Resolve for signed-out
+callers uses `ACCOUNT_ADD_BY_RSS_REMOTE_ITEM_RESOLVE_ANON_MAX_PER_MINUTE`, default 120 per IP
+address. Signed-in callers keep `ACCOUNT_ADD_BY_RSS_REMOTE_ITEM_RESOLVE_MAX_PER_MINUTE` per
+account.
+
+A channel-level album named only by guid, which neither the directory nor the stub tables know, is
+resolved by a background job that calls resolve one guid at a time, waits out a 429, and retries.
+Rows fill in as answers arrive. `not_found` and a 400 mark that guid `resolve_no_match` until the
+artist feed changes. The artist's next listing pass replaces the row and clears the mark.
+`directory_unavailable` is temporary: the row stays unresolved and the guid is retried later with
+backoff, in memory only, cleared when the app restarts. After each such answer the next try waits
+1, 2, 4, 8, 16, then 30 minutes. At most seven calls per guid per app launch; after that the guid
+is not asked again until the next launch. Nothing schedules a timer. The next signed-out refresh
+(app start, foreground, connectivity restored, or pull) or the listed-feed job asks when the delay
+has passed. A settled answer clears the retry entry. A tap on a podroll or remote-item row stays
+one interactive resolve; a 429 there shows the existing notice and does not retry on its own. A
+tap that gets `directory_unavailable` shows the existing directory-unavailable notice, stores
+nothing, and can be tapped again.
+
+A private album's publisher pointer still uses the public directory-match route, which already
+answers signed out.
 
 ## Basic Auth (private feeds)
 
@@ -10,19 +185,34 @@ The durable constraints live in [`add-by-rss-client-held-credentials`](/.cursor/
 
 ### Where credentials live
 
-| Surface | Store                                                                                                                                                                         | Scope                        |
-| ------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------- |
-| Web     | IndexedDB database `add-by-rss-credentials`, values AES-GCM encrypted with a non-extractable per-account WebCrypto key (`apps/web/src/utils/addByRSS/credentialStore.ts`)     | Account + canonical feed URL |
-| Mobile  | SecureStore, with an `add_by_rss_credential_index` table listing which feeds have an entry (`apps/mobile/src/data/repositories/addByRssCredentialStore.ts`)                   | Account + canonical feed URL |
-| Server  | Nothing. Postgres keeps `requires_credentials` only; Valkey parse-cache entries keep `failureReason`, `httpStatus`, `authChallenge`, and `credentialsState`, never the secret | —                            |
+| Surface | Store                                                                                                                                                                         | Scope                                                |
+| ------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------- |
+| Web     | IndexedDB database `add-by-rss-credentials`, values AES-GCM encrypted with a non-extractable per-account WebCrypto key (`apps/web/src/utils/addByRSS/credentialStore.ts`)     | Account + canonical feed URL                         |
+| Mobile  | SecureStore, with an `add_by_rss_credential_index` table listing which feeds have an entry (`apps/mobile/src/data/repositories/addByRssCredentialStore.ts`)                   | account or signed-out owner, plus canonical feed URL |
+| Server  | Nothing. Postgres keeps `requires_credentials` only; Valkey parse-cache entries keep `failureReason`, `httpStatus`, `authChallenge`, and `credentialsState`, never the secret | —                                                    |
 
-Signing out (and deleting the account) clears that account's credentials on the device. The feeds themselves stay; they are device data.
+While signed out, mobile stores the username and password under the owner `signed-out-device`,
+still keyed by the canonical feed URL. At sign-up, the credentials of feeds saved to the account
+move to the account, and the credentials of removed feeds are deleted. At sign-in to an existing
+account, nothing moves except one copy. For a feed both the signed-out user and the account follow,
+`copySignedOutCredentialsAtSignIn` copies the signed-out username and password to the account's
+entry on this phone unless the account already has a pair there. The pure rule is
+`copySignedOutAddByRssCredentialsToAccount`. The signed-out copy stays and is used again after
+sign-out. The copy is SecureStore to SecureStore on this phone. Nothing is sent to Podverse. A
+feed that stays the signed-out user's gets no credential change. Sign-out clears only the account's
+credentials and keeps the signed-out owner's. Deleting the account clears that account's
+credentials. The feed rows stay; they are device data. On the device parse, the phone sends the
+username and password only to the feed host, re-checked on every redirect hop, and does not send
+them to the Podverse API.
 
 A `user:pass@` pasted into a feed URL is split into the username and password fields on the client and again in the API. Stored feed URLs never carry userinfo, and credentials are keyed by the canonical URL (`canonicalAddByRSSFeedUrl` in `@podverse/helpers-validation`).
 
 The Add control stays disabled until the URL is a valid http(s) feed URL. When the username and password toggle is on, it also requires both fields non-empty (`canSubmitAddByRssFeed` in `@podverse/helpers-validation`). The credentials save screen uses the same length rules (`canSubmitAddByRssCredentials`).
 
 ### Parse path (transit envelope)
+
+These steps are the server parse. The device parse does not send the username and password to the
+API.
 
 1. The client sends `basic_auth_username` / `basic_auth_password` with `POST /account/add-by-rss/parse`, or `credentials_by_url` with `POST /account/add-by-rss/parse/all`.
 2. The API seals them into an AES-256-GCM envelope (`sealAddByRssCredentialsForParse` in `apps/api/src/lib/addByRSSCredentials.ts`, built on `packages/helpers-backend/src/addByRssCredentialsTransit.ts`). The envelope expires after **15 minutes** and its associated data binds it to `accountId | requestId | feedUrl`, so a copied envelope cannot be replayed against another request or feed. The queue message carries only the envelope; its dedupe id excludes it. When the feed is an artist feed, the worker seals the same way for each listed album in scope (see [Artist feeds](#artist-feeds)).
@@ -96,4 +286,12 @@ Usernames, passwords, `Authorization` headers, and envelopes never appear in API
   partial row, re-enter, play). `apps/mobile/e2e/add-by-rss-episode-sections.yaml` (an item's
   Chapters and Transcript on the episode page and in the full player).
   `apps/mobile/e2e/add-by-rss-track.yaml` (a music feed's track page and Lyrics).
+  `apps/mobile/e2e/add-by-rss-anonymous.yaml`,
+  `apps/mobile/e2e/add-by-rss-device-credentials.yaml`,
+  `apps/mobile/e2e/add-by-rss-sign-in.yaml`,
+  `apps/mobile/e2e/add-by-rss-anonymous-artist.yaml`,
+  `apps/mobile/e2e/add-by-rss-anonymous-sections.yaml`,
+  `apps/mobile/e2e/add-by-rss-anonymous-podroll.yaml`,
+  `apps/mobile/e2e/signup-add-by-rss-limit.yaml`, and
+  `apps/mobile/e2e/opml-signed-out.yaml`.
 - **API:** `apps/api/src/test/add-by-rss-parse-credentials.test.ts`.

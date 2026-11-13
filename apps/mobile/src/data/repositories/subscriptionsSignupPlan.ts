@@ -17,6 +17,11 @@ export type SignupMergePlan =
 
 export const normalizeSignupMergeEmail = (email: string): string => email.trim().toLowerCase();
 
+/** True when this login is the one right after a sign-up on this device for the same email. */
+export const isSignupLoginFor = (pendingEmail: string | null, loginEmail: string): boolean =>
+  pendingEmail !== null &&
+  normalizeSignupMergeEmail(pendingEmail) === normalizeSignupMergeEmail(loginEmail);
+
 export function resolveSignupMergePlan(params: {
   /** Email recorded at sign-up, or null when no sign-up is pending on this device. */
   pendingEmail: string | null;
@@ -33,7 +38,7 @@ export function resolveSignupMergePlan(params: {
 
   // A different account closes the window rather than deferring it: leaving the marker would let a
   // merge fire on some unrelated later login.
-  if (normalizeSignupMergeEmail(pendingEmail) !== normalizeSignupMergeEmail(loginEmail)) {
+  if (!isSignupLoginFor(pendingEmail, loginEmail)) {
     return { action: 'clear' };
   }
 

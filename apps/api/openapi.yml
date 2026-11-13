@@ -795,12 +795,18 @@ components:
                 `membership.manual_refresh_hourly_limit_reached`). Clients localise the user-facing
                 message from this key.
               example: membership.membership_expired
+            limit:
+              type: integer
+              nullable: true
+              description: >-
+                Present on `add_by_rss_feed_limit_reached`: the account's Add by RSS feed limit.
             renewPath:
               type: string
               nullable: true
               description: >-
                 Present on membership denials. Destination path for the renew/extend action (web
-                route; native clients map it to their own membership screen).
+                route; native clients map it to their own membership screen). Absent on
+                `add_by_rss_feed_limit_reached`; raising that limit is a support request, not a purchase.
               example: /membership/renew
     ApiKeyPermissionRequirement:
       type: object
@@ -1844,6 +1850,19 @@ components:
                 type: string
                 enum: [no_feed_url, item_references_only]
                 description: unresolved rows
+    ApiGetAccountAddByRssFeedLimitResponse200:
+      type: object
+      required:
+        - data
+      properties:
+        data:
+          type: object
+          required:
+            - maxAddByRSSFeeds
+          properties:
+            maxAddByRSSFeeds:
+              type: integer
+              minimum: 0
     ApiGetAccountDownloadDataResponse200:
       type: object
       description: Operation-specific response payload for GET /account/download-data (200).
@@ -5846,6 +5865,12 @@ components:
             monthlyEquivalentAnnually:
               type: number
               example: 36
+            maxAddByRSSFeeds:
+              type: integer
+              minimum: 0
+              description: >-
+                Default Add by RSS feed limit shared by Trial and Premium. An account's own limit
+                can differ; read it from GET /account/add-by-rss/feed-limit.
     ProductMembershipPricingResponse:
       type: object
       properties:
@@ -6859,7 +6884,10 @@ paths:
       description: >-
         Resolves up to 100 Add by RSS remote references using only Podverse directory and stub
         storage. This endpoint does not call the index provider and does not write any rows.
+        A session is optional; signed-out clients use it to match references from a feed they
+        parsed themselves. No rate limit; one request carries at most 100 references.
       security:
+        - {}
         - bearerAuth: []
         - cookieAuth: []
         - apiKeyAuth: []
@@ -6912,8 +6940,10 @@ paths:
       description: >-
         Resolves one Add by RSS remote feed reference on click. Podverse directory channels win.
         Otherwise the API may ask the index provider using only the remote feed GUID or URL, and
-        may create or refresh a remote stub.
+        may create or refresh a remote stub. A session is optional; the rate limit counts per
+        account when signed in and per IP address when signed out, each with its own limit.
       security:
+        - {}
         - bearerAuth: []
         - cookieAuth: []
         - apiKeyAuth: []
@@ -7140,6 +7170,41 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/InternalServerErrorResponse"
+  /account/add-by-rss/feed-limit:
+    get:
+      operationId: apiGetAccountAddByRssFeedLimit
+      tags:
+        - account
+      summary: GET /account/add-by-rss/feed-limit
+      description: >-
+        The signed-in account's Add by RSS feed limit: its override, or the shared default.
+        Authenticated endpoint (cookieAuth or bearerAuth). An API key needs add_by_rss read.
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+        - apiKeyAuth: []
+      x-api-key-permission:
+        resource: add_by_rss
+        action: read
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiGetAccountAddByRssFeedLimitResponse200"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthenticationErrorResponse"
+        "403":
+          description: Membership expired or terms not accepted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthorizationErrorResponse"
   /account/delete:
     delete:
       operationId: apiDeleteAccountDelete
@@ -20253,7 +20318,6 @@ paths:
                     summary: Some features are unavailable during Trial to help reduce spam and abuse.
                     items:
                       - Adding feeds to the public directory from search is blocked for Trial status.
-                      - Add by RSS holds up to 10 feeds on Trial and 100 on Premium.
         "500":
           description: Internal server error
           content:

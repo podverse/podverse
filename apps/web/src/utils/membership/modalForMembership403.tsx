@@ -5,6 +5,7 @@ import { membershipPurchaseAction, membershipPurchaseMessageKey } from '@podvers
 import {
   accessDenialReasonFromGate,
   membershipDenialReason,
+  parseAddByRssFeedLimitRefusal,
   parseMembershipGateError,
 } from '@podverse/helpers-requests';
 
@@ -15,7 +16,7 @@ export type Membership403FeatureContext = 'directory_add_by_rss' | 'manual_refre
 type RichTagFn = (chunks: ReactNode) => ReactNode;
 
 type MembershipTranslator = {
-  (key: string): string;
+  (key: string, values?: Record<string, string | number>): string;
   rich: (key: string, values: Record<string, string | number | Date | RichTagFn>) => ReactNode;
 };
 
@@ -26,6 +27,20 @@ export function getMembership403ModalProps(params: {
   membership: Pick<MembershipState, 'isLoggedIn' | 'tier'>;
   tMembership: MembershipTranslator;
 }): ModalMessage | null {
+  const feedLimitRefusal = parseAddByRssFeedLimitRefusal(params.error);
+  if (feedLimitRefusal !== null) {
+    return {
+      title: params.tMembership('gate.title_limit'),
+      message: params.tMembership('add_by_rss_feed_limit_reached', {
+        contactEmail: params.contactEmail,
+        limit: feedLimitRefusal.limit,
+      }),
+      messageNode: null,
+      actionLabel: params.tMembership('gate.email_support'),
+      actionHref: `mailto:${params.contactEmail}`,
+    };
+  }
+
   const payload = parseMembershipGateError(params.error);
   if (payload === null) {
     return null;
@@ -74,6 +89,7 @@ export function getMembership403ModalProps(params: {
     };
   }
 
-  // `limit_reached` has no modal — quota denials fall through to the caller's own error handling.
+  // The remaining `limit_reached` denials (manual refresh, and an Add by RSS refusal without
+  // `limit`) have no modal here.
   return null;
 }

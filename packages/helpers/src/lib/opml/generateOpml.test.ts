@@ -1,5 +1,6 @@
-import { generateOpml } from '@api/lib/opml/generateOpml.js';
 import { describe, expect, it } from 'vitest';
+
+import { generateOpml } from './generateOpml.js';
 
 describe('generateOpml', () => {
   it('renders directory and add-by-rss outlines', () => {

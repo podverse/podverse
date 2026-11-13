@@ -2,10 +2,7 @@ import { useCallback, useEffect, useLayoutEffect, useMemo, useState } from 'reac
 import { useTranslation } from 'react-i18next';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
-import {
-  getMembershipExpiryDismissalKey,
-  getMembershipExpiryNotice,
-} from '@podverse/helpers';
+import { getMembershipExpiryDismissalKey, getMembershipExpiryNotice } from '@podverse/helpers';
 
 import { useMembership } from '../../membership/useMembership';
 import { getPref, setPref } from '../../prefs/prefsStore';

@@ -1,9 +1,9 @@
-type OPMLChannelRow = {
+export type OPMLChannelRow = {
   title: string | null;
   feedUrl: string;
 };
 
-type GenerateOpmlParams = {
+export type GenerateOpmlParams = {
   directoryChannels: OPMLChannelRow[];
   addByRssChannels: OPMLChannelRow[];
 };

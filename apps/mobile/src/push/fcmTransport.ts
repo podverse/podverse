@@ -31,10 +31,7 @@ type FirebaseModules = {
   getMessaging: () => FirebaseMessaging;
   getToken: (messaging: FirebaseMessaging) => Promise<string>;
   isDeviceRegisteredForRemoteMessages: (messaging: FirebaseMessaging) => boolean;
-  onTokenRefresh: (
-    messaging: FirebaseMessaging,
-    listener: (token: string) => void
-  ) => () => void;
+  onTokenRefresh: (messaging: FirebaseMessaging, listener: (token: string) => void) => () => void;
   registerDeviceForRemoteMessages: (messaging: FirebaseMessaging) => Promise<void>;
 };
 
@@ -95,7 +92,11 @@ const loadFirebaseModules = (): FirebaseModules | null => {
       isDeviceRegisteredForRemoteMessages(instance) === true,
     onTokenRefresh: (instance, listener) => {
       const unsubscribe = onTokenRefresh(instance, listener);
-      return typeof unsubscribe === 'function' ? unsubscribe : () => {};
+      return () => {
+        if (typeof unsubscribe === 'function') {
+          unsubscribe();
+        }
+      };
     },
     registerDeviceForRemoteMessages: (instance) =>
       Promise.resolve(registerDeviceForRemoteMessages(instance)).then(() => undefined),

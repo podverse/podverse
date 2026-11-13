@@ -122,10 +122,11 @@ export function AuthProvider({ children }: PropsWithChildren) {
 
       await clearAllSecureTokens();
 
-      // Add-by-RSS feed credentials belong to the account that saved them. The feeds stay; the
-      // username and password do not outlive the session.
+      // Add-by-RSS feed credentials an account saved end with its session. The feeds stay, and
+      // so do the credentials saved while signed out, which belong to whoever uses this phone
+      // signed out.
       try {
-        await addByRssCredentialStore.clearAll();
+        await addByRssCredentialStore.clearAccountCredentials();
       } catch (credentialError) {
         console.warn(
           'Failed to clear add-by-RSS credentials during session reset',

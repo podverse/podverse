@@ -1,22 +1,32 @@
 import { describe, expect, it } from 'vitest';
 
 import type { AddByRSSPublisherListedFeed } from '@podverse/helpers';
+import type { DTOAddByRSSRemoteItemResolveResult } from '@podverse/helpers/dto';
 import type { AddByRSSMappedFeed } from '@podverse/parser-mapping';
 import { convertParsedRSSFeedToCompat } from '@podverse/parser-mapping';
 
-import type { AddByRssListedFeedRecord } from './addByRssListedFeeds';
+import { DEVICE_LISTED_REQUEST_ID_PREFIX } from '../../lib/addByRss/deviceListedFeeds';
+import type { AddByRssListedFeedRecord, ListedFeedResolveRetry } from './addByRssListedFeeds';
 import {
   decideListedAlbumStore,
+  decideListedFeedResolve,
   directoryLookupDue,
+  groupListedFeedResolveWork,
   groupPendingListedAlbums,
   isFeedListed,
+  isListedFeedResolveDue,
+  LISTED_FEED_RESOLVE_NO_MATCH_REASON,
+  listedFeedNeedsResolve,
   listedOnlyFeedUrlsToRemove,
+  nextListedFeedResolveRetry,
   toListedFeedInserts,
 } from './addByRssListedFeeds';
 
 const ARTIST_A = 'https://example.com/artist-a.xml';
 const ARTIST_B = 'https://example.com/artist-b.xml';
 const ALBUM_URL = 'https://example.com/album.xml';
+const RELIABLE_GUID = 'e2e0de71-0000-4000-8000-0000000000b3';
+const OTHER_RELIABLE_GUID = 'e2e0de71-0000-4000-8000-0000000000c4';
 
 const shared = {
   feedUrl: null,
@@ -279,6 +289,151 @@ describe('decideListedAlbumStore', () => {
     expect(
       decideListedAlbumStore({ ...noRows, result: { mappedFeed: null, status: 'failed' } })
     ).toEqual({ kind: 'log-failure' });
+  });
+
+  it('leaves an album alone when its host answered not modified with no payload', () => {
+    expect(
+      decideListedAlbumStore({
+        hasRowForGuid: false,
+        hasRowForUrl: true,
+        result: { mappedFeed: null, status: 'not_modified' },
+      })
+    ).toEqual({ kind: 'unchanged' });
+  });
+
+  it('still updates the stored row for not modified with a payload', () => {
+    expect(
+      decideListedAlbumStore({
+        hasRowForGuid: false,
+        hasRowForUrl: true,
+        result: { mappedFeed, status: 'not_modified' },
+      })
+    ).toEqual({ kind: 'update-existing' });
+  });
+});
+
+describe('listedFeedNeedsResolve', () => {
+  const guidOnly = storedRecord({
+    feedGuid: RELIABLE_GUID,
+    kind: 'unresolved',
+    unresolvedReason: 'no_feed_url',
+  });
+
+  it('is true only for a guid-only channel-level row the resolve can answer', () => {
+    expect(listedFeedNeedsResolve(guidOnly)).toBe(true);
+    expect(listedFeedNeedsResolve({ ...guidOnly, feedGuid: 'not-a-uuid' })).toBe(false);
+    expect(listedFeedNeedsResolve({ ...guidOnly, listedAtChannelLevel: false })).toBe(false);
+    expect(listedFeedNeedsResolve({ ...guidOnly, unresolvedReason: 'item_references_only' })).toBe(
+      false
+    );
+  });
+
+  it('is false once the resolve answered no match', () => {
+    expect(
+      listedFeedNeedsResolve({
+        ...guidOnly,
+        unresolvedReason: LISTED_FEED_RESOLVE_NO_MATCH_REASON,
+      })
+    ).toBe(false);
+  });
+});
+
+describe('groupListedFeedResolveWork', () => {
+  it('makes one group for a guid two artists list, whatever its case', () => {
+    const groups = groupListedFeedResolveWork([
+      storedRecord({ feedGuid: RELIABLE_GUID.toUpperCase(), kind: 'unresolved' }),
+      storedRecord({ publisherFeedUrl: ARTIST_B, feedGuid: RELIABLE_GUID, kind: 'unresolved' }),
+      storedRecord({ feedGuid: OTHER_RELIABLE_GUID, kind: 'unresolved' }),
+    ]);
+
+    expect(groups).toEqual([
+      {
+        feedGuid: RELIABLE_GUID,
+        keys: [
+          { publisherFeedUrl: ARTIST_A, feedGuid: RELIABLE_GUID.toUpperCase() },
+          { publisherFeedUrl: ARTIST_B, feedGuid: RELIABLE_GUID },
+        ],
+      },
+      {
+        feedGuid: OTHER_RELIABLE_GUID,
+        keys: [{ publisherFeedUrl: ARTIST_A, feedGuid: OTHER_RELIABLE_GUID }],
+      },
+    ]);
+  });
+});
+
+describe('decideListedFeedResolve', () => {
+  const newUuid = () => 'uuid-1';
+  const providerFeed = (feedUrl: string): DTOAddByRSSRemoteItemResolveResult => ({
+    kind: 'provider_feed',
+    provider_feed: {
+      index_provider: 'podcast_index',
+      provider_feed_id: '42',
+      feed_url: feedUrl,
+      title: null,
+      author: null,
+      image_url: null,
+    },
+  });
+
+  it('links a directory channel', () => {
+    expect(
+      decideListedFeedResolve(
+        { kind: 'channel', channel: { id_text: 'chan1', title: 'Album', medium_id: 3 } },
+        newUuid
+      )
+    ).toEqual({ kind: 'directory', channelIdText: 'chan1', channelTitle: 'Album', mediumId: 3 });
+  });
+
+  it('parses a provider feed on the device under its canonical URL', () => {
+    expect(
+      decideListedFeedResolve(providerFeed('https://User:pw@Album.Example/feed.xml'), newUuid)
+    ).toEqual({
+      kind: 'add_by_rss',
+      feedUrl: 'https://album.example/feed.xml',
+      requestId: `${DEVICE_LISTED_REQUEST_ID_PREFIX}uuid-1`,
+    });
+  });
+
+  it('marks not found, and a provider feed with no usable URL, as no match', () => {
+    expect(decideListedFeedResolve({ kind: 'not_found' }, newUuid)).toEqual({ kind: 'no_match' });
+    expect(decideListedFeedResolve(providerFeed('not a url'), newUuid)).toEqual({
+      kind: 'no_match',
+    });
+  });
+
+  it('asks again later when the directory channel is not ready yet', () => {
+    expect(decideListedFeedResolve({ kind: 'directory_unavailable' }, newUuid)).toEqual({
+      kind: 'retry_later',
+    });
+  });
+});
+
+describe('nextListedFeedResolveRetry', () => {
+  it('doubles the delay from one minute, caps it at 30 minutes, and stops after six retries', () => {
+    const nowMs = 1_000_000;
+    const delays: number[] = [];
+    let retry: ListedFeedResolveRetry | undefined;
+    for (let attempt = 1; attempt <= 6; attempt += 1) {
+      retry = nextListedFeedResolveRetry(retry, nowMs);
+      expect(retry.attempts).toBe(attempt);
+      delays.push((retry.nextAttemptAtMs ?? 0) - nowMs);
+    }
+
+    expect(delays).toEqual([60000, 120000, 240000, 480000, 960000, 1800000]);
+    expect(nextListedFeedResolveRetry(retry, nowMs)).toEqual({
+      attempts: 7,
+      nextAttemptAtMs: null,
+    });
+  });
+});
+
+describe('isListedFeedResolveDue', () => {
+  it('is due with no entry and at the due time, and never once attempts ran out', () => {
+    expect(isListedFeedResolveDue(undefined, 0)).toBe(true);
+    expect(isListedFeedResolveDue({ attempts: 1, nextAttemptAtMs: 1000 }, 999)).toBe(false);
+    expect(isListedFeedResolveDue({ attempts: 1, nextAttemptAtMs: 1000 }, 1000)).toBe(true);
+    expect(isListedFeedResolveDue({ attempts: 7, nextAttemptAtMs: null }, 5000)).toBe(false);
   });
 });
 

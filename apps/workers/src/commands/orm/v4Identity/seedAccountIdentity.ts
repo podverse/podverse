@@ -232,9 +232,11 @@ async function findAccountIdByEmail(email: string): Promise<number | null> {
 }
 
 async function findAccountIdByIdText(idText: string): Promise<number | null> {
-  const account = await getDataSourceReadWrite().getRepository(Account).findOne({
-    where: { id_text: idText },
-  });
+  const account = await getDataSourceReadWrite()
+    .getRepository(Account)
+    .findOne({
+      where: { id_text: idText },
+    });
   return account?.id ?? null;
 }
 
@@ -397,9 +399,11 @@ async function resolveCaseVariant(input: {
   incomingIdText: string;
   incomingEmail: string;
 }): Promise<CaseVariantResolution> {
-  const account = await getDataSourceReadWrite().getRepository(Account).findOne({
-    where: { id: input.accountId },
-  });
+  const account = await getDataSourceReadWrite()
+    .getRepository(Account)
+    .findOne({
+      where: { id: input.accountId },
+    });
   if (account === null || !isValidNanoIdV2IdText(account.id_text)) {
     return { kind: 'unrelated' };
   }
@@ -421,9 +425,11 @@ async function resolveCaseVariant(input: {
   if (account.v4_library_copied_at !== null && account.v4_library_copied_at !== undefined) {
     return { kind: 'blocked_library', otherV4Id: account.id_text };
   }
-  const grants = await getDataSourceReadWrite().getRepository(BillingMembershipGrant).find({
-    where: { account_id: account.id },
-  });
+  const grants = await getDataSourceReadWrite()
+    .getRepository(BillingMembershipGrant)
+    .find({
+      where: { account_id: account.id },
+    });
   if (grants.some((grant) => grant.source !== 'trial')) {
     return { kind: 'blocked_grants', otherV4Id: account.id_text };
   }
@@ -441,10 +447,9 @@ async function replaceCaseVariant(
   now: Date
 ): Promise<void> {
   await getDataSourceReadWrite().transaction(async (manager) => {
-    await manager.getRepository(Account).update(
-      { id: accountId },
-      { id_text: source.idText, verified: source.verified }
-    );
+    await manager
+      .getRepository(Account)
+      .update({ id: accountId }, { id_text: source.idText, verified: source.verified });
     await manager
       .getRepository(AccountCredentials)
       .update({ account_id: accountId }, { password: source.passwordHash });

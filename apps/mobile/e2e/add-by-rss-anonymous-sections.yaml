@@ -1,0 +1,58 @@
+appId: com.podverse.app.next
+name: Add By RSS Anonymous Sections
+---
+# Signed out, the device fetches the episode's chapters and transcript itself from the feed's
+# host, with no Podverse API request. Every item in the generated test-assets feeds on :2111
+# links a chapters file and transcripts; the generated text is not asserted.
+# Needs flow_needs_e2e_api + flow_needs_test_assets.
+
+- runFlow: shared/launch-and-connect.yaml
+
+- tapOn:
+    id: tab-my-library
+- tapOn:
+    id: library-nav-add-by-rss
+- tapOn:
+    id: rss-add-button
+- tapOn:
+    id: rss-url-input
+- inputText: http://localhost:2111/feeds/feed-podcast-1.rss
+- tapOn:
+    id: rss-add-submit
+- extendedWaitUntil:
+    visible:
+      id: rss-root-screen
+    timeout: ${TIMEOUT_SLOWER}
+- tapOn:
+    text: "Vitium amitto volup.*"
+- extendedWaitUntil:
+    visible:
+      id: add-by-rss-home-detail-screen
+    timeout: ${TIMEOUT_SLOW}
+- tapOn:
+    id: "home-feed-row-title-.*"
+    text: "Tamdiu deinde doloribus.*"
+- extendedWaitUntil:
+    visible:
+      id: add-by-rss-episode-detail-tab-chapters
+    timeout: ${TIMEOUT_SLOW}
+- assertVisible:
+    id: add-by-rss-episode-detail-tab-transcript
+- tapOn:
+    id: add-by-rss-episode-detail-tab-chapters
+- extendedWaitUntil:
+    visible:
+      id: add-by-rss-episode-detail-chapter-row
+    timeout: ${TIMEOUT_SLOWER}
+- takeScreenshot: add-by-rss-anonymous-sections-chapters
+- tapOn:
+    id: add-by-rss-episode-detail-tab-transcript
+- extendedWaitUntil:
+    visible:
+      id: add-by-rss-episode-detail-tab-transcript-content
+    timeout: ${TIMEOUT_SLOW}
+- assertVisible:
+    id: add-by-rss-episode-detail-transcript-filter-input
+- assertVisible:
+    id: add-by-rss-episode-detail-transcript-autoscroll
+- takeScreenshot: add-by-rss-anonymous-sections-transcript

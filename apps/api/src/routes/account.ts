@@ -202,6 +202,10 @@ router.post(
 router.post('/add-by-rss/parse', asyncHandler(AccountAddByRSSParseController.enqueueParse));
 router.post('/add-by-rss/parse/all', asyncHandler(AccountAddByRSSParseController.enqueueParseAll));
 router.get(
+  '/add-by-rss/feed-limit',
+  asyncHandler(AccountFollowingAddByRSSChannelController.getAddByRSSFeedLimit)
+);
+router.get(
   '/add-by-rss/parse/status/:request_id',
   asyncHandler(AccountAddByRSSParseController.getParseStatus)
 );
