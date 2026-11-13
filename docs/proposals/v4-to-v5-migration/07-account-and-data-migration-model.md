@@ -175,39 +175,60 @@ rejection from the earlier decision happens at copy, not at seed.
 
 ## Account caps v4 did not have
 
-Open. This is required before a grace-period copy or the end-of-grace batch is
-treated as finished. The numbers and the override shape are not chosen here.
+Decided. v4 did not cap some libraries that v5 caps. A copy that stopped at the
+v5 default would leave part of that library behind, so it does not.
 
-v4 did not cap some libraries that v5 caps. A copy that stops at the v5 default
-would leave part of that library behind. Before either copy path runs for real,
-list every v5 cap that can refuse a row this copy is supposed to keep, and
-decide each one. Known examples:
+The snapshot is older than the database the real copy reads, so no list of
+over-cap accounts is fixed in advance. The copy decides each account when it
+copies it, from that account's v4 counts at that moment. The rules:
 
-- Add by RSS. Trial and Premium share a default of 100. A per-account
-  `max_add_by_rss_feeds` override already wins over that default. On the counted
-  v4 snapshot, some accounts have more than 100 addresses, including one with
-  5,215.
-- Directory follows. Subscriptions, playlist follows, and account follows are
-  one total in the draft follow cap. That cap is not shipped. On the same
-  snapshot, some accounts have more than 500 podcast subscriptions, including
-  one with 4,314.
+1. **An account over a v5 default keeps its whole v4 library.** Before the rows,
+   the copy writes the smallest tier that covers the account's count, then
+   copies every row.
+2. **An account at or under the default gets no override.** It stays empty, so a
+   later change to the default still applies to it.
+3. **Past the highest tier migration may write (10,000), the copy does not cut
+   the library.** It writes no override and no rows for that group. It records
+   the group as `needs_operator` and copies the account's other groups. An
+   operator raises the account in management, then reruns that group. Migration
+   never writes Unlimited.
+4. **After the copy, the tier is the cap.** A new add is refused at the tier.
+   Removing still works. The tier does not shrink when the person removes rows,
+   so they can add back up to it.
+5. **A cap that is not shipped when an account is copied uses the same tier
+   function when it ships.** Shipping that cap assigns the tier to every
+   existing account already over the default, copied or not. The copy logs the
+   tier it would have written, so the rehearsal shows the counts.
+6. **A cap with no per-account override stops the group for the operator.** It
+   does not truncate. The v5 playlist trigger, at 10,000 resources per
+   playlist, is the known case. A playlist over it is recorded as
+   `needs_operator`, and the account's other playlists copy.
+7. **Any other refusal from a constraint, trigger, or service limit while
+   copying a row is an error with its own class.** It is never swallowed. That
+   group fails and the account's other groups continue
+   ([16](16-full-local-migration-rehearsal.md#errors-and-logs)).
 
-Other caps that can drop a copied row belong on the same list. Clips, queue,
-history, and now playing are not on it until someone shows a cap that would
-refuse them.
+Known caps:
 
-For each cap, the open decision is whether an account already over the v5
-default keeps the whole v4 library. Where the answer is yes, the copy writes
-that account's override before those rows, then copies the rows. It does not
-stop at the default and call the account done. What a later add does, after the
-copy, is part of the same decision.
+| Cap                                  | Default | Tiers migration may write           | Shipped |
+| ------------------------------------ | ------- | ----------------------------------- | ------- |
+| Add by RSS (`max_add_by_rss_feeds`)  | 100     | 200, 300, 400, 500, 1000, 10000     | Yes     |
+| Directory follows                    | 500     | 1000, 2000, 3000, 4000, 5000, 10000 | No      |
+| Resources per playlist (SQL trigger) | 10,000  | None. Over it is `needs_operator`.  | Yes     |
 
-Draft ladders in
+Directory follows count subscribed channels, followed playlists, and followed
+accounts as one total. Clips, queue, history, and now playing have no cap that refuses a copied row.
+The full local rehearsal ([16](16-full-local-migration-rehearsal.md)) is where
+another one would show up, as an error class.
+
+The tier lists come from the drafts in
 [account-add-by-rss-cap-500.md](/.llm/plans/active/account-add-by-rss-cap-500.md)
 and
-[account-follow-cap-5000.md](/.llm/plans/active/account-follow-cap-5000.md)
-count who is over the defaults. They are not this decision.
-`v4CopyAccountLibrary` does not write an override today.
+[account-follow-cap-5000.md](/.llm/plans/active/account-follow-cap-5000.md).
+Those drafts cut a library past 10,000 down to 10,000. Rule 3 replaces that.
+The counts in those drafts come from the old snapshot. They are examples, not
+inputs. `v4CopyAccountLibrary` does not write a tier yet. The batch runner plan
+set adds it.
 
 ## Honest limits and risks
 
@@ -224,8 +245,8 @@ count who is over the defaults. They are not this decision.
 
 ## Future plan sets
 
-- Decide the per-account overrides for caps v4 did not have, then have the
-  library copy write each override before the rows it covers. See
+- Have the library copy write each cap tier before the rows it covers, and
+  record `needs_operator` past 10,000. See
   [Account caps v4 did not have](#account-caps-v4-did-not-have).
 - API/worker design for `migrateAccountFromV4`.
 - Mobile and web loading-screen UX and failure retry.

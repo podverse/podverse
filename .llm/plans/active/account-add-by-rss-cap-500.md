@@ -7,17 +7,16 @@ Add by RSS is outside the follow total in
 [account-follow-cap-5000.md](account-follow-cap-5000.md). Each feed is parsed on our
 servers. The default limit is 100. Management can raise one account.
 
-The tier ladder below is a draft count of who is over 100. It is not the migration
-rule. That decision is open in
-[07](/docs/proposals/v4-to-v5-migration/07-account-and-data-migration-model.md#account-caps-v4-did-not-have).
-Do not implement this ladder as that decision. `v4CopyAccountLibrary` does not write
-an Add by RSS override today. Trial and Premium already share the default of 100;
-a line below that still says Trial is 10 is leftover draft text.
-
-The draft says migration
-grandfathers an account already over 100 onto the smallest tier that covers its count.
-Migration never writes Unlimited. The highest tier it may write is 10000. A library past
-10000 is copied up to 10000 and the rest is counted as not copied.
+The migration rule is decided in
+[07](/docs/proposals/v4-to-v5-migration/07-account-and-data-migration-model.md#account-caps-v4-did-not-have)
+and wins over this draft. Migration gives an account already over 100 the smallest tier
+that covers its count, decided at copy time. It never writes Unlimited. A library past
+10000 is not cut: that group is recorded as `needs_operator` and not copied until an
+operator raises the account. The counts below come from an old snapshot and are examples.
+The full-rehearsal runner plan set
+([16](/docs/proposals/v4-to-v5-migration/16-full-local-migration-rehearsal.md)) writes the
+tier in `v4CopyAccountLibrary`. Trial and Premium already share the default of 100; a line
+below that still says Trial is 10 is leftover draft text.
 
 ## Tiers
 
@@ -81,11 +80,10 @@ what hit the tier.
 
 ## v4 library copy
 
-The library write is not built. When it copies `addByRSSPodcastFeedUrls`, it writes the
-grandfather tier first, then copies addresses up to that tier. A library of 100 or fewer
-keeps an empty override and the Premium default of 100. The copy does not clip a
-grandfathered library down to the Trial number of 10. New adds after the copy use the
-Trial gate first, then the tier.
+When `v4CopyAccountLibrary` copies `addByRSSPodcastFeedUrls`, it writes the tier first,
+then copies every address. A library of 100 or fewer keeps an empty override and the
+shared default of 100. Past 10000 the group is `needs_operator` and nothing is copied.
+New adds after the copy are refused at the tier.
 
 ## Tests
 
@@ -93,8 +91,8 @@ Trial gate first, then the tier.
 - Trial at 10 still gets the existing renew sentence.
 - A stored tier of 200 allows the 101st feed and refuses the 201st.
 - Updating a feed already followed succeeds at the cap.
-- The account at 5,215 resolves to 10000. A library past 10000 copies 10000 and does not
-  become Unlimited.
+- The account at 5,215 resolves to 10000. A library past 10000 is `needs_operator`, copies
+  no addresses, and does not become Unlimited.
 - OPML stops at the tier and the status carries the same sentence.
 - The migration tier for 150 is 200, for 600 is 1000, and for 5,215 is 10000.
 

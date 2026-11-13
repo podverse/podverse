@@ -5,9 +5,11 @@ were written into git.
 
 Resume from a new agent window with the guided prompt:
 [.cursor/prompts/v4-to-v5-migration-guided.md](/.cursor/prompts/v4-to-v5-migration-guided.md).
-The current work is
-[15](15-near-term-rehearsal-checklist.md), section 5, in that order. One chunk,
-then stop and ask. Do not commit or push.
+Section 5 of [15](15-near-term-rehearsal-checklist.md) is finished. The
+current work is section 6, the full local rehearsal designed in
+[16](16-full-local-migration-rehearsal.md). The cap decision in 07 is made.
+The next item is the runner plan set. One chunk, then stop and ask. Do not
+commit or push.
 
 Built on this branch: `v4SeedAccountIdentity` (rehearsal account `eFv5NFx` is
 seeded on the local database) and `v4CopyAccountLibrary` (reapplied for that

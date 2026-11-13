@@ -13,8 +13,9 @@ They say: resume the v4 to v5 migration, and follow this file.
 ## Before any edit
 
 Read [the overview](/docs/proposals/v4-to-v5-migration/_OVERVIEW.md),
-[_WAKE-UP.md](/docs/proposals/v4-to-v5-migration/_WAKE-UP.md), and section 5 of
-[15](/docs/proposals/v4-to-v5-migration/15-near-term-rehearsal-checklist.md).
+[_WAKE-UP.md](/docs/proposals/v4-to-v5-migration/_WAKE-UP.md), section 6 of
+[15](/docs/proposals/v4-to-v5-migration/15-near-term-rehearsal-checklist.md), and
+[16](/docs/proposals/v4-to-v5-migration/16-full-local-migration-rehearsal.md).
 The questions in 04 and 07 are decided. Also read **v4-backend-reference**.
 
 Propose one chunk in a few sentences: what you will change, and what you will
@@ -29,7 +30,7 @@ leave alone. Wait for a yes. Do not start the chunk in that same turn.
   the overview, before starting another question.
 - The next chunk is the first unchecked item in
   [15](/docs/proposals/v4-to-v5-migration/15-near-term-rehearsal-checklist.md),
-  section 5. `v4SeedAccountIdentity`, the `v4CopyAccountLibrary` dry run, and
+  section 6. `v4SeedAccountIdentity`, the `v4CopyAccountLibrary` dry run, and
   the `v4SeedAccountCatalog` command are already built. Without `--dry-run`
   the catalog command writes local feeds. It refuses a non-local database.
   Do not start the library write before the catalog seed for that account
@@ -45,7 +46,9 @@ leave alone. Wait for a yes. Do not start the chunk in that same turn.
 
 ## First chunk to propose
 
-Section 5 of
+Section 6 of
 [15](/docs/proposals/v4-to-v5-migration/15-near-term-rehearsal-checklist.md),
 the first unchecked item. The review questions in `_WAKE-UP.md`, 04, and 07
-are decided. Do not reopen them.
+are decided, including the account caps. Do not reopen them. The full local
+rehearsal stages run from the agent prompt that plan set writes; a stage
+reads `summary.json`, not the full error log.
