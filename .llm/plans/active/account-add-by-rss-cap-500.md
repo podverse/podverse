@@ -5,7 +5,16 @@ Deferred. To run it, open a chat and say: "Implement
 
 Add by RSS is outside the follow total in
 [account-follow-cap-5000.md](account-follow-cap-5000.md). Each feed is parsed on our
-servers. The default limit is 100. Management can raise one account. Migration
+servers. The default limit is 100. Management can raise one account.
+
+The tier ladder below is a draft count of who is over 100. It is not the migration
+rule. That decision is open in
+[07](/docs/proposals/v4-to-v5-migration/07-account-and-data-migration-model.md#account-caps-v4-did-not-have).
+Do not implement this ladder as that decision. `v4CopyAccountLibrary` does not write
+an Add by RSS override today. Trial and Premium already share the default of 100;
+a line below that still says Trial is 10 is leftover draft text.
+
+The draft says migration
 grandfathers an account already over 100 onto the smallest tier that covers its count.
 Migration never writes Unlimited. The highest tier it may write is 10000. A library past
 10000 is copied up to 10000 and the rest is counted as not copied.

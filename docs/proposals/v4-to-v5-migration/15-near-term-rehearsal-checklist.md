@@ -210,11 +210,12 @@ clip is never dropped.
       read 83 rows and rolled them back: 2 follows kept, 81 snapshot clips
       kept. The other 68 pending rows are 21 subscriptions and 47 settled
       history rows, which the replay does not read.
-- [x] Replay a follow. Seeded `m6K-enJTW` at `2026-11-12T06:09:25Z` (trial,
-      no carried trial). `v4ReplayLegacyRows` for `eFv5NFx` at
+- [x] Replay a follow. Seeded one followed account at `2026-11-12T06:09:25Z`
+      (trial, no carried trial). `v4ReplayLegacyRows` for `eFv5NFx` at
       `2026-11-12T06:09:27Z` wrote 1 follow and kept 1. The follow row exists.
-      Its `follow_account` row is `resolved` / `replayed`. `WfxBLT5cy` stays
-      `unresolved` / `account_not_copied`. The 81 snapshot clips stayed kept.
+      Its `follow_account` row is `resolved` / `replayed`. The other followed
+      account stays `unresolved` / `account_not_copied`. The 81 snapshot clips
+      stayed kept.
 - [x] `billingImportLegacyMembershipExpiry --dry-run` against the seeded
       account. Ran at `2026-11-12T04:01:50Z`. It wrote no grants. 2937 rows:
       created 1 (the seeded account), skipped past 1563, unmatched 1373,
@@ -230,6 +231,15 @@ clip is never dropped.
       All 11 Add by RSS follows still have no title. The first-parse 403s were
       the missing membership. A signed-in app foreground retries them. The
       server does not start that parse.
+
+## Before the migration is finished
+
+- [ ] Caps v4 did not have. Add by RSS and directory follows are the known
+      cases. Decide, for each cap, whether an account already over the v5
+      default keeps the whole library, and have the copy write that override
+      before the rows. The draft ladders are not the decision. See
+      [07](07-account-and-data-migration-model.md#account-caps-v4-did-not-have).
+      This rehearsal does not need that decision.
 
 ## Not blockers for this list
 

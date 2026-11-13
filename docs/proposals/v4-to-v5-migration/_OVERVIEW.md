@@ -109,6 +109,7 @@ commits them.
 | No mass notification; the announcement email is the public message       | Decided |
 | Beta hosts: beta, api-beta, management.beta, management-api.beta         | Decided |
 | Beta cookies stay on each API host, not on .podverse.fm                  | Decided |
+| v5 caps v4 did not have need a per-account override decision before copy | Open    |
 
 ## Sequence
 

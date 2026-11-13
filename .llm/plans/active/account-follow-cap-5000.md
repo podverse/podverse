@@ -7,7 +7,15 @@ One account may follow a limited number of directory channels, playlists, and ac
 counted together. Add by RSS is not in this total. Its ladder is
 [account-add-by-rss-cap-500.md](account-add-by-rss-cap-500.md).
 
-The default is 500. Management can raise one account to a higher tier. Migration
+The default is 500. Management can raise one account to a higher tier.
+
+The tier ladder below is a draft count of who is over 500. It is not the migration
+rule. That decision is open in
+[07](/docs/proposals/v4-to-v5-migration/07-account-and-data-migration-model.md#account-caps-v4-did-not-have).
+Do not implement this ladder as that decision. The follow cap is not shipped, and
+`v4CopyAccountLibrary` does not write a follow override today.
+
+The draft says migration
 grandfathers an account that is already over 500 onto the smallest tier that covers its
 count. Migration never chooses Unlimited. The highest tier it may write is 10000. A count past
 10000 is copied up to 10000 and the rest is counted as not copied.

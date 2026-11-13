@@ -116,7 +116,9 @@ rejection from the earlier decision happens at copy, not at seed.
    the timestamp is null.
 3. Copy subscriptions, add-by-RSS URLs, user follows, playlists, user clips,
    queue, history, and now playing through the legacy map
-   ([05](05-id-mapping-and-catalog-seeding.md)). An add-by-RSS URL drops a
+   ([05](05-id-mapping-and-catalog-seeding.md)). A v5 cap that v4 did not have
+   must not silently drop rows. See
+   [Account caps v4 did not have](#account-caps-v4-did-not-have). An add-by-RSS URL drops a
    trailing path slash before it is stored. The host root keeps its slash. A
    public catalog feed URL is stored as given. `playlists.isDefault` becomes
    that account and medium's Likes playlist. Official chapters and soundbites
@@ -171,6 +173,42 @@ rejection from the earlier decision happens at copy, not at seed.
 - An email already in v5 is left as it is. The v4 library is not attached
   automatically.
 
+## Account caps v4 did not have
+
+Open. This is required before a grace-period copy or the end-of-grace batch is
+treated as finished. The numbers and the override shape are not chosen here.
+
+v4 did not cap some libraries that v5 caps. A copy that stops at the v5 default
+would leave part of that library behind. Before either copy path runs for real,
+list every v5 cap that can refuse a row this copy is supposed to keep, and
+decide each one. Known examples:
+
+- Add by RSS. Trial and Premium share a default of 100. A per-account
+  `max_add_by_rss_feeds` override already wins over that default. On the counted
+  v4 snapshot, some accounts have more than 100 addresses, including one with
+  5,215.
+- Directory follows. Subscriptions, playlist follows, and account follows are
+  one total in the draft follow cap. That cap is not shipped. On the same
+  snapshot, some accounts have more than 500 podcast subscriptions, including
+  one with 4,314.
+
+Other caps that can drop a copied row belong on the same list. Clips, queue,
+history, and now playing are not on it until someone shows a cap that would
+refuse them.
+
+For each cap, the open decision is whether an account already over the v5
+default keeps the whole v4 library. Where the answer is yes, the copy writes
+that account's override before those rows, then copies the rows. It does not
+stop at the default and call the account done. What a later add does, after the
+copy, is part of the same decision.
+
+Draft ladders in
+[account-add-by-rss-cap-500.md](/.llm/plans/active/account-add-by-rss-cap-500.md)
+and
+[account-follow-cap-5000.md](/.llm/plans/active/account-follow-cap-5000.md)
+count who is over the defaults. They are not this decision.
+`v4CopyAccountLibrary` does not write an override today.
+
 ## Honest limits and risks
 
 - Each grace-period copy is one account, and the end-of-grace batch is
@@ -186,6 +224,9 @@ rejection from the earlier decision happens at copy, not at seed.
 
 ## Future plan sets
 
+- Decide the per-account overrides for caps v4 did not have, then have the
+  library copy write each override before the rows it covers. See
+  [Account caps v4 did not have](#account-caps-v4-did-not-have).
 - API/worker design for `migrateAccountFromV4`.
 - Mobile and web loading-screen UX and failure retry.
 - Conflict-report tooling for operators.

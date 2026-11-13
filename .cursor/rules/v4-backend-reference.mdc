@@ -51,7 +51,8 @@ the machine for another URL.
   not treat an earlier successful read as proof that this shell can connect.
 - If the variable is unset, leave the SQL in the doc and write "not run" in
   `docs/proposals/v4-to-v5-migration/_WAKE-UP.md`.
-- Reports are counts, timings, and id-shaped keys only. No emails, names, tokens, or raw rows.
+- Reports are counts and timings. No emails, names, tokens, raw rows, or another user's
+  account id. The one account a committed file may name is in **public-repo-no-secrets**.
 - Count output goes in `_WAKE-UP.md` (counts only) or under `.artifacts/v4-rehearsal-counts/`
   (already gitignored). Never commit a CSV of people.
 

@@ -42,6 +42,10 @@ stay unknown.
 5. Submit v5 mobile under v4 store ids ([03](03-store-identity-and-signing.md))
    with staged rollout (Play) / phased release (iOS) as available.
 6. On approval: announce grace start; enable lazy migration at full rate.
+   Before that, the open cap decision in
+   [07](07-account-and-data-migration-model.md#account-caps-v4-did-not-have)
+   is made, and the copy writes any per-account override before the rows that
+   would pass a v5 default v4 did not have.
 7. Once v5 is live in at least one place, disable the v4 subscription products
    in Apple, Google Play, and PayPal. A new v4 purchase fails. The old app may
    not explain the failure. Support tells the person to upgrade to v5. Someone
