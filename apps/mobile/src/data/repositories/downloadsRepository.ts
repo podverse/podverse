@@ -1,7 +1,9 @@
 import { and, count, desc, eq, inArray, isNotNull, sql } from 'drizzle-orm';
+import * as FileSystem from 'expo-file-system/legacy';
 
 import type { DTOItem, DTOVerifiedPublisher } from '@podverse/helpers/dto';
 
+import { resolveStoredDownloadFilePath } from '../../downloads/downloadStorage';
 import type {
   DownloadMediaType,
   DownloadPatch,
@@ -621,6 +623,26 @@ export const downloadsRepository = {
     await playableItemRepository.remove('download', itemIdText);
     await itemDescriptionCacheRepository.unpin(itemIdText);
     await refreshNativeCacheProjection();
+  },
+
+  /**
+   * Delete a stored download file and leave the row. Used when a promoted episode already has a
+   * directory file and the Add by RSS copy is a different path.
+   */
+  deleteStoredFile: async (storedPath: string): Promise<void> => {
+    const baseDirectory = FileSystem.documentDirectory;
+    if (baseDirectory === null) {
+      return;
+    }
+    const absolute = resolveStoredDownloadFilePath(storedPath, baseDirectory);
+    if (absolute === '') {
+      return;
+    }
+    try {
+      await FileSystem.deleteAsync(absolute, { idempotent: true });
+    } catch {
+      // Best-effort file cleanup.
+    }
   },
 
   /** Rebuild the car download index from the completed rows. */

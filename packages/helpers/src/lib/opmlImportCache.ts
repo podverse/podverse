@@ -8,6 +8,9 @@ export type OpmlImportFeedOutcome =
   | 'added_by_rss'
   | 'already_subscribed'
   | 'rate_limited'
+  | 'blocked'
+  | 'feed_limit_reached'
+  | 'follow_limit'
   | 'failed';
 
 export type OpmlImportPerFeedResult = {
@@ -15,6 +18,8 @@ export type OpmlImportPerFeedResult = {
   title?: string;
   outcome: OpmlImportFeedOutcome;
   error?: string;
+  /** Present when `outcome` is `feed_limit_reached` or `follow_limit`. */
+  limit?: number;
 };
 
 export type OpmlImportTotals = {
@@ -25,6 +30,9 @@ export type OpmlImportTotals = {
   failed: number;
   skippedExisting: number;
   rateLimited: number;
+  blocked: number;
+  feedLimitReached: number;
+  followLimitReached: number;
 };
 
 export type OpmlImportRateLimitedInfo = {
@@ -70,6 +78,9 @@ export const emptyOpmlImportTotals = (total: number = 0): OpmlImportTotals => ({
   failed: 0,
   skippedExisting: 0,
   rateLimited: 0,
+  blocked: 0,
+  feedLimitReached: 0,
+  followLimitReached: 0,
 });
 
 export const incrementOpmlImportTotals = (
@@ -87,6 +98,12 @@ export const incrementOpmlImportTotals = (
     next.skippedExisting += 1;
   } else if (outcome === 'rate_limited') {
     next.rateLimited += 1;
+  } else if (outcome === 'blocked') {
+    next.blocked += 1;
+  } else if (outcome === 'feed_limit_reached') {
+    next.feedLimitReached = (next.feedLimitReached ?? 0) + 1;
+  } else if (outcome === 'follow_limit') {
+    next.followLimitReached = (next.followLimitReached ?? 0) + 1;
   } else if (outcome === 'failed') {
     next.failed += 1;
   }

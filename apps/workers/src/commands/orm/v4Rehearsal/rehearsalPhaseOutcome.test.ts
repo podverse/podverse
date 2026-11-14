@@ -36,11 +36,17 @@ const emptyReport = {
   nowPlaying: emptyCount,
 };
 
-const emptyAddByRssCap = { count: 0, action: 'copy' as const, writeTier: null };
+const emptyAddByRssCap = {
+  count: 0,
+  action: 'copy' as const,
+  writeTier: null,
+  addByRssMatchedToDirectory: 0,
+};
 const emptyDirectoryFollowCap = {
   count: 0,
   action: 'copy' as const,
   decision: { outcome: 'default' as const },
+  writeTier: null,
 };
 
 describe('classifyLibraryResult', () => {

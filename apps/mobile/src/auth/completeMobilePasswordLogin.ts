@@ -7,6 +7,7 @@ import type { SignupMergeMarker } from '../data/repositories/subscriptionsSignup
 import { readSignupMergeMarker } from '../data/repositories/subscriptionsSignupMarker';
 import { runSignupSubscriptionMerge } from '../data/repositories/subscriptionsSignupMerge';
 import { isSignupLoginFor } from '../data/repositories/subscriptionsSignupPlan';
+import { publishFollowLimit } from '../membership/followLimitNotice';
 import { requestAddByRssRefresh } from '../sync/requestAddByRssRefresh';
 import type { ClearSession } from './forcedLogoutNotice';
 import { loginWithMobileToken } from './loginWithMobileToken';
@@ -46,7 +47,7 @@ export type CompleteMobilePasswordLoginError =
   | 'session_expired';
 
 export type CompleteMobilePasswordLoginResult =
-  | { ok: true }
+  | { followLimit?: number; ok: true }
   | { error: 'rate_limited'; ok: false; rateLimitError: unknown }
   | { error: CompleteMobilePasswordLoginError; ok: false };
 
@@ -90,7 +91,9 @@ export const completeMobilePasswordLogin = async ({
     // Before the refresh below, which makes the account authoritative over local subscriptions.
     // Only does anything when this device just created this account; never throws.
     const signupMarker = await readSignupMergeMarker().catch(() => null);
-    await runSignupSubscriptionMerge(email, authContext);
+    const signupMerge = await runSignupSubscriptionMerge(email, authContext);
+    const followLimit =
+      signupMerge.status === 'merged' ? signupMerge.response.follow_limit?.limit : undefined;
 
     try {
       // The caller is waiting on this sign-in, so the account itself is fetched inline. What it
@@ -105,7 +108,10 @@ export const completeMobilePasswordLogin = async ({
         console.warn('Failed to reconcile account prefs after login hydrate', error);
       }
       setAuthError(null);
-      return { ok: true };
+      if (followLimit !== undefined) {
+        publishFollowLimit(followLimit);
+      }
+      return followLimit === undefined ? { ok: true } : { followLimit, ok: true };
     } catch (error) {
       if (getErrorResponseStatus(error) === 401) {
         return { error: 'session_expired', ok: false };

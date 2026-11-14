@@ -144,8 +144,12 @@ The clip stays empty. Do not invent a clip for that episode. The
 phone-storage spike is written in
 [08](08-mobile-first-launch-migration.md#storage-spike) and has not been run.
 It reads two keys on a private in-place install and leaves the app code
-alone. Doc 12 does not freeze or promote a beta database. Beta and
-production already share the production database.
+alone. A feed-list file before the phone copy is specified in
+[08](08-mobile-first-launch-migration.md#feed-list-file-before-the-phone-copy)
+and is deferred. Do not run that spike, and do not build Continue Migration,
+until the operator asks. It is not the next item in
+[15](15-near-term-rehearsal-checklist.md). Doc 12 does not freeze or promote
+a beta database. Beta and production already share the production database.
 
 ## Done
 

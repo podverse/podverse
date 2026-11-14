@@ -69,7 +69,7 @@ Ran read-only on the 2026-10-30 snapshot. One account. v4 id `eFv5NFx`
 
 Nothing can write a migrated row until these exist. One plan set, then linear
 migrations and a regenerated baseline. The plan is
-[01-schema-groundwork.md](/.llm/plans/active/v4-rehearsal-schema/01-schema-groundwork.md).
+[01-schema-groundwork.md](/.llm/plans/completed/v4-rehearsal-schema/01-schema-groundwork.md).
 
 - [x] Loosen `nano_id_v2` from 9 characters to 7–15. New ids stay 10. On this
       snapshot, 410 users and 21,099 episodes are shorter than 9

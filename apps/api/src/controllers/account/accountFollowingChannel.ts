@@ -23,6 +23,7 @@ import Joi from 'joi';
 
 import type { BulkFollowChannelsResponse, QueryParamsMedium } from '@podverse/helpers';
 import {
+  followLimitRefusal,
   MAX_BULK_FOLLOW_CHANNELS,
   QUERY_PARAMS_MEDIUMS,
   SharableStatusEnum,
@@ -33,6 +34,7 @@ import {
   AccountNotificationChannelService,
   AccountService,
   AccountSettingsNotificationService,
+  FollowLimitReachedError,
 } from '@podverse/orm';
 
 import { handleGenericErrorResponse } from '../helpers/error.js';
@@ -184,6 +186,10 @@ class AccountFollowingChannelController {
 
             res.status(201).json({ message: 'Successfully followed channel' });
           } catch (err) {
+            if (err instanceof FollowLimitReachedError) {
+              res.status(403).json(followLimitRefusal(err.limit));
+              return;
+            }
             handleGenericErrorResponse(res, err);
           }
         });
@@ -254,9 +260,13 @@ class AccountFollowingChannelController {
               }
             }
 
+            const limited = results.find((result) => result.outcome === 'follow_limit');
             const response: BulkFollowChannelsResponse = {
               totals: summarizeBulkFollowResults(results),
               results,
+              ...(limited?.limit === undefined
+                ? {}
+                : { follow_limit: followLimitRefusal(limited.limit) }),
             };
             // 200, not 201: a repeat submission creates nothing, and the caller reads the outcomes
             // to find out what actually changed.

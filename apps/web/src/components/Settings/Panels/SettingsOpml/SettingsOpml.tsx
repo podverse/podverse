@@ -8,6 +8,7 @@ import { resolveOpmlImportError } from '@podverse/helpers';
 import type { OpmlImportStatusResponse } from '@podverse/helpers-requests';
 import { Button, Divider } from '@podverse/ui';
 
+import { getContactEmail } from '../../../../constants/contact';
 import { getApiRequestService } from '../../../../factories/apiRequestService';
 import { pollOpmlImportStatus } from '../../../../utils/opml/pollOpmlImportStatus';
 import { handleRateLimitAlert } from '../../../../utils/rateLimit/rateLimitAlert';
@@ -32,6 +33,9 @@ const outcomeI18nKey = (outcome: OpmlImportOutcome): string => {
   if (outcome === 'rate_limited') {
     return 'opml.outcome_rate_limited';
   }
+  if (outcome === 'blocked') {
+    return 'opml.outcome_blocked';
+  }
   if (outcome === 'failed') {
     return 'opml.outcome_failed';
   }
@@ -48,6 +52,7 @@ const formatRetryAfterTime = (
 
 export function SettingsOpml() {
   const tSettings = useTranslations('settings');
+  const tMembership = useTranslations('membership');
   const tMisc = useTranslations('misc');
   const locale = useLocale();
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -206,6 +211,9 @@ export function SettingsOpml() {
                 alreadySubscribed: importReport.totals.skippedExisting,
                 failed: importReport.totals.failed,
                 rateLimited: importReport.totals.rateLimited,
+                blocked: importReport.totals.blocked,
+                feedLimitReached: importReport.totals.feedLimitReached ?? 0,
+                followLimitReached: importReport.totals.followLimitReached ?? 0,
               })}
             </p>
             {importReport.results.length > 0 ? (
@@ -213,7 +221,14 @@ export function SettingsOpml() {
                 {importReport.results.map((result) => (
                   <li key={`${result.feedUrl}-${result.outcome}`} className={styles.resultRow}>
                     <span className={styles.outcome}>
-                      {tSettings(outcomeI18nKey(result.outcome))}
+                      {result.outcome === 'feed_limit_reached' && typeof result.limit === 'number'
+                        ? tMembership('add_by_rss_feed_limit_reached', {
+                            limit: result.limit,
+                            contactEmail: getContactEmail(),
+                          })
+                        : result.outcome === 'follow_limit' && typeof result.limit === 'number'
+                          ? tMembership('follow_limit_reached', { limit: result.limit })
+                          : tSettings(outcomeI18nKey(result.outcome))}
                     </span>
                     <span className={styles.feedTitle}>
                       {result.title && result.title.trim() !== '' ? result.title : result.feedUrl}
@@ -221,7 +236,11 @@ export function SettingsOpml() {
                     {result.title && result.title.trim() !== '' ? (
                       <span className={styles.feedUrl}>{result.feedUrl}</span>
                     ) : null}
-                    {result.error ? <span className={styles.error}>{result.error}</span> : null}
+                    {result.error &&
+                    result.outcome !== 'feed_limit_reached' &&
+                    result.outcome !== 'follow_limit' ? (
+                      <span className={styles.error}>{result.error}</span>
+                    ) : null}
                   </li>
                 ))}
               </ul>

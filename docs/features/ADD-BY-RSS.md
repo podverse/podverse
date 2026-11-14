@@ -1,9 +1,11 @@
 # Add-by-RSS
 
 Add-by-RSS lets users follow RSS feeds (podcasts, music) that are not in the main directory.
-Workers parse feeds for every signed-in user. Those feeds stay in each device's add-by-RSS
-library, and the account's follow list syncs which feeds a user follows across devices. A
-signed-out user on mobile parses the feed on the phone into the same library, with no feed limit.
+Workers parse feeds for every signed-in user. Feeds the directory has not parsed stay in each
+device's add-by-RSS library, and the account's follow list syncs which feeds a user follows
+across devices. A feed the directory has parsed leaves Add by RSS; see
+[Directory match](#directory-match). A signed-out user on mobile parses the feed on the phone
+into the same library, with no feed limit.
 The website always uses the workers, because a browser cannot fetch the feed. That difference is
 intentional. On mobile, that library is My Library → Add by RSS (chips for podcasts, episodes,
 artists, albums, and tracks; plus to add). Mobile Home lists those feeds beside directory
@@ -68,11 +70,15 @@ A device parse does not produce an `AddByRSSParseCacheEntry`. It stores the same
 ### One shared limit
 
 Trial and Premium share one default, `MEMBERSHIP_MAX_ADD_BY_RSS_FEEDS` (100), read as
-`maxAddByRSSFeeds`. A per-account `max_add_by_rss_feeds` override still wins.
+`maxAddByRSSFeeds`. Management stores null (that default), a listed tier (200, 300, 400, 500,
+1000, or 10000), or unlimited (`-1`) on `max_add_by_rss_feeds`. A new add at the account's tier
+returns 403 `add_by_rss_feed_limit_reached`. Unlimited is not refused. A URL that matches a
+directory channel does not count.
 
 The public `GET /product/membership` returns that default. Authenticated
-`GET /account/add-by-rss/feed-limit` returns the signed-in account's own limit. The phone reads
-both, so a limit change needs no app release.
+`GET /account/add-by-rss/feed-limit` returns the signed-in account's numeric tier, or the shared
+default when the stored value is unlimited. The phone reads both, so a limit change needs no app
+release.
 
 The limit is not a Trial limitations sentence. The key
 `membership.trial_limitations_add_by_rss_feed_limit` is removed. The web membership page, the
@@ -176,6 +182,36 @@ nothing, and can be tapped again.
 
 A private album's publisher pointer still uses the public directory-match route, which already
 answers signed out.
+
+## Directory match
+
+A feed that matches a parsed directory channel leaves Add by RSS and becomes a directory
+subscription. The match runs when the feed is added, and again on refresh at most once an hour.
+An explicit refresh always runs it.
+
+Signed-out mobile runs the lookup on the phone. Signed-in mobile and the website add through
+`POST /account/follow/add-by-rss-channel` and convert an existing follow through
+`POST /account/add-by-rss/convert-to-channel`. The lookup is `POST /channel/add-by-rss-match`.
+
+A URL matches after canonicalization. The comparison ignores `http` versus `https`, host case,
+the default port, a fragment, userinfo, and a trailing slash on a non-root path. It keeps path
+case, the query string, and `www.`. A URL that still carries userinfo does not match, and a feed
+marked `requires_credentials` does not match. When the client knows the feed's `podcast:guid` and
+the channel's `podcast_guid` is different, that is not a match. A guid with no URL match is not a
+match. The channel must have channel about text, `feed_policy.public_visible`, and a lifecycle of
+Active or PendingArchive, the same filters as
+`ChannelAddByRSSDirectoryMatchService.getForListedFeeds`. A blocked feed fails `public_visible`,
+so the match does not return it.
+
+On the server, the account's queue (upcoming, history, and now playing) and the playlists the
+account owns move onto the directory episodes. On the phone, downloads, playback positions, seen
+and live state, and auto-download settings move with the matching episodes. An episode with no
+directory match keeps its Add by RSS data and still plays. Password-protected feeds stay Add by
+RSS. A playlist someone else owns keeps its Add by RSS row.
+
+Converting needs no membership. A matched add is a directory follow, so it does not count toward
+the Add by RSS limit. The person sees nothing. The phone writes "Moved to Podverse Directory"
+to the error log.
 
 ## Basic Auth (private feeds)
 

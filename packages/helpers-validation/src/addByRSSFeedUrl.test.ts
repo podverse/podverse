@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import {
   ADD_BY_RSS_CREDENTIAL_MAX_LENGTH,
+  addByRSSDirectoryMatchUrlVariants,
   canonicalAddByRSSFeedUrl,
   canSubmitAddByRssCredentials,
   canSubmitAddByRssFeed,
@@ -63,6 +64,75 @@ describe('canonicalAddByRSSFeedUrl', () => {
       'https://example.com/feed/show?a=1'
     );
     expect(canonicalAddByRSSFeedUrl('https://example.com/')).toBe('https://example.com/');
+  });
+});
+
+describe('addByRSSDirectoryMatchUrlVariants', () => {
+  const show = [
+    'https://example.com/Feed.xml',
+    'https://example.com/Feed.xml/',
+    'http://example.com/Feed.xml',
+    'http://example.com/Feed.xml/',
+  ];
+
+  it('lists https then http, without a slash then with one', () => {
+    expect(addByRSSDirectoryMatchUrlVariants('http://example.com/Feed.xml')).toEqual(show);
+  });
+
+  it('lowercases the host and keeps the path case', () => {
+    expect(addByRSSDirectoryMatchUrlVariants('HTTPS://Example.COM/Feed.xml')).toEqual(show);
+  });
+
+  it('drops a default port', () => {
+    expect(addByRSSDirectoryMatchUrlVariants('https://example.com:443/Feed.xml')).toEqual(show);
+    expect(addByRSSDirectoryMatchUrlVariants('http://example.com:80/Feed.xml')).toEqual(show);
+  });
+
+  it('drops a fragment', () => {
+    expect(addByRSSDirectoryMatchUrlVariants('https://example.com/Feed.xml#episode')).toEqual(show);
+  });
+
+  it('treats a trailing slash on a non-root path as the same feed', () => {
+    expect(addByRSSDirectoryMatchUrlVariants('https://example.com/Feed.xml/')).toEqual(show);
+  });
+
+  it('keeps only the host root for an empty path', () => {
+    expect(addByRSSDirectoryMatchUrlVariants('http://example.com')).toEqual([
+      'https://example.com/',
+      'http://example.com/',
+    ]);
+    expect(addByRSSDirectoryMatchUrlVariants('https://example.com/')).toEqual([
+      'https://example.com/',
+      'http://example.com/',
+    ]);
+  });
+
+  it('keeps the query string', () => {
+    expect(addByRSSDirectoryMatchUrlVariants('https://example.com/Feed.xml?a=1')).toEqual([
+      'https://example.com/Feed.xml?a=1',
+      'https://example.com/Feed.xml/?a=1',
+      'http://example.com/Feed.xml?a=1',
+      'http://example.com/Feed.xml/?a=1',
+    ]);
+  });
+
+  it('keeps a www host', () => {
+    expect(addByRSSDirectoryMatchUrlVariants('https://www.example.com/Feed.xml')).toEqual([
+      'https://www.example.com/Feed.xml',
+      'https://www.example.com/Feed.xml/',
+      'http://www.example.com/Feed.xml',
+      'http://www.example.com/Feed.xml/',
+    ]);
+  });
+
+  it('returns nothing when the URL has userinfo', () => {
+    expect(addByRSSDirectoryMatchUrlVariants('https://alice:pw@example.com/Feed.xml')).toEqual([]);
+    expect(addByRSSDirectoryMatchUrlVariants('https://alice@example.com/Feed.xml')).toEqual([]);
+  });
+
+  it('returns nothing for an invalid or non-http URL', () => {
+    expect(addByRSSDirectoryMatchUrlVariants('not-a-url')).toEqual([]);
+    expect(addByRSSDirectoryMatchUrlVariants('ftp://example.com/Feed.xml')).toEqual([]);
   });
 });
 

@@ -110,6 +110,18 @@ const E2E_ARCHIVED_SHOW_FEED_PI_ID = 876543240;
 const E2E_ARCHIVED_SHOW_FEED_URL = 'https://e2e-seed-archived-show.example/podcast.xml';
 const E2E_REMOVED_SOURCE_AT = '2020-01-15T00:00:00.000Z';
 const E2E_PODCAST_FEED_URL = 'https://e2e-seed-podcast.example/podcast.xml';
+/** Podcast Index id must stay unique. 876543232 is the directory-match fixture. */
+const E2E_DIRECTORY_MATCH_FEED_PI_ID = 876543232;
+const E2E_DIRECTORY_MATCH_CHANNEL_ID_TEXT = 'e2eDirMtchCh01';
+const E2E_DIRECTORY_MATCH_FEED_URL = 'http://localhost:2111/feeds/directory-match-podcast.rss';
+const E2E_DIRECTORY_MATCH_ITEM_1_ID_TEXT = 'e2eDirMtchIt01';
+const E2E_DIRECTORY_MATCH_ITEM_2_ID_TEXT = 'e2eDirMtchIt02';
+const E2E_DIRECTORY_MATCH_ITEM_1_GUID = 'e2e-directory-match-episode-1';
+const E2E_DIRECTORY_MATCH_ITEM_2_GUID = 'e2e-directory-match-episode-2';
+const E2E_DIRECTORY_MATCH_ITEM_1_ENCLOSURE_URL =
+  'http://localhost:2111/audio/directory-match-episode-1.mp3';
+const E2E_DIRECTORY_MATCH_ITEM_2_ENCLOSURE_URL =
+  'http://localhost:2111/audio/directory-match-episode-2.mp3';
 const E2E_MUSIC_FEED_PI_ID = 876543212;
 const E2E_MUSIC_FEED_URL = 'https://e2e-seed-music.example/album.xml';
 
@@ -4046,6 +4058,75 @@ async function seedRemoteItemStubFixtures(client) {
   );
 }
 
+async function seedDirectoryMatchChannel(client) {
+  await client.query(`DELETE FROM feed WHERE podcast_index_id = $1 OR url = $2`, [
+    E2E_DIRECTORY_MATCH_FEED_PI_ID,
+    E2E_DIRECTORY_MATCH_FEED_URL,
+  ]);
+
+  const feedResult = await client.query(
+    `INSERT INTO feed (url, podcast_index_id)
+     VALUES ($1, $2)
+     RETURNING id`,
+    [E2E_DIRECTORY_MATCH_FEED_URL, E2E_DIRECTORY_MATCH_FEED_PI_ID]
+  );
+  const feedId = feedResult.rows[0].id;
+
+  await client.query(
+    `INSERT INTO feed_policy (feed_id, parse_allowed, public_visible, add_allowed)
+     VALUES ($1, true, true, true)`,
+    [feedId]
+  );
+
+  const channelResult = await client.query(
+    `INSERT INTO channel (id_text, feed_id, medium_id, title)
+     VALUES (
+       $1,
+       $2,
+       (SELECT id FROM medium WHERE value = 'podcast' LIMIT 1),
+       'E2E Directory Match Podcast'
+     )
+     RETURNING id`,
+    [E2E_DIRECTORY_MATCH_CHANNEL_ID_TEXT, feedId]
+  );
+  const channelId = channelResult.rows[0].id;
+  await client.query(`INSERT INTO channel_about (channel_id) VALUES ($1)`, [channelId]);
+
+  const items = [
+    {
+      idText: E2E_DIRECTORY_MATCH_ITEM_1_ID_TEXT,
+      guid: E2E_DIRECTORY_MATCH_ITEM_1_GUID,
+      enclosureUrl: E2E_DIRECTORY_MATCH_ITEM_1_ENCLOSURE_URL,
+      title: 'E2E Directory Match Episode 1',
+    },
+    {
+      idText: E2E_DIRECTORY_MATCH_ITEM_2_ID_TEXT,
+      guid: E2E_DIRECTORY_MATCH_ITEM_2_GUID,
+      enclosureUrl: E2E_DIRECTORY_MATCH_ITEM_2_ENCLOSURE_URL,
+      title: 'E2E Directory Match Episode 2',
+    },
+  ];
+  for (const item of items) {
+    await client.query(
+      `INSERT INTO item (
+         id_text,
+         channel_id,
+         guid,
+         guid_enclosure_url,
+         pub_date,
+         title,
+         item_flag_status_id
+       )
+       VALUES ($1, $2, $3, $4, NOW(), $5, 1)`,
+      [item.idText, channelId, item.guid, item.enclosureUrl, item.title]
+    );
+  }
+
+  console.log(
+    `Seeded directory-match channel ${E2E_DIRECTORY_MATCH_CHANNEL_ID_TEXT} (items ${E2E_DIRECTORY_MATCH_ITEM_1_ID_TEXT}, ${E2E_DIRECTORY_MATCH_ITEM_2_ID_TEXT})`
+  );
+}
+
 async function main() {
   const passwordHash = await bcrypt.hash(TEST_PASSWORD, 10);
   const invitePlaceholderPasswordHash = await bcrypt.hash(crypto.randomUUID(), 10);
@@ -4066,6 +4147,7 @@ async function main() {
   await clearOpmlImportKeyvalState(accountId);
   await clearPlaybackKeyvalState(accountId);
   await seedMediaPlayerAndEmbedFixtures(client, accountId);
+  await seedDirectoryMatchChannel(client);
   await seedRemoteStubListFixtures(client);
   await seedMergedChannelRedirect(client);
   await seedRemovedContentFixtures(client, accountId);

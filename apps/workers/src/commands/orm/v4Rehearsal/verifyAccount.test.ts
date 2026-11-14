@@ -74,9 +74,12 @@ function passingInput(
     accountMembershipId: AccountMembershipEnum.Trial,
     membershipExpiresAt: null,
     maxAddByRssFeeds: null,
+    maxFollows: null,
     appStoreWindow: false,
     grants: [],
     followedChannelIdTexts: [],
+    followedChannelIds: [],
+    addByRssDirectoryChannelIdByUrl: new Map(),
     followedPlaylistIdTexts: [],
     followedAccountIdTexts: [],
     addByRssFeedUrls: [],
@@ -655,6 +658,32 @@ describe('judgeAccountCompatibility caps', () => {
     expect(JSON.stringify(missing)).not.toContain('feeds.example');
   });
 
+  it('An Add by RSS url that matches a directory channel passes when that channel is followed.', () => {
+    expect(
+      judgeAccountCompatibility(
+        passingInput({
+          addByRssUrls: ['https://feeds.example/show/'],
+          addByRssDirectoryChannelIdByUrl: new Map([['https://feeds.example/show', 42]]),
+          followedChannelIds: [42],
+        })
+      )
+    ).toEqual({ ok: true });
+    const missingFollow = judgeAccountCompatibility(
+      passingInput({
+        addByRssUrls: ['https://feeds.example/show/'],
+        addByRssDirectoryChannelIdByUrl: new Map([['https://feeds.example/show', 42]]),
+      })
+    );
+    expect(missingFollow).toMatchObject({
+      ok: false,
+      class: 'unaccounted',
+      group: 'addByRss',
+      exampleId: null,
+      message: 'addByRss 1 v4, 0 covered',
+    });
+    expect(JSON.stringify(missingFollow)).not.toContain('feeds.example');
+  });
+
   it('Two add-by-RSS urls that canonicalize to one feed count as one, and a blank entry does not count.', () => {
     expect(
       judgeAccountCompatibility(
@@ -811,7 +840,7 @@ describe('judgeAccountCompatibility caps', () => {
     });
   });
 
-  it('Directory follows over 10000 with no follow rows is needs_operator. The same count with one follow row is cap_cut. There is no directory-follow column to read.', () => {
+  it('Directory follows over 10000 with no follow rows is needs_operator. A partial copy is cap_cut. A complete copy with no covering tier is needs_operator. Unlimited with every follow present passes.', () => {
     expect(
       judgeAccountCompatibility(passingInput({ subscribedPodcastIds: numbered('p', 10000) }))
     ).toMatchObject({
@@ -864,6 +893,28 @@ describe('judgeAccountCompatibility caps', () => {
       class: 'needs_operator',
       group: 'directoryFollows',
     });
+    const copied = numbered('p', 10001);
+    expect(
+      judgeAccountCompatibility(
+        passingInput({
+          subscribedPodcastIds: copied,
+          followedChannelIdTexts: copied,
+        })
+      )
+    ).toMatchObject({
+      ok: false,
+      class: 'needs_operator',
+      group: 'directoryFollows',
+    });
+    expect(
+      judgeAccountCompatibility(
+        passingInput({
+          subscribedPodcastIds: copied,
+          followedChannelIdTexts: copied,
+          maxFollows: -1,
+        })
+      )
+    ).toEqual({ ok: true });
   });
 
   it('When Add by RSS and directory follows both need an operator, Add by RSS is returned.', () => {

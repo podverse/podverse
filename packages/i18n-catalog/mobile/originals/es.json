@@ -279,7 +279,8 @@
         "native_detail": "Detalle del error del reproductor",
         "parse_status": "Estado del análisis",
         "request_id": "ID de solicitud",
-        "basic_auth": "Usuario y contraseña del feed"
+        "basic_auth": "Usuario y contraseña del feed",
+        "moved_items": "Episodios movidos"
       }
     },
     "title": "Registro de errores",
@@ -295,6 +296,7 @@
     "outcome_success": "Correcto",
     "directory_channel_gone": "Se eliminó {channel} de este dispositivo. Ya no está en el directorio.",
     "directory_channel_converted": "Se movió {channel} a Añadir por RSS. Ya no está en el directorio.",
+    "add_by_rss_promoted_to_directory": "Se movió {channel} al directorio de {brand_name}",
     "row_a11y_hint": "Abre los detalles completos",
     "saved_footnote": "Los detalles completos se guardan en Más › Avanzado › Registro de errores.",
     "kind": {

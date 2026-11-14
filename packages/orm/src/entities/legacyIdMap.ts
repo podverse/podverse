@@ -9,7 +9,9 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 
-/** A v4 id and the v5 id it resolved to. Stores ids only. */
+import { DATABASE_CONSTANTS } from '@podverse/helpers';
+
+/** A v4 id and the v5 id it resolved to. A podcast row also stores the v4 authority feed URL. */
 @Entity('legacy_id_map')
 @Unique('legacy_id_map_legacy_unique', ['legacy_kind', 'legacy_id'])
 @Index('legacy_id_map_v5_idx', ['v5_kind', 'v5_id_text'])
@@ -31,6 +33,10 @@ export class LegacyIdMap {
 
   @Column({ type: 'text', nullable: true })
   resolve_key!: string | null;
+
+  /** Authority feed URL from v4 for a podcast row. Null when that row has none. */
+  @Column({ type: 'varchar', nullable: true, length: DATABASE_CONSTANTS.varchar_url })
+  v4_feed_url!: string | null;
 
   @Column({ type: 'text' })
   status!: string;

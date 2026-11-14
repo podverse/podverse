@@ -123,6 +123,11 @@ const apiProfileOverrides: Record<PodverseApiTestEnvProfile, Record<string, stri
     // The signed-out remote-item resolve 429 case walks to this cap; the production default
     // (120 per minute) would make that case 121 requests.
     ACCOUNT_ADD_BY_RSS_REMOTE_ITEM_RESOLVE_ANON_MAX_PER_MINUTE: '10',
+    // Directory match has no 429 case. The cap stays above what the API suite sends from one IP.
+    CHANNEL_ADD_BY_RSS_MATCH_ANON_MAX_PER_MINUTE: '1000',
+    // Legacy podcast lookup has no 429 case. The cap stays above what the API suite sends from one IP.
+    LEGACY_PODCAST_LOOKUP_MAX_PER_MINUTE: '1000',
+    LEGACY_PODCAST_LOOKUP_INSTALL_MAX_PER_MINUTE: '1000',
     API_PUBLIC_BASE_URL: 'http://localhost:29999',
     PLAYBACK_PRESENCE_LEAVE_GRACE_MS: '5000',
   },

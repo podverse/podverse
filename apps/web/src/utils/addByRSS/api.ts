@@ -1,5 +1,12 @@
-import type { AddByRSSParseCacheEntry } from '@podverse/helpers';
-import type { DTOAccount, DTOAccountFollowingAddByRSSChannel } from '@podverse/helpers';
+import type {
+  AddByRSSParseCacheEntry,
+  DTOAccount,
+  DTOAccountFollowingAddByRSSChannel,
+  DTOAddByRSSConvertResponse,
+  DTOAddByRSSMatchFeedRef,
+  DTOAddByRSSMatchResponse,
+  DTOChannelDirectoryMatch,
+} from '@podverse/helpers';
 import type { AddByRSSBasicAuthCredentials } from '@podverse/helpers-validation/client';
 
 import { getApiRequestService } from '../../factories/apiRequestService';
@@ -26,7 +33,7 @@ export const followAddByRSSChannel = async (params: {
   title?: string | null;
   imageUrl?: string | null;
   requiresCredentials?: boolean;
-}): Promise<DTOAccount> =>
+}): Promise<{ account: DTOAccount; directory_channel: DTOChannelDirectoryMatch | null }> =>
   getApiRequestService().reqAccountFollowAddByRSSChannel({
     feed_url: params.feedUrl,
     title: params.title ?? null,
@@ -91,6 +98,20 @@ export const enqueueAddByRSSParseAll = async (params: {
         : {}),
     },
     config: { withCredentials: true },
+  });
+
+export const matchAddByRSSFeeds = async (
+  feeds: DTOAddByRSSMatchFeedRef[]
+): Promise<DTOAddByRSSMatchResponse> =>
+  getApiRequestService().reqChannelAddByRSSMatch({ feeds });
+
+export const convertAddByRSSFeed = async (params: {
+  feed_url: string;
+  feed_guid: string | null;
+}): Promise<DTOAddByRSSConvertResponse> =>
+  getApiRequestService().reqAccountAddByRSSConvertToChannel({
+    feed_url: params.feed_url,
+    feed_guid: params.feed_guid,
   });
 
 export const getAddByRSSParseStatus = async (

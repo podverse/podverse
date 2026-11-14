@@ -12,6 +12,10 @@ import { accountRepository } from '../data/repositories/accountRepository';
 import { runAddByRssLoginSettle } from '../data/repositories/addByRssLoginSettle';
 import type { AddByRssRefreshTicket } from '../data/repositories/addByRssRepository';
 import { addByRssRepository } from '../data/repositories/addByRssRepository';
+import {
+  addByRssPromotion,
+  directoryMatchRequestAnswered,
+} from '../data/repositories/addByRssPromotion';
 import { autoDownloadRepository } from '../data/repositories/autoDownloadRepository';
 import { channelItemsRepository } from '../data/repositories/channelItemsRepository';
 import type { ChannelItemWindow } from '../data/repositories/channelItemWindow';
@@ -31,6 +35,7 @@ import type { MobileAuthRequestContext } from '../data/repositories/types';
 import { shouldDeferAutoDownloadEvaluateToCatchUp } from '../downloads/autoDownloadCatchUpSession';
 import { runAutoDownloadEvaluate } from '../downloads/autoDownloadEvaluate';
 import { runAutoDownloadRegistration } from '../downloads/autoDownloadRegistration';
+import { buildAddByRssMatchRefs, shouldRunDirectoryMatch } from '../lib/addByRss/directoryMatch';
 import type { AddByRssParsePath } from '../lib/addByRss/parsePath';
 import { resolveAddByRssParsePath } from '../lib/addByRss/parsePath';
 import { readIsPlayingLocallyForSync } from '../playback/playbackSyncState';
@@ -41,6 +46,7 @@ import {
   readHomeListPrefs,
 } from '../prefs/homeListPrefs';
 import { termsBlocksAccountSync } from '../terms/termsSyncGate';
+import { runSignedInAddByRssRefresh } from './addByRssSignedInRefresh';
 import { publishPlaybackPositionAdoptions } from './playbackPositionAdoption';
 import { publishPlaybackReconcileConflicts } from './playbackReconcileConflict';
 import { publishQueueDataChanged } from './queueDataRevision';
@@ -373,16 +379,66 @@ const createAddByRssDeviceParseJob = (
  * background run skips feeds fetched in the last 15 minutes and a pull checks all of them. Album
  * work an artist left, including guid-only albums now due for a resolve, follows the parse jobs.
  *
- * Signed in, refreshing is server-side parsing and so membership-tier. Checking before asking is
- * what makes a lapsed membership *degrade* rather than fail: those feeds stay readable and playable
- * from what is already stored, and the device does not collect denials in the error log. A
- * signed-in session never parses on the phone. The first run after a login settles the phone's
- * feeds for that account first.
+ * Signed in, a feed the directory already has is converted before the membership check.
+ * Converting replaces a follow, so a lapsed membership still moves it. The parse refresh after
+ * that is membership-tier. Checking before asking is what makes a lapsed membership degrade
+ * rather than fail: feeds that stay Add by RSS remain readable and playable from what is already
+ * stored, and the device does not collect denials in the error log. A signed-in session never
+ * parses on the phone. The first run after a login settles the phone's feeds for that account
+ * first.
  */
+/** Set after a directory-match request answers, so a later refresh can wait out the hour. */
+let lastDirectoryMatchAtMs: number | null = null;
+
+const promoteSignedOutDirectoryMatches = async (
+  authContext: MobileAuthRequestContext,
+  force: boolean
+): Promise<void> => {
+  if (!shouldRunDirectoryMatch(lastDirectoryMatchAtMs, Date.now(), force)) {
+    return;
+  }
+  let feedCount = 0;
+  try {
+    const feeds = await addByRssPromotion.signedOutMatchFeeds();
+    feedCount = feeds.length;
+    if (buildAddByRssMatchRefs(feeds).length === 0) {
+      return;
+    }
+    try {
+      const matches = await addByRssPromotion.findMatches(authContext, feeds);
+      lastDirectoryMatchAtMs = Date.now();
+      for (const feed of feeds) {
+        const match = matches.get(feed.feedUrl);
+        if (match === undefined) {
+          continue;
+        }
+        try {
+          await addByRssPromotion.promoteLocally({
+            accountSync: false,
+            context: authContext,
+            feedUrl: feed.feedUrl,
+            match,
+          });
+        } catch (error) {
+          console.warn('[add-by-rss] directory promotion failed', { error, feedCount });
+        }
+      }
+    } catch (error) {
+      if (directoryMatchRequestAnswered(error)) {
+        lastDirectoryMatchAtMs = Date.now();
+      }
+      console.warn('[add-by-rss] directory match failed', { error, feedCount });
+    }
+  } catch (error) {
+    console.warn('[add-by-rss] directory match failed', { error, feedCount });
+  }
+};
+
 const createAddByRssRefreshJob = (deps: SyncJobDeps, priority: SyncJobPriority): SyncJob => {
   return buildJob('add-by-rss-refresh', priority, 'add-by-rss-refresh', async (context) => {
     const authContext = deps.getAuthContext();
     if (authContext.accessToken === null) {
+      await promoteSignedOutDirectoryMatches(authContext, priority === 'user');
       const feedUrls = await addByRssRepository.listDeviceRefreshFeedUrls({
         nowMs: Date.now(),
         priority,
@@ -415,13 +471,34 @@ const createAddByRssRefreshJob = (deps: SyncJobDeps, priority: SyncJobPriority):
     // Local only, and needed whatever the membership: credentials must not sit in a stored URL.
     await addByRssRepository.splitStoredUserinfo(account.id_text);
 
-    const access = evaluateFeatureAccess('add_by_rss_refresh', deriveMembershipState(account));
-    if (!access.allowed) {
-      return;
-    }
-
-    const tickets = await addByRssRepository.requestRefreshAll(authContext, account.id_text);
-    context.enqueue(tickets.map((ticket) => createAddByRssParseJob(deps, priority, ticket)));
+    const directoryRefresh = await runSignedInAddByRssRefresh({
+      convertAccountFeed: (feed) =>
+        addByRssPromotion.convertAccountFeed({
+          context: authContext,
+          feedGuid: feed.feedGuid,
+          feedUrl: feed.feedUrl,
+        }),
+      findMatches: (feeds) => addByRssPromotion.findMatches(authContext, feeds),
+      force: priority === 'user',
+      lastDirectoryMatchAtMs,
+      listMatchFeeds: () => addByRssPromotion.accountMatchFeeds(),
+      logFailure: (kind, error, feedCount) => {
+        const message =
+          kind === 'promotion'
+            ? '[add-by-rss] directory promotion failed'
+            : '[add-by-rss] directory match failed';
+        console.warn(message, { error, feedCount });
+      },
+      matchRequestAnswered: directoryMatchRequestAnswered,
+      membershipAllowsRefresh: () =>
+        evaluateFeatureAccess('add_by_rss_refresh', deriveMembershipState(account)).allowed,
+      nowMs: Date.now(),
+      requestRefreshAll: async () => {
+        const tickets = await addByRssRepository.requestRefreshAll(authContext, account.id_text);
+        context.enqueue(tickets.map((ticket) => createAddByRssParseJob(deps, priority, ticket)));
+      },
+    });
+    lastDirectoryMatchAtMs = directoryRefresh.lastDirectoryMatchAtMs;
   });
 };
 

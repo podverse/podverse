@@ -29,6 +29,7 @@ import { createActiveMQShutdown, mqAddByRSSAdd } from '@podverse/mq';
 import {
   AccountFollowingAddByRSSChannelService,
   ChannelAddByRSSDirectoryMatchService,
+  findBlockedFeed,
 } from '@podverse/orm';
 import type { ParseRSSFeedForAddByRSSResult } from '@podverse/parser';
 import { parseRSSFeedForAddByRSS } from '@podverse/parser';
@@ -197,9 +198,14 @@ export const mqAddByRSSRunParser = async (args: CommandLineArgs) => {
         });
         let credentialsState: AddByRSSParseCredentialsState = resolvedCredentials.credentialsState;
 
+        const blockedFeed = await findBlockedFeed({ url: feedUrl });
         let result: ParseRSSFeedForAddByRSSResult | undefined;
         let fetchError: unknown;
-        if (credentialsState !== 'decrypt_failed') {
+        if (blockedFeed !== null) {
+          result = { status: 'failed', error: 'This feed is blocked.' };
+          // The account sees a failed parse. Opening the envelope is not part of that result.
+          credentialsState = 'not_provided';
+        } else if (credentialsState !== 'decrypt_failed') {
           try {
             result = await parseRSSFeedForAddByRSS(feedUrl, {
               feedHash,

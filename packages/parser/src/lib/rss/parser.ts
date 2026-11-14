@@ -37,7 +37,7 @@ import {
 } from '@podverse/helpers';
 import { getStatusCodeFromError, isTlsOrProtocolError } from '@podverse/helpers-requests';
 import { canonicalHttpOrHttpsUrl } from '@podverse/helpers-validation';
-import type { Channel, Item } from '@podverse/orm';
+import type { Channel, Feed, FeedPolicy, Item } from '@podverse/orm';
 import {
   AccountFollowingChannelService,
   AccountPendingFollowingChannelService,
@@ -195,6 +195,23 @@ function isMaxResponseSizeError(error: unknown): boolean {
   );
 }
 
+function assertLifecycleAndPolicyAllowParse(feed: Feed, feedPolicy: FeedPolicy | null): void {
+  const lifecycleKey =
+    feed.feed_lifecycle_state?.feed_lifecycle_state_type?.state_key ??
+    FeedLifecycleStateKeyEnum.Active;
+
+  if (
+    !shouldAttemptFeedParseFromLifecycleAndPolicy({
+      lifecycleStateKey: lifecycleKey,
+      feedPolicy,
+    })
+  ) {
+    throw new Error(
+      `parseRSSFeedAndSaveToDatabase: feed lifecycle/policy blocks parse for ${feed.id} ${feed.podcast_index_id} ${feed.url}`
+    );
+  }
+}
+
 export const parseRSSFeedAndSaveToDatabase = async (
   url: string,
   podcast_index_id: number,
@@ -263,6 +280,9 @@ export const parseRSSFeedAndSaveToDatabase = async (
       `parseRSSFeedAndSaveToDatabase url: ${url} podcast_index_id: ${podcast_index_id}`
     );
     feed = await handleGetRSSFeed(url, podcast_index_id);
+    const policyBeforeFetch = await feedPolicyService.recomputePolicy(feed.id);
+    assertLifecycleAndPolicyAllowParse(feed, policyBeforeFetch);
+
     channel = await channelService.getOrCreateByFeed(feed);
     if (channel && !channel.title) {
       try {
@@ -279,22 +299,6 @@ export const parseRSSFeedAndSaveToDatabase = async (
       } catch {
         // Best-effort PI metadata enrichment for minimally persisted channels.
       }
-    }
-
-    const currentFeedPolicy = await feedPolicyService.recomputePolicy(feed.id);
-    const lifecycleKey =
-      feed.feed_lifecycle_state?.feed_lifecycle_state_type?.state_key ??
-      FeedLifecycleStateKeyEnum.Active;
-
-    if (
-      !shouldAttemptFeedParseFromLifecycleAndPolicy({
-        lifecycleStateKey: lifecycleKey,
-        feedPolicy: currentFeedPolicy,
-      })
-    ) {
-      throw new Error(
-        `parseRSSFeedAndSaveToDatabase: feed lifecycle/policy blocks parse for ${feed.id} ${feed.podcast_index_id} ${feed.url}`
-      );
     }
 
     parsingLockAcquired = await feedService.tryStartParsing(feed.id);
@@ -358,7 +362,8 @@ export const parseRSSFeedAndSaveToDatabase = async (
       source: FeedConditionSourceEnum.Auto,
       note: null,
     });
-    await feedService.refreshFeedPolicy(feed.id);
+    const policyAfterFetch = await feedService.refreshFeedPolicy(feed.id);
+    assertLifecycleAndPolicyAllowParse(feed, policyAfterFetch);
 
     channel = await channelService.getOrCreateByFeed(feed);
 

@@ -39,3 +39,130 @@
 - Change: `v4CopyAccountLibrary` sets `max_add_by_rss_feeds` to the smallest tier that covers that account's Add by RSS count (200, 300, 400, 500, 1000, or 10000) when the count is over 100 and the stored number is missing or below the count, then copies the feeds. When the count is 100 or fewer and the stored number is below that count, the column is set to null and 100 is not written, and the feeds still copy. A stored number that already covers the count stays, including a number above 10000, and the feeds copy. A count past 10000 with no covering stored number copies no Add by RSS feeds and reports needs_operator. The copy never writes a number above 10000.
 - Who notices: operators running the local v4 library copy
 - Operator steps: none
+
+## Launch queue keeps Matomo counts of 3 or more
+
+- Surfaces: workers
+- Change: The full catalog stage treats a v4 show as viewed when its highest `stats_podcast.play_count` across timeframes is at least 3. Shows whose highest count is 1 or 2 stay out unless an account subscribes to them. On the measured snapshot that viewed set is 214 shows.
+- Who notices: operators running the local full catalog seed
+- Operator steps: none
+
+## Public Add by RSS directory match route
+
+- Surfaces: api, k8s base env
+- Change: new `POST /channel/add-by-rss-match` takes up to 100 feed URLs (and up to 500 episode
+  references) and returns the parsed directory channel each URL belongs to, plus the directory
+  episode for each reference. URLs match after ignoring http/https, host case, default port,
+  fragment, and a trailing slash; a different `podcast:guid` is not a match.
+- Who notices: no one directly; clients use it to turn Add by RSS feeds into subscriptions
+- Operator steps: optional env `CHANNEL_ADD_BY_RSS_MATCH_MAX_PER_MINUTE` (default 60) and
+  `CHANNEL_ADD_BY_RSS_MATCH_ANON_MAX_PER_MINUTE` (default 120)
+
+## Add by RSS feeds that are in the directory become subscriptions
+
+- Surfaces: api
+- Change: `POST /account/follow/add-by-rss-channel` checks the URL against parsed directory
+  channels first. A match follows the directory channel instead, returns 200 with
+  `directory_channel`, and does not count toward the Add by RSS limit. New
+  `POST /account/add-by-rss/convert-to-channel` converts an existing Add by RSS follow and moves the
+  account's queue, history, now playing, and owned playlist rows onto the directory episodes
+  (matched by guid, then enclosure URL). Unmatched episodes keep their Add by RSS data.
+  Password-protected feeds never convert. No membership is needed to convert.
+- Who notices: people who add a show by RSS that Podverse already has; they get the full podcast
+  page
+- Operator steps: none
+
+## Mobile: Add by RSS feeds already in Podverse become regular subscriptions (signed out)
+
+- Surfaces: mobile
+- Change: signed out, adding an RSS URL that Podverse has already parsed subscribes to the
+  Podverse podcast instead. On refresh (at most hourly, always on pull-to-refresh) existing
+  signed-out Add by RSS feeds that now match are moved: downloads, playback positions, seen and
+  live badges, and auto-download settings follow the matching episodes. Episodes with no match
+  keep working as before. Password-protected feeds never move. Each move is written to the error
+  log as "Moved to Podverse Directory".
+- Who notices: signed-out users; those shows gain clips, chapters, and the full podcast page
+- Operator steps: none
+
+## Mobile: signed-in Add by RSS feeds already in Podverse become subscriptions
+
+- Surfaces: mobile
+- Change: signed in, adding an RSS URL Podverse already has opens the Podverse podcast and
+  follows it on the account. Refresh (at most hourly, always on pull-to-refresh) converts
+  existing Add by RSS follows that now match, on the server and on the phone; the queue, history,
+  and owned playlists move on the server, and downloads and positions move on the phone. Works
+  without a membership. Signing in with signed-out feeds that match moves them too.
+- Who notices: signed-in users with Add by RSS shows that are in the directory
+- Operator steps: none
+
+## Web: Add by RSS feeds already in Podverse become subscriptions
+
+- Surfaces: web
+- Change: adding an RSS URL Podverse already has opens the Podverse podcast page and subscribes.
+  Refreshing Add by RSS feeds (at most hourly in the background, always from the refresh button)
+  converts existing Add by RSS follows that now match; the queue and owned playlists follow on the
+  server.
+- Who notices: website users with Add by RSS shows that are in the directory
+- Operator steps: none
+
+## v4 spam and takedown feeds stay blocked
+
+- Surfaces: workers, api, parser
+- Change: `v4ImportFlaggedFeeds` writes a v5 feed for every v4 podcast flagged spam or takedown, with parse, public listing, and add turned off. Subscribe, Add by RSS, OPML, and a later Podcast Index parse stop on that feed. `other`, `always-allow`, and non-public podcasts are unchanged.
+- Who notices: operators who run the import; a person who tries to add one of those feeds
+- Operator steps: from the repo root, with the local database up and `V4_DATABASE_URL` set, run `npm run v4_import_flagged_feeds -w apps/workers -- --dry-run`, then the same command without `--dry-run`
+
+## Legacy podcast map stores the v4 feed URL
+
+- Surfaces: workers, ops (migration)
+- Change: migration adds `legacy_id_map.v4_feed_url`. New worker command
+  `v4WriteLegacyPodcastMap` (`npm run v4_write_legacy_podcast_map -w apps/workers`) writes one
+  podcast row per v4 podcast with an authority feed URL, and a `dropped` row for spam and takedown,
+  reading v4 read-only in pages of 2,000. Rows already mapped by the library copy keep their
+  mapping.
+- Who notices: no one directly; the legacy podcast lookup reads these rows
+- Operator steps: apply migrations; run the command once against v4 before go-live (`-dryRun`
+  first)
+
+## Public legacy podcast lookup
+
+- Surfaces: api, k8s base env
+- Change: new `POST /legacy/podcast/lookup` answers up to 2,000 v4 podcast ids with the v5 channel,
+  the v4 feed URL when v5 has not parsed the show, `blocked` for spam and takedown, or `not_here`.
+  Read-only; never queues a parse.
+- Who notices: no one directly; signed-out phones upgrading from v4 use it
+- Operator steps: optional env `LEGACY_PODCAST_LOOKUP_MAX_PER_MINUTE` (default 30) and
+  `LEGACY_PODCAST_LOOKUP_INSTALL_MAX_PER_MINUTE` (default 10)
+
+## v4 library copy turns Add by RSS URLs already in the directory into subscriptions
+
+- Surfaces: workers
+- Change: the v4 library copy writes a directory subscription instead of an Add by RSS follow
+  when the URL matches a parsed, public directory channel. The Add by RSS limit tier is computed
+  from the URLs left. The copy result, dry run, and verify report a new
+  `addByRssMatchedToDirectory` count.
+- Who notices: migrated v4 accounts get full podcast pages for those shows
+- Operator steps: none
+
+## Add by RSS limit uses shared tiers
+
+- Surfaces: api, web, mobile, management-web, workers
+- Change: Trial and Premium share a default of 100 Add by RSS feeds. Management can raise one
+  account to 200, 300, 400, 500, 1000, 10000, or Unlimited. A new add at the account's tier
+  returns 403 `add_by_rss_feed_limit_reached` with no renew path. A URL that matches a directory
+  channel does not count. Migration writes the smallest tier that covers the addresses left and
+  never writes Unlimited.
+- Who notices: people adding a feed at the limit, and operators raising one account
+- Operator steps: none
+
+## Follow limit uses shared tiers
+
+- Surfaces: api, web, mobile, management-web, workers
+- Change: An account can follow 500 directory channels, playlists, and accounts, counted
+  together. Management can raise the tier through 10000 or Unlimited. A new follow at the tier
+  returns 403 with no renew path. Converting an Add by RSS follow at the tier keeps that Add by
+  RSS follow and returns `follow_limit`. Migration writes the smallest tier that covers the
+  count, including Add by RSS URLs that became directory follows, and never writes Unlimited.
+- Who notices: people following a podcast, playlist, or account at the limit, and operators
+  raising one account
+- Operator steps: none

@@ -15,6 +15,20 @@ import { getAddByRSSHashId } from '@podverse/helpers';
 export const E2E_PODCAST_CHANNEL_ID_TEXT = 'e2ePodChnl001';
 export const E2E_PODCAST_CHANNEL_TITLE = 'E2E Podcast Seed Channel';
 
+/** Public directory channel an Add by RSS URL can match. Sync with tools/web/seed-e2e.mjs. */
+export const E2E_DIRECTORY_MATCH_CHANNEL_ID_TEXT = 'e2eDirMtchCh01';
+export const E2E_DIRECTORY_MATCH_CHANNEL_TITLE = 'E2E Directory Match Podcast';
+export const E2E_DIRECTORY_MATCH_FEED_URL =
+  'http://localhost:2111/feeds/directory-match-podcast.rss';
+export const E2E_DIRECTORY_MATCH_ITEM_1_ID_TEXT = 'e2eDirMtchIt01';
+export const E2E_DIRECTORY_MATCH_ITEM_2_ID_TEXT = 'e2eDirMtchIt02';
+export const E2E_DIRECTORY_MATCH_ITEM_1_GUID = 'e2e-directory-match-episode-1';
+export const E2E_DIRECTORY_MATCH_ITEM_2_GUID = 'e2e-directory-match-episode-2';
+export const E2E_DIRECTORY_MATCH_ITEM_1_ENCLOSURE_URL =
+  'http://localhost:2111/audio/directory-match-episode-1.mp3';
+export const E2E_DIRECTORY_MATCH_ITEM_2_ENCLOSURE_URL =
+  'http://localhost:2111/audio/directory-match-episode-2.mp3';
+
 /** Applied absorb pair for the merged-channel redirect spec. */
 export const E2E_MERGED_OLD_CHANNEL_ID_TEXT = 'e2eMrgOldCh01';
 export const E2E_MERGED_SURVIVOR_CHANNEL_ID_TEXT = 'e2eMrgSurCh01';

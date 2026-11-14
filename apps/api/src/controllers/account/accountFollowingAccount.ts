@@ -12,8 +12,8 @@ import {
 import type { Request, Response } from 'express';
 import Joi from 'joi';
 
-import { SharableStatusEnum } from '@podverse/helpers';
-import { AccountFollowingAccountService, AccountService } from '@podverse/orm';
+import { followLimitRefusal, SharableStatusEnum } from '@podverse/helpers';
+import { AccountFollowingAccountService, AccountService, FollowLimitReachedError } from '@podverse/orm';
 
 import { handleGenericErrorResponse } from '../helpers/error.js';
 
@@ -90,6 +90,10 @@ class AccountFollowingAccountController {
             );
             res.status(201).json({ message: 'Successfully followed account' });
           } catch (err) {
+            if (err instanceof FollowLimitReachedError) {
+              res.status(403).json(followLimitRefusal(err.limit));
+              return;
+            }
             handleGenericErrorResponse(res, err);
           }
         });

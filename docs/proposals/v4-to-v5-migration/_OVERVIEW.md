@@ -57,13 +57,19 @@ commits them.
 | Playlist members come from the joins; `itemsOrder` only sorts            | Decided |
 | A follow uses the survivor when an absorb merge is already applied       | Decided |
 | The selective seed skips spam, takedown, and non-public podcasts         | Decided |
-| At go-live, queue subscribed and viewed public shows on rss-slow         | Decided |
+| At go-live, queue subscribed shows and Matomo views of 3 or more         | Decided |
 | Signed-out v4 ids use a read-only lookup; signed-out never adds feeds    | Decided |
 | The legacy podcast lookup accepts at most 2,000 ids per request          | Decided |
-| Signed-out Add by RSS addresses are kept; refresh needs a membership     | Decided |
+| Signed-out Add by RSS refreshes on the phone with no feed limit          | Decided |
+| Signed-out v4 shows not in v5 yet become Add by RSS on that phone        | Decided |
+| Legacy lookup answers channel, feed_url, blocked, or not_here            | Decided |
+| Add by RSS feeds that match a directory channel move to it everywhere    | Decided |
+| The directory match moves queue, playlist, and playback rows too         | Decided |
 | Feeds record their source; the account link clears on account deletion   | Decided |
 | Copied list order uses the ORM step of `0.00000001`                      | Decided |
 | Phone-storage spike is written in doc 08 and has not been run            | Decided |
+| Continue Migration OPML screen is planned; it waits for the field spike  | Decided |
+| First v5 store listing asks v4 users to Export OPML before updating      | Decided |
 | F-Droid is a placeholder until later                                     | Decided |
 | Do not import `subscribedPodcastListIds`                                 | Decided |
 | App Store rows from 2023-12-27 through 2024-01-31 are not real purchases | Decided |
@@ -176,6 +182,12 @@ flowchart LR
   the app, not a browser. Use email and the store listing for the message.
   A longer reply goes out only when someone contacts us.
 - Carry over signed-out device data if v5 ships under a different bundle id.
+- Use the existing v5 Export OPML as a backup taken before either copy. That
+  control reads data the copy has not written yet. A separate feed-list
+  reading is specified in
+  [08](08-mobile-first-launch-migration.md#feed-list-file-before-the-phone-copy)
+  and waits for its field spike. Until then, the store listing asks v4 users
+  to Export OPML in the v4 app before they update.
 - Promise every clip, history row, or download survives. Feeds, guids, and
   storage paths may have drifted.
 - Seed popularity from Matomo or from the v4 stats tables. v5 popularity
@@ -189,7 +201,12 @@ flowchart LR
 1. **Database rehearsal** ([06](06-database-migration-rehearsal.md)) against the
    prod-copy test DB. No store or beta dependency.
 2. **Mobile local-data spike** ([08](08-mobile-first-launch-migration.md)) on a
-   build that temporarily uses the v4 store ids in a private channel.
+   build that temporarily uses the v4 store ids in a private channel. The
+   feed-list field reading is written in that doc and gates the Continue
+   Migration screen. It is not the next rehearsal step.
+5. **Add by RSS directory match**
+   ([08](08-mobile-first-launch-migration.md#add-by-rss-directory-match)) on
+   mobile, web, and the API. It ships on its own, before the migration.
 3. **Store identity and signing inventory** ([03](03-store-identity-and-signing.md)).
 4. **Legacy-id map design** ([05](05-id-mapping-and-catalog-seeding.md)).
 

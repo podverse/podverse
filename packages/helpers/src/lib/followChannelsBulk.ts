@@ -23,11 +23,15 @@ export type BulkFollowChannelOutcome =
   /** Already followed beforehand. Repeat submissions report this instead of failing. */
   | 'already_following'
   /** No channel exists with that `id_text`; the rest of the batch is unaffected. */
-  | 'not_found';
+  | 'not_found'
+  /** The account's follow tier had no room left. Earlier rows in the batch may still be followed. */
+  | 'follow_limit';
 
 export interface BulkFollowChannelResult {
   channel_id_text: string;
   outcome: BulkFollowChannelOutcome;
+  /** Present when `outcome` is `follow_limit`: the account's tier. */
+  limit?: number;
 }
 
 export interface BulkFollowChannelsTotals {
@@ -35,11 +39,19 @@ export interface BulkFollowChannelsTotals {
   followed: number;
   already_following: number;
   not_found: number;
+  follow_limit: number;
 }
 
 export interface BulkFollowChannelsResponse {
   totals: BulkFollowChannelsTotals;
   results: BulkFollowChannelResult[];
+  /** Present when any row is `follow_limit`. There is no renew path. */
+  follow_limit?: {
+    message: string;
+    code: 'follow_limit_reached';
+    i18nKey: 'membership.follow_limit_reached';
+    limit: number;
+  };
 }
 
 export function summarizeBulkFollowResults(
@@ -50,6 +62,7 @@ export function summarizeBulkFollowResults(
     followed: 0,
     already_following: 0,
     not_found: 0,
+    follow_limit: 0,
   };
 
   for (const result of results) {

@@ -17,6 +17,7 @@ import {
   planAddByRssSignupCarry,
   planSignInOwnership,
 } from './addByRssDevicePath';
+import { addByRssPromotion } from './addByRssPromotion';
 import { addByRssRepository } from './addByRssRepository';
 import { syncEventLogRepository } from './syncEventLogRepository';
 import type { MobileAuthRequestContext } from './types';
@@ -124,7 +125,7 @@ const carrySignedOutFeedsIntoNewAccount = async (
         continue;
       }
       try {
-        await requestWithMobileAuthRefresh(context, (api) =>
+        const followed = await requestWithMobileAuthRefresh(context, (api) =>
           api.reqAccountFollowAddByRSSChannel({
             feed_url: feed.feedUrl,
             image_url: null,
@@ -132,6 +133,17 @@ const carrySignedOutFeedsIntoNewAccount = async (
             ...(feed.requiresCredentials ? { requires_credentials: true } : {}),
           })
         );
+        if (followed.directory_channel !== null) {
+          try {
+            await addByRssPromotion.promoteFollowedDirectoryChannel({
+              channel: followed.directory_channel,
+              context,
+              feedUrl: feed.feedUrl,
+            });
+          } catch (error) {
+            console.warn('[add-by-rss] directory promotion failed', { error, feedCount: 1 });
+          }
+        }
         savedNow.push(feed.feedUrl);
       } catch (error) {
         const outcome = classifySignupCarryFollowError(error);

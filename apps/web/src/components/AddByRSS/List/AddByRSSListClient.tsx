@@ -293,6 +293,7 @@ export const AddByRSSListClient: React.FC<AddByRSSListClientProps> = ({
       const result = await runAddByRSSParseAll({
         accountId: loggedInAccount.id_text,
         feeds: allFeeds,
+        force: true,
         onQueued: async (feedUrl) => handleParseStatus(feedUrl, undefined, 'queued'),
         onStatusUpdate: async (feedUrl, statusResponse) =>
           handleParseStatus(

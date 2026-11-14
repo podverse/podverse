@@ -79,6 +79,7 @@ export const AddByRSSLivestreamsPageClient: React.FC<AddByRSSLivestreamsPageClie
       const result = await runAddByRSSParseAll({
         accountId: loggedInAccount.id_text,
         feeds: allFeeds,
+        force: false,
         onQueued: async (feedUrl) => handleParseStatus(feedUrl, undefined, 'queued'),
         onStatusUpdate: async (feedUrl, statusResponse) =>
           handleParseStatus(

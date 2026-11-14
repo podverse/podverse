@@ -169,6 +169,8 @@ These commands run the selected phone flow on both phone platforms:
 ```bash
 npm run mobile:e2e:test -- add-by-rss
 npm run mobile:e2e:test -- add-by-rss-anonymous
+npm run mobile:e2e:test -- add-by-rss-directory-match-anonymous
+npm run mobile:e2e:test -- add-by-rss-directory-match-signed-in
 npm run mobile:e2e:test -- add-by-rss-anonymous-artist
 npm run mobile:e2e:test -- add-by-rss-anonymous-sections
 npm run mobile:e2e:test -- add-by-rss-anonymous-podroll

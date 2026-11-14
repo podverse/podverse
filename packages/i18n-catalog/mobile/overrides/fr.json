@@ -279,7 +279,8 @@
         "native_detail": "",
         "parse_status": "",
         "request_id": "",
-        "basic_auth": ""
+        "basic_auth": "",
+        "moved_items": ""
       }
     },
     "title": "",
@@ -295,6 +296,7 @@
     "outcome_success": "",
     "directory_channel_gone": "",
     "directory_channel_converted": "",
+    "add_by_rss_promoted_to_directory": "",
     "row_a11y_hint": "",
     "saved_footnote": "",
     "kind": {

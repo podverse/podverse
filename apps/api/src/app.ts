@@ -117,6 +117,7 @@ export const startApp = async () => {
     const { identityRouter } = await import('./routes/identity.js');
     const { publisherFeedRouter } = await import('./routes/publisherFeed.js');
     const { remoteItemRouter } = await import('./routes/remoteItem.js');
+    const { legacyRouter } = await import('./routes/legacy.js');
     const { accountSettingsRouter } = await import('./routes/accountSettings.js');
     const { legalRouter } = await import('./routes/legal.js');
     const { managedCopyRouter } = await import('./routes/managedCopy.js');
@@ -170,6 +171,7 @@ export const startApp = async () => {
     app.use(myProfileContentRouter);
     app.use(publisherFeedRouter);
     app.use(remoteItemRouter);
+    app.use(legacyRouter);
     app.use(queueRouter);
     app.use(statsRouter);
 

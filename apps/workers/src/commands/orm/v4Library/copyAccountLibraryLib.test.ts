@@ -1,5 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
+import { ADD_BY_RSS_FEED_LIMIT_UNLIMITED } from '@podverse/helpers';
+
 import type {
   LocalCatalog,
   V4EpisodeKey,
@@ -16,7 +18,10 @@ import {
   decideMigrationCap,
   DIRECTORY_FOLLOW_CAP,
   directoryFollowCopyPlan,
+  directoryFollowTotal,
+  directoryFollowWritePlan,
   episodeDecision,
+  extraMatchedDirectoryChannelIds,
   isSeedablePodcast,
   libraryCopyErrorClass,
   listPositionAt,
@@ -27,6 +32,7 @@ import {
   PLAYLIST_RESOURCE_LIMIT,
   playlistRowsSubjectToResourceLimit,
   shouldSetLibraryCopiedAt,
+  splitAddByRssUrlsByDirectoryMatch,
   subscriptionPendingStatus,
 } from './copyAccountLibraryLib.js';
 
@@ -450,6 +456,7 @@ describe('migration cap', () => {
     { count: 401, outcome: 'tier', tier: 500 },
     { count: 500, outcome: 'tier', tier: 500 },
     { count: 501, outcome: 'tier', tier: 1000 },
+    { count: 600, outcome: 'tier', tier: 1000 },
     { count: 1000, outcome: 'tier', tier: 1000 },
     { count: 1001, outcome: 'tier', tier: 10000 },
     { count: 5215, outcome: 'tier', tier: 10000 },
@@ -591,6 +598,14 @@ describe('migration cap', () => {
       clearStored: false,
     },
     {
+      count: 600,
+      stored: null,
+      statusRowExists: true,
+      action: 'copy',
+      writeTier: 1000,
+      clearStored: false,
+    },
+    {
       count: 10000,
       stored: null,
       statusRowExists: true,
@@ -611,6 +626,30 @@ describe('migration cap', () => {
     {
       count: 10001,
       stored: 50000,
+      statusRowExists: true,
+      action: 'copy',
+      writeTier: null,
+      clearStored: false,
+    },
+    {
+      count: 80,
+      stored: ADD_BY_RSS_FEED_LIMIT_UNLIMITED,
+      statusRowExists: true,
+      action: 'copy',
+      writeTier: null,
+      clearStored: false,
+    },
+    {
+      count: 5215,
+      stored: ADD_BY_RSS_FEED_LIMIT_UNLIMITED,
+      statusRowExists: true,
+      action: 'copy',
+      writeTier: null,
+      clearStored: false,
+    },
+    {
+      count: 10001,
+      stored: ADD_BY_RSS_FEED_LIMIT_UNLIMITED,
       statusRowExists: true,
       action: 'copy',
       writeTier: null,
@@ -646,6 +685,43 @@ describe('migration cap', () => {
       countAddByRssFeeds(['https://user:pass@example.com/feed', 'https://example.com/feed'])
     ).toBe(1);
     expect(countAddByRssFeeds(['not a url'])).toBe(1);
+  });
+
+  it('splits matched add-by-rss urls into directory channels and leaves the rest', () => {
+    const matched = new Map<string, number>([
+      ['https://feeds.example/a', 11],
+      ['http://feeds.example/a', 11],
+      ['https://feeds.example/secret', 99],
+      ['https://feeds.example/b', 22],
+    ]);
+    expect(
+      splitAddByRssUrlsByDirectoryMatch(
+        [
+          'https://feeds.example/a/',
+          'HTTPS://feeds.example/a',
+          'http://feeds.example/a',
+          'https://feeds.example/secret',
+          'https://user:pass@feeds.example/secret',
+          'https://feeds.example/b',
+          'https://feeds.example/kept',
+          '  ',
+        ],
+        matched
+      )
+    ).toEqual({
+      directoryChannelIds: [11, 22],
+      addByRssUrls: ['https://feeds.example/secret', 'https://feeds.example/kept'],
+    });
+    expect(splitAddByRssUrlsByDirectoryMatch([], matched)).toEqual({
+      directoryChannelIds: [],
+      addByRssUrls: [],
+    });
+    expect(
+      splitAddByRssUrlsByDirectoryMatch(['https://user:pass@feeds.example/secret'], matched)
+    ).toEqual({
+      directoryChannelIds: [],
+      addByRssUrls: ['https://feeds.example/secret'],
+    });
   });
 
   it('counts directory follows per list', () => {
@@ -720,19 +796,58 @@ describe('migration cap', () => {
     expect(directoryFollowCopyPlan(500)).toEqual({
       action: 'copy',
       decision: { outcome: 'default' },
+      writeTier: null,
     });
     expect(directoryFollowCopyPlan(501)).toEqual({
       action: 'copy',
       decision: { outcome: 'tier', tier: 1000 },
+      writeTier: 1000,
     });
     expect(directoryFollowCopyPlan(4314)).toEqual({
       action: 'copy',
       decision: { outcome: 'tier', tier: 5000 },
+      writeTier: 5000,
     });
     expect(directoryFollowCopyPlan(10001)).toEqual({
       action: 'needs_operator',
       decision: { outcome: 'needs_operator' },
+      writeTier: null,
     });
+  });
+
+  it('writes the covering tier, keeps a higher stored tier, and never writes unlimited', () => {
+    expect(directoryFollowWritePlan(563, null).writeTier).toBe(1000);
+    expect(directoryFollowWritePlan(1910, null).writeTier).toBe(2000);
+    expect(directoryFollowWritePlan(4314, null).writeTier).toBe(5000);
+    expect(directoryFollowWritePlan(563, 5000)).toEqual({
+      action: 'copy',
+      decision: { outcome: 'tier', tier: 1000 },
+      writeTier: null,
+    });
+    expect(directoryFollowWritePlan(1500, 1000).writeTier).toBe(2000);
+    expect(directoryFollowWritePlan(10001, -1)).toEqual({
+      action: 'copy',
+      decision: { outcome: 'needs_operator' },
+      writeTier: null,
+    });
+    expect(directoryFollowWritePlan(10001, null)).toEqual({
+      action: 'needs_operator',
+      decision: { outcome: 'needs_operator' },
+      writeTier: null,
+    });
+    expect(directoryFollowWritePlan(10001, null).writeTier).not.toBe(-1);
+  });
+
+  it('adds matched channels that the podcast subscriptions will not already follow', () => {
+    expect(extraMatchedDirectoryChannelIds([4, 4, 9], new Set([4]))).toEqual([9]);
+    expect(
+      directoryFollowTotal({
+        podcastIds: ['p1', 'p1'],
+        playlistFollowIds: [],
+        userFollowIds: [],
+        extraMatchedChannelIds: [9],
+      })
+    ).toBe(2);
   });
 });
 

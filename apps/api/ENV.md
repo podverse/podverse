@@ -123,6 +123,16 @@ When unset/invalid, each uses its code default listed below.
 - **`ACCOUNT_ADD_BY_RSS_REMOTE_ITEM_RESOLVE_ANON_MAX_PER_MINUTE`** (default `120`) — Add by RSS
   remote item resolve calls per IP address per minute from signed-out callers; signed-in callers
   count against the per-account limit instead
+- **`CHANNEL_ADD_BY_RSS_MATCH_MAX_PER_MINUTE`** (default `60`) — Add by RSS directory match
+  calls per signed-in account per minute
+- **`CHANNEL_ADD_BY_RSS_MATCH_ANON_MAX_PER_MINUTE`** (default `120`) — Add by RSS directory
+  match calls per IP address per minute from signed-out callers; signed-in callers count against
+  the per-account limit instead
+- **`LEGACY_PODCAST_LOOKUP_MAX_PER_MINUTE`** (default `30`) — legacy podcast lookup calls per
+  IP address per minute
+- **`LEGACY_PODCAST_LOOKUP_INSTALL_MAX_PER_MINUTE`** (default `10`) — legacy podcast lookup
+  calls per `X-Podverse-Install-Id` per minute, when that header is 16–64 characters of letters,
+  digits, underscore, or hyphen. A missing or other header is not counted here
 - **`ACCOUNT_CHANNEL_SEEN_READ_MAX_PER_MINUTE`** (default `60`) — per account, covers both
   `/account/channel-seen` reads
 - **`STATS_TRACK_MAX_PER_MINUTE`** (default `60`) — per account, one budget shared by

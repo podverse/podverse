@@ -7,11 +7,15 @@ import { pollAddByRSSParseStatus } from './actions';
 import type { AddByRSSParseStatusResponse } from './api';
 import { enqueueAddByRSSParseAll } from './api';
 import { getCredentialsByFeedUrl } from './credentialStore';
+import { promoteMatchingAddByRSSFeeds } from './directoryPromotion';
+import { toAddByRSSFeedChangedUrl } from './feedChangedEvent';
 import type { AddByRSSFeedRecord } from './types';
 
 type RunAddByRSSParseAllParams = {
   accountId: string;
   feeds: AddByRSSFeedRecord[];
+  /** True from the library refresh button. Background refresh passes false and waits out the hour. */
+  force: boolean;
   onQueued?: (feedUrl: string) => Promise<void>;
   onStatusUpdate: (feedUrl: string, statusResponse: AddByRSSParseStatusResponse) => Promise<void>;
 };
@@ -52,15 +56,19 @@ const buildCredentialsByUrl = async (
 export const runAddByRSSParseAll = async ({
   accountId,
   feeds,
+  force,
   onQueued,
   onStatusUpdate,
 }: RunAddByRSSParseAllParams): Promise<RunAddByRSSParseAllResult> => {
-  const { feedHashesByUrl, etagsByUrl, lastModifiedByUrl } = buildCacheMaps(feeds);
+  const { convertedFeedUrls } = await promoteMatchingAddByRSSFeeds({ feeds, force });
+  const converted = new Set(convertedFeedUrls.map(toAddByRSSFeedChangedUrl));
+  const remaining = feeds.filter((feed) => !converted.has(toAddByRSSFeedChangedUrl(feed.feedUrl)));
+  const { feedHashesByUrl, etagsByUrl, lastModifiedByUrl } = buildCacheMaps(remaining);
   const response = await trackBackgroundActivity(
     'add_by_rss_refresh',
     { counted: false },
     async () => {
-      const credentialsByUrl = await buildCredentialsByUrl(accountId, feeds);
+      const credentialsByUrl = await buildCredentialsByUrl(accountId, remaining);
       return enqueueAddByRSSParseAll({
         feedHashesByUrl,
         etagsByUrl,

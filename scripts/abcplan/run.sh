@@ -4,7 +4,8 @@
 #   plan <slug>  Planning run. Reads .llm/plans/active/<slug>/00-REQUEST.md and writes the plan set
 #                next to it. The run itself is .llm/plans/active/abcplan-<slug>/, built from
 #                .cursor/prompts/abcplan/plan-COPY-PASTA.md and continued while it has an unticked
-#                step.
+#                step. When the set already has COPY-PASTA.md, planning is finished: plan exits
+#                and names the run command instead of starting another planning run.
 #   run <slug>   Implementation run of .llm/plans/active/<slug>/COPY-PASTA.md. Refuses while the
 #                planning run is open, and removes it once finished. Its final messages stay in
 #                .artifacts/plan-runner/abcplan-<slug>/.
@@ -72,6 +73,11 @@ if [ "$mode" = "plan" ]; then
   if [ ! -f "$PLAN_DIR/00-REQUEST.md" ]; then
     echo "No request at $PLAN_DIR/00-REQUEST.md. Invoke abcplan in a chat to write it." >&2
     exit 1
+  fi
+  if [ -f "$PLAN_DIR/COPY-PASTA.md" ] && ! planning_is_open; then
+    echo "Planning for $slug is already assembled at $PLAN_DIR/COPY-PASTA.md."
+    echo "Run it with: ./scripts/abcplan/run.sh run $slug"
+    exit 0
   fi
   if [ -f "$PLANNING_DIR/COPY-PASTA.md" ]; then
     if ! planning_is_open; then

@@ -6,9 +6,22 @@ import type { EntityManager, FindManyOptions, FindOptionsWhere } from 'typeorm';
 import { Equal, In, IsNull, Not } from 'typeorm';
 
 import type { BulkFollowChannelResult, QueryParamsMedium } from '@podverse/helpers';
-import { CHANNEL_UNSEEN_COUNT_CAP, getMediumIdArrayFromType } from '@podverse/helpers';
+import {
+  CHANNEL_UNSEEN_COUNT_CAP,
+  DEFAULT_MAX_FOLLOWS,
+  getMediumIdArrayFromType,
+  isUnlimitedFollowLimit,
+} from '@podverse/helpers';
 
 import { ChannelService } from '../channel/channel.js';
+import {
+  decideFollowRoom,
+  FollowLimitReachedError,
+  lockAccountForFollow,
+  readFollowRoom,
+} from './accountFollowLimit.js';
+
+export { FollowLimitReachedError };
 
 /**
  * One row of per-channel seen state, straight from SQL.
@@ -142,9 +155,27 @@ export class AccountFollowingChannelService extends BaseManyService<
       throw new Error('Channel not found.');
     }
 
-    const dto = { channel_id: channel.id };
+    return this.repositoryReadWrite.manager.transaction(async (manager) => {
+      await lockAccountForFollow(manager, account.id);
+      const repo = manager.getRepository(AccountFollowingChannel);
+      const existing = await repo.findOne({
+        where: { account_id: account.id, channel_id: channel.id },
+      });
+      if (existing !== null) {
+        return existing;
+      }
 
-    return this._update(account, ['account_id', 'channel_id'], dto);
+      const decision = decideFollowRoom(await readFollowRoom(manager, account.id), false);
+      if (decision.action === 'refuse') {
+        throw new FollowLimitReachedError(decision.limit);
+      }
+
+      const created = new AccountFollowingChannel();
+      created.account = account;
+      created.account_id = account.id;
+      created.channel_id = channel.id;
+      return repo.save(created);
+    });
   }
 
   /**
@@ -176,46 +207,67 @@ export class AccountFollowingChannelService extends BaseManyService<
     const channels = await this.channelService.getManyByIdTexts(uniqueIdTexts);
     const channelIdByIdText = new Map(channels.map((channel) => [channel.id_text, channel.id]));
 
-    const existingRows = await this.repositoryRead.find({
-      where: {
-        account_id: Equal(account.id),
-        channel_id: In([...channelIdByIdText.values()]),
-      } as FindOptionsWhere<AccountFollowingChannel>,
+    return this.repositoryReadWrite.manager.transaction(async (manager) => {
+      await lockAccountForFollow(manager, account.id);
+      const repo = manager.getRepository(AccountFollowingChannel);
+      const knownChannelIds = [...channelIdByIdText.values()];
+      const existingRows =
+        knownChannelIds.length === 0
+          ? []
+          : await repo.find({
+              where: {
+                account_id: Equal(account.id),
+                channel_id: In(knownChannelIds),
+              } as FindOptionsWhere<AccountFollowingChannel>,
+            });
+      const alreadyFollowedChannelIds = new Set(existingRows.map((row) => row.channel_id));
+      const room = await readFollowRoom(manager, account.id);
+      const unlimited = isUnlimitedFollowLimit(room.storedLimit);
+      const cap = unlimited ? null : (room.storedLimit ?? DEFAULT_MAX_FOLLOWS);
+      let remaining =
+        cap === null ? Number.POSITIVE_INFINITY : Math.max(0, cap - room.followedCount);
+
+      const rowsToInsert: { account_id: number; channel_id: number }[] = [];
+      const results: BulkFollowChannelResult[] = [];
+
+      for (const channelIdText of uniqueIdTexts) {
+        const channelId = channelIdByIdText.get(channelIdText);
+        if (channelId === undefined) {
+          results.push({ channel_id_text: channelIdText, outcome: 'not_found' });
+          continue;
+        }
+
+        if (alreadyFollowedChannelIds.has(channelId)) {
+          results.push({ channel_id_text: channelIdText, outcome: 'already_following' });
+          continue;
+        }
+
+        if (remaining <= 0) {
+          results.push({
+            channel_id_text: channelIdText,
+            outcome: 'follow_limit',
+            limit: cap ?? DEFAULT_MAX_FOLLOWS,
+          });
+          continue;
+        }
+
+        rowsToInsert.push({ account_id: account.id, channel_id: channelId });
+        results.push({ channel_id_text: channelIdText, outcome: 'followed' });
+        remaining -= 1;
+      }
+
+      if (rowsToInsert.length > 0) {
+        await repo
+          .createQueryBuilder()
+          .insert()
+          .into(AccountFollowingChannel)
+          .values(rowsToInsert)
+          .orIgnore()
+          .execute();
+      }
+
+      return results;
     });
-    const alreadyFollowedChannelIds = new Set(existingRows.map((row) => row.channel_id));
-
-    const rowsToInsert: { account_id: number; channel_id: number }[] = [];
-    const results: BulkFollowChannelResult[] = [];
-
-    for (const channelIdText of uniqueIdTexts) {
-      const channelId = channelIdByIdText.get(channelIdText);
-      if (channelId === undefined) {
-        results.push({ channel_id_text: channelIdText, outcome: 'not_found' });
-        continue;
-      }
-
-      if (alreadyFollowedChannelIds.has(channelId)) {
-        results.push({ channel_id_text: channelIdText, outcome: 'already_following' });
-        continue;
-      }
-
-      rowsToInsert.push({ account_id: account.id, channel_id: channelId });
-      results.push({ channel_id_text: channelIdText, outcome: 'followed' });
-    }
-
-    if (rowsToInsert.length > 0) {
-      // `orIgnore` guards the composite primary key against a concurrent follow of the same channel
-      // between the read above and this write — that racer's row stands and this one is dropped.
-      await this.repositoryReadWrite
-        .createQueryBuilder()
-        .insert()
-        .into(AccountFollowingChannel)
-        .values(rowsToInsert)
-        .orIgnore()
-        .execute();
-    }
-
-    return results;
   }
 
   async unfollowChannel(account_id: number, channel_id_text: string): Promise<void> {

@@ -4,8 +4,10 @@ import type { AccessDenialReason } from '@podverse/helpers';
  * Membership / entitlement denials return HTTP 403 with a structured JSON body whose `i18nKey` is under
  * the `membership.*` namespace (e.g. `membership.membership_expired`,
  * `membership.feature_not_available_for_account_type`, `membership.add_by_rss_feed_limit_reached`,
+ * `membership.follow_limit_reached`,
  * `membership.manual_refresh_hourly_limit_reached`), alongside a machine-readable `code`. `renewPath`
- * is present on most membership denials. The Add by RSS feed limit carries `limit` and no `renewPath`.
+ * is present on most membership denials. The Add by RSS feed limit and the follow limit carry
+ * `limit` and no `renewPath`.
  *
  * This is the single shared detector/parser every client (web and mobile) uses to recognise and read
  * that contract, so the apps cannot drift. It returns `null` when the error is not a membership-gate
@@ -21,12 +23,15 @@ export interface MembershipGateError {
   message?: string;
   /** Renew/extend destination path (web route; native clients map it to their membership screen). */
   renewPath?: string;
-  /** The account's limit, on refusals that carry one (the Add by RSS feed limit). */
+  /** The account's limit, on refusals that carry one (Add by RSS, or the follow tier). */
   limit?: number;
 }
 
 /** Machine-readable code for an Add by RSS feed-limit refusal. */
 export const ADD_BY_RSS_FEED_LIMIT_REACHED_CODE = 'add_by_rss_feed_limit_reached';
+
+/** Machine-readable code for a directory-follow refusal. */
+export const FOLLOW_LIMIT_REACHED_CODE = 'follow_limit_reached';
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null;
@@ -91,8 +96,22 @@ export function parseAddByRssFeedLimitRefusal(error: unknown): { limit: number }
 }
 
 /**
+ * Reads a follow-tier refusal. Returns the account's tier only when the 403 carries
+ * {@link FOLLOW_LIMIT_REACHED_CODE} and a `limit`; otherwise `null`.
+ */
+export function parseFollowLimitRefusal(error: unknown): { limit: number } | null {
+  const parsed = parseMembershipGateError(error);
+  if (parsed === null || parsed.code !== FOLLOW_LIMIT_REACHED_CODE || parsed.limit === undefined) {
+    return null;
+  }
+
+  return { limit: parsed.limit };
+}
+
+/**
  * The two `membership.*` `i18nKey`s that carry distinct denial semantics. Limit keys
- * (`membership.add_by_rss_feed_limit_reached`, `membership.manual_refresh_hourly_limit_reached`, …) are
+ * (`membership.add_by_rss_feed_limit_reached`, `membership.follow_limit_reached`,
+ * `membership.manual_refresh_hourly_limit_reached`, …) are
  * open-ended, so they are matched by falling through in {@link membershipDenialReason} rather than
  * enumerated here.
  */

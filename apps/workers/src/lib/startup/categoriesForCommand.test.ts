@@ -84,6 +84,18 @@ describe('getCategoriesForCommand', () => {
     );
   });
 
+  it('maps v4ImportFlaggedFeeds to Base and ORM', () => {
+    expect(sortCategories(getCategoriesForCommand('v4ImportFlaggedFeeds'))).toEqual(
+      sortCategories(new Set([CATEGORY_BASE, CATEGORY_ORM]))
+    );
+  });
+
+  it('maps v4WriteLegacyPodcastMap to Base and ORM', () => {
+    expect(sortCategories(getCategoriesForCommand('v4WriteLegacyPodcastMap'))).toEqual(
+      sortCategories(new Set([CATEGORY_BASE, CATEGORY_ORM]))
+    );
+  });
+
   it('maps v4RunFullRehearsal to Base, ORM, and MQ', () => {
     expect(sortCategories(getCategoriesForCommand('v4RunFullRehearsal'))).toEqual(
       sortCategories(new Set([CATEGORY_BASE, CATEGORY_ORM, CATEGORY_MQ]))

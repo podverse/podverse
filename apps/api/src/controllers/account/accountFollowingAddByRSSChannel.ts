@@ -10,9 +10,23 @@ import {
 import type { Request, Response } from 'express';
 import Joi from 'joi';
 
-import { resolveAddByRSSFeedUrlCredentials } from '@podverse/helpers-validation';
+import type { DTOChannelDirectoryMatch } from '@podverse/helpers';
+import { addByRssFeedLimitReachedMessage, splitFeedUrlUserinfo } from '@podverse/helpers';
+import {
+  canonicalAddByRSSFeedUrl,
+  resolveAddByRSSFeedUrlCredentials,
+} from '@podverse/helpers-validation';
 import type { AccountFollowingAddByRSSChannelDto } from '@podverse/orm';
-import { AccountFollowingAddByRSSChannelService, AccountService } from '@podverse/orm';
+import {
+  AccountAddByRSSDirectoryConversionService,
+  AccountFollowingAddByRSSChannelService,
+  AccountFollowingChannelService,
+  AccountService,
+  AddByRssFeedLimitReachedError,
+  ChannelAddByRSSDirectoryMatchService,
+  findBlockedFeed,
+  FollowLimitReachedError,
+} from '@podverse/orm';
 
 import { handleGenericErrorResponse } from '../helpers/error.js';
 
@@ -20,6 +34,89 @@ class AccountFollowingAddByRSSChannelController {
   private static accountService = new AccountService();
   private static accountFollowingAddByRSSChannelService =
     new AccountFollowingAddByRSSChannelService();
+  private static followingChannelService = new AccountFollowingChannelService();
+  private static matchService = new ChannelAddByRSSDirectoryMatchService();
+  private static conversionService = new AccountAddByRSSDirectoryConversionService();
+
+  /**
+   * The directory channel this URL already belongs to, after this account follows it.
+   * Null when the feed stays Add by RSS.
+   */
+  private static async directoryChannelForAdd(params: {
+    accountId: number;
+    feedUrl: string;
+    requestFeedUrl: string;
+    requiresCredentials: boolean;
+  }): Promise<DTOChannelDirectoryMatch | null> {
+    if (params.requiresCredentials) {
+      return null;
+    }
+    const userinfo = splitFeedUrlUserinfo(params.requestFeedUrl);
+    if (userinfo.username !== null || userinfo.password !== null) {
+      return null;
+    }
+    const canonical = canonicalAddByRSSFeedUrl(params.feedUrl);
+    if (canonical === null) {
+      return null;
+    }
+
+    const matches = await AccountFollowingAddByRSSChannelController.matchService.getForFeedUrls([
+      { feedUrl: canonical, feedGuid: null },
+    ]);
+    const found = matches.get(canonical);
+    if (found === undefined) {
+      return null;
+    }
+
+    const alreadySaved =
+      await AccountFollowingAddByRSSChannelController.accountFollowingAddByRSSChannelService.hasFollowedAddByRSSChannel(
+        params.accountId,
+        canonical
+      );
+    if (alreadySaved) {
+      const converted = await AccountFollowingAddByRSSChannelController.conversionService.convert({
+        accountId: params.accountId,
+        feedUrl: canonical,
+        feedGuid: null,
+      });
+      if (converted.converted) {
+        return converted.channel;
+      }
+      if (converted.reason === 'not_followed') {
+        const followed = await AccountFollowingAddByRSSChannelController.followDirectoryChannel(
+          params.accountId,
+          found.match.id_text
+        );
+        return followed ? found.match : null;
+      }
+      return null;
+    }
+
+    const followed = await AccountFollowingAddByRSSChannelController.followDirectoryChannel(
+      params.accountId,
+      found.match.id_text
+    );
+    return followed ? found.match : null;
+  }
+
+  /** False when the follow tier is full, so the caller keeps the Add by RSS follow. */
+  private static async followDirectoryChannel(
+    accountId: number,
+    channelIdText: string
+  ): Promise<boolean> {
+    try {
+      await AccountFollowingAddByRSSChannelController.followingChannelService.followChannel(
+        accountId,
+        channelIdText
+      );
+      return true;
+    } catch (error) {
+      if (error instanceof FollowLimitReachedError) {
+        return false;
+      }
+      throw error;
+    }
+  }
 
   static async getFollowedAddByRSSChannels(req: Request, res: Response): Promise<void> {
     validateParamsObject(Joi.object(accountIdTextParamSchema), req, res, async () => {
@@ -77,7 +174,6 @@ class AccountFollowingAddByRSSChannelController {
 
         validateBodyObject(bodySchema, req, res, async () => {
           const account = getAuthenticatedUser(req);
-          const entitlements = account.entitlements;
           const body = req.body as {
             feed_url: string;
             title?: string | null;
@@ -101,40 +197,54 @@ class AccountFollowingAddByRSSChannelController {
           };
 
           try {
-            // Mobile E2E stack seeds a trial user whose Add-by-RSS cap can resolve to 0;
-            // skip the entitlement limit gate under deterministic fixtures.
-            if (entitlements && !config.e2e.fixturesEnabled) {
-              const alreadySaved =
-                await AccountFollowingAddByRSSChannelController.accountFollowingAddByRSSChannelService.hasFollowedAddByRSSChannel(
-                  account.id,
-                  dto.feed_url
-                );
-              const existingCount =
-                await AccountFollowingAddByRSSChannelController.accountFollowingAddByRSSChannelService.getFollowedAddByRSSChannelCount(
-                  account.id
-                );
-              if (!alreadySaved && existingCount >= entitlements.maxAddByRSSFeeds) {
-                const limit = entitlements.maxAddByRSSFeeds;
-                const contactEmail = config.terms.contactEmail;
-                res.status(403).json({
-                  message:
-                    contactEmail !== ''
-                      ? `You have reached your limit of ${limit} Add by RSS feeds. To have it raised, email ${contactEmail}.`
-                      : `You have reached your limit of ${limit} Add by RSS feeds. To have it raised, contact support.`,
-                  code: 'add_by_rss_feed_limit_reached',
-                  i18nKey: 'membership.add_by_rss_feed_limit_reached',
-                  limit,
-                });
-                return;
-              }
+            const blockedFeed = await findBlockedFeed({ url: dto.feed_url });
+            if (blockedFeed !== null) {
+              res.status(403).json({
+                message: 'This feed is blocked.',
+                code: 'feed_blocked',
+              });
+              return;
             }
 
-            await AccountFollowingAddByRSSChannelController.accountFollowingAddByRSSChannelService.addOrUpdateRSSChannel(
-              account.id,
-              dto
-            );
-            res.status(201).json({ message: 'RSS channel added/updated successfully' });
+            const directoryChannel =
+              await AccountFollowingAddByRSSChannelController.directoryChannelForAdd({
+                accountId: account.id,
+                feedUrl: dto.feed_url,
+                requestFeedUrl: body.feed_url,
+                requiresCredentials: requiresCredentials === true,
+              });
+            if (directoryChannel !== null) {
+              res.status(200).json({
+                message: 'Followed directory channel',
+                directory_channel: directoryChannel,
+              });
+              return;
+            }
+
+            // Fixture stacks can resolve a trial cap of 0. Those adds skip the tier.
+            const rssChannelService =
+              AccountFollowingAddByRSSChannelController.accountFollowingAddByRSSChannelService;
+            if (config.e2e.fixturesEnabled) {
+              await rssChannelService.addOrUpdateRSSChannel(account.id, dto, {
+                enforceLimit: false,
+              });
+            } else {
+              await rssChannelService.addOrUpdateRSSChannel(account.id, dto);
+            }
+            res.status(201).json({
+              message: 'RSS channel added/updated successfully',
+              directory_channel: null,
+            });
           } catch (err) {
+            if (err instanceof AddByRssFeedLimitReachedError) {
+              res.status(403).json({
+                message: addByRssFeedLimitReachedMessage(err.limit, config.terms.contactEmail),
+                code: err.code,
+                i18nKey: err.i18nKey,
+                limit: err.limit,
+              });
+              return;
+            }
             handleGenericErrorResponse(res, err);
           }
         });

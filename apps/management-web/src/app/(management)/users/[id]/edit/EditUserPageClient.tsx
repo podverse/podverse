@@ -6,7 +6,11 @@ import { useTranslations } from 'next-intl';
 import { useEffect, useMemo, useState } from 'react';
 
 import type { ResolvedProductMembership } from '@podverse/helpers';
-import { AccountMembershipEnum, toDatetimeLocalInputValue } from '@podverse/helpers';
+import {
+  AccountMembershipEnum,
+  DEFAULT_MAX_FOLLOWS,
+  toDatetimeLocalInputValue,
+} from '@podverse/helpers';
 import type { FormDropdownOption } from '@podverse/ui';
 import {
   Alert,
@@ -26,11 +30,21 @@ import {
 import { ManagementLoadingSpinnerOverlay } from '../../../../../components/LoadingSpinner/ManagementLoadingSpinnerOverlay';
 import { MembershipAdvancedOverridesGroup } from '../../../../../components/MembershipAdvancedOverridesGroup/MembershipAdvancedOverridesGroup';
 import {
+  addByRssFeedLimitSelectOptions,
+  selectAddByRssFeedLimitToStored,
+  storedAddByRssFeedLimitToSelect,
+} from '../../../../../lib/addByRssFeedLimitSelect';
+import {
   fallbackProductMembershipFromEnv,
   resolveAdvancedOverrideDefaults,
   resolvedTierEntitlements,
   tierLimitPlaceholders,
 } from '../../../../../lib/createUserFormDefaults';
+import {
+  followLimitSelectOptions,
+  selectFollowLimitToStored,
+  storedFollowLimitToSelect,
+} from '../../../../../lib/followLimitSelect';
 import { getResolvedProductMembership } from '../../../../../lib/requests/productMembership';
 import { getUser, setUserPassword, updateUser, type User } from '../../../../../lib/requests/users';
 import { buildUserEditPath, buildUserPath, ROUTES } from '../../../../../lib/routes';
@@ -61,6 +75,7 @@ export function EditUserPageClient({ userId, initialTab }: Props) {
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [allowDirectoryAddByRSS, setAllowDirectoryAddByRSS] = useState<boolean | null>(null);
   const [maxAddByRSSFeeds, setMaxAddByRSSFeeds] = useState<string>('');
+  const [maxFollows, setMaxFollows] = useState<string>('');
   const [maxManualRefreshesPerHour, setMaxManualRefreshesPerHour] = useState<string>('');
   const [trackStats, setTrackStats] = useState<boolean | null>(null);
   const [allowNotifications, setAllowNotifications] = useState<boolean | null>(null);
@@ -87,11 +102,29 @@ export function EditUserPageClient({ userId, initialTab }: Props) {
     membershipId,
     membershipExpiresAt: currentMembershipExpiresAt,
   });
-  const { rss: rssPlaceholder, refresh: refreshPlaceholder } = tierLimitPlaceholders({
+  const { refresh: refreshPlaceholder } = tierLimitPlaceholders({
     product: productMembershipForDisplay,
     membershipId,
     membershipExpiresAt: currentMembershipExpiresAt,
   });
+
+  const addByRssLimitOptions = useMemo(
+    () =>
+      addByRssFeedLimitSelectOptions({
+        defaultLabel: t('advancedOverrides.addByRssFeedLimitDefault'),
+        unlimitedLabel: t('advancedOverrides.addByRssFeedLimitUnlimited'),
+      }),
+    [t]
+  );
+
+  const followLimitOptions = useMemo(
+    () =>
+      followLimitSelectOptions({
+        defaultLabel: t('advancedOverrides.addByRssFeedLimitDefault'),
+        unlimitedLabel: t('advancedOverrides.addByRssFeedLimitUnlimited'),
+      }),
+    [t]
+  );
 
   const tabData = useMemo(
     () => [
@@ -194,11 +227,8 @@ export function EditUserPageClient({ userId, initialTab }: Props) {
               : toDatetimeLocalInputValue(result.user.membership_expires_at)
           );
           setAllowDirectoryAddByRSS(result.user.allow_directory_add_by_rss ?? null);
-          setMaxAddByRSSFeeds(
-            result.user.max_add_by_rss_feeds !== null
-              ? String(result.user.max_add_by_rss_feeds)
-              : ''
-          );
+          setMaxAddByRSSFeeds(storedAddByRssFeedLimitToSelect(result.user.max_add_by_rss_feeds));
+          setMaxFollows(storedFollowLimitToSelect(result.user.max_follows));
           setMaxManualRefreshesPerHour(
             result.user.max_manual_refreshes_per_hour !== null
               ? String(result.user.max_manual_refreshes_per_hour)
@@ -232,8 +262,8 @@ export function EditUserPageClient({ userId, initialTab }: Props) {
         account_membership_id: membershipId,
         membership_expires_at: membershipExpiresAt.trim() === '' ? null : membershipExpiresAt,
         allow_directory_add_by_rss: allowDirectoryAddByRSS,
-        max_add_by_rss_feeds:
-          maxAddByRSSFeeds.trim() === '' ? null : Number.parseInt(maxAddByRSSFeeds, 10),
+        max_add_by_rss_feeds: selectAddByRssFeedLimitToStored(maxAddByRSSFeeds),
+        max_follows: selectFollowLimitToStored(maxFollows),
         max_manual_refreshes_per_hour:
           maxManualRefreshesPerHour.trim() === ''
             ? null
@@ -393,20 +423,25 @@ export function EditUserPageClient({ userId, initialTab }: Props) {
                           }}
                         />
                       </FormGroup>
-                      <TextInput
+                      <FormDropdown
                         id="edit-user-rss-limit"
                         eyebrow={t('advancedOverrides.addByRssFeedLimit')}
                         info={t('advancedOverrides.addByRssFeedLimitHelp', {
                           defaultLimit: trialEnt.maxAddByRSSFeeds,
-                          selectedDefault: selectedEnt.maxAddByRSSFeeds,
                         })}
-                        min={0}
-                        placeholder={t('advancedOverrides.placeholderTierDefault', {
-                          count: rssPlaceholder,
-                        })}
-                        type="number"
+                        options={addByRssLimitOptions}
                         value={maxAddByRSSFeeds}
-                        onChange={(e) => setMaxAddByRSSFeeds(e.target.value)}
+                        onChange={setMaxAddByRSSFeeds}
+                      />
+                      <FormDropdown
+                        id="edit-user-follow-limit"
+                        eyebrow={t('advancedOverrides.followLimit')}
+                        info={t('advancedOverrides.followLimitHelp', {
+                          defaultLimit: DEFAULT_MAX_FOLLOWS,
+                        })}
+                        options={followLimitOptions}
+                        value={maxFollows}
+                        onChange={setMaxFollows}
                       />
                       <TextInput
                         id="edit-user-refresh-limit"

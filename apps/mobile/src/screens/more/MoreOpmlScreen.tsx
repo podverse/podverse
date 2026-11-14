@@ -10,6 +10,7 @@ import { AppOverlay, OverlayPanel, OverlayScrim } from '../../components/overlay
 import { Button, Card } from '../../components/primitives';
 import { MobileScreenContainer } from '../../components/screen/MobileScreenContainer';
 import { ListEmpty } from '../../components/state/ListEmpty';
+import { getMobileConfig } from '../../config';
 import { useOpmlExport } from '../../hooks/useOpmlExport';
 import { useOpmlImport } from '../../hooks/useOpmlImport';
 import { stopPropagation } from '../../lib/gesture/stopPropagation';
@@ -34,6 +35,9 @@ const outcomeI18nKey = (outcome: OpmlImportOutcome): string => {
   if (outcome === 'rate_limited') {
     return 'settings.opml.outcome_rate_limited';
   }
+  if (outcome === 'blocked') {
+    return 'settings.opml.outcome_blocked';
+  }
   if (outcome === 'failed') {
     return 'settings.opml.outcome_failed';
   }
@@ -42,6 +46,7 @@ const outcomeI18nKey = (outcome: OpmlImportOutcome): string => {
 
 export function MoreOpmlScreen() {
   const { t } = useTranslation();
+  const contactEmail = getMobileConfig().contactEmail;
   const { styles: themeStyles, tokens } = useTheme();
   const { status } = useAuth();
   const { enabled: offlineModeEnabled } = useOfflineMode();
@@ -245,6 +250,9 @@ export function MoreOpmlScreen() {
                       alreadySubscribed: importReport.totals.skippedExisting,
                       failed: importReport.totals.failed,
                       rateLimited: importReport.totals.rateLimited,
+                      blocked: importReport.totals.blocked,
+                      feedLimitReached: importReport.totals.feedLimitReached ?? 0,
+                      followLimitReached: importReport.totals.followLimitReached ?? 0,
                     })}
                   </Text>
                   {importReport.results.map((result) => {
@@ -259,10 +267,23 @@ export function MoreOpmlScreen() {
                         style={styles.resultRow}
                         testID={`opml-import-result-${result.outcome}`}
                       >
-                        <Text style={styles.outcome}>{t(outcomeI18nKey(result.outcome))}</Text>
+                        <Text style={styles.outcome}>
+                          {result.outcome === 'feed_limit_reached' &&
+                          typeof result.limit === 'number'
+                            ? t('membership.add_by_rss_feed_limit_reached', {
+                                limit: result.limit,
+                                contactEmail,
+                              })
+                            : result.outcome === 'follow_limit' && typeof result.limit === 'number'
+                              ? t('membership.follow_limit_reached', { limit: result.limit })
+                              : t(outcomeI18nKey(result.outcome))}
+                        </Text>
                         <Text style={styles.feedTitle}>{title}</Text>
                         {showUrl ? <Text style={styles.feedUrl}>{result.feedUrl}</Text> : null}
-                        {result.error !== undefined && result.error !== '' ? (
+                        {result.outcome !== 'feed_limit_reached' &&
+                        result.outcome !== 'follow_limit' &&
+                        result.error !== undefined &&
+                        result.error !== '' ? (
                           <Text style={styles.resultError}>{result.error}</Text>
                         ) : null}
                       </View>

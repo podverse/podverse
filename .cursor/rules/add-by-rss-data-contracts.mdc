@@ -59,6 +59,10 @@ Use a forward-only SQLite migration for scalar column changes. Do not store Add-
 - Resource types are `ADD_BY_RSS_RESOURCE_TYPES` (`@podverse/parser-mapping`). A stored value
   outside that list reads as `'podcasts'` through `toAddByRSSResourceType`. Whether a feed
   carries livestreams is the `mayHaveLivestreams` flag, never a resource type.
+- A feed that matches a directory channel leaves Add by RSS through `addByRssPromotion` (mobile)
+  and `AccountAddByRSSDirectoryConversionService` (server). A new table that stores an Add by RSS
+  feed URL, hash, or download id must be added to `addByRssPromotionRemap.ts` and to the server
+  conversion.
 
 Related: [`dto-changes-are-device-data-migrations`](/.cursor/rules/dto-changes-are-device-data-migrations.mdc)
 — persisted DTOs remain device data migrations even when the SQLite shape differs from the server.

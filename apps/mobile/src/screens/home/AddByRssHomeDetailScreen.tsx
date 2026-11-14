@@ -19,6 +19,7 @@ import { HeaderBarActions } from '../../components/screen/HeaderBarActions';
 import { ListError } from '../../components/state/ListError';
 import { LoadingSection } from '../../components/state/LoadingSection';
 import {
+  addByRssPromotion,
   addByRssRepository,
   channelSeenRepository,
   subscriptionsRepository,
@@ -27,6 +28,7 @@ import { useAddByRssArtworkHeaders } from '../../hooks/useAddByRssArtworkHeaders
 import { useAddByRssParsePath } from '../../hooks/useAddByRssParsePath';
 import { addByRssPlaybackMediaId } from '../../lib/addByRss/resourceData';
 import { homeFeedRefresh } from '../../lib/home/homeFeedRefresh';
+import { replaceWithDirectoryChannel } from '../../lib/navigation/replaceDirectoryChannel';
 import { useMembershipGate } from '../../membership/MembershipGateProvider';
 import { useAccessTier } from '../../membership/useAccessTier';
 import { usePlaybackRow } from '../../playback/PlaybackProvider';
@@ -506,7 +508,7 @@ export function AddByRssHomeDetailScreen({ navigation, route }: AddByRssHomeDeta
     setRemoveErrorKey(null);
     try {
       if (parsePath === 'server') {
-        await requestWithMobileAuthRefresh(
+        const followed = await requestWithMobileAuthRefresh(
           { accessToken, clearSession, refreshToken, setTokens },
           (api) =>
             api.reqAccountFollowAddByRSSChannel({
@@ -516,6 +518,19 @@ export function AddByRssHomeDetailScreen({ navigation, route }: AddByRssHomeDeta
               ...(feed.requiresCredentials === true ? { requires_credentials: true } : {}),
             })
         );
+        if (followed.directory_channel !== null) {
+          try {
+            await addByRssPromotion.promoteFollowedDirectoryChannel({
+              channel: followed.directory_channel,
+              context: { accessToken, clearSession, refreshToken, setTokens },
+              feedUrl: feed.feedUrl,
+            });
+          } catch (error) {
+            console.warn('[add-by-rss] directory promotion failed', { error, feedCount: 1 });
+          }
+          replaceWithDirectoryChannel(navigation, followed.directory_channel);
+          return;
+        }
       }
       await addByRssRepository.setFollowed(feed.feedUrl, true);
       homeFeedRefresh.notify();
@@ -538,6 +553,7 @@ export function AddByRssHomeDetailScreen({ navigation, route }: AddByRssHomeDeta
     isRemoving,
     isTierKnown,
     loadDetail,
+    navigation,
     openGate,
     parsePath,
     refreshToken,

@@ -16,8 +16,8 @@ import type {
 } from './copyAccountLibraryApply.js';
 import {
   applyLibraryCopy,
-  directoryFollowCapFromSnapshot,
   readAddByRssCap,
+  readDirectoryFollowCap,
 } from './copyAccountLibraryApply.js';
 import type {
   LibraryCopyReport,
@@ -78,9 +78,13 @@ including a number above 10000. Past 10000, when no stored number covers the
 count, the copy writes no Add by RSS rows and reports needs_operator. The copy
 never writes a number above 10000.
 
-Directory follows over the default are logged with the tier that would be
-stored. No directory-follow column is written. Past 10000 copies no directory
-follows and reports needs_operator. The account's other groups still copy.
+Directory follows over the default write the smallest tier on max_follows
+before the follow rows when no stored number already covers the count,
+including Add by RSS urls that match a directory channel and are not already
+in the podcast subscriptions. At or under the default, nothing is written.
+A stored number that already covers the count is left unchanged, including
+unlimited. Past 10000 the copy writes no tier, still inserts every follow,
+and reports needs_operator. The account's other groups still copy.
 
 A playlist that would hold more than 10000 resources is not copied and is
 reported needs_operator. Other playlists on that account still copy. The copy
@@ -915,7 +919,14 @@ export const v4CopyAccountLibrary = async (
       account.id,
       snapshot.addByRssUrls
     );
-    const directoryFollowCap = directoryFollowCapFromSnapshot(snapshot);
+    const directoryFollowCap = await readDirectoryFollowCap(
+      {
+        query: (sql, parameters) => queryV5(sql, parameters ?? []),
+      },
+      account.id,
+      snapshot,
+      catalog
+    );
     const playlistsOverLimit = playlistsOverLimitFromSnapshot(snapshot);
     logFinished(
       v4Id,

@@ -14,6 +14,7 @@ export type AccountMembershipStatusDto = {
   last_extension_idempotency_key?: string | null;
   allow_directory_add_by_rss?: boolean | null;
   max_add_by_rss_feeds?: number | null;
+  max_follows?: number | null;
   max_manual_refreshes_per_hour?: number | null;
   track_stats?: boolean | null;
   allow_notifications?: boolean | null;
@@ -61,6 +62,11 @@ export class AccountMembershipStatusService extends BaseOneService<
       finalDto.max_add_by_rss_feeds = dto.max_add_by_rss_feeds;
     } else if (membershipChanged) {
       finalDto.max_add_by_rss_feeds = null;
+    }
+    if (dto.max_follows !== undefined) {
+      finalDto.max_follows = dto.max_follows;
+    } else if (membershipChanged) {
+      finalDto.max_follows = null;
     }
     if (dto.max_manual_refreshes_per_hour !== undefined) {
       finalDto.max_manual_refreshes_per_hour = dto.max_manual_refreshes_per_hour;

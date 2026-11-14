@@ -95,10 +95,11 @@ already have a local feed. Without `--dry-run` it creates each missing local
 feed, keeps the v4 podcast id as `channel.id_text`, and queues a parse. It
 refuses a non-local database.
 
-Before accounts are invited to migrate, queue the subscribed and viewed
-public shows on `rss-slow`. A show already stored is left alone. Other
-shows wait for the account that needs them. The rules are the launch
-queue in [05](05-id-mapping-and-catalog-seeding.md#launch-queue).
+Before accounts are invited to migrate, queue the subscribed public shows
+and shows whose highest Matomo count is at least 3 on `rss-slow`. A show
+already stored is left alone. Other shows wait for the account that needs
+them. The rules are the launch queue in
+[05](05-id-mapping-and-catalog-seeding.md#launch-queue).
 
 The v4 API keeps serving that person until the library copy finishes. The
 rejection from the earlier decision happens at copy, not at seed.
@@ -120,7 +121,10 @@ rejection from the earlier decision happens at copy, not at seed.
    must not silently drop rows. See
    [Account caps v4 did not have](#account-caps-v4-did-not-have). An add-by-RSS URL drops a
    trailing path slash before it is stored. The host root keeps its slash. A
-   public catalog feed URL is stored as given. `playlists.isDefault` becomes
+   public catalog feed URL is stored as given. An add-by-RSS URL that the
+   [Add by RSS directory match](08-mobile-first-launch-migration.md#add-by-rss-directory-match)
+   finds in the directory becomes a subscription instead, and does not count
+   toward the Add by RSS tier. `playlists.isDefault` becomes
    that account and medium's Likes playlist. Official chapters and soundbites
    are not clips. Purchase receipts and Django tables are not copied.
 4. Apply membership from the rules below.
@@ -133,6 +137,9 @@ rejection from the earlier decision happens at copy, not at seed.
    reads the same record and does not start a second copy. The list does not
    sit in front of the first screen. The person can use the app while the
    copy runs, and the list stays visible until `v4_library_copied_at` is set.
+   A phone screen for a feed-list file is specified in
+   [08](08-mobile-first-launch-migration.md#feed-list-file-before-the-phone-copy)
+   and waits for the field spike. It does not start or block this copy.
 6. After success, v5 is the source of truth for that user. Record the copy on
    the v4 account. The v4 API then rejects that account. The legacy app and
    website may not show the reason. Support guides those people to v5. This
@@ -191,7 +198,8 @@ copies it, from that account's v4 counts at that moment. The rules:
    the library.** It writes no override and no rows for that group. It records
    the group as `needs_operator` and copies the account's other groups. An
    operator raises the account in management, then reruns that group. Migration
-   never writes Unlimited.
+   never writes Unlimited. Directory follows are the exception: the copy still
+   inserts every follow, writes no tier, and records `needs_operator`.
 4. **After the copy, the tier is the cap.** A new add is refused at the tier.
    Removing still works. The tier does not shrink when the person removes rows,
    so they can add back up to it.
@@ -213,7 +221,7 @@ Known caps:
 | Cap                                  | Default | Tiers migration may write           | Shipped |
 | ------------------------------------ | ------- | ----------------------------------- | ------- |
 | Add by RSS (`max_add_by_rss_feeds`)  | 100     | 200, 300, 400, 500, 1000, 10000     | Yes     |
-| Directory follows                    | 500     | 1000, 2000, 3000, 4000, 5000, 10000 | No      |
+| Directory follows (`max_follows`)    | 500     | 1000, 2000, 3000, 4000, 5000, 10000 | Yes     |
 | Resources per playlist (SQL trigger) | 10,000  | None. Over it is `needs_operator`.  | Yes     |
 
 Directory follows count subscribed channels, followed playlists, and followed
@@ -222,13 +230,14 @@ The full local rehearsal ([16](16-full-local-migration-rehearsal.md)) is where
 another one would show up, as an error class.
 
 The tier lists come from the drafts in
-[account-add-by-rss-cap-500.md](/.llm/plans/active/account-add-by-rss-cap-500.md)
+[account-add-by-rss-cap-100](/.llm/plans/completed/account-add-by-rss-cap-100/01-enforce-add-by-rss-tier.md)
 and
-[account-follow-cap-5000.md](/.llm/plans/active/account-follow-cap-5000.md).
+[account-follow-cap-500](/.llm/plans/completed/account-follow-cap-500/01-enforce-follow-tier.md).
 Those drafts cut a library past 10,000 down to 10,000. Rule 3 replaces that.
 The counts in those drafts come from the old snapshot. They are examples, not
-inputs. `v4CopyAccountLibrary` does not write a tier yet. The batch runner plan
-set adds it.
+inputs. `v4CopyAccountLibrary` writes `max_follows` before the follow rows.
+Past 10,000 it still inserts every directory follow, writes no tier, and
+records `needs_operator`. Add by RSS past 10,000 still writes no rows.
 
 ## Honest limits and risks
 

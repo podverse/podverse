@@ -1,6 +1,7 @@
 export { accountRepository } from './accountRepository';
 export { addByRssCredentialStore } from './addByRssCredentialStore';
 export { addByRssRepository } from './addByRssRepository';
+export { ADD_BY_RSS_PROMOTED_CODE, addByRssPromotion } from './addByRssPromotion';
 export { autoQueueRepository } from './autoQueueRepository';
 export {
   rememberChannelIdentity,

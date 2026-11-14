@@ -54,6 +54,7 @@ export const SYNC_EVENT_DETAIL_KEYS = [
   'parse_status',
   'request_id',
   'basic_auth',
+  'moved_items',
 ] as const;
 
 export type SyncEventDetailKey = (typeof SYNC_EVENT_DETAIL_KEYS)[number];

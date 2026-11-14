@@ -44,6 +44,7 @@ export function getPasswordRequirementsInfoKey(): string {
 
 export {
   ADD_BY_RSS_CREDENTIAL_MAX_LENGTH,
+  addByRSSDirectoryMatchUrlVariants,
   canSubmitAddByRssCredentials,
   canSubmitAddByRssFeed,
   canonicalAddByRSSFeedUrl,

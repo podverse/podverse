@@ -21,6 +21,7 @@ const MOCK_USER = {
   membership_expires_at: '2030-01-01T00:00:00.000Z',
   allow_directory_add_by_rss: null,
   max_add_by_rss_feeds: null,
+  max_follows: null,
   max_manual_refreshes_per_hour: null,
   track_stats: null,
   allow_notifications: null,

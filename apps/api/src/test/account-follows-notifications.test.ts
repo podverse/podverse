@@ -1,3 +1,4 @@
+import { config } from '@api/config/index.js';
 import type { Server } from 'http';
 import request from 'supertest';
 import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
@@ -5,11 +6,12 @@ import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from 'vites
 import type { ProductMembershipCapDefaults } from '@podverse/helpers';
 import {
   AccountMembershipEnum,
+  addByRssFeedLimitReachedMessage,
   MAX_BULK_FOLLOW_CHANNELS,
   MAX_BULK_UNFOLLOW_FEEDS,
 } from '@podverse/helpers';
 import type { ORMContext } from '@podverse/orm';
-import { BillingPriceCatalogService } from '@podverse/orm';
+import { AddByRssFeedLimitReachedError, BillingPriceCatalogService } from '@podverse/orm';
 
 import {
   authHeaders,
@@ -336,6 +338,7 @@ describe('account follows and notification routes', () => {
         followed: 2,
         already_following: 0,
         not_found: 1,
+        follow_limit: 0,
       });
     });
 
@@ -359,6 +362,7 @@ describe('account follows and notification routes', () => {
         followed: 0,
         already_following: 2,
         not_found: 0,
+        follow_limit: 0,
       });
     });
 
@@ -786,38 +790,25 @@ describe('account follows and notification routes', () => {
     });
 
     it('returns 403 with the limit and no renew path when the account is at its Add by RSS limit', async () => {
-      const capDefaults: ProductMembershipCapDefaults = {
-        maxAddByRSSFeeds: 1000,
-        premiumAllowDirectoryAddByRSS: true,
-        premiumAllowNotifications: true,
-        premiumMaxManualRefreshesPerHour: 1000,
-        premiumTrackStats: true,
-        trialAllowDirectoryAddByRSS: true,
-        trialAllowNotifications: true,
-        trialMaxManualRefreshesPerHour: 1000,
-        trialTrackStats: true,
-      };
-      const resolveCaps = vi
-        .spyOn(BillingPriceCatalogService.prototype, 'resolveProductMembershipCapDefaults')
-        .mockResolvedValue(capDefaults);
-      hasFollowedAddByRSSChannelMock.mockResolvedValueOnce(false);
-      getFollowedAddByRSSChannelCountMock.mockResolvedValueOnce(capDefaults.maxAddByRSSFeeds);
+      addOrUpdateRSSChannelMock.mockRejectedValueOnce(new AddByRssFeedLimitReachedError(100));
 
-      try {
-        const res = await request(app)
-          .post(`${accountBase}/follow/add-by-rss-channel`)
-          .set(authHeaders(TEST_USER_ID))
-          .send({ feed_url: 'https://example.com/at-the-limit.xml' });
+      const res = await request(app)
+        .post(`${accountBase}/follow/add-by-rss-channel`)
+        .set(authHeaders(TEST_USER_ID))
+        .send({ feed_url: 'https://example.com/at-the-limit.xml' });
 
-        expect(res.status).toBe(403);
-        expect(res.body.code).toBe('add_by_rss_feed_limit_reached');
-        expect(res.body.i18nKey).toBe('membership.add_by_rss_feed_limit_reached');
-        expect(res.body.limit).toBe(capDefaults.maxAddByRSSFeeds);
-        expect(res.body.renewPath).toBeUndefined();
-        expect(addOrUpdateRSSChannelMock).not.toHaveBeenCalled();
-      } finally {
-        resolveCaps.mockRestore();
-      }
+      expect(res.status).toBe(403);
+      expect(res.body).toEqual({
+        message: addByRssFeedLimitReachedMessage(100, config.terms.contactEmail),
+        code: 'add_by_rss_feed_limit_reached',
+        i18nKey: 'membership.add_by_rss_feed_limit_reached',
+        limit: 100,
+      });
+      expect(addOrUpdateRSSChannelMock).toHaveBeenCalledWith(TEST_USER_ID, {
+        feed_url: 'https://example.com/at-the-limit.xml',
+        title: undefined,
+        image_url: undefined,
+      });
     });
 
     it('returns 401 without auth', async () => {

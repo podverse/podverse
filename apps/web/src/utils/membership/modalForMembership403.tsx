@@ -6,6 +6,7 @@ import {
   accessDenialReasonFromGate,
   membershipDenialReason,
   parseAddByRssFeedLimitRefusal,
+  parseFollowLimitRefusal,
   parseMembershipGateError,
 } from '@podverse/helpers-requests';
 
@@ -27,6 +28,19 @@ export function getMembership403ModalProps(params: {
   membership: Pick<MembershipState, 'isLoggedIn' | 'tier'>;
   tMembership: MembershipTranslator;
 }): ModalMessage | null {
+  const followLimitRefusal = parseFollowLimitRefusal(params.error);
+  if (followLimitRefusal !== null) {
+    return {
+      title: params.tMembership('gate.title_limit'),
+      message: params.tMembership('follow_limit_reached', {
+        limit: followLimitRefusal.limit,
+      }),
+      messageNode: null,
+      actionLabel: null,
+      actionHref: null,
+    };
+  }
+
   const feedLimitRefusal = parseAddByRssFeedLimitRefusal(params.error);
   if (feedLimitRefusal !== null) {
     return {

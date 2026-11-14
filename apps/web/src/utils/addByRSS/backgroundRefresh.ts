@@ -96,6 +96,7 @@ export async function runAddByRSSBackgroundRefresh(
     await runAddByRSSParseAll({
       accountId,
       feeds,
+      force: false,
       onQueued: async (feedUrl) => {
         await applyAddByRSSParseStatus({ feedUrl, parsedFeed: undefined, status: 'queued' });
       },

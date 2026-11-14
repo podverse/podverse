@@ -122,8 +122,10 @@ flagged `spam` or `takedown`, and has a numeric Podcast Index id:
 
 - Subscribed: at least one v4 account subscribes to it. About 64,000 on
   this snapshot.
-- Viewed: it has a `stats_podcast` row with `play_count` above zero and no
-  account subscribes to it. 25,041 on this snapshot.
+- Viewed: the highest `stats_podcast.play_count` on that podcast, across
+  daily, weekly, monthly, yearly, and all-time, is 3 or more, and no account
+  subscribes to it. 214 on this snapshot. A highest count of 1 or 2 stays
+  off this queue.
 
 The queue is `rss-slow` (slow priority on `rss-normal`). Operators run it.
 A show that already has a local channel is not queued again. The rest of
@@ -145,14 +147,26 @@ podcast ids through one lookup.
   required. The lookup never queues a parse, so no signed-out path adds a
   feed.
 - Before go-live, a worker writes one `podcast` legacy map row for every v4
-  podcast that is public, is not flagged `spam` or `takedown`, and has a
-  numeric Podcast Index id. `resolve_key` is that Podcast Index id. That is
-  4,784,967 rows on this snapshot, ids only. An id still resolves after v4
-  is shut down, and through a channel added later under the same Podcast
-  Index id.
-- The answer is the channel, or "not here". An unknown id, an id that is
-  not eligible, and a show not yet in v5 all get "not here". None of them
-  is an error.
+  podcast that is not flagged `spam` or `takedown` and has an authority feed
+  URL. `resolve_key` is the numeric Podcast Index id when the podcast is
+  public and has one, and null otherwise. `v4_feed_url` is the authority
+  `feedUrls.url`. A `spam` or `takedown` podcast gets a row with status
+  `dropped`, no `resolve_key`, and no `v4_feed_url`. That is 4,784,967
+  resolvable rows on this snapshot plus the non-public and flagged rows
+  (count not run). An id still resolves after v4 is shut down, and through a
+  channel added later under the same Podcast Index id.
+- One answer per id, none of them an error (decided 2026-11-13):
+  - `channel`: a parsed v5 channel for that Podcast Index id (after an
+    applied absorb merge, the survivor).
+  - `feed_url`: no v5 channel yet. Carries `v4_feed_url`. A signed-out phone
+    saves it as an Add by RSS feed
+    ([08](08-mobile-first-launch-migration.md#signed-out-carryover-rules)).
+    Non-public podcasts get this answer too.
+  - `blocked`: the podcast was `spam` or `takedown`. No URL.
+  - `not_here`: an unknown id, or a podcast with no authority URL.
+- The feed URL is public catalog data that v4 already served on its podcast
+  pages. Returning it does not add a feed, and a signed-out phone parses it
+  on the device only.
 - At most 2,000 ids per request. The largest signed-in subscription list on
   this snapshot is 4,314 podcasts and the next is 1,910. The 99.9th
   percentile is 449.
@@ -420,7 +434,11 @@ ids into `account_following_playlist`. `subscribedUserIds` resolves through
 the same user ids into `account_following_account`. That follow list is
 carried over. 13 users have a non-empty list, and 3 of those users have an
 id shorter than 9. `addByRSSPodcastFeedUrls` copies
-each URL onto `account_following_add_by_rss_channel.feed_url`.
+each URL onto `account_following_add_by_rss_channel.feed_url`, unless the
+[Add by RSS directory match](08-mobile-first-launch-migration.md#add-by-rss-directory-match)
+finds a parsed channel for that URL. Then the copy writes an
+`account_following_channel` row instead (decided 2026-11-13). The Add by RSS
+tier is computed from the URLs left after that match.
 
 `subscribedPodcastListIds` is on the snapshot and not on the `User` entity.
 Leave it out of the chain until an operator says what it means.
@@ -464,6 +482,7 @@ copy writes `mapped` rows for the ids it resolved:
 | `v5_id_text`  | Nullable until resolved                                                            |
 | `resolve_key` | Numeric Podcast Index id, feed URL, `podcastGuid`, episode `guid`, or `mediaUrl`   |
 | `status`      | `mapped`, `unresolved`, `dropped`                                                  |
+| `v4_feed_url` | `podcast` rows only: the v4 authority `feedUrls.url`. Nullable. Public catalog URL |
 
 Uses: login migration, web redirects ([11](11-web-api-and-url-cutover.md)),
 mobile first-launch remap ([08](08-mobile-first-launch-migration.md)), and
@@ -502,13 +521,16 @@ database and no map file.
 - `liveItems.start` is `timestamptz` while most other v4 timestamps are
   `timestamp without time zone`. Do not mix them in one comparison without a
   cast.
-- The launch queue is the subscribed and viewed public shows, about 89,000
-  on this snapshot, not the 7.7 million podcasts in v4. Measure how long
-  that queue takes in [06](06-database-migration-rehearsal.md).
+- The launch queue is the subscribed public shows plus shows whose highest
+  Matomo count is at least 3. About 64,200 on this snapshot: about 64,000
+  subscribed and 214 viewed. It is not the 7.7 million podcasts in v4.
+  Measure how long that queue takes in
+  [06](06-database-migration-rehearsal.md).
 - `stats_podcast` is Matomo page views from the website, and from the v4 app
   only when tracking was enabled. iOS needed tracking permission. Most
   signed-out app listeners are missing from it. A less common show they
-  followed stays "not here" until a member adds it.
+  followed comes back as `feed_url` and stays an Add by RSS feed on that phone
+  until v5 parses it.
 - Redirects for unmapped ids should land on a friendly not-found page.
 - A re-derived chapter or soundbite still needs its `mediaRefs.id` in the
   legacy map. Without that row, `/clip/:id` cannot redirect to `/chapter/`
@@ -519,9 +541,10 @@ database and no map file.
 - Schema and worker commands for the legacy map.
 - Worker command that queues the subscribed and viewed public shows on
   `rss-slow` at go-live, and a measurement of how long that queue takes.
-- Worker command that writes the `podcast` legacy map rows.
-- Read-only API route for the [legacy podcast lookup](#legacy-podcast-lookup),
-  with its OpenAPI entry and integration tests.
+- Worker command that writes the `podcast` legacy map rows, the
+  `v4_feed_url` column, and the read-only API route for the
+  [legacy podcast lookup](#legacy-podcast-lookup): planned in
+  [`v4-signed-out-carryover`](/.llm/plans/active/v4-signed-out-carryover/00-SUMMARY.md).
 - [Feed source](#feed-source) column and `feed_add_event` table: a linear
   migration, and writers in the parser and the add routes.
 - Redirect handler design for [11](11-web-api-and-url-cutover.md).

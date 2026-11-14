@@ -339,19 +339,23 @@ describe('Add by RSS artist listed albums', () => {
 
   describe('followAddByRSSChannelAndQueue', () => {
     beforeEach(() => {
-      followAddByRSSChannelMock.mockResolvedValue({});
+      followAddByRSSChannelMock.mockResolvedValue({ account: {}, directory_channel: null });
       enqueueAddByRSSParseMock.mockResolvedValue({ request_id: 'follow-request' });
     });
 
     it('keeps the listed album idText and parsed feed when following from it', async () => {
       const seed = parsedListedAlbum();
 
-      const { record } = await followAddByRSSChannelAndQueue({
+      const result = await followAddByRSSChannelAndQueue({
         accountId: 'account-1',
         feedUrl: ALBUM_URL,
         resourceType: 'albums',
         seedRecord: seed,
       });
+      if (result.kind !== 'add_by_rss') {
+        throw new Error('expected an Add by RSS follow');
+      }
+      const { record } = result;
 
       expect(record).toEqual(
         expect.objectContaining({
@@ -369,11 +373,15 @@ describe('Add by RSS artist listed albums', () => {
     });
 
     it('creates a new idText without a seed record', async () => {
-      const { record } = await followAddByRSSChannelAndQueue({
+      const result = await followAddByRSSChannelAndQueue({
         accountId: 'account-1',
         feedUrl: ALBUM_URL,
         resourceType: 'albums',
       });
+      if (result.kind !== 'add_by_rss') {
+        throw new Error('expected an Add by RSS follow');
+      }
+      const { record } = result;
 
       expect(record.idText).not.toBe('album-id');
       expect(record.mappedFeed).toBeUndefined();

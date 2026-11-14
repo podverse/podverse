@@ -35,6 +35,9 @@ export class AccountMembershipStatus {
   max_add_by_rss_feeds?: number | null;
 
   @Column({ type: 'integer', nullable: true })
+  max_follows?: number | null;
+
+  @Column({ type: 'integer', nullable: true })
   max_manual_refreshes_per_hour?: number | null;
 
   @Column({ type: 'boolean', nullable: true })

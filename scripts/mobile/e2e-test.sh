@@ -38,7 +38,7 @@ TIMEOUTS_ENV="$E2E_DIR/shared/timeouts.env"
 # API-backed apps/mobile/e2e/<area>.yaml — full suite (`all`) always requires the API.
 flow_needs_e2e_api() {
   case "$1" in
-  add-by-rss | add-by-rss-credentials | add-by-rss-episode-sections | add-by-rss-remote-items | add-by-rss-track | add-by-rss-artist | add-by-rss-livestream | add-by-rss-anonymous | add-by-rss-anonymous-artist | add-by-rss-anonymous-sections | add-by-rss-anonymous-podroll | add-by-rss-sign-in | add-by-rss-device-credentials | signup-add-by-rss-limit | about | album | api-health | archived-clip | artist | artist-unsubscribe | auth-change-password | auth-login | auth-logout | auth-sessions | auto-queue-advance | banner-notification | browse | deep-link | \
+  add-by-rss | add-by-rss-credentials | add-by-rss-episode-sections | add-by-rss-remote-items | add-by-rss-track | add-by-rss-artist | add-by-rss-livestream | add-by-rss-anonymous | add-by-rss-directory-match-anonymous | add-by-rss-directory-match-signed-in | add-by-rss-anonymous-artist | add-by-rss-anonymous-sections | add-by-rss-anonymous-podroll | add-by-rss-sign-in | add-by-rss-device-credentials | signup-add-by-rss-limit | about | album | api-health | archived-clip | artist | artist-unsubscribe | auth-change-password | auth-login | auth-logout | auth-sessions | auto-queue-advance | banner-notification | browse | deep-link | \
   detail-sort-prefs | engine-audio-spike | hls-playback | home | history-screen | identity-remap | library-downloads | library-playlists | \
   livestream-player-controls | \
   make-clip | membership-checkout | membership-gate | notifications-inbox | offline-mode | opml | opml-signed-out | perf-chip-switch | \
@@ -83,7 +83,7 @@ flow_is_perf() {
 # Basename list of flows that need tools/test-assets on :2111 (real media / play asserts).
 flow_needs_test_assets() {
   case "$1" in
-  add-by-rss | add-by-rss-credentials | add-by-rss-episode-sections | add-by-rss-track | add-by-rss-artist | add-by-rss-livestream | add-by-rss-anonymous | add-by-rss-anonymous-artist | add-by-rss-anonymous-sections | add-by-rss-anonymous-podroll | add-by-rss-sign-in | add-by-rss-device-credentials | signup-add-by-rss-limit | auto-queue-advance | banner-notification | engine-audio-spike | hls-playback | library-downloads | livestream-player-controls | make-clip | \
+  add-by-rss | add-by-rss-credentials | add-by-rss-episode-sections | add-by-rss-track | add-by-rss-artist | add-by-rss-livestream | add-by-rss-anonymous | add-by-rss-directory-match-anonymous | add-by-rss-directory-match-signed-in | add-by-rss-anonymous-artist | add-by-rss-anonymous-sections | add-by-rss-anonymous-podroll | add-by-rss-sign-in | add-by-rss-device-credentials | signup-add-by-rss-limit | auto-queue-advance | banner-notification | engine-audio-spike | hls-playback | library-downloads | livestream-player-controls | make-clip | \
   membership-gate | play-mini-player | playback-cross-device | playback-offline-reconciliation | playback-resume-on-relaunch | player-screen | \
   show-notes | tab-switch-playback | tablet | v4v | video-transition)
     return 0

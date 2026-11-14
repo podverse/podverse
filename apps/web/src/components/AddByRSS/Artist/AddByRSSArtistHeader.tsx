@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import React, { useRef, useState } from 'react';
 import { FaCircleDollarToSlot, FaCommentDollar, FaGlobe, FaRss } from 'react-icons/fa6';
@@ -26,6 +27,7 @@ import {
 } from '../../../utils/addByRSS/actions';
 import { loadAddByRSSArtistFollowedAlbums } from '../../../utils/addByRSS/artistUnsubscribe';
 import type { AddByRSSFeedRecord } from '../../../utils/addByRSS/types';
+import { channelPathForMedium } from '../../../utils/redirect/mergedIdentity';
 import { addByRSSChannelHeaderTriple } from '../../../utils/image/addByRSSChannelHeaderCandidates';
 import { CommonArtistHeader } from '../../Common/Artist/CommonArtistHeader';
 import { CommonArtistHeaderViewDesktop } from '../../Common/Artist/CommonArtistHeaderViewDesktop';
@@ -54,6 +56,7 @@ export const AddByRSSArtistHeader: React.FC<AddByRSSArtistHeaderProps> = ({ feed
   const tFeatures = useTranslations('features');
   const tInstructions = useTranslations('instructions');
   const tMisc = useTranslations('misc');
+  const router = useRouter();
   const { loggedInAccount, setLoggedInAccount } = useAccount();
   const { setModalLoginRequired, setModalBoost } = useModals();
   const { tryHandleMembershipGateError } = useMembershipGate();
@@ -124,14 +127,19 @@ export const AddByRSSArtistHeader: React.FC<AddByRSSArtistHeaderProps> = ({ feed
         });
         setLoggedInAccount(nextAccount);
       } else {
-        const { account: nextAccount } = await followAddByRSSChannelAndQueue({
+        const followed = await followAddByRSSChannelAndQueue({
           accountId: loggedInAccount.id_text,
           feedUrl,
           resourceType: 'artists',
           title: title ?? null,
           imageUrl: imageUrl ?? null,
         });
-        setLoggedInAccount(nextAccount);
+        setLoggedInAccount(followed.account);
+        if (followed.kind === 'directory') {
+          router.replace(
+            channelPathForMedium(followed.channel.medium_id, followed.channel.id_text)
+          );
+        }
       }
     } catch (error) {
       if (tryHandleMembershipGateError(error)) {

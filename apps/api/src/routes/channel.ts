@@ -1,5 +1,5 @@
 import { config } from '@api/config/index.js';
-import { ChannelController } from '@api/controllers/channel.js';
+import { ChannelController, channelAddByRssMatchRateLimit } from '@api/controllers/channel.js';
 import { asyncHandler } from '@api/middleware/asyncHandler.js';
 import { Router } from 'express';
 
@@ -9,6 +9,11 @@ router.use(`${config.api.prefix}${config.api.version}/channel`, router);
 
 router.get('/podcast-index/:podcast_index_id', asyncHandler(ChannelController.getbyPodcastIndexId));
 router.get('/directory-match', asyncHandler(ChannelController.getDirectoryMatch));
+router.post(
+  '/add-by-rss-match',
+  channelAddByRssMatchRateLimit,
+  asyncHandler(ChannelController.matchAddByRSS)
+);
 
 router.get('/global/recent', asyncHandler(ChannelController.getManyGlobalRecent));
 router.get('/global/top', asyncHandler(ChannelController.getManyGlobalTop));

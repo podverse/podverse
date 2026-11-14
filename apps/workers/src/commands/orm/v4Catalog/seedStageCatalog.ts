@@ -101,11 +101,13 @@ FROM users u, unnest(u."subscribedPodcastIds") AS pid
 WHERE btrim(pid) <> ''
 `;
 
+// Highest play_count across timeframes. A show at 1 or 2 is not viewed.
 const VIEWED_SQL = `
-SELECT DISTINCT s.podcast_id AS id
+SELECT s.podcast_id AS id
 FROM stats_podcast s
-WHERE s.play_count > 0
-  AND s.podcast_id IS NOT NULL
+WHERE s.podcast_id IS NOT NULL
+GROUP BY s.podcast_id
+HAVING MAX(s.play_count) >= 3
 `;
 
 const LIBRARY_BRANCHES: readonly { owner: string; sql: string }[] = [

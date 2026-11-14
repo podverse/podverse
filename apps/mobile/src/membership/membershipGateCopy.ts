@@ -16,6 +16,19 @@ type PurchaseLabelMembership = {
   tier: MembershipTier | null;
 };
 
+/** Copy for the follow-tier dialog. Close only: there is no renew path and no email action. */
+export function followLimitDialogCopy(limit: number): {
+  bodyKey: 'membership.follow_limit_reached';
+  bodyValues: { limit: number };
+  titleKey: 'membership.gate.title_limit';
+} {
+  return {
+    bodyKey: 'membership.follow_limit_reached',
+    bodyValues: { limit },
+    titleKey: 'membership.gate.title_limit',
+  };
+}
+
 /**
  * Reason → modal/notice i18n keys. Every denial has its own pair. There is no default branch.
  * The expired body follows tier: Premium extends, every other tier buys.

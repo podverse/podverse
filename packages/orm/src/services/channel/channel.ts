@@ -277,6 +277,32 @@ export class ChannelService {
     });
   }
 
+  /**
+   * Channels for these id_texts, with the relations the caller names. Missing id_texts are omitted.
+   */
+  async getManyByIdText(
+    idTexts: readonly string[],
+    relations: FindOptionsRelations<Channel> = {}
+  ): Promise<Channel[]> {
+    const usable: string[] = [];
+    const seen = new Set<string>();
+    for (const idText of idTexts) {
+      if (idText === '' || seen.has(idText)) {
+        continue;
+      }
+      seen.add(idText);
+      usable.push(idText);
+    }
+    if (usable.length === 0) {
+      return [];
+    }
+
+    return this.repositoryRead.find({
+      where: { id_text: In(usable) },
+      relations,
+    });
+  }
+
   async getByIdOrIdText(
     idOrIdText: string,
     relations: FindOptionsRelations<Channel> = {}
@@ -301,6 +327,33 @@ export class ChannelService {
       where: { feed: { podcast_index_id } },
       relations,
     }) as unknown as Promise<Channel | null>;
+  }
+
+  /**
+   * Channels whose feed carries one of these Podcast Index ids, with the relations the caller
+   * names. A Podcast Index id with no channel is omitted.
+   */
+  async getManyByPodcastIndexIds(
+    podcastIndexIds: readonly number[],
+    relations: FindOptionsRelations<Channel> = {}
+  ): Promise<Channel[]> {
+    const usable: number[] = [];
+    const seen = new Set<number>();
+    for (const podcastIndexId of podcastIndexIds) {
+      if (!Number.isInteger(podcastIndexId) || podcastIndexId <= 0 || seen.has(podcastIndexId)) {
+        continue;
+      }
+      seen.add(podcastIndexId);
+      usable.push(podcastIndexId);
+    }
+    if (usable.length === 0) {
+      return [];
+    }
+
+    return this.repositoryRead.find({
+      where: { feed: { podcast_index_id: In(usable) } },
+      relations,
+    });
   }
 
   async getMany(

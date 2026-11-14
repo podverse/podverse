@@ -1026,6 +1026,50 @@ export const playlistRepository = {
     return fetchAndReplaceResourcesPrivateAll(context, playlistIdText, generation);
   },
 
+  /**
+   * Drop cached playlists this account owns, and their episode rows, so the next read loads the
+   * server copy. A playlist that was also followed drops out of that cache until it is read again.
+   */
+  clearOwned: async (): Promise<void> => {
+    playlistCacheGeneration += 1;
+    await initializeDatabase();
+    const owned = await getDb()
+      .select({
+        idText: schema.playlist.idText,
+        isFollowed: schema.playlist.isFollowed,
+      })
+      .from(schema.playlist)
+      .where(eq(schema.playlist.isOwned, 1));
+    const idTexts = owned.map((row) => row.idText);
+    const followedToo = owned.some((row) => row.isFollowed === 1);
+    const metaRows = await getDb().select({ key: schema.kvMeta.key }).from(schema.kvMeta);
+    const resourcePrefixes = idTexts.map((idText) => `playlist.resources.${idText}.`);
+    const exactKeys = new Set<string>([playlistListWatermarkKey('owned')]);
+    if (followedToo) {
+      exactKeys.add(playlistListWatermarkKey('followed'));
+    }
+    for (const idText of idTexts) {
+      exactKeys.add(playlistDetailWatermarkKey(idText));
+    }
+    const watermarkKeys = metaRows
+      .map((row) => row.key)
+      .filter(
+        (key) => exactKeys.has(key) || resourcePrefixes.some((prefix) => key.startsWith(prefix))
+      );
+    await getDb().transaction(async (transaction) => {
+      if (idTexts.length > 0) {
+        await transaction
+          .delete(schema.playlistResource)
+          .where(inArray(schema.playlistResource.playlistIdText, idTexts));
+        await transaction.delete(schema.playlist).where(eq(schema.playlist.isOwned, 1));
+      }
+      if (watermarkKeys.length > 0) {
+        await transaction.delete(schema.kvMeta).where(inArray(schema.kvMeta.key, watermarkKeys));
+      }
+    });
+    await projectLibraryBrowseFromCache();
+  },
+
   /** Drop every cached playlist and its resources, then refresh the car browse index. */
   clearAll: async (): Promise<void> => {
     playlistCacheGeneration += 1;

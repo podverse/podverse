@@ -1,4 +1,13 @@
-import { DATABASE_CONSTANTS, DEFAULT_MAX_ADD_BY_RSS_FEEDS } from '@podverse/helpers';
+import {
+  ADD_BY_RSS_FEED_TIERS,
+  DATABASE_CONSTANTS,
+  DEFAULT_MAX_ADD_BY_RSS_FEEDS,
+  DEFAULT_MAX_FOLLOWS,
+  FOLLOW_LIMIT_TIERS,
+  isUnlimitedAddByRssFeedLimit,
+  isUnlimitedFollowLimit,
+  splitFeedUrlUserinfo,
+} from '@podverse/helpers';
 import { canonicalAddByRSSFeedUrl } from '@podverse/helpers-validation';
 
 const INT4_MAX = 2147483647;
@@ -692,12 +701,12 @@ export const MIGRATION_CAP_MAX = 10000;
 
 export const ADD_BY_RSS_CAP = {
   defaultLimit: DEFAULT_MAX_ADD_BY_RSS_FEEDS,
-  tiers: [200, 300, 400, 500, 1000, 10000],
+  tiers: ADD_BY_RSS_FEED_TIERS,
 } as const;
 
 export const DIRECTORY_FOLLOW_CAP = {
-  defaultLimit: 500,
-  tiers: [1000, 2000, 3000, 4000, 5000, 10000],
+  defaultLimit: DEFAULT_MAX_FOLLOWS,
+  tiers: FOLLOW_LIMIT_TIERS,
 } as const;
 
 export type MigrationCapDecision =
@@ -712,6 +721,7 @@ export type AddByRssCopyPlan =
 export type DirectoryFollowCopyPlan = {
   action: 'copy' | 'needs_operator';
   decision: MigrationCapDecision;
+  writeTier: number | null;
 };
 
 type MigrationCapSpec = {
@@ -754,6 +764,57 @@ export function countAddByRssFeeds(urls: readonly string[]): number {
   return feeds.size;
 }
 
+function addByRssUrlHasUserinfo(url: string): boolean {
+  const split = splitFeedUrlUserinfo(url);
+  return split.username !== null || split.password !== null;
+}
+
+/**
+ * Directory channel ids for matched add-by-RSS urls, and the urls that stay add-by-RSS.
+ * Blank values are dropped. The rest are canonicalized and the first of each is kept, in
+ * input order. A url with userinfo stays add-by-RSS, and so does every other copy of that
+ * canonical url. The map is keyed by the canonical url.
+ */
+export function splitAddByRssUrlsByDirectoryMatch(
+  urls: readonly string[],
+  matchedChannelIdByUrl: ReadonlyMap<string, number>
+): { directoryChannelIds: number[]; addByRssUrls: string[] } {
+  const credentialed = new Set<string>();
+  for (const url of urls) {
+    if (!addByRssUrlHasUserinfo(url)) {
+      continue;
+    }
+    const canonical = addByRssFeedUrlForCopy(url);
+    if (canonical !== null) {
+      credentialed.add(canonical);
+    }
+  }
+
+  const directoryChannelIds: number[] = [];
+  const addByRssUrls: string[] = [];
+  const seenUrls = new Set<string>();
+  const seenChannels = new Set<number>();
+  for (const url of urls) {
+    const canonical = addByRssFeedUrlForCopy(url);
+    if (canonical === null || seenUrls.has(canonical)) {
+      continue;
+    }
+    seenUrls.add(canonical);
+    const channelId = credentialed.has(canonical)
+      ? undefined
+      : matchedChannelIdByUrl.get(canonical);
+    if (channelId === undefined) {
+      addByRssUrls.push(canonical);
+      continue;
+    }
+    if (!seenChannels.has(channelId)) {
+      seenChannels.add(channelId);
+      directoryChannelIds.push(channelId);
+    }
+  }
+  return { directoryChannelIds, addByRssUrls };
+}
+
 /** Distinct trimmed strings. Blank values do not count. */
 export function countDistinctText(values: readonly string[]): number {
   const texts = new Set<string>();
@@ -787,6 +848,9 @@ export function addByRssCopyPlan(
   stored: number | null,
   statusRowExists: boolean
 ): AddByRssCopyPlan {
+  if (isUnlimitedAddByRssFeedLimit(stored)) {
+    return { action: 'copy', writeTier: null, clearStored: false };
+  }
   if (stored !== null && stored >= count) {
     return { action: 'copy', writeTier: null, clearStored: false };
   }
@@ -807,11 +871,68 @@ export function addByRssCopyPlan(
 }
 
 export function directoryFollowCopyPlan(count: number): DirectoryFollowCopyPlan {
-  const decision = decideMigrationCap(count, DIRECTORY_FOLLOW_CAP);
-  if (decision.outcome === 'needs_operator') {
-    return { action: 'needs_operator', decision };
+  return directoryFollowWritePlan(count, null);
+}
+
+/**
+ * Matched Add by RSS channels that are not already in the podcast-subscription channel set.
+ * An unresolved podcast id stays in the base count, so the same show can be counted twice.
+ * That only raises the tier.
+ */
+export function extraMatchedDirectoryChannelIds(
+  matchedChannelIds: readonly number[],
+  podcastChannelIds: ReadonlySet<number>
+): number[] {
+  const extra: number[] = [];
+  const seen = new Set<number>();
+  for (const channelId of matchedChannelIds) {
+    if (seen.has(channelId) || podcastChannelIds.has(channelId)) {
+      continue;
+    }
+    seen.add(channelId);
+    extra.push(channelId);
   }
-  return { action: 'copy', decision };
+  return extra;
+}
+
+export function directoryFollowTotal(input: {
+  podcastIds: readonly string[];
+  playlistFollowIds: readonly string[];
+  userFollowIds: readonly string[];
+  extraMatchedChannelIds: readonly number[];
+}): number {
+  return (
+    countDirectoryFollows({
+      podcastIds: input.podcastIds,
+      playlistFollowIds: input.playlistFollowIds,
+      userFollowIds: input.userFollowIds,
+    }) + input.extraMatchedChannelIds.length
+  );
+}
+
+/**
+ * The tier to store before the follow rows are copied.
+ * Unlimited, or a stored number that already covers the count, is left unchanged.
+ * A count past 10000 writes nothing and is needs_operator. Unlimited is never written.
+ */
+export function directoryFollowWritePlan(
+  count: number,
+  stored: number | null
+): DirectoryFollowCopyPlan {
+  const decision = decideMigrationCap(count, DIRECTORY_FOLLOW_CAP);
+  if (isUnlimitedFollowLimit(stored) || (stored !== null && stored >= count)) {
+    return { action: 'copy', decision, writeTier: null };
+  }
+  if (decision.outcome === 'needs_operator') {
+    return { action: 'needs_operator', decision, writeTier: null };
+  }
+  if (decision.outcome !== 'tier') {
+    return { action: 'copy', decision, writeTier: null };
+  }
+  if (stored !== null && stored >= decision.tier) {
+    return { action: 'copy', decision, writeTier: null };
+  }
+  return { action: 'copy', decision, writeTier: decision.tier };
 }
 
 export type LibraryCopyGroup =

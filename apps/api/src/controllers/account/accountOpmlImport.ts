@@ -142,6 +142,8 @@ class AccountOpmlImportController {
                   activeMQArtemisService,
                   podcastGetByFeedUrl: resolveE2eOpmlImportFeed,
                   enqueueDownstreamJobs: false,
+                  contactEmail: config.terms.contactEmail,
+                  enforceAddByRssLimit: false,
                 });
                 res.status(201).json({ request_id: requestId });
                 return;

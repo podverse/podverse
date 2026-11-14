@@ -21,6 +21,7 @@ import {
 import { getAddByRSSFeedByUrl, upsertAddByRSSFeed } from '../utils/addByRSS/storage';
 import type { AddByRSSFeedRecord } from '../utils/addByRSS/types';
 import { handleRateLimitAlert } from '../utils/rateLimit/rateLimitAlert';
+import { channelPathForMedium } from '../utils/redirect/mergedIdentity';
 import { useMembershipGate } from './useMembershipGate';
 
 export type AddByRSSStatus = AddByRSSFeedRecord['status'] | 'idle' | 'error';
@@ -182,7 +183,7 @@ export function useAddByRSSAddFeedFlow(): {
       }
       feedUrl = resolved.feedUrl;
 
-      const { requestId, record, account } = await followAddByRSSChannelAndQueue({
+      const followed = await followAddByRSSChannelAndQueue({
         accountId,
         feedUrl,
         resourceType: 'podcasts',
@@ -191,13 +192,15 @@ export function useAddByRSSAddFeedFlow(): {
         credentials: resolved.credentials,
       });
 
-      if (account) {
-        setLoggedInAccount(account);
-      }
-
+      setLoggedInAccount(followed.account);
       options?.onFollowed?.();
 
-      await runParseAndRedirect(accountId, requestId, feedUrl, record);
+      if (followed.kind === 'directory') {
+        router.push(channelPathForMedium(followed.channel.medium_id, followed.channel.id_text));
+        return;
+      }
+
+      await runParseAndRedirect(accountId, followed.requestId, feedUrl, followed.record);
     } catch (error) {
       setStatus('error');
       const thrown = thrownText(error);

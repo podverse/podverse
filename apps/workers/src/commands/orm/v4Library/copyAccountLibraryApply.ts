@@ -1,11 +1,16 @@
 import type { DTORemovedSource } from '@podverse/helpers';
 import {
+  ADD_BY_RSS_DIRECTORY_MATCH_MAX_FEEDS,
   DATABASE_CONSTANTS,
   DEFAULT_MAX_ADD_BY_RSS_FEEDS,
   formatGuidEnclosureUrl,
   getMediumEnumValue,
 } from '@podverse/helpers';
-import { generateRandomIdText, getDataSourceReadWrite } from '@podverse/orm';
+import {
+  ChannelAddByRSSDirectoryMatchService,
+  generateRandomIdText,
+  getDataSourceReadWrite,
+} from '@podverse/orm';
 
 import type {
   AddByRssCopyPlan,
@@ -26,7 +31,10 @@ import {
   countAddByRssFeeds,
   countDirectoryFollows,
   directoryFollowCopyPlan,
+  directoryFollowTotal,
+  directoryFollowWritePlan,
   episodeDecision,
+  extraMatchedDirectoryChannelIds,
   libraryCopyErrorClass,
   listPositionAt,
   orderedMembers,
@@ -37,6 +45,7 @@ import {
   playlistsOverLimitFromSnapshot,
   podcastChannelIdText,
   shouldSetLibraryCopiedAt,
+  splitAddByRssUrlsByDirectoryMatch,
   subscriptionPendingStatus,
 } from './copyAccountLibraryLib.js';
 
@@ -87,12 +96,15 @@ export type AddByRssCap = {
   count: number;
   action: 'copy' | 'needs_operator' | 'membership_status_missing';
   writeTier: number | null;
+  /** Distinct canonical urls matched to a directory channel. */
+  addByRssMatchedToDirectory: number;
 };
 
 export type DirectoryFollowCap = {
   count: number;
   action: 'copy' | 'needs_operator';
   decision: MigrationCapDecision;
+  writeTier: number | null;
 };
 
 export type ApplyLibraryCopyResult = {
@@ -331,6 +343,7 @@ export async function applyLibraryCopy(
       count: countAddByRssFeeds(snapshot.addByRssUrls),
       action: 'copy',
       writeTier: null,
+      addByRssMatchedToDirectory: 0,
     }
   );
   if (addByRssCap.action === 'needs_operator') {
@@ -621,8 +634,9 @@ export async function loadIds(
 }
 
 /**
- * Channel, playlist, and account follows, plus that group's pending rows.
- * A count past 10000 returns before any of those writes. The tier stays on the result.
+ * Channel, playlist, and account follows, plus matched Add by RSS channels, plus pending rows.
+ * The tier is written first. A count past 10000 still inserts every follow and reports
+ * needs_operator. A missing membership row does not stop the inserts.
  */
 async function copyDirectoryFollowGroup(
   dataSource: ReadWriteSource,
@@ -631,14 +645,26 @@ async function copyDirectoryFollowGroup(
   catalog: LocalCatalog,
   channelIds: Map<string, number>
 ): Promise<DirectoryFollowGroupResult> {
-  const directoryFollowCap = directoryFollowCapFromSnapshot(snapshot);
-  if (directoryFollowCap.action === 'needs_operator') {
-    return { followedAccounts: [], pendingRows: 0, directoryFollowCap };
-  }
+  const matched = splitAddByRssUrlsByDirectoryMatch(
+    snapshot.addByRssUrls,
+    await directoryChannelIdByAddByRssUrl(snapshot.addByRssUrls)
+  );
   return dataSource.transaction(async (manager) => {
     const db = manager as Queryable;
+    const storedRows = await query(
+      db,
+      `SELECT max_follows
+       FROM account_membership_status
+       WHERE account_id = $1
+       FOR UPDATE`,
+      [accountId]
+    );
+    const storedRow = storedRows[0];
+    const stored = storedRow === undefined ? null : storedFollowLimit(storedRow.max_follows);
     const pending = new PendingRows();
     const podcasts = podcastById(snapshot);
+    const podcastChannelIds = new Set<number>();
+    const channelInserts: number[] = [];
     for (const podcastId of new Set(snapshot.podcastIds)) {
       const legacyId = podcastId.trim();
       if (legacyId === '') {
@@ -656,11 +682,40 @@ async function copyDirectoryFollowGroup(
         });
         continue;
       }
+      podcastChannelIds.add(channelId);
+      channelInserts.push(channelId);
+    }
+    const extra = extraMatchedDirectoryChannelIds(matched.directoryChannelIds, podcastChannelIds);
+    const count = directoryFollowTotal({
+      podcastIds: snapshot.podcastIds,
+      playlistFollowIds: snapshot.playlistFollowIds,
+      userFollowIds: snapshot.userFollowIds,
+      extraMatchedChannelIds: extra,
+    });
+    const plan = directoryFollowWritePlan(count, stored);
+    if (plan.writeTier !== null) {
+      await db.query(
+        `UPDATE account_membership_status
+         SET max_follows = $2
+         WHERE account_id = $1
+           AND max_follows IS DISTINCT FROM -1
+           AND (max_follows IS NULL OR max_follows < $2)`,
+        [accountId, plan.writeTier]
+      );
+    }
+    for (const channelId of channelInserts) {
       await db.query(
         `INSERT INTO account_following_channel (account_id, channel_id) VALUES ($1, $2) ON CONFLICT DO NOTHING`,
         [accountId, channelId]
       );
     }
+    await insertDirectoryChannelFollows(db, accountId, extra);
+    const directoryFollowCap: DirectoryFollowCap = {
+      count,
+      action: plan.action,
+      decision: plan.decision,
+      writeTier: plan.writeTier,
+    };
     const playlistIds = await loadIds(
       db,
       `SELECT id, id_text FROM playlist WHERE id_text = ANY($1::varchar[])`,
@@ -721,7 +776,73 @@ export function directoryFollowCapFromSnapshot(snapshot: V4LibrarySnapshot): Dir
     userFollowIds: snapshot.userFollowIds,
   });
   const plan = directoryFollowCopyPlan(count);
-  return { count, action: plan.action, decision: plan.decision };
+  return { count, action: plan.action, decision: plan.decision, writeTier: plan.writeTier };
+}
+
+/** Same tier the copy would write, including matched Add by RSS channels and the stored column. */
+export async function readDirectoryFollowCap(
+  db: Queryable,
+  accountId: number,
+  snapshot: V4LibrarySnapshot,
+  catalog: LocalCatalog
+): Promise<DirectoryFollowCap> {
+  const matched = splitAddByRssUrlsByDirectoryMatch(
+    snapshot.addByRssUrls,
+    await directoryChannelIdByAddByRssUrl(snapshot.addByRssUrls)
+  );
+  const podcasts = podcastById(snapshot);
+  const channelIdTexts: string[] = [];
+  for (const podcastId of new Set(snapshot.podcastIds)) {
+    const legacyId = podcastId.trim();
+    if (legacyId === '') {
+      continue;
+    }
+    const podcast = podcasts.get(legacyId);
+    const channelIdText = podcast === undefined ? null : podcastChannelIdText(podcast, catalog);
+    if (channelIdText !== null) {
+      channelIdTexts.push(channelIdText);
+    }
+  }
+  const channelIds = await loadIds(
+    db,
+    `SELECT id, id_text FROM channel WHERE id_text = ANY($1::varchar[])`,
+    channelIdTexts
+  );
+  const extra = extraMatchedDirectoryChannelIds(
+    matched.directoryChannelIds,
+    new Set(channelIds.values())
+  );
+  const count = directoryFollowTotal({
+    podcastIds: snapshot.podcastIds,
+    playlistFollowIds: snapshot.playlistFollowIds,
+    userFollowIds: snapshot.userFollowIds,
+    extraMatchedChannelIds: extra,
+  });
+  const storedRows = await query(
+    db,
+    `SELECT max_follows FROM account_membership_status WHERE account_id = $1`,
+    [accountId]
+  );
+  const storedRow = storedRows[0];
+  const stored = storedRow === undefined ? null : storedFollowLimit(storedRow.max_follows);
+  const plan = directoryFollowWritePlan(count, stored);
+  return {
+    count,
+    action: plan.action,
+    decision: plan.decision,
+    writeTier: plan.writeTier,
+  };
+}
+
+function storedFollowLimit(value: unknown): number | null {
+  if (typeof value === 'number' && Number.isInteger(value)) {
+    return value;
+  }
+  if (typeof value === 'string' && /^-?\d+$/.test(value)) {
+    const parsed = Number.parseInt(value, 10);
+    return Number.isSafeInteger(parsed) ? parsed : null;
+  }
+  return null;
 }
 
 function integerOrNull(value: unknown): number | null {
@@ -742,20 +863,91 @@ function addByRssMembershipStored(rows: readonly Record<string, unknown>[]): {
   return { statusRowExists: true, stored: integerOrNull(row.max_add_by_rss_feeds) };
 }
 
-function addByRssCapFromPlan(count: number, plan: AddByRssCopyPlan): AddByRssCap {
+function addByRssCapFromPlan(
+  count: number,
+  plan: AddByRssCopyPlan,
+  addByRssMatchedToDirectory: number
+): AddByRssCap {
   if (plan.action !== 'copy') {
-    return { count, action: plan.action, writeTier: null };
+    return {
+      count,
+      action: plan.action,
+      writeTier: null,
+      addByRssMatchedToDirectory,
+    };
   }
-  return { count, action: 'copy', writeTier: plan.writeTier };
+  return {
+    count,
+    action: 'copy',
+    writeTier: plan.writeTier,
+    addByRssMatchedToDirectory,
+  };
 }
 
-/** Unlocked read of the stored Add by RSS cap. */
+type AddByRssDirectorySplit = {
+  directoryChannelIds: number[];
+  addByRssUrls: string[];
+  count: number;
+  addByRssMatchedToDirectory: number;
+};
+
+function addByRssDirectorySplit(
+  urls: readonly string[],
+  matchedChannelIdByUrl: ReadonlyMap<string, number>
+): AddByRssDirectorySplit {
+  const split = splitAddByRssUrlsByDirectoryMatch(urls, matchedChannelIdByUrl);
+  const count = split.addByRssUrls.length;
+  return {
+    directoryChannelIds: split.directoryChannelIds,
+    addByRssUrls: split.addByRssUrls,
+    count,
+    addByRssMatchedToDirectory: countAddByRssFeeds(urls) - count,
+  };
+}
+
+/**
+ * Directory channel id for each add-by-RSS url the directory match accepts.
+ * The key is the canonical url `splitAddByRssUrlsByDirectoryMatch` looks up.
+ * Reads in chunks and sends no guid.
+ */
+export async function directoryChannelIdByAddByRssUrl(
+  urls: readonly string[]
+): Promise<Map<string, number>> {
+  const matched = new Map<string, number>();
+  if (urls.length === 0) {
+    return matched;
+  }
+  const service = new ChannelAddByRSSDirectoryMatchService();
+  for (let index = 0; index < urls.length; index += ADD_BY_RSS_DIRECTORY_MATCH_MAX_FEEDS) {
+    const chunk = urls.slice(index, index + ADD_BY_RSS_DIRECTORY_MATCH_MAX_FEEDS);
+    const found = await service.getForFeedUrls(
+      chunk.map((feedUrl) => ({ feedUrl, feedGuid: null }))
+    );
+    for (const url of chunk) {
+      const row = found.get(url);
+      if (row === undefined) {
+        continue;
+      }
+      const canonical = addByRssFeedUrlForCopy(url);
+      if (canonical === null || matched.has(canonical)) {
+        continue;
+      }
+      matched.set(canonical, row.channel.id);
+    }
+  }
+  return matched;
+}
+
+/**
+ * Unlocked read of the stored Add by RSS cap.
+ * The tier uses the urls left after directory matches.
+ */
 export async function readAddByRssCap(
   db: Queryable,
   accountId: number,
   urls: readonly string[]
 ): Promise<AddByRssCap> {
-  const count = countAddByRssFeeds(urls);
+  const split = addByRssDirectorySplit(urls, await directoryChannelIdByAddByRssUrl(urls));
   const rows = await query(
     db,
     `SELECT max_add_by_rss_feeds
@@ -764,7 +956,11 @@ export async function readAddByRssCap(
     [accountId]
   );
   const { statusRowExists, stored } = addByRssMembershipStored(rows);
-  return addByRssCapFromPlan(count, addByRssCopyPlan(count, stored, statusRowExists));
+  return addByRssCapFromPlan(
+    split.count,
+    addByRssCopyPlan(split.count, stored, statusRowExists),
+    split.addByRssMatchedToDirectory
+  );
 }
 
 async function insertAddByRssFeeds(
@@ -784,13 +980,32 @@ async function insertAddByRssFeeds(
   }
 }
 
-/** Add by RSS follows and the stored feed cap. This group records no pending rows. */
+async function insertDirectoryChannelFollows(
+  db: Queryable,
+  accountId: number,
+  channelIds: readonly number[]
+): Promise<void> {
+  for (const channelId of channelIds) {
+    await db.query(
+      `INSERT INTO account_following_channel (account_id, channel_id) VALUES ($1, $2) ON CONFLICT DO NOTHING`,
+      [accountId, channelId]
+    );
+  }
+}
+
+/**
+ * Add by RSS follows, directory follows for matched urls, and the stored feed cap.
+ * This group records no pending rows.
+ */
 async function copyAddByRssGroup(
   dataSource: ReadWriteSource,
   accountId: number,
   snapshot: V4LibrarySnapshot
 ): Promise<AddByRssCap> {
-  const count = countAddByRssFeeds(snapshot.addByRssUrls);
+  const split = addByRssDirectorySplit(
+    snapshot.addByRssUrls,
+    await directoryChannelIdByAddByRssUrl(snapshot.addByRssUrls)
+  );
   return dataSource.transaction(async (manager) => {
     const db = manager as Queryable;
     const rows = await query(
@@ -802,9 +1017,9 @@ async function copyAddByRssGroup(
       [accountId]
     );
     const { statusRowExists, stored } = addByRssMembershipStored(rows);
-    const plan = addByRssCopyPlan(count, stored, statusRowExists);
+    const plan = addByRssCopyPlan(split.count, stored, statusRowExists);
     if (plan.action === 'needs_operator' || plan.action === 'membership_status_missing') {
-      return addByRssCapFromPlan(count, plan);
+      return addByRssCapFromPlan(split.count, plan, split.addByRssMatchedToDirectory);
     }
     if (plan.clearStored) {
       await db.query(
@@ -815,12 +1030,9 @@ async function copyAddByRssGroup(
            AND max_add_by_rss_feeds <= $2
            AND max_add_by_rss_feeds < $3
          RETURNING account_id`,
-        [accountId, DEFAULT_MAX_ADD_BY_RSS_FEEDS, count]
+        [accountId, DEFAULT_MAX_ADD_BY_RSS_FEEDS, split.count]
       );
-      await insertAddByRssFeeds(db, accountId, snapshot.addByRssUrls);
-      return addByRssCapFromPlan(count, plan);
-    }
-    if (plan.writeTier !== null) {
+    } else if (plan.writeTier !== null) {
       const updated = updateReturningRows(
         await db.query(
           `UPDATE account_membership_status
@@ -833,16 +1045,16 @@ async function copyAddByRssGroup(
       );
       if (updated.length === 0) {
         return {
-          count,
+          count: split.count,
           action: 'membership_status_missing',
           writeTier: plan.writeTier,
+          addByRssMatchedToDirectory: split.addByRssMatchedToDirectory,
         };
       }
-      await insertAddByRssFeeds(db, accountId, snapshot.addByRssUrls);
-      return addByRssCapFromPlan(count, plan);
     }
-    await insertAddByRssFeeds(db, accountId, snapshot.addByRssUrls);
-    return addByRssCapFromPlan(count, plan);
+    await insertDirectoryChannelFollows(db, accountId, split.directoryChannelIds);
+    await insertAddByRssFeeds(db, accountId, split.addByRssUrls);
+    return addByRssCapFromPlan(split.count, plan, split.addByRssMatchedToDirectory);
   });
 }
 

@@ -1,7 +1,9 @@
+import { config } from '@api/config/index.js';
 import { handleReturnDataOrNotFound } from '@api/controllers/helpers/data.js';
 import { handleGenericErrorResponse } from '@api/controllers/helpers/error.js';
 import { sendMergedInto } from '@api/controllers/helpers/mergedInto.js';
 import { getPaginationParams } from '@api/controllers/helpers/pagination.js';
+import { loggerService } from '@api/factories/loggerService.js';
 import {
   ensureAuthenticated,
   getActiveSessionAccountId,
@@ -9,6 +11,7 @@ import {
 } from '@api/lib/auth/index.js';
 import { getFollowedChannelIds } from '@api/lib/followed.js';
 import { getParamRequired } from '@api/lib/params.js';
+import { rateLimitOptionalAuthEndpoint } from '@api/lib/rateLimiter.js';
 import { getStatsOrder } from '@api/lib/stats.js';
 import {
   idOrIdTextParamSchema,
@@ -16,6 +19,7 @@ import {
   mediumCategoryPageRangeQuerySchema,
   mediumPageQuerySchema,
   mediumPageRangeQuerySchema,
+  validateBodyObject,
   validateParamsObject,
   validateQueryObject,
 } from '@api/lib/validation/index.js';
@@ -25,11 +29,21 @@ import Joi from 'joi';
 
 import type {
   CategoryMappingKeys,
+  DTOAddByRSSMatchFeed,
+  DTOAddByRSSMatchFeedRef,
+  DTOAddByRSSMatchItemRef,
+  DTOAddByRSSMatchResponse,
   DTOChannelDirectoryMatch,
   QueryParamsMedium,
   StatsPopularityCountField,
 } from '@podverse/helpers';
-import { fillTopPage, getCategoryEnumValue, TOP_STATS_PAD_MAX_RANKED } from '@podverse/helpers';
+import {
+  ADD_BY_RSS_DIRECTORY_MATCH_MAX_FEEDS,
+  ADD_BY_RSS_DIRECTORY_MATCH_MAX_ITEMS,
+  fillTopPage,
+  getCategoryEnumValue,
+  TOP_STATS_PAD_MAX_RANKED,
+} from '@podverse/helpers';
 import type { ApiListResponse, QueryParamsStatsRange } from '@podverse/helpers-requests';
 import type {
   AccountFollowingChannel,
@@ -48,6 +62,85 @@ import {
   subChannelGetManyRelations,
   TasteProfileAccountService,
 } from '@podverse/orm';
+
+const addByRSSMatchItemSchema = Joi.object({
+  guid: Joi.string().max(2048).allow(null).default(null),
+  enclosure_url: Joi.string().max(4096).allow(null).default(null),
+});
+
+const addByRSSMatchBodySchema = Joi.object({
+  feeds: Joi.array()
+    .items(
+      Joi.object({
+        feed_url: Joi.string().max(2048).required(),
+        feed_guid: Joi.string().max(255).allow(null).default(null),
+        items: Joi.array().items(addByRSSMatchItemSchema).default([]),
+      })
+    )
+    .min(1)
+    .max(ADD_BY_RSS_DIRECTORY_MATCH_MAX_FEEDS)
+    .required(),
+});
+
+/**
+ * Signed-out callers share an IP budget. Signed-in callers share an account budget. A key is
+ * refused: the route reads public catalog data and writes nothing.
+ */
+export const channelAddByRssMatchRateLimit = rateLimitOptionalAuthEndpoint({
+  account: {
+    windowMs: config.rateLimits.channelAddByRssMatch.windowMs,
+    max: config.rateLimits.channelAddByRssMatch.max,
+  },
+  address: {
+    windowMs: config.rateLimits.channelAddByRssMatchAnon.windowMs,
+    max: config.rateLimits.channelAddByRssMatchAnon.max,
+  },
+});
+
+function isNullableString(value: unknown): value is string | null {
+  return value === null || typeof value === 'string';
+}
+
+function readAddByRSSMatchFeeds(body: unknown): DTOAddByRSSMatchFeedRef[] | null {
+  if (typeof body !== 'object' || body === null || !('feeds' in body)) {
+    return null;
+  }
+  const { feeds } = body;
+  if (!Array.isArray(feeds)) {
+    return null;
+  }
+  const parsed: DTOAddByRSSMatchFeedRef[] = [];
+  for (const feed of feeds) {
+    if (typeof feed !== 'object' || feed === null || !('feed_url' in feed)) {
+      return null;
+    }
+    if (typeof feed.feed_url !== 'string') {
+      return null;
+    }
+    const feedGuid = 'feed_guid' in feed ? feed.feed_guid : null;
+    if (!isNullableString(feedGuid)) {
+      return null;
+    }
+    const itemsRaw = 'items' in feed ? feed.items : [];
+    if (!Array.isArray(itemsRaw)) {
+      return null;
+    }
+    const items: DTOAddByRSSMatchItemRef[] = [];
+    for (const item of itemsRaw) {
+      if (typeof item !== 'object' || item === null) {
+        return null;
+      }
+      const guid = 'guid' in item ? item.guid : null;
+      const enclosureUrl = 'enclosure_url' in item ? item.enclosure_url : null;
+      if (!isNullableString(guid) || !isNullableString(enclosureUrl)) {
+        return null;
+      }
+      items.push({ guid, enclosure_url: enclosureUrl });
+    }
+    parsed.push({ feed_url: feed.feed_url, feed_guid: feedGuid, items });
+  }
+  return parsed;
+}
 
 const directoryMatchQuerySchema = {
   feed_guid: Joi.string().trim().min(1).max(255).required(),
@@ -248,6 +341,66 @@ export class ChannelController {
         }
       }
     );
+  }
+
+  static async matchAddByRSS(req: Request, res: Response): Promise<void> {
+    validateBodyObject(addByRSSMatchBodySchema, req, res, async (): Promise<void> => {
+      const feeds = readAddByRSSMatchFeeds(req.body);
+      if (feeds === null) {
+        res.status(400).json({ message: '"feeds" must be an array' });
+        return;
+      }
+      const itemsAsked = feeds.reduce((sum, feed) => sum + feed.items.length, 0);
+      if (itemsAsked > ADD_BY_RSS_DIRECTORY_MATCH_MAX_ITEMS) {
+        res.status(400).json({
+          message: `"items" must contain at most ${ADD_BY_RSS_DIRECTORY_MATCH_MAX_ITEMS} entries`,
+        });
+        return;
+      }
+
+      try {
+        const foundByUrl = await ChannelController.directoryMatchService.getForFeedUrls(
+          feeds.map((feed) => ({ feedUrl: feed.feed_url, feedGuid: feed.feed_guid }))
+        );
+        const matches: DTOAddByRSSMatchFeed[] = [];
+        let feedsMatched = 0;
+        let itemsMatched = 0;
+        for (const feed of feeds) {
+          const found = foundByUrl.get(feed.feed_url);
+          if (found === undefined) {
+            matches.push({ feed_url: feed.feed_url, channel: null, items: [] });
+            continue;
+          }
+          feedsMatched += 1;
+          const idTexts = await ChannelController.directoryMatchService.getItemIdTextsForChannel(
+            found.channel,
+            feed.items.map((item) => ({ guid: item.guid, enclosureUrl: item.enclosure_url }))
+          );
+          const items = feed.items.map((item, index) => {
+            const itemIdText = idTexts[index] ?? null;
+            if (itemIdText !== null) {
+              itemsMatched += 1;
+            }
+            return {
+              guid: item.guid,
+              enclosure_url: item.enclosure_url,
+              item_id_text: itemIdText,
+            };
+          });
+          matches.push({ feed_url: feed.feed_url, channel: found.match, items });
+        }
+        loggerService.info('Add by RSS directory match', {
+          feedsAsked: feeds.length,
+          feedsMatched,
+          itemsAsked,
+          itemsMatched,
+        });
+        const body: DTOAddByRSSMatchResponse = { matches };
+        res.json(body);
+      } catch (error) {
+        handleGenericErrorResponse(res, error);
+      }
+    });
   }
 
   static async getManyGlobalRecent(req: Request, res: Response): Promise<void> {
