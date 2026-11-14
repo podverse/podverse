@@ -12,3 +12,4 @@ Reusable agent-facing prompt snippets (abcmemory). One topic per kebab-case `.md
   finished inventory pass. Do not run it for new work.
 - [v4-full-local-migration-rehearsal.md](v4-full-local-migration-rehearsal.md) —
   overnight local migration rehearsal. Pilot, then sample, then full, on Cursor Grok 4.7.
+  Its "Operator-run stage" section is the answer when the operator runs a stage by hand.
