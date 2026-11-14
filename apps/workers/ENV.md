@@ -27,7 +27,7 @@ A failed env or module-config check at startup exits with code **78** (`EX_CONFI
 | Base + ORM + Billing                                  | Base, ORM, Billing                                      | billingReconcile, billingStrikeEnsureWebhook                                                                                                                                                                                                                                                                                                                                                            |
 | Base + Podcast Index                                  | Base, PodcastIndex                                      | podcastIndexTrendingPodcastsGet, podcastIndexValueUpdateAll                                                                                                                                                                                                                                                                                                                                             |
 | Base + ORM + Podcast Index                            | Base, ORM, PodcastIndex                                 | podcastIndexDeadFeedsFlagAndMerge                                                                                                                                                                                                                                                                                                                                                                       |
-| Base + ORM + MQ                                       | Base, ORM, MQ                                           | mqRSSRunDlqConsumer, mqRSSAddAll, v4SeedAccountCatalog                                                                                                                                                                                                                                                                                                                                                  |
+| Base + ORM + MQ                                       | Base, ORM, MQ                                           | mqRSSRunDlqConsumer, mqRSSAddAll, v4SeedAccountCatalog, v4RunFullRehearsal                                                                                                                                                                                                                                                                                                                              |
 | Base + MQ                                             | Base, MQ                                                | devPiBulkFeedsAddFromFile                                                                                                                                                                                                                                                                                                                                                                               |
 | Base + ORM + MQ + Podcast Index                       | Base, ORM, MQ, PodcastIndex                             | mqRSSAdd                                                                                                                                                                                                                                                                                                                                                                                                |
 | Base + ORM + MQ + Parser + KeyValDB + PI + Add by RSS | Base, ORM, MQ, Parser, KeyValDB, PodcastIndex, AddByRSS | mqAddByRSSRunParser                                                                                                                                                                                                                                                                                                                                                                                     |
@@ -223,6 +223,39 @@ the command creates each missing local feed and a channel whose `id_text` is
 the v4 podcast id, then queues a parse on `rss-slow`. It refuses unless
 `DB_HOST` is localhost. The v5 account must already exist. The log is the id
 and counts. Episodes that left the feed are not copied.
+
+### v4 full rehearsal (`v4RunFullRehearsal`)
+
+Base + ORM + MQ, plus `V4_DATABASE_URL` read by this command. The command does
+not refresh that snapshot. `--stage` is `pilot`, `sample`, or `full`. Optional
+flags are `--phase`, `--resume`, `--run-id`, `--retry-failed`, and `--limit`.
+Apply refuses unless `DB_HOST` is local.
+
+`sample` and `full` restore `.artifacts/v4-full-rehearsal/clean.dump` unless
+`--resume` or `--phase` is set. `pilot` writes that file when it is missing
+and does not restore it. The first pilot run has to start from a local
+database that does not already hold rehearsal accounts. Run `--stage full`
+again after the snapshot is replaced, before go-live.
+
+Dump and restore use `DB_APP_MIGRATOR_USER` and `DB_APP_MIGRATOR_PASSWORD`
+when both are non-empty. Otherwise they use the read-write pair. The password
+is passed only as the spawned process environment `PGPASSWORD`. It is not a
+process argument and it is not logged.
+
+The catalog phase waits until feeds are settled. It does not start the parser.
+Before `sample` and `full` restore, other client sessions on the local app
+database are disconnected. Start the parser again after the restore line
+`rehearsal restore=finished` or the catalog wait does not end.
+
+Progress lines on stdout start with `rehearsal `. The app logger is quiet
+while a run is in progress. Run files live under
+`.artifacts/v4-full-rehearsal/<run-id>/`, which is gitignored.
+
+`WEB_DOMAIN` is read only for `--stage full` verify. A value with no scheme
+is requested as `http://` plus that host. Set it to the port the local web
+app serves. `V4_REHEARSAL_PASSWORD` is optional. When it is non-empty, the
+full rehearsal compares it for v4 id `eFv5NFx` only. Unset skips that
+compare. The value is not logged.
 
 ### v4 identity seed (`v4SeedAccountIdentity`)
 

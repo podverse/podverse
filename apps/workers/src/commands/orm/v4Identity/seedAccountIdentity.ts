@@ -35,6 +35,7 @@ import {
 
 import type {
   IdentitySeedAction,
+  V4IdentityParseFailure,
   V4IdentitySource,
   V4IdentityUsage,
   V4MembershipDecision,
@@ -488,13 +489,37 @@ async function replaceCaseVariant(
   });
 }
 
+export type V4IdentityCommandResult =
+  | { action: 'help' }
+  | { action: V4IdentityParseFailure; v4Id: string }
+  | {
+      action:
+        | 'skip_id_taken'
+        | 'skip_existing_email'
+        | 'skip_case_variant'
+        | 'skip_library_copied'
+        | 'skip_has_grants'
+        | 'conflict'
+        | 'would_replace'
+        | 'would_create'
+        | 'would_repair';
+      v4Id: string;
+    }
+  | {
+      action: 'create' | 'repair' | 'unchanged' | 'replace';
+      v4Id: string;
+      accountId: number;
+    };
+
 /**
  * Seeds one v4 identity into v5. The log line names the id and the action.
  */
-export const v4SeedAccountIdentity = async (args: CommandLineArgs) => {
+export const v4SeedAccountIdentity = async (
+  args: CommandLineArgs
+): Promise<V4IdentityCommandResult> => {
   if (hasOption(args, 'help')) {
     process.stdout.write(V4_SEED_ACCOUNT_IDENTITY_HELP);
-    return;
+    return { action: 'help' };
   }
 
   const v4Id = optionValue(args, 'v4-id');
@@ -521,7 +546,7 @@ export const v4SeedAccountIdentity = async (args: CommandLineArgs) => {
   });
   if (!parsed.ok) {
     getLogger().info('v4 identity seed finished', { dryRun, v4Id, action: parsed.reason });
-    return;
+    return { action: parsed.reason, v4Id };
   }
   if (parsed.source.idText !== v4Id) {
     throw new Error('v4 id did not match the requested id.');
@@ -549,7 +574,7 @@ export const v4SeedAccountIdentity = async (args: CommandLineArgs) => {
       action: decision,
       ...membershipLog,
     });
-    return;
+    return { action: 'skip_id_taken', v4Id };
   }
 
   if (decision === 'skip_existing_email') {
@@ -563,7 +588,7 @@ export const v4SeedAccountIdentity = async (args: CommandLineArgs) => {
         action: 'skip_id_taken',
         ...membershipLog,
       });
-      return;
+      return { action: 'skip_id_taken', v4Id };
     }
     const resolution = await resolveCaseVariant({
       connectionString,
@@ -580,7 +605,7 @@ export const v4SeedAccountIdentity = async (args: CommandLineArgs) => {
         ...(resolution.kind === 'keep_current' ? { otherV4Id: resolution.otherV4Id } : {}),
         ...membershipLog,
       });
-      return;
+      return { action, v4Id };
     }
     if (resolution.kind === 'blocked_library' || resolution.kind === 'blocked_grants') {
       getLogger().info('v4 identity seed finished', {
@@ -590,7 +615,10 @@ export const v4SeedAccountIdentity = async (args: CommandLineArgs) => {
         otherV4Id: resolution.otherV4Id,
         ...membershipLog,
       });
-      return;
+      return {
+        action: resolution.kind === 'blocked_library' ? 'skip_library_copied' : 'skip_has_grants',
+        v4Id,
+      };
     }
     if (dryRun) {
       getLogger().info('v4 identity seed finished', {
@@ -600,7 +628,7 @@ export const v4SeedAccountIdentity = async (args: CommandLineArgs) => {
         otherV4Id: resolution.otherV4Id,
         ...membershipLog,
       });
-      return;
+      return { action: 'would_replace', v4Id };
     }
     try {
       await replaceCaseVariant(emailAccountId, parsed.source, membership, now);
@@ -615,7 +643,7 @@ export const v4SeedAccountIdentity = async (args: CommandLineArgs) => {
         otherV4Id: resolution.otherV4Id,
         ...membershipLog,
       });
-      return;
+      return { action: 'conflict', v4Id };
     }
     await new AccountNotificationPreferenceService().seedDefaultsForAccount(emailAccountId);
     getLogger().info('v4 identity seed finished', {
@@ -625,13 +653,13 @@ export const v4SeedAccountIdentity = async (args: CommandLineArgs) => {
       otherV4Id: resolution.otherV4Id,
       ...membershipLog,
     });
-    return;
+    return { action: 'replace', v4Id, accountId: emailAccountId };
   }
 
   if (dryRun) {
     const action = decision === 'create' ? 'would_create' : 'would_repair';
     getLogger().info('v4 identity seed finished', { dryRun, v4Id, action, ...membershipLog });
-    return;
+    return { action, v4Id };
   }
 
   let scaffold: ScaffoldResult;
@@ -654,11 +682,12 @@ export const v4SeedAccountIdentity = async (args: CommandLineArgs) => {
       action: 'conflict',
       ...membershipLog,
     });
-    return;
+    return { action: 'conflict', v4Id };
   }
 
   await new AccountNotificationPreferenceService().seedDefaultsForAccount(scaffold.accountId);
 
   const action = decision === 'create' ? 'create' : scaffold.wroteRows ? 'repair' : 'unchanged';
   getLogger().info('v4 identity seed finished', { dryRun, v4Id, action, ...membershipLog });
+  return { action, v4Id, accountId: scaffold.accountId };
 };

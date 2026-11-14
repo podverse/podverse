@@ -109,7 +109,13 @@ commits them.
 | No mass notification; the announcement email is the public message       | Decided |
 | Beta hosts: beta, api-beta, management.beta, management-api.beta         | Decided |
 | Beta cookies stay on each API host, not on .podverse.fm                  | Decided |
-| v5 caps v4 did not have need a per-account override decision before copy | Open    |
+| Over a v5 cap default, the copy writes the smallest covering tier        | Decided |
+| Cap tiers are chosen per account at copy time, not from the snapshot     | Decided |
+| Past tier 10,000 a group stops for the operator; nothing is truncated    | Decided |
+| A tier is the cap after the copy; removing rows does not lower it        | Decided |
+| Every account is copied to a local v5 database before the grace period   | Decided |
+| Full rehearsal stages: pilot by rule, then 1,000 random, then all        | Decided |
+| Rehearsal errors go to gitignored `.artifacts/v4-full-rehearsal/`        | Decided |
 
 ## Sequence
 
@@ -143,6 +149,7 @@ flowchart LR
 | [13](13-forced-migration-and-v4-shutdown.md)   | Batch remaining users and retire v4                       |
 | [14](14-fdroid.md)                             | F-Droid placeholder                                       |
 | [15](15-near-term-rehearsal-checklist.md)      | Ordered rehearsal steps before migration code             |
+| [16](16-full-local-migration-rehearsal.md)     | Copy every account locally and check each one             |
 
 ## Can and cannot (honest summary)
 

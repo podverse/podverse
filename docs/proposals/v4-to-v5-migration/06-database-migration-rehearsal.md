@@ -290,8 +290,11 @@ batch and the active gift accounts, are not capped.
 5. **Membership export dry run** — corrected CSV from `users`; feed the existing
    `billingImportLegacyMembershipExpiry` dry-run against the isolated v5 DB
    **after** accounts exist.
-6. **Scale-up** — larger batches until timing supports lazy-login SLOs and
-   end-of-grace batch windows ([07](07-account-and-data-migration-model.md)).
+6. **Scale-up** — the full local rehearsal in
+   [16](16-full-local-migration-rehearsal.md): a pilot picked by rule, then
+   1,000 random accounts, then every account, each checked after its copy.
+   Its timing sizes the lazy-login copy and the end-of-grace batch
+   ([07](07-account-and-data-migration-model.md)).
 7. **Launch queue timing** — queue the subscribed and viewed public shows
    from the [launch queue](05-id-mapping-and-catalog-seeding.md#launch-queue),
    about 89,000 on this snapshot, on `rss-slow`. Record how long it takes to

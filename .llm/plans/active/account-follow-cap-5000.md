@@ -9,16 +9,14 @@ counted together. Add by RSS is not in this total. Its ladder is
 
 The default is 500. Management can raise one account to a higher tier.
 
-The tier ladder below is a draft count of who is over 500. It is not the migration
-rule. That decision is open in
-[07](/docs/proposals/v4-to-v5-migration/07-account-and-data-migration-model.md#account-caps-v4-did-not-have).
-Do not implement this ladder as that decision. The follow cap is not shipped, and
-`v4CopyAccountLibrary` does not write a follow override today.
-
-The draft says migration
-grandfathers an account that is already over 500 onto the smallest tier that covers its
-count. Migration never chooses Unlimited. The highest tier it may write is 10000. A count past
-10000 is copied up to 10000 and the rest is counted as not copied.
+The migration rule is decided in
+[07](/docs/proposals/v4-to-v5-migration/07-account-and-data-migration-model.md#account-caps-v4-did-not-have)
+and wins over this draft. An account already over 500 gets the smallest tier that covers
+its count, decided at copy time. Migration never chooses Unlimited. A count past 10000 is
+not cut: that group is recorded as `needs_operator`. The counts below come from an old
+snapshot and are examples. When this cap ships, it assigns the same tier to every existing
+account already over 500, copied or not, because accounts copied before it shipped have no
+tier.
 
 ## Tiers
 
@@ -44,7 +42,7 @@ Accounts with 100 to 500 podcast subscriptions: 262. Accounts over 500:
 | 2001–4000 | 0 | |
 | 4001–5000 | 1 (4,314) | 5000 |
 | 5001–10000 | 0 | 10000 |
-| Over 10000 | 0 | Stop at 10000. Do not write Unlimited. |
+| Over 10000 | 0 | `needs_operator`. Do not cut, and do not write Unlimited. |
 
 ## Where it is stored and edited
 
@@ -92,9 +90,11 @@ per OPML file, and 50 new OPML feeds per hour.
 
 ## v4 library copy
 
-The library write is not built. When it copies channel, playlist, and account follows, it
-writes the grandfather tier first, then copies follows up to that tier. A count that fits
-the default copies with an empty tier. Do not fail the account.
+When `v4CopyAccountLibrary` copies channel, playlist, and account follows after this cap
+ships, it writes the tier first, then copies every follow. A count that fits the default
+copies with an empty tier. Past 10000 the follows group is `needs_operator`; the account's
+other groups still copy. Shipping this cap also writes the same tier for every existing
+account already over 500.
 
 ## Tests
 

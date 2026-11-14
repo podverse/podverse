@@ -72,6 +72,7 @@ const BASE_ORM_MQ_COMMANDS = [
   'mqRSSRunDlqConsumer',
   'mqRSSAddAll',
   'v4SeedAccountCatalog',
+  'v4RunFullRehearsal',
 ] as const;
 
 const BASE_MQ_COMMANDS = ['devPiBulkFeedsAddFromFile'] as const;

@@ -17,6 +17,7 @@ import { AccountNotificationChannel } from '@orm/entities/account/accountNotific
 import { AccountNotificationChannelType } from '@orm/entities/account/accountNotificationChannelType.js';
 import { AccountNotificationPreference } from '@orm/entities/account/accountNotificationPreference.js';
 import { AccountPendingFollowingChannel } from '@orm/entities/account/accountPendingFollowingChannel.js';
+import { AccountPhaseStatus } from '@orm/entities/account/accountPhaseStatus.js';
 import { AccountProfile } from '@orm/entities/account/accountProfile.js';
 import { AccountResetPassword } from '@orm/entities/account/accountResetPassword.js';
 import { AccountSession } from '@orm/entities/account/accountSession.js';
@@ -177,6 +178,7 @@ export const entities = [
   AccountNotificationChannel,
   AccountNotificationChannelType,
   AccountNotificationPreference,
+  AccountPhaseStatus,
   AccountProfile,
   AccountResetPassword,
   AccountSession,

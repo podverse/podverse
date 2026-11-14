@@ -1,29 +1,113 @@
 import type { DTORemovedSource } from '@podverse/helpers';
-import { DATABASE_CONSTANTS, formatGuidEnclosureUrl, getMediumEnumValue } from '@podverse/helpers';
-import { canonicalAddByRSSFeedUrl } from '@podverse/helpers-validation';
+import {
+  DATABASE_CONSTANTS,
+  DEFAULT_MAX_ADD_BY_RSS_FEEDS,
+  formatGuidEnclosureUrl,
+  getMediumEnumValue,
+} from '@podverse/helpers';
 import { generateRandomIdText, getDataSourceReadWrite } from '@podverse/orm';
 
 import type {
+  AddByRssCopyPlan,
+  LibraryCopyGroup,
+  LibraryGroupError,
   LocalCatalog,
+  MigrationCapDecision,
   PendingRowKind,
   PendingRowStatus,
   V4EpisodeKey,
   V4LibrarySnapshot,
   V4MediaRefKey,
   V4PlaybackKey,
-  V4PlaylistKey,
 } from './copyAccountLibraryLib.js';
 import {
+  addByRssCopyPlan,
+  addByRssFeedUrlForCopy,
+  countAddByRssFeeds,
+  countDirectoryFollows,
+  directoryFollowCopyPlan,
   episodeDecision,
+  libraryCopyErrorClass,
   listPositionAt,
+  orderedMembers,
   playbackLegacyId,
   playbackPendingStatus,
+  PLAYLIST_RESOURCE_LIMIT,
+  playlistRowsSubjectToResourceLimit,
+  playlistsOverLimitFromSnapshot,
   podcastChannelIdText,
+  shouldSetLibraryCopiedAt,
   subscriptionPendingStatus,
 } from './copyAccountLibraryLib.js';
 
 export type Queryable = {
   query: (sql: string, parameters?: unknown[]) => Promise<unknown>;
+};
+
+type ReadWriteSource = ReturnType<typeof getDataSourceReadWrite>;
+
+type DirectoryFollowGroupResult = {
+  followedAccounts: string[];
+  pendingRows: number;
+  directoryFollowCap: DirectoryFollowCap;
+};
+
+type ArchivedItemsGroupResult = {
+  archivedItems: number;
+  itemIds: Map<string, number>;
+};
+
+type ClipsGroupResult = {
+  clips: number;
+  clipIds: Map<string, number>;
+  itemIds: Map<string, number>;
+  pendingRows: number;
+};
+
+type PlaylistsGroupResult = {
+  playlistMembers: number;
+  playlistIdTexts: string[];
+  itemIds: Map<string, number>;
+  pendingRows: number;
+  playlistsOverLimit: string[];
+};
+
+type PlaybackGroupResult = {
+  playback: number;
+  itemIds: Map<string, number>;
+  pendingRows: number;
+};
+
+type CloseLibraryCopyResult = {
+  legacyIdsMapped: number;
+  libraryCopiedAtSet: boolean;
+};
+
+export type AddByRssCap = {
+  count: number;
+  action: 'copy' | 'needs_operator' | 'membership_status_missing';
+  writeTier: number | null;
+};
+
+export type DirectoryFollowCap = {
+  count: number;
+  action: 'copy' | 'needs_operator';
+  decision: MigrationCapDecision;
+};
+
+export type ApplyLibraryCopyResult = {
+  archivedItems: number;
+  clips: number;
+  playlistMembers: number;
+  playback: number;
+  pendingRows: number;
+  legacyIdsMapped: number;
+  groupErrors: LibraryGroupError[];
+  needsOperatorGroups: string[];
+  libraryCopiedAtSet: boolean;
+  addByRssCap: AddByRssCap;
+  directoryFollowCap: DirectoryFollowCap;
+  playlistsOverLimit: string[];
 };
 
 /** Ids and positions only. No titles, urls, or emails. */
@@ -78,13 +162,31 @@ function limit(value: string | null | undefined, max: number): string | null {
   return trimmed.length <= max ? trimmed : trimmed.slice(0, max);
 }
 
+function isRow(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value);
+}
+
 function rowsOf(result: unknown): Record<string, unknown>[] {
-  if (Array.isArray(result)) {
-    return result.filter(
-      (row): row is Record<string, unknown> => typeof row === 'object' && row !== null
-    );
+  if (!Array.isArray(result)) {
+    return [];
   }
-  return [];
+  return result.filter(isRow);
+}
+
+/**
+ * Rows from `UPDATE ... RETURNING`. TypeORM returns `[rows, rowCount]` for an
+ * UPDATE and the row list for a SELECT.
+ */
+function updateReturningRows(result: unknown): Record<string, unknown>[] {
+  if (
+    Array.isArray(result) &&
+    result.length === 2 &&
+    Array.isArray(result[0]) &&
+    typeof result[1] === 'number'
+  ) {
+    return result[0].filter(isRow);
+  }
+  return rowsOf(result);
 }
 
 export async function query(
@@ -146,145 +248,221 @@ function removedSource(
 }
 
 /**
- * Writes one library. A row the copy cannot finish is recorded in `legacy_pending_row` for a
- * later replay, and every v4 id it resolved is upserted into `legacy_id_map`, in the same
- * transaction. Queue, history, and now playing are written only when the item is Active.
+ * Writes one library as separate commits: directory follows, Add by RSS, archived items,
+ * clips, playlists, playback, then the legacy id map. A refusal rolls back only that group.
+ * Pending rows stay in the group that recorded them. `v4_library_copied_at` is set when every
+ * group committed and none was left for an operator. Queue, history, and now playing are
+ * written only when the item is Active.
  */
 export async function applyLibraryCopy(
   accountId: number,
   accountIdText: string,
   snapshot: V4LibrarySnapshot,
   catalog: LocalCatalog
-): Promise<{
-  archivedItems: number;
-  clips: number;
-  playlistMembers: number;
-  playback: number;
-  pendingRows: number;
-  legacyIdsMapped: number;
-}> {
+): Promise<ApplyLibraryCopyResult> {
   const dataSource = getDataSourceReadWrite();
-  return dataSource.transaction(async (manager) => {
-    const db = manager as Queryable;
-    const archivedStatusId = await oneId(
-      db,
-      `SELECT id FROM item_flag_status WHERE status = 'archived'`,
-      []
-    );
-    const activeStatusId = await oneId(
-      db,
-      `SELECT id FROM item_flag_status WHERE status = 'active'`,
-      []
-    );
-    const publicStatusId = await oneId(
-      db,
-      `SELECT id FROM sharable_status WHERE status = 'public'`,
-      []
-    );
-    const privateStatusId = await oneId(
-      db,
-      `SELECT id FROM sharable_status WHERE status = 'private'`,
-      []
-    );
-    if (
-      archivedStatusId === null ||
-      activeStatusId === null ||
-      publicStatusId === null ||
-      privateStatusId === null
-    ) {
-      throw new Error('Missing item status or sharable status rows.');
+  const reads: Queryable = {
+    query: async (sql, parameters) => {
+      const result: unknown = await dataSource.query(sql, [...(parameters ?? [])]);
+      return result;
+    },
+  };
+  const archivedStatusId = await oneId(
+    reads,
+    `SELECT id FROM item_flag_status WHERE status = 'archived'`,
+    []
+  );
+  const activeStatusId = await oneId(
+    reads,
+    `SELECT id FROM item_flag_status WHERE status = 'active'`,
+    []
+  );
+  const publicStatusId = await oneId(
+    reads,
+    `SELECT id FROM sharable_status WHERE status = 'public'`,
+    []
+  );
+  const privateStatusId = await oneId(
+    reads,
+    `SELECT id FROM sharable_status WHERE status = 'private'`,
+    []
+  );
+  if (
+    archivedStatusId === null ||
+    activeStatusId === null ||
+    publicStatusId === null ||
+    privateStatusId === null
+  ) {
+    throw new Error('Missing item status or sharable status rows.');
+  }
+
+  const channelIds = await loadIds(
+    reads,
+    `SELECT id, id_text FROM channel WHERE id_text = ANY($1::varchar[])`,
+    [
+      ...catalog.channelIdTexts,
+      ...catalog.channelByPodcastIndexId.values(),
+      ...catalog.channelByFeedUrl.values(),
+      ...catalog.channelByPodcastGuid.values(),
+      ...catalog.absorbSurvivorByPodcastIndexId.values(),
+    ]
+  );
+
+  const groupErrors: LibraryGroupError[] = [];
+  const needsOperatorGroups: string[] = [];
+  let itemIds = new Map<string, number>();
+  let clipIds = new Map<string, number>();
+
+  const directoryFollowCap = directoryFollowCapFromSnapshot(snapshot);
+  const directory = await runLibraryGroup<DirectoryFollowGroupResult>(
+    'directory_follow',
+    groupErrors,
+    () => copyDirectoryFollowGroup(dataSource, accountId, snapshot, catalog, channelIds),
+    { followedAccounts: [], pendingRows: 0, directoryFollowCap }
+  );
+  if (directory.directoryFollowCap.action === 'needs_operator') {
+    needsOperatorGroups.push('directory_follow');
+  }
+  const addByRssCap = await runLibraryGroup(
+    'add_by_rss',
+    groupErrors,
+    () => copyAddByRssGroup(dataSource, accountId, snapshot),
+    {
+      count: countAddByRssFeeds(snapshot.addByRssUrls),
+      action: 'copy',
+      writeTier: null,
     }
+  );
+  if (addByRssCap.action === 'needs_operator') {
+    needsOperatorGroups.push('add_by_rss');
+  } else if (addByRssCap.action === 'membership_status_missing') {
+    groupErrors.push({ group: 'add_by_rss', class: 'membership_status_missing' });
+  }
+  const archived = await runLibraryGroup<ArchivedItemsGroupResult>(
+    'archived_items',
+    groupErrors,
+    () =>
+      copyArchivedItemsGroup(
+        dataSource,
+        snapshot,
+        catalog,
+        channelIds,
+        new Map(itemIds),
+        archivedStatusId
+      ),
+    { archivedItems: 0, itemIds }
+  );
+  itemIds = archived.itemIds;
+  const clips = await runLibraryGroup<ClipsGroupResult>(
+    'clips',
+    groupErrors,
+    () =>
+      copyClipsGroup(
+        dataSource,
+        accountId,
+        snapshot,
+        catalog,
+        channelIds,
+        new Map(itemIds),
+        publicStatusId,
+        privateStatusId
+      ),
+    { clips: 0, pendingRows: 0, itemIds, clipIds }
+  );
+  itemIds = clips.itemIds;
+  clipIds = clips.clipIds;
+  const playlistsOverLimit = playlistsOverLimitFromSnapshot(snapshot);
+  const playlists = await runLibraryGroup<PlaylistsGroupResult>(
+    'playlists',
+    groupErrors,
+    () =>
+      copyPlaylistsGroup(
+        dataSource,
+        accountId,
+        snapshot,
+        catalog,
+        channelIds,
+        new Map(itemIds),
+        clipIds,
+        publicStatusId,
+        privateStatusId
+      ),
+    { playlistMembers: 0, playlistIdTexts: [], pendingRows: 0, itemIds, playlistsOverLimit }
+  );
+  itemIds = playlists.itemIds;
+  if (playlists.playlistsOverLimit.length > 0) {
+    needsOperatorGroups.push('playlists');
+  }
+  const playback = await runLibraryGroup<PlaybackGroupResult>(
+    'playback',
+    groupErrors,
+    () =>
+      copyPlaybackGroup(
+        dataSource,
+        accountId,
+        snapshot,
+        catalog,
+        channelIds,
+        new Map(itemIds),
+        clipIds,
+        activeStatusId
+      ),
+    { playback: 0, pendingRows: 0, itemIds }
+  );
+  itemIds = playback.itemIds;
+  const closed = await runLibraryGroup<CloseLibraryCopyResult>(
+    'closeout',
+    groupErrors,
+    () =>
+      closeLibraryCopy(
+        dataSource,
+        accountId,
+        accountIdText,
+        snapshot,
+        catalog,
+        channelIds,
+        itemIds,
+        clipIds,
+        playlists.playlistIdTexts,
+        directory.followedAccounts,
+        groupErrors,
+        needsOperatorGroups
+      ),
+    { legacyIdsMapped: 0, libraryCopiedAtSet: false }
+  );
+  const legacyIdsMapped = closed.legacyIdsMapped;
+  const libraryCopiedAtSet = closed.libraryCopiedAtSet;
 
-    const channelIds = await loadIds(
-      db,
-      `SELECT id, id_text FROM channel WHERE id_text = ANY($1::varchar[])`,
-      [
-        ...catalog.channelIdTexts,
-        ...catalog.channelByPodcastIndexId.values(),
-        ...catalog.channelByFeedUrl.values(),
-        ...catalog.channelByPodcastGuid.values(),
-        ...catalog.absorbSurvivorByPodcastIndexId.values(),
-      ]
-    );
+  return {
+    archivedItems: archived.archivedItems,
+    clips: clips.clips,
+    playlistMembers: playlists.playlistMembers,
+    playback: playback.playback,
+    pendingRows:
+      directory.pendingRows + clips.pendingRows + playlists.pendingRows + playback.pendingRows,
+    legacyIdsMapped,
+    groupErrors,
+    needsOperatorGroups,
+    libraryCopiedAtSet,
+    addByRssCap,
+    directoryFollowCap: directory.directoryFollowCap,
+    playlistsOverLimit: playlists.playlistsOverLimit,
+  };
+}
 
-    const pending = new PendingRows();
-    const followedAccounts = await writeFollows(
-      db,
-      accountId,
-      snapshot,
-      catalog,
-      channelIds,
-      pending
-    );
-    const itemIds = new Map<string, number>();
-    const archived = await writeArchivedItems(
-      db,
-      snapshot,
-      catalog,
-      channelIds,
-      itemIds,
-      archivedStatusId
-    );
-    const clipIds = await writeClips(
-      db,
-      accountId,
-      snapshot,
-      catalog,
-      channelIds,
-      itemIds,
-      publicStatusId,
-      privateStatusId,
-      pending
-    );
-    const { members, playlistIdTexts } = await writePlaylists(
-      db,
-      accountId,
-      snapshot,
-      catalog,
-      channelIds,
-      itemIds,
-      clipIds,
-      publicStatusId,
-      privateStatusId,
-      pending
-    );
-    const playback = await writePlayback(
-      db,
-      accountId,
-      snapshot,
-      catalog,
-      channelIds,
-      itemIds,
-      clipIds,
-      activeStatusId,
-      pending
-    );
-    const mappings = await resolvedMappings(db, {
-      accountIdText,
-      snapshot,
-      catalog,
-      channelIds,
-      itemIds,
-      clipIds,
-      playlistIdTexts,
-      followedAccounts,
-    });
-    await writeLegacyIdMap(db, mappings);
-    const pendingRows = pending.values();
-    await writePendingRows(db, accountId, pendingRows);
-    await db.query(
-      `UPDATE account SET v4_library_copied_at = NOW() WHERE id = $1 AND v4_library_copied_at IS NULL`,
-      [accountId]
-    );
-    return {
-      archivedItems: archived,
-      clips: snapshot.clips.filter((clip) => clipIds.has(clip.id)).length,
-      playlistMembers: members,
-      playback,
-      pendingRows: pendingRows.length,
-      legacyIdsMapped: mappings.length,
-    };
-  });
+/** A throw is recorded for that group. The caller keeps `empty`, and the other groups still run. */
+async function runLibraryGroup<T>(
+  group: LibraryCopyGroup,
+  groupErrors: LibraryGroupError[],
+  work: () => Promise<T>,
+  empty: T
+): Promise<T> {
+  try {
+    return await work();
+  } catch (error) {
+    groupErrors.push({ group, class: libraryCopyErrorClass(error) });
+    return empty;
+  }
 }
 
 async function resolvedMappings(
@@ -442,40 +620,160 @@ export async function loadIds(
   return ids;
 }
 
-/** Returns the followed account ids that are local and were written. */
-async function writeFollows(
-  db: Queryable,
+/**
+ * Channel, playlist, and account follows, plus that group's pending rows.
+ * A count past 10000 returns before any of those writes. The tier stays on the result.
+ */
+async function copyDirectoryFollowGroup(
+  dataSource: ReadWriteSource,
   accountId: number,
   snapshot: V4LibrarySnapshot,
   catalog: LocalCatalog,
-  channelIds: Map<string, number>,
-  pending: PendingRows
-): Promise<string[]> {
-  const podcasts = podcastById(snapshot);
-  for (const podcastId of new Set(snapshot.podcastIds)) {
-    const legacyId = podcastId.trim();
-    if (legacyId === '') {
-      continue;
-    }
-    const podcast = podcasts.get(legacyId);
-    const channelIdText = podcast === undefined ? null : podcastChannelIdText(podcast, catalog);
-    const channelId = channelIdText === null ? undefined : channelIds.get(channelIdText);
-    if (channelId === undefined) {
-      pending.add({
-        kind: 'subscription',
-        legacyId,
-        context: {},
-        ...subscriptionPendingStatus(podcast),
-      });
-      continue;
-    }
-    await db.query(
-      `INSERT INTO account_following_channel (account_id, channel_id) VALUES ($1, $2) ON CONFLICT DO NOTHING`,
-      [accountId, channelId]
-    );
+  channelIds: Map<string, number>
+): Promise<DirectoryFollowGroupResult> {
+  const directoryFollowCap = directoryFollowCapFromSnapshot(snapshot);
+  if (directoryFollowCap.action === 'needs_operator') {
+    return { followedAccounts: [], pendingRows: 0, directoryFollowCap };
   }
-  for (const url of snapshot.addByRssUrls) {
-    const feedUrl = limit(canonicalAddByRSSFeedUrl(url) ?? url, URL_LIMIT);
+  return dataSource.transaction(async (manager) => {
+    const db = manager as Queryable;
+    const pending = new PendingRows();
+    const podcasts = podcastById(snapshot);
+    for (const podcastId of new Set(snapshot.podcastIds)) {
+      const legacyId = podcastId.trim();
+      if (legacyId === '') {
+        continue;
+      }
+      const podcast = podcasts.get(legacyId);
+      const channelIdText = podcast === undefined ? null : podcastChannelIdText(podcast, catalog);
+      const channelId = channelIdText === null ? undefined : channelIds.get(channelIdText);
+      if (channelId === undefined) {
+        pending.add({
+          kind: 'subscription',
+          legacyId,
+          context: {},
+          ...subscriptionPendingStatus(podcast),
+        });
+        continue;
+      }
+      await db.query(
+        `INSERT INTO account_following_channel (account_id, channel_id) VALUES ($1, $2) ON CONFLICT DO NOTHING`,
+        [accountId, channelId]
+      );
+    }
+    const playlistIds = await loadIds(
+      db,
+      `SELECT id, id_text FROM playlist WHERE id_text = ANY($1::varchar[])`,
+      snapshot.playlistFollowIds
+    );
+    for (const playlistIdText of snapshot.playlistFollowIds) {
+      const playlistId = playlistIds.get(playlistIdText);
+      if (playlistId === undefined) {
+        continue;
+      }
+      await db.query(
+        `INSERT INTO account_following_playlist (account_id, playlist_id) VALUES ($1, $2) ON CONFLICT DO NOTHING`,
+        [accountId, playlistId]
+      );
+    }
+    const accountIds = await loadIds(
+      db,
+      `SELECT id, id_text FROM account WHERE id_text = ANY($1::varchar[])`,
+      snapshot.userFollowIds
+    );
+    const followedAccounts: string[] = [];
+    for (const accountIdText of snapshot.userFollowIds) {
+      const legacyId = accountIdText.trim();
+      if (legacyId === '') {
+        continue;
+      }
+      const followedId = accountIds.get(accountIdText);
+      if (followedId === undefined) {
+        pending.add({
+          kind: 'follow_account',
+          legacyId,
+          status: 'unresolved',
+          reason: 'account_not_copied',
+          context: {},
+        });
+        continue;
+      }
+      if (followedId === accountId) {
+        continue;
+      }
+      await db.query(
+        `INSERT INTO account_following_account (account_id, following_account_id) VALUES ($1, $2) ON CONFLICT DO NOTHING`,
+        [accountId, followedId]
+      );
+      followedAccounts.push(accountIdText);
+    }
+    const rows = pending.values();
+    await writePendingRows(db, accountId, rows);
+    return { followedAccounts, pendingRows: rows.length, directoryFollowCap };
+  });
+}
+
+/** Count and tier for the log, from the snapshot ids alone. */
+export function directoryFollowCapFromSnapshot(snapshot: V4LibrarySnapshot): DirectoryFollowCap {
+  const count = countDirectoryFollows({
+    podcastIds: snapshot.podcastIds,
+    playlistFollowIds: snapshot.playlistFollowIds,
+    userFollowIds: snapshot.userFollowIds,
+  });
+  const plan = directoryFollowCopyPlan(count);
+  return { count, action: plan.action, decision: plan.decision };
+}
+
+function integerOrNull(value: unknown): number | null {
+  if (typeof value !== 'number' || !Number.isInteger(value)) {
+    return null;
+  }
+  return value;
+}
+
+function addByRssMembershipStored(rows: readonly Record<string, unknown>[]): {
+  statusRowExists: boolean;
+  stored: number | null;
+} {
+  const row = rows[0];
+  if (row === undefined) {
+    return { statusRowExists: false, stored: null };
+  }
+  return { statusRowExists: true, stored: integerOrNull(row.max_add_by_rss_feeds) };
+}
+
+function addByRssCapFromPlan(count: number, plan: AddByRssCopyPlan): AddByRssCap {
+  if (plan.action !== 'copy') {
+    return { count, action: plan.action, writeTier: null };
+  }
+  return { count, action: 'copy', writeTier: plan.writeTier };
+}
+
+/** Unlocked read of the stored Add by RSS cap. */
+export async function readAddByRssCap(
+  db: Queryable,
+  accountId: number,
+  urls: readonly string[]
+): Promise<AddByRssCap> {
+  const count = countAddByRssFeeds(urls);
+  const rows = await query(
+    db,
+    `SELECT max_add_by_rss_feeds
+     FROM account_membership_status
+     WHERE account_id = $1`,
+    [accountId]
+  );
+  const { statusRowExists, stored } = addByRssMembershipStored(rows);
+  return addByRssCapFromPlan(count, addByRssCopyPlan(count, stored, statusRowExists));
+}
+
+async function insertAddByRssFeeds(
+  db: Queryable,
+  accountId: number,
+  urls: readonly string[]
+): Promise<void> {
+  for (const url of urls) {
+    const feedUrl = addByRssFeedUrlForCopy(url);
     if (feedUrl === null) {
       continue;
     }
@@ -484,53 +782,231 @@ async function writeFollows(
       [accountId, feedUrl]
     );
   }
-  const playlistIds = await loadIds(
-    db,
-    `SELECT id, id_text FROM playlist WHERE id_text = ANY($1::varchar[])`,
-    snapshot.playlistFollowIds
-  );
-  for (const playlistIdText of snapshot.playlistFollowIds) {
-    const playlistId = playlistIds.get(playlistIdText);
-    if (playlistId === undefined) {
-      continue;
-    }
-    await db.query(
-      `INSERT INTO account_following_playlist (account_id, playlist_id) VALUES ($1, $2) ON CONFLICT DO NOTHING`,
-      [accountId, playlistId]
+}
+
+/** Add by RSS follows and the stored feed cap. This group records no pending rows. */
+async function copyAddByRssGroup(
+  dataSource: ReadWriteSource,
+  accountId: number,
+  snapshot: V4LibrarySnapshot
+): Promise<AddByRssCap> {
+  const count = countAddByRssFeeds(snapshot.addByRssUrls);
+  return dataSource.transaction(async (manager) => {
+    const db = manager as Queryable;
+    const rows = await query(
+      db,
+      `SELECT max_add_by_rss_feeds
+       FROM account_membership_status
+       WHERE account_id = $1
+       FOR UPDATE`,
+      [accountId]
     );
-  }
-  const accountIds = await loadIds(
-    db,
-    `SELECT id, id_text FROM account WHERE id_text = ANY($1::varchar[])`,
-    snapshot.userFollowIds
-  );
-  const followed: string[] = [];
-  for (const accountIdText of snapshot.userFollowIds) {
-    const legacyId = accountIdText.trim();
-    if (legacyId === '') {
-      continue;
+    const { statusRowExists, stored } = addByRssMembershipStored(rows);
+    const plan = addByRssCopyPlan(count, stored, statusRowExists);
+    if (plan.action === 'needs_operator' || plan.action === 'membership_status_missing') {
+      return addByRssCapFromPlan(count, plan);
     }
-    const followedId = accountIds.get(accountIdText);
-    if (followedId === undefined) {
-      pending.add({
-        kind: 'follow_account',
-        legacyId,
-        status: 'unresolved',
-        reason: 'account_not_copied',
-        context: {},
-      });
-      continue;
+    if (plan.clearStored) {
+      await db.query(
+        `UPDATE account_membership_status
+         SET max_add_by_rss_feeds = NULL
+         WHERE account_id = $1
+           AND max_add_by_rss_feeds IS NOT NULL
+           AND max_add_by_rss_feeds <= $2
+           AND max_add_by_rss_feeds < $3
+         RETURNING account_id`,
+        [accountId, DEFAULT_MAX_ADD_BY_RSS_FEEDS, count]
+      );
+      await insertAddByRssFeeds(db, accountId, snapshot.addByRssUrls);
+      return addByRssCapFromPlan(count, plan);
     }
-    if (followedId === accountId) {
-      continue;
+    if (plan.writeTier !== null) {
+      const updated = updateReturningRows(
+        await db.query(
+          `UPDATE account_membership_status
+           SET max_add_by_rss_feeds = $2
+           WHERE account_id = $1
+             AND (max_add_by_rss_feeds IS NULL OR max_add_by_rss_feeds < $2)
+           RETURNING account_id`,
+          [accountId, plan.writeTier]
+        )
+      );
+      if (updated.length === 0) {
+        return {
+          count,
+          action: 'membership_status_missing',
+          writeTier: plan.writeTier,
+        };
+      }
+      await insertAddByRssFeeds(db, accountId, snapshot.addByRssUrls);
+      return addByRssCapFromPlan(count, plan);
     }
-    await db.query(
-      `INSERT INTO account_following_account (account_id, following_account_id) VALUES ($1, $2) ON CONFLICT DO NOTHING`,
-      [accountId, followedId]
+    await insertAddByRssFeeds(db, accountId, snapshot.addByRssUrls);
+    return addByRssCapFromPlan(count, plan);
+  });
+}
+
+async function copyArchivedItemsGroup(
+  dataSource: ReadWriteSource,
+  snapshot: V4LibrarySnapshot,
+  catalog: LocalCatalog,
+  channelIds: Map<string, number>,
+  itemIds: Map<string, number>,
+  archivedStatusId: number
+): Promise<ArchivedItemsGroupResult> {
+  return dataSource.transaction(async (manager) => {
+    const db = manager as Queryable;
+    const archivedItems = await writeArchivedItems(
+      db,
+      snapshot,
+      catalog,
+      channelIds,
+      itemIds,
+      archivedStatusId
     );
-    followed.push(accountIdText);
-  }
-  return followed;
+    return { archivedItems, itemIds };
+  });
+}
+
+async function copyClipsGroup(
+  dataSource: ReadWriteSource,
+  accountId: number,
+  snapshot: V4LibrarySnapshot,
+  catalog: LocalCatalog,
+  channelIds: Map<string, number>,
+  itemIds: Map<string, number>,
+  publicStatusId: number,
+  privateStatusId: number
+): Promise<ClipsGroupResult> {
+  return dataSource.transaction(async (manager) => {
+    const db = manager as Queryable;
+    const pending = new PendingRows();
+    const clipIds = await writeClips(
+      db,
+      accountId,
+      snapshot,
+      catalog,
+      channelIds,
+      itemIds,
+      publicStatusId,
+      privateStatusId,
+      pending
+    );
+    const rows = pending.values();
+    await writePendingRows(db, accountId, rows);
+    return {
+      clips: snapshot.clips.filter((clip) => clipIds.has(clip.id)).length,
+      clipIds,
+      itemIds,
+      pendingRows: rows.length,
+    };
+  });
+}
+
+async function copyPlaylistsGroup(
+  dataSource: ReadWriteSource,
+  accountId: number,
+  snapshot: V4LibrarySnapshot,
+  catalog: LocalCatalog,
+  channelIds: Map<string, number>,
+  itemIds: Map<string, number>,
+  clipIds: Map<string, number>,
+  publicStatusId: number,
+  privateStatusId: number
+): Promise<PlaylistsGroupResult> {
+  return dataSource.transaction(async (manager) => {
+    const db = manager as Queryable;
+    const pending = new PendingRows();
+    const written = await writePlaylists(
+      db,
+      accountId,
+      snapshot,
+      catalog,
+      channelIds,
+      itemIds,
+      clipIds,
+      publicStatusId,
+      privateStatusId,
+      pending
+    );
+    const rows = pending.values();
+    await writePendingRows(db, accountId, rows);
+    return {
+      playlistMembers: written.members,
+      playlistIdTexts: written.playlistIdTexts,
+      itemIds,
+      pendingRows: rows.length,
+      playlistsOverLimit: written.playlistsOverLimit,
+    };
+  });
+}
+
+async function copyPlaybackGroup(
+  dataSource: ReadWriteSource,
+  accountId: number,
+  snapshot: V4LibrarySnapshot,
+  catalog: LocalCatalog,
+  channelIds: Map<string, number>,
+  itemIds: Map<string, number>,
+  clipIds: Map<string, number>,
+  activeStatusId: number
+): Promise<PlaybackGroupResult> {
+  return dataSource.transaction(async (manager) => {
+    const db = manager as Queryable;
+    const pending = new PendingRows();
+    const playback = await writePlayback(
+      db,
+      accountId,
+      snapshot,
+      catalog,
+      channelIds,
+      itemIds,
+      clipIds,
+      activeStatusId,
+      pending
+    );
+    const rows = pending.values();
+    await writePendingRows(db, accountId, rows);
+    return { playback, itemIds, pendingRows: rows.length };
+  });
+}
+
+async function closeLibraryCopy(
+  dataSource: ReadWriteSource,
+  accountId: number,
+  accountIdText: string,
+  snapshot: V4LibrarySnapshot,
+  catalog: LocalCatalog,
+  channelIds: Map<string, number>,
+  itemIds: Map<string, number>,
+  clipIds: Map<string, number>,
+  playlistIdTexts: string[],
+  followedAccounts: string[],
+  groupErrors: readonly { class: string }[],
+  needsOperatorGroups: readonly string[]
+): Promise<CloseLibraryCopyResult> {
+  return dataSource.transaction(async (manager) => {
+    const db = manager as Queryable;
+    const mappings = await resolvedMappings(db, {
+      accountIdText,
+      snapshot,
+      catalog,
+      channelIds,
+      itemIds,
+      clipIds,
+      playlistIdTexts,
+      followedAccounts,
+    });
+    await writeLegacyIdMap(db, mappings);
+    const libraryCopiedAtSet = shouldSetLibraryCopiedAt({ groupErrors, needsOperatorGroups });
+    if (libraryCopiedAtSet) {
+      await db.query(
+        `UPDATE account SET v4_library_copied_at = NOW() WHERE id = $1 AND v4_library_copied_at IS NULL`,
+        [accountId]
+      );
+    }
+    return { legacyIdsMapped: mappings.length, libraryCopiedAtSet };
+  });
 }
 
 export async function writeArchivedItems(
@@ -661,17 +1137,22 @@ export async function writeClips(
       ]
     );
     const clipId = typeof inserted[0]?.id === 'number' ? inserted[0].id : null;
-    if (clipId !== null) {
-      clipIds.set(clip.id, clipId);
-      if (source !== null) {
-        pending.add({
-          kind: 'snapshot_clip',
-          legacyId: clip.id,
-          status: 'resolved',
-          reason: 'snapshot',
-          context,
-        });
+    if (clipId === null) {
+      const existing = await oneId(db, `SELECT id FROM clip WHERE id_text = $1`, [clip.id]);
+      if (existing !== null) {
+        clipIds.set(clip.id, existing);
       }
+      continue;
+    }
+    clipIds.set(clip.id, clipId);
+    if (source !== null) {
+      pending.add({
+        kind: 'snapshot_clip',
+        legacyId: clip.id,
+        status: 'resolved',
+        reason: 'snapshot',
+        context,
+      });
     }
   }
   return clipIds;
@@ -743,11 +1224,16 @@ async function writePlaylists(
   publicStatusId: number,
   privateStatusId: number,
   pending: PendingRows
-): Promise<{ members: number; playlistIdTexts: string[] }> {
+): Promise<{ members: number; playlistIdTexts: string[]; playlistsOverLimit: string[] }> {
   let members = 0;
   const playlistIdTexts: string[] = [];
+  const playlistsOverLimit: string[] = [];
   const mediaRefs = new Map(snapshot.mediaRefs.map((mediaRef) => [mediaRef.id, mediaRef]));
   for (const playlist of snapshot.playlists) {
+    if (playlistRowsSubjectToResourceLimit(playlist, mediaRefs) > PLAYLIST_RESOURCE_LIMIT) {
+      playlistsOverLimit.push(playlist.id);
+      continue;
+    }
     const mediumId = getMediumEnumValue(playlist.medium ?? null);
     const likesTaken =
       playlist.isDefault === true
@@ -800,40 +1286,13 @@ async function writePlaylists(
     members += written;
     await db.query(`UPDATE playlist SET item_count = $2 WHERE id = $1`, [playlistId, written]);
   }
-  return { members, playlistIdTexts };
-}
-
-function orderedMembers(playlist: V4PlaylistKey): Array<{ kind: 'episode' | 'clip'; id: string }> {
-  const episodes = new Set(playlist.episodeIds);
-  const clips = new Set(playlist.mediaRefIds);
-  const ordered: Array<{ kind: 'episode' | 'clip'; id: string }> = [];
-  const seen = new Set<string>();
-  const push = (kind: 'episode' | 'clip', id: string): void => {
-    if (seen.has(id)) {
-      return;
-    }
-    seen.add(id);
-    ordered.push({ kind, id });
-  };
-  for (const id of playlist.orderIds) {
-    if (episodes.has(id)) {
-      push('episode', id);
-    } else if (clips.has(id)) {
-      push('clip', id);
-    }
-  }
-  for (const id of playlist.episodeIds) {
-    push('episode', id);
-  }
-  for (const id of playlist.mediaRefIds) {
-    push('clip', id);
-  }
-  return ordered;
+  return { members, playlistIdTexts, playlistsOverLimit };
 }
 
 /**
- * Writes one member and reports whether a `playlist_resource` row was inserted. An official
- * clip, or a mediaRef v4 no longer has, is not a member and is not recorded.
+ * Writes one member and reports whether that member is on the playlist. A row that is already
+ * present stays. An official clip, or a mediaRef v4 no longer has, is not a member and is not
+ * recorded.
  */
 export async function writePlaylistMember(
   db: Queryable,
@@ -881,7 +1340,7 @@ export async function writePlaylistMember(
       return false;
     }
     await db.query(
-      `INSERT INTO playlist_resource (playlist_id, list_position, clip_id) VALUES ($1, $2, $3)`,
+      `INSERT INTO playlist_resource (playlist_id, list_position, clip_id) VALUES ($1, $2, $3) ON CONFLICT DO NOTHING`,
       [playlist.id, position, clipId]
     );
     return true;
@@ -910,7 +1369,8 @@ export async function writePlaylistMember(
   if (itemId === null) {
     await db.query(
       `INSERT INTO playlist_resource (playlist_id, list_position, removed_source, source_removed_at)
-       VALUES ($1, $2, $3::jsonb, NOW())`,
+       VALUES ($1, $2, $3::jsonb, NOW())
+       ON CONFLICT DO NOTHING`,
       [playlist.id, position, JSON.stringify(removedSource(episode, snapshot))]
     );
     pending.add({
@@ -923,7 +1383,7 @@ export async function writePlaylistMember(
     return true;
   }
   await db.query(
-    `INSERT INTO playlist_resource (playlist_id, list_position, item_id) VALUES ($1, $2, $3)`,
+    `INSERT INTO playlist_resource (playlist_id, list_position, item_id) VALUES ($1, $2, $3) ON CONFLICT DO NOTHING`,
     [playlist.id, position, itemId]
   );
   return true;
@@ -1168,7 +1628,8 @@ export async function insertPlayback(
   await db.query(
     `INSERT INTO queue_resource (
        queue_id, list_position, playback_position, media_file_duration, completed, item_id, clip_id, last_played_at
-     ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
+     ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+     ON CONFLICT DO NOTHING`,
     [
       queueId,
       position,

@@ -232,14 +232,25 @@ clip is never dropped.
       the missing membership. A signed-in app foreground retries them. The
       server does not start that parse.
 
-## Before the migration is finished
+## 6. Full local rehearsal
 
-- [ ] Caps v4 did not have. Add by RSS and directory follows are the known
-      cases. Decide, for each cap, whether an account already over the v5
-      default keeps the whole library, and have the copy write that override
-      before the rows. The draft ladders are not the decision. See
+Every account, on a local v5 database. The design is
+[16](16-full-local-migration-rehearsal.md). Do these in order.
+
+- [x] Caps v4 did not have. Decided: an account over a default keeps its
+      whole library at the smallest tier that covers it, decided at copy
+      time. Past 10,000 is `needs_operator`, not a partial copy. See
       [07](07-account-and-data-migration-model.md#account-caps-v4-did-not-have).
-      This rehearsal does not need that decision.
+- [ ] Plan set for the runner, cap tiers in the library copy, the
+      per-account check, the pilot pick, the run folder, and the agent prompt.
+- [ ] Pilot stage, about 100 accounts picked by rule. Zero `unaccounted`.
+      Every error class fixed or accepted.
+- [ ] Sample stage, about 1,000 random accounts on a clean database. Record
+      the rate and the full-stage estimate.
+- [ ] Refresh the prod copy.
+- [ ] Full stage, every account, on a clean database. Record classes and
+      counts in 16.
+- [ ] Full stage again on a newer copy before go-live.
 
 ## Not blockers for this list
 
