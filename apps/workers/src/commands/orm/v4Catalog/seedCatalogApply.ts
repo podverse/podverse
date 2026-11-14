@@ -1,5 +1,5 @@
 import { getActiveMQArtemisService } from '@workers/factories/activeMQArtemisService.js';
-import { Client } from 'pg';
+import type { Client } from 'pg';
 
 import { MediumEnum, MQ_QUEUES } from '@podverse/helpers';
 import { mqRSSAdd } from '@podverse/mq';

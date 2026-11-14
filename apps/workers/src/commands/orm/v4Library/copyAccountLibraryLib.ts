@@ -701,9 +701,7 @@ export const DIRECTORY_FOLLOW_CAP = {
 } as const;
 
 export type MigrationCapDecision =
-  | { outcome: 'default' }
-  | { outcome: 'tier'; tier: number }
-  | { outcome: 'needs_operator' };
+  { outcome: 'default' } | { outcome: 'tier'; tier: number } | { outcome: 'needs_operator' };
 
 export type AddByRssCopyPlan =
   | { action: 'copy'; writeTier: null; clearStored: boolean }

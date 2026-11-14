@@ -7,13 +7,13 @@ import { describe, expect, it } from 'vitest';
 import type { PilotMatchLists, StageAccountPick } from './pickStageAccountsLib.js';
 import {
   ADD_BY_RSS_CAP_DEFAULT,
+  assembleStagePick,
   DIRECTORY_FOLLOW_CAP_DEFAULT,
   PILOT_RULE_ORDER,
   PILOT_TARGET,
   PLAYLIST_RESOURCE_CAP,
   REHEARSAL_V4_ID,
   SAMPLE_TARGET,
-  assembleStagePick,
 } from './pickStageAccountsLib.js';
 
 function numberedIds(prefix: string, count: number): string[] {

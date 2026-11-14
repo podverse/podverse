@@ -150,15 +150,15 @@ describe('judgeAccountCompatibility library accounting', () => {
         })
       )
     ).toEqual({ ok: true });
-    expect(
-      judgeAccountCompatibility(passingInput({ subscribedPodcastIds: ['podcast1'] }))
-    ).toEqual({
-      ok: false,
-      class: 'unaccounted',
-      group: 'subscriptions',
-      exampleId: 'podcast1',
-      message: 'subscriptions 1 v4, 0 covered',
-    });
+    expect(judgeAccountCompatibility(passingInput({ subscribedPodcastIds: ['podcast1'] }))).toEqual(
+      {
+        ok: false,
+        class: 'unaccounted',
+        group: 'subscriptions',
+        exampleId: 'podcast1',
+        message: 'subscriptions 1 v4, 0 covered',
+      }
+    );
   });
 
   it('A subscription pending row of status dropped passes.', () => {
@@ -255,9 +255,7 @@ describe('judgeAccountCompatibility library accounting', () => {
     expect(
       judgeAccountCompatibility(
         passingInput({
-          playlists: [
-            { id: 'playlis', isPublic: false, episodeIds: ['ep00001'], mediaRefIds: [] },
-          ],
+          playlists: [{ id: 'playlis', isPublic: false, episodeIds: ['ep00001'], mediaRefIds: [] }],
           playlistIdTexts: ['playlis'],
           playlistResources: [{ playlistIdText: 'playlis', memberIdTexts: ['item0001'] }],
           legacyMap: [
@@ -277,9 +275,7 @@ describe('judgeAccountCompatibility library accounting', () => {
     expect(
       judgeAccountCompatibility(
         passingInput({
-          playlists: [
-            { id: 'playlis', isPublic: false, episodeIds: ['ep00001'], mediaRefIds: [] },
-          ],
+          playlists: [{ id: 'playlis', isPublic: false, episodeIds: ['ep00001'], mediaRefIds: [] }],
           playlistIdTexts: ['playlis'],
           legacyMap: [userMap('account1'), playlistMap('playlis')],
         })
@@ -292,10 +288,10 @@ describe('judgeAccountCompatibility library accounting', () => {
     });
   });
 
-  it('A follow of the account\'s own id with no follow row passes. Any other missing user follow is unaccounted / followsUser.', () => {
-    expect(
-      judgeAccountCompatibility(passingInput({ subscribedUserIds: ['account1'] }))
-    ).toEqual({ ok: true });
+  it("A follow of the account's own id with no follow row passes. Any other missing user follow is unaccounted / followsUser.", () => {
+    expect(judgeAccountCompatibility(passingInput({ subscribedUserIds: ['account1'] }))).toEqual({
+      ok: true,
+    });
     expect(
       judgeAccountCompatibility(passingInput({ subscribedUserIds: ['account1', 'other11'] }))
     ).toEqual({
@@ -505,7 +501,9 @@ describe('judgeAccountCompatibility membership', () => {
     expect(judgeAccountCompatibility(premiumInput(expiry, expiry))).toEqual({ ok: true });
     const within = new Date(expiry.getTime() + 1000);
     expect(judgeAccountCompatibility(premiumInput(expiry, within))).toEqual({ ok: true });
-    expect(judgeAccountCompatibility(premiumInput(expiry, new Date(expiry.getTime() + 1001)))).toMatchObject({
+    expect(
+      judgeAccountCompatibility(premiumInput(expiry, new Date(expiry.getTime() + 1001)))
+    ).toMatchObject({
       ok: false,
       class: 'membership_mismatch',
       group: 'membership',
@@ -515,7 +513,9 @@ describe('judgeAccountCompatibility membership', () => {
 
   it('A future paid expiry outside the App Store window keeps the v4 expiry, and a window row past five UTC years matches the capped end.', () => {
     const expiry = new Date('9000-01-01T00:00:00.000Z');
-    expect(judgeAccountCompatibility(premiumInput(expiry, expiry, { appStoreWindow: false }))).toEqual({
+    expect(
+      judgeAccountCompatibility(premiumInput(expiry, expiry, { appStoreWindow: false }))
+    ).toEqual({
       ok: true,
     });
     const startsAt = new Date('2026-11-12T05:08:14.500Z');
@@ -578,9 +578,9 @@ describe('judgeAccountCompatibility membership', () => {
 
   it('A past paid expiry with no grant and tier Trial passes, and an active legacy import grant is membership_mismatch.', () => {
     const expiry = new Date('2020-01-01T00:00:00.000Z');
-    expect(
-      judgeAccountCompatibility(passingInput({ membershipExpiration: expiry }))
-    ).toEqual({ ok: true });
+    expect(judgeAccountCompatibility(passingInput({ membershipExpiration: expiry }))).toEqual({
+      ok: true,
+    });
     expect(
       judgeAccountCompatibility(
         passingInput({
@@ -622,9 +622,7 @@ describe('judgeAccountCompatibility membership', () => {
   it('A future paid expiry whose membership_expires_at is null is membership_mismatch.', () => {
     const expiry = new Date('2027-01-01T00:00:00.000Z');
     expect(
-      judgeAccountCompatibility(
-        premiumInput(expiry, expiry, { membershipExpiresAt: null })
-      )
+      judgeAccountCompatibility(premiumInput(expiry, expiry, { membershipExpiresAt: null }))
     ).toMatchObject({
       ok: false,
       class: 'membership_mismatch',
@@ -815,9 +813,7 @@ describe('judgeAccountCompatibility caps', () => {
 
   it('Directory follows over 10000 with no follow rows is needs_operator. The same count with one follow row is cap_cut. There is no directory-follow column to read.', () => {
     expect(
-      judgeAccountCompatibility(
-        passingInput({ subscribedPodcastIds: numbered('p', 10000) })
-      )
+      judgeAccountCompatibility(passingInput({ subscribedPodcastIds: numbered('p', 10000) }))
     ).toMatchObject({
       ok: false,
       class: 'unaccounted',
@@ -825,9 +821,7 @@ describe('judgeAccountCompatibility caps', () => {
       exampleId: numbered('p', 1)[0],
     });
     const over = numbered('p', 10001);
-    expect(
-      judgeAccountCompatibility(passingInput({ subscribedPodcastIds: over }))
-    ).toMatchObject({
+    expect(judgeAccountCompatibility(passingInput({ subscribedPodcastIds: over }))).toMatchObject({
       ok: false,
       class: 'needs_operator',
       group: 'directoryFollows',
@@ -910,7 +904,7 @@ describe('verify account sql', () => {
     expect(sql).toContain('1703635200000');
     expect(sql).toContain('1706745600000');
     expect(sql).toContain('max_add_by_rss_feeds');
-    expect(sql).toContain('AT TIME ZONE \'UTC\'');
+    expect(sql).toContain("AT TIME ZONE 'UTC'");
     expect(sql).not.toMatch(/\bemail\b/i);
     expect(sql).not.toMatch(/\btitle\b/i);
     expect(sql).not.toMatch(/\bdescription\b/i);

@@ -77,10 +77,7 @@ function membershipImportNow(options: { now?: Date } | undefined): Date {
   return options.now;
 }
 
-function legacyMembershipExpiryDeps(
-  dryRun: boolean,
-  now: Date
-): LegacyMembershipExpiryImportDeps {
+function legacyMembershipExpiryDeps(dryRun: boolean, now: Date): LegacyMembershipExpiryImportDeps {
   return {
     now,
     dryRun,

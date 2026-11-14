@@ -10,6 +10,7 @@ import { CARRIED_TRIAL_WINDOW_DAYS } from '../v4Identity/seedAccountIdentityLib.
 import type { PilotMatchLists, StageAccountPick, StageName } from './pickStageAccountsLib.js';
 import {
   ADD_BY_RSS_CAP_DEFAULT,
+  assembleStagePick,
   DIRECTORY_FOLLOW_CAP_DEFAULT,
   LARGEST_QUERY_LIMIT,
   PLAYLIST_RESOURCE_CAP,
@@ -17,7 +18,6 @@ import {
   SAMPLE_TARGET,
   SQL_MATCH_LIMIT,
   TWIN_GROUP_LIMIT,
-  assembleStagePick,
 } from './pickStageAccountsLib.js';
 
 const KNOWN_MESSAGES = new Set<string>([

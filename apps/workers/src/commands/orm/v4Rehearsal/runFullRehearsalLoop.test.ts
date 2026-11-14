@@ -403,11 +403,13 @@ describe('runParsedRehearsal', () => {
     let current = start;
     const deps = baseDeps(sink);
     deps.clock = () => new Date(current);
-    let pickNow: Date | null = null;
-    let contextNow: Date | null = null;
+    const seen: { pickNow: Date | null; contextNow: Date | null } = {
+      pickNow: null,
+      contextNow: null,
+    };
     deps.pick = async (input) => {
       sink.events.push('pick');
-      pickNow = input.now;
+      seen.pickNow = input.now;
       expect(input.connectionString).toBe(SECRET);
       expect(input.stage).toBe('pilot');
       expect(input.seed).toBe(RUN_ID);
@@ -416,7 +418,7 @@ describe('runParsedRehearsal', () => {
     deps.handlers = phaseHandlers((name) => sink.events.push(name), {
       preflight: async (context) => {
         sink.events.push('preflight');
-        contextNow = context.runNow;
+        seen.contextNow = context.runNow;
         await context.emitProgress();
         current += 60_000;
         await context.emitProgress();
@@ -424,7 +426,7 @@ describe('runParsedRehearsal', () => {
       },
     });
     await runParsedRehearsal(args({ stage: 'pilot', runId: RUN_ID }), SECRET, deps);
-    expect(pickNow).toBe(contextNow);
+    expect(seen.pickNow).toBe(seen.contextNow);
     expect(sink.progressNows).toHaveLength(2);
     const first = sink.progressNows[0];
     const second = sink.progressNows[1];
@@ -432,7 +434,7 @@ describe('runParsedRehearsal', () => {
       throw new Error('expected two progress times');
     }
     expect(second.getTime() - first.getTime()).toBe(60_000);
-    expect(pickNow?.getTime()).toBe(start);
+    expect(seen.pickNow?.getTime()).toBe(start);
     expect(sink.lines.join('\n')).not.toContain(SECRET);
   });
 });

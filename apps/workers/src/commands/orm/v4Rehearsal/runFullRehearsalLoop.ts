@@ -332,9 +332,7 @@ async function runPhases(
     }
     state.phase = phase;
     await writeRun(phase);
-    const bytes = await deps.dumpPhase(
-      dumpFilePath(defaultRehearsalRoot(), resolved.runId, phase)
-    );
+    const bytes = await deps.dumpPhase(dumpFilePath(defaultRehearsalRoot(), resolved.runId, phase));
     state.databaseBytes = bytes;
     await log.recordDump({ phase, bytes, now: deps.clock() });
     if (isAccountPhase(phase)) {

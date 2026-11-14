@@ -821,9 +821,9 @@ describe('library copy group errors', () => {
         needsOperatorGroups: [],
       })
     ).toBe(false);
-    expect(
-      shouldSetLibraryCopiedAt({ groupErrors: [], needsOperatorGroups: ['playlists'] })
-    ).toBe(false);
+    expect(shouldSetLibraryCopiedAt({ groupErrors: [], needsOperatorGroups: ['playlists'] })).toBe(
+      false
+    );
     expect(
       shouldSetLibraryCopiedAt({
         groupErrors: [{ class: 'cap_refused' }],

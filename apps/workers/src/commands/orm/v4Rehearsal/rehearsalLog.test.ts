@@ -55,8 +55,12 @@ async function readJson(filePath: string): Promise<unknown> {
   return parsed;
 }
 
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value);
+}
+
 function record(value: unknown): Record<string, unknown> {
-  if (typeof value !== 'object' || value === null || Array.isArray(value)) {
+  if (!isRecord(value)) {
     throw new Error('expected object');
   }
   return value;
@@ -130,7 +134,7 @@ describe('rehearsal paths', () => {
     const root = await tempRoot();
     const parent = path.dirname(root);
     const before = new Set(await readdir(parent));
-    let dumpsExisted = true;
+    let dumpsExisted: boolean;
     try {
       await readdir(path.join(parent, 'dumps'));
       dumpsExisted = true;
@@ -872,16 +876,9 @@ describe('deferred and fixes', () => {
     const fixesPath = path.join(log.dir, 'fixes.md');
     const fixes = await readFile(fixesPath, 'utf8');
     expect(fixes).toBe(
-      [
-        '# Fixes',
-        '',
-        '## unaccounted',
-        '',
-        `- Files: \`${file}\``,
-        '- Retried: 12',
-        '',
-        '',
-      ].join('\n')
+      ['# Fixes', '', '## unaccounted', '', `- Files: \`${file}\``, '- Retried: 12', '', ''].join(
+        '\n'
+      )
     );
     expect(fixes).not.toContain('..');
     const second = await log.appendFix({

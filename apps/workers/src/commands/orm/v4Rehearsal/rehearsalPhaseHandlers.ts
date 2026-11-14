@@ -84,7 +84,7 @@ export async function runPreflightPhase(_context: RehearsalRunContext): Promise<
     if (error instanceof Error && error.message === 'Could not read the v4 snapshot time.') {
       throw error;
     }
-    throw new Error('Could not read the v4 snapshot time.');
+    throw new Error('Could not read the v4 snapshot time.', { cause: error });
   } finally {
     await client.end().catch(() => undefined);
   }
@@ -609,7 +609,7 @@ async function markPhaseDone(
     phase,
     status: 'done',
   });
-  for (const v4Id of v4Ids) {
+  for (let index = 0; index < v4Ids.length; index += 1) {
     await context.noteAccount({ failed: false });
   }
   await context.emitProgress();

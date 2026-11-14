@@ -37,14 +37,7 @@ const ACCEPTED_ERROR_CLASSES = [
   'a'.repeat(80),
 ];
 
-const REJECTED_ERROR_CLASSES: unknown[] = [
-  null,
-  undefined,
-  '',
-  'has space',
-  'a@b',
-  'a'.repeat(81),
-];
+const REJECTED_ERROR_CLASSES: unknown[] = [null, undefined, '', 'has space', 'a@b', 'a'.repeat(81)];
 
 function thrownCode(run: () => void): string {
   try {
@@ -99,9 +92,7 @@ describe('assertErrorClass', () => {
     for (const status of ['pending', 'done'] as const) {
       expect(assertErrorClass(status, null)).toBeNull();
       expect(assertErrorClass(status, undefined)).toBeNull();
-      expect(thrownCode(() => assertErrorClass(status, 'unaccounted'))).toBe(
-        'invalid_error_class'
-      );
+      expect(thrownCode(() => assertErrorClass(status, 'unaccounted'))).toBe('invalid_error_class');
     }
   });
 

@@ -33,9 +33,7 @@ export function classifyLibraryResult(result: V4LibraryCommandResult): LibraryPh
       return {
         status: 'failed',
         className: 'unexpected:dry_run',
-        errors: [
-          { group: null, className: 'unexpected:dry_run', message: 'unexpected:dry_run' },
-        ],
+        errors: [{ group: null, className: 'unexpected:dry_run', message: 'unexpected:dry_run' }],
       };
     case 'skip_already_copied':
       return doneLibrary();

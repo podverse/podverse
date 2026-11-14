@@ -506,9 +506,7 @@ function rememberFeed(
   }
 }
 
-async function readFeedIdsByChannelId(
-  channelIds: readonly string[]
-): Promise<Map<string, number>> {
+async function readFeedIdsByChannelId(channelIds: readonly string[]): Promise<Map<string, number>> {
   const feedIdByChannelId = new Map<string, number>();
   for (const slice of chunkValues(channelIds, STAGE_CATALOG_QUERY_CHUNK)) {
     const rows = await queryV5(CHANNEL_FEED_SQL, [slice]);
@@ -765,9 +763,9 @@ async function applyStage(
   await queueParses(toQueue);
   const queued = toQueue.length;
 
-  let settled = 0;
-  let failedParse = 0;
-  let failedPodcastIds: string[] = [];
+  let settled: number;
+  let failedParse: number;
+  let failedPodcastIds: string[];
   let firstPass = true;
   while (true) {
     const pass = await readWaitPass(feedIds, v4IdsByFeedId);

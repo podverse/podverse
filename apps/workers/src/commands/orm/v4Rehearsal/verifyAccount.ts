@@ -1028,8 +1028,7 @@ function unaccountedLibrary(
   const clipResult = unaccountedResult(
     'clips',
     userClipIds(input.mediaRefs),
-    (id) =>
-      clips.has(id) || pendingCovers(input.pendingRows, ['snapshot_clip'], id, false),
+    (id) => clips.has(id) || pendingCovers(input.pendingRows, ['snapshot_clip'], id, false),
     (id) => id
   );
   if (clipResult !== null) {
@@ -1349,21 +1348,14 @@ export function selectPublicSamplePaths(input: JudgeAccountCompatibilityInput): 
       .filter((mediaRef) => {
         const id = trimmed(mediaRef.id);
         return (
-          id !== null &&
-          mediaRef.owned &&
-          !mediaRef.official &&
-          mediaRef.isPublic &&
-          clips.has(id)
+          id !== null && mediaRef.owned && !mediaRef.official && mediaRef.isPublic && clips.has(id)
         );
       })
       .map((mediaRef) => mediaRef.id)
   )
     .sort()
     .slice(0, PUBLIC_SAMPLE_LIMIT);
-  return [
-    ...playlistIds.map((id) => `/playlist/${id}`),
-    ...clipIds.map((id) => `/clip/${id}`),
-  ];
+  return [...playlistIds.map((id) => `/playlist/${id}`), ...clipIds.map((id) => `/clip/${id}`)];
 }
 
 async function requestPublicPath(
@@ -1391,7 +1383,11 @@ async function samplePublicPaths(
   requestPath: (url: string) => Promise<{ status: number; location: string | null }>
 ): Promise<VerifyAccountResult> {
   for (const requestedPath of selectPublicSamplePaths(input)) {
-    const id = requestedPath.split('/').filter((segment) => segment !== '').pop() ?? '';
+    const id =
+      requestedPath
+        .split('/')
+        .filter((segment) => segment !== '')
+        .pop() ?? '';
     try {
       const response = await requestPath(`${origin}${requestedPath}`);
       const judged = judgePublicPath({

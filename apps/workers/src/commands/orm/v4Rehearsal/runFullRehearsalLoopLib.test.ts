@@ -42,16 +42,10 @@ describe('failureWindowTripped', () => {
   it('is false for 199 true values, false for 200 values of which 10 are true, and true for 200 values of which 11 are true.', () => {
     expect(failureWindowTripped(Array<boolean>(199).fill(true))).toBe(false);
     expect(
-      failureWindowTripped([
-        ...Array<boolean>(190).fill(false),
-        ...Array<boolean>(10).fill(true),
-      ])
+      failureWindowTripped([...Array<boolean>(190).fill(false), ...Array<boolean>(10).fill(true)])
     ).toBe(false);
     expect(
-      failureWindowTripped([
-        ...Array<boolean>(189).fill(false),
-        ...Array<boolean>(11).fill(true),
-      ])
+      failureWindowTripped([...Array<boolean>(189).fill(false), ...Array<boolean>(11).fill(true)])
     ).toBe(true);
   });
 });
@@ -148,9 +142,7 @@ describe('parseStoredRun', () => {
 
   it('throws pick_stage_mismatch when the stored stage differs.', () => {
     expect(
-      errorMessage(() =>
-        parseStoredRun({ stage: 'sample', startedAt: STARTED_AT }, 'full')
-      )
+      errorMessage(() => parseStoredRun({ stage: 'sample', startedAt: STARTED_AT }, 'full'))
     ).toBe('pick_stage_mismatch');
   });
 

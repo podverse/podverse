@@ -25,8 +25,7 @@ export type AccountPhase = (typeof ACCOUNT_PHASES)[number];
 export type AccountPhaseStatusValue = (typeof ACCOUNT_PHASE_STATUSES)[number];
 
 export type SetAccountPhaseStatusResult =
-  | { applied: true }
-  | { applied: false; reason: 'done_is_terminal' };
+  { applied: true } | { applied: false; reason: 'done_is_terminal' };
 
 export type AccountPhaseStatusInputErrorCode =
   | 'invalid_v4_user_id'
@@ -81,10 +80,7 @@ export function assertStatus(value: unknown): AccountPhaseStatusValue {
   throw new AccountPhaseStatusInputError('invalid_status');
 }
 
-export function assertErrorClass(
-  status: AccountPhaseStatusValue,
-  value: unknown
-): string | null {
+export function assertErrorClass(status: AccountPhaseStatusValue, value: unknown): string | null {
   if (status === 'pending' || status === 'done') {
     if (value === null || value === undefined) {
       return null;
@@ -116,10 +112,7 @@ export function assertIncludeFailed(value: unknown): boolean {
   return value;
 }
 
-export function isRunnableStatus(
-  status: AccountPhaseStatusValue,
-  includeFailed: boolean
-): boolean {
+export function isRunnableStatus(status: AccountPhaseStatusValue, includeFailed: boolean): boolean {
   switch (status) {
     case 'pending':
       return true;
