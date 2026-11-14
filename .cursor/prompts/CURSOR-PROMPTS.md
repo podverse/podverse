@@ -10,3 +10,5 @@ Reusable agent-facing prompt snippets (abcmemory). One topic per kebab-case `.md
   current way to resume. One chunk, then stop and ask. Do not commit or push.
 - [v4-to-v5-migration-inventory-overnight.md](v4-to-v5-migration-inventory-overnight.md) —
   finished inventory pass. Do not run it for new work.
+- [v4-full-local-migration-rehearsal.md](v4-full-local-migration-rehearsal.md) —
+  overnight local migration rehearsal. Pilot, then sample, then full, on Cursor Grok 4.7.

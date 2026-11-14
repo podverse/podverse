@@ -51,6 +51,7 @@ import { v4SeedAccountCatalog } from './orm/v4Catalog/seedAccountCatalog.js';
 import { v4SeedAccountIdentity } from './orm/v4Identity/seedAccountIdentity.js';
 import { v4CopyAccountLibrary } from './orm/v4Library/copyAccountLibrary.js';
 import { v4ReplayLegacyRows } from './orm/v4Library/replayLegacyRows.js';
+import { v4RunFullRehearsal } from './orm/v4Rehearsal/runFullRehearsal.js';
 import { ormVerifiedPublisherLinksBackfill } from './orm/verifiedPublisherLinks/backfill.js';
 
 export type CommandLineArgs = { [key: string]: string | string[] };
@@ -89,6 +90,7 @@ export default {
   v4SeedAccountCatalog,
   v4CopyAccountLibrary,
   v4ReplayLegacyRows,
+  v4RunFullRehearsal,
   billingProcessorProductAdd,
   billingReconcile,
   billingStrikeEnsureWebhook,

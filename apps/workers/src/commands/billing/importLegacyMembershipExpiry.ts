@@ -12,7 +12,10 @@ import {
   getDataSourceReadWrite,
 } from '@podverse/orm';
 
-import type { LegacyMembershipExpiryImportDeps } from './importLegacyMembershipExpiryLib.js';
+import type {
+  LegacyMembershipExpiryImportDeps,
+  LegacyMembershipImportCounts,
+} from './importLegacyMembershipExpiryLib.js';
 import {
   formatLegacyMembershipImportReport,
   importLegacyMembershipExpiryFromText,
@@ -64,9 +67,22 @@ function optionValue(args: CommandLineArgs, name: string): string | null {
   return trimmed;
 }
 
-function legacyMembershipExpiryDeps(dryRun: boolean): LegacyMembershipExpiryImportDeps {
+function membershipImportNow(options: { now?: Date } | undefined): Date {
+  if (options === undefined || options.now === undefined) {
+    return new Date();
+  }
+  if (!(options.now instanceof Date) || Number.isNaN(options.now.getTime())) {
+    throw new Error('Membership import now is not a valid time.');
+  }
+  return options.now;
+}
+
+function legacyMembershipExpiryDeps(
+  dryRun: boolean,
+  now: Date
+): LegacyMembershipExpiryImportDeps {
   return {
-    now: new Date(),
+    now,
     dryRun,
     matchAccount: async (normalizedEmail) => {
       const rows = await getDataSourceReadWrite()
@@ -118,15 +134,20 @@ function legacyMembershipExpiryDeps(dryRun: boolean): LegacyMembershipExpiryImpo
 }
 
 /**
- * Copies a previous-app expiry file into legacy_import grants. The log line is counts
- * only; emails are written solely to the optional report file.
+ * Copies a previous-app expiry file into legacy_import grants. starts_at is options.now
+ * when that is a valid time, otherwise the current time. The log line is counts only;
+ * emails are written solely to the optional report file.
  */
-export const billingImportLegacyMembershipExpiry = async (args: CommandLineArgs) => {
+export const billingImportLegacyMembershipExpiry = async (
+  args: CommandLineArgs,
+  options?: { now?: Date }
+): Promise<LegacyMembershipImportCounts | undefined> => {
   if (hasOption(args, 'help')) {
     process.stdout.write(LEGACY_MEMBERSHIP_EXPIRY_HELP);
-    return;
+    return undefined;
   }
 
+  const now = membershipImportNow(options);
   const fileArg = optionValue(args, 'file');
   if (fileArg === null) {
     throw new Error('Missing --file path. Run with --help for the input format.');
@@ -147,7 +168,7 @@ export const billingImportLegacyMembershipExpiry = async (args: CommandLineArgs)
   const text = readFileSync(filePath, 'utf8');
   const result = await importLegacyMembershipExpiryFromText(
     text,
-    legacyMembershipExpiryDeps(dryRun)
+    legacyMembershipExpiryDeps(dryRun, now)
   );
 
   if (reportPath !== null) {
@@ -160,4 +181,5 @@ export const billingImportLegacyMembershipExpiry = async (args: CommandLineArgs)
     reportPath,
     ...result.counts,
   });
+  return result.counts;
 };

@@ -79,11 +79,11 @@ so a bad phase is undone by a restore instead of a reseed.
 
 ## Stages
 
-| Stage  | Accounts                                                   | Moves on when                                                                  |
-| ------ | ---------------------------------------------------------- | ------------------------------------------------------------------------------ |
-| Pilot  | About 100, picked by rule                                  | Zero `unaccounted`, and every error class is fixed or accepted by the operator |
-| Sample | About 1,000 picked at random, on a restored clean database | Same, and the rate gives a full-stage estimate                                 |
-| Full   | Every account, on a refreshed copy and a clean database    | The operator accepts the remaining classes                                     |
+| Stage  | Accounts                                                   | Moves on when                                                              |
+| ------ | ---------------------------------------------------------- | -------------------------------------------------------------------------- |
+| Pilot  | About 100, picked by rule                                  | Every account passed, was fixed and retried, or is listed in `deferred.md` |
+| Sample | About 1,000 picked at random, on a restored clean database | Same. The rate gives a full-stage estimate.                                |
+| Full   | Every account, on a refreshed copy and a clean database    | Same. The operator reviews `deferred.md` and `fixes.md` in the morning.    |
 
 The pilot rules pick, from the copy as it is that day, the largest account in
 each group (Add by RSS, subscriptions, clips, history, playlists, playlist
@@ -92,8 +92,11 @@ accounts, paid, trial, and expired memberships, accounts with follows of
 other accounts, accounts with default playlists, accounts with no activity,
 and `eFv5NFx`. The rest is random. The pick is written to the run folder.
 
-A fix found in a stage is made in the commands, then the stage reruns from a
-clean database. Accepted classes are written into this doc with their counts.
+An obvious fix is made in the commands, then only the accounts in that class
+are retried. The next stage still starts from a clean database, so the fixed
+code is what it runs. A class that is not obvious is written to `deferred.md`
+and does not stop the stage or the next one. A class already in `deferred.md`
+is counted again and is not investigated again.
 
 ## Errors and logs
 
@@ -115,14 +118,16 @@ summary groups by.
 Run output goes to `.artifacts/v4-full-rehearsal/<run-id>/`. `.artifacts/` is
 gitignored. Treat the folder as private: it names v4 ids.
 
-| File           | Holds                                                                                |
-| -------------- | ------------------------------------------------------------------------------------ |
-| `run.json`     | Stage, phase, snapshot date, start time, flags                                       |
-| `pick.json`    | The v4 ids in this stage, with the pilot rule each was picked by                     |
-| `errors.jsonl` | One line per error: v4 id, phase, group, class, message, time                        |
-| `summary.json` | Per phase: done, failed, skipped, rate, estimate left; per class: count and 3 v4 ids |
-| `summary.md`   | The same counts, no ids. Safe to quote in these docs.                                |
-| `dumps/`       | The local database dump taken before each phase                                      |
+| File           | Holds                                                                                         |
+| -------------- | --------------------------------------------------------------------------------------------- |
+| `run.json`     | Stage, phase, snapshot date, start time, flags                                                |
+| `pick.json`    | The v4 ids in this stage, with the pilot rule each was picked by                              |
+| `errors.jsonl` | One line per error: v4 id, phase, group, class, message, time                                 |
+| `summary.json` | Per phase: done, failed, skipped, rate, estimate left; per class: count and 3 v4 ids          |
+| `summary.md`   | The same counts, no ids. Safe to quote in these docs.                                         |
+| `deferred.md`  | One entry per class the agent did not fix. See [How an agent runs it](#how-an-agent-runs-it). |
+| `fixes.md`     | One entry per class the agent fixed: files changed, and how many accounts were retried.       |
+| `dumps/`       | The local database dump taken before each phase                                               |
 
 No file holds an email, a name, a password hash, or a raw v4 row. Error
 messages pass through the shared log redaction, and an email-shaped string is
@@ -135,21 +140,45 @@ every 100 accounts or 60 seconds: phase, done of total, failed, rate, and
 estimate. The agent starts it in the background and waits on that output.
 
 When a phase ends or the runner stops itself, the agent reads `summary.json`
-only. It takes the largest error class, opens up to three of its lines in
-`errors.jsonl`, and reads the v4 and v5 rows for those ids locally. Then it
-either fixes the cause in the commands or reports the class to the operator.
-One investigation covers every account in that class.
+only. It takes the largest error class that is not already in `deferred.md`,
+opens up to three of its lines in `errors.jsonl`, and reads the v4 and v5 rows
+for those ids locally. One investigation covers every account in that class.
+The run is meant to go overnight. The agent does not stop to ask, and it does
+not commit.
+
+A class is obvious when all of these are true:
+
+- The decided docs already say what the row should become
+  ([05](05-id-mapping-and-catalog-seeding.md),
+  [07](07-account-and-data-migration-model.md), this doc).
+- The change is in the migration commands or a helper they call.
+- The same fix applies to the whole class.
+- It does not drop a clip or playlist member, change a public id or path,
+  truncate a library, write Unlimited, or add a database migration.
+
+The agent makes that fix, appends an entry to `fixes.md`, and retries the
+accounts in that class with `--retry-failed`.
+
+Anything else is not obvious. That includes a case the docs do not cover, two
+readings of a doc, and a fix outside the migration commands. The agent appends
+one entry to `deferred.md`: the class, the count, what it saw, why it did not
+fix it, and the three example v4 ids. It marks those accounts deferred and
+continues. The same class is not investigated again. Both files stay in the
+run folder because they name v4 ids. In the morning the operator goes through
+`deferred.md` with an agent and decides each one. `fixes.md` is the list of
+changes to review.
 
 The agent never pastes an email, a raw row, or a v4 id other than
-`eFv5NFx` into chat, a doc, or a commit. Class names and counts are fine.
+`eFv5NFx` into chat, a committed doc, or a commit. Class names and counts are
+fine. `deferred.md` and `fixes.md` may name v4 ids because they are gitignored.
 
-The agent prompt goes in `.cursor/prompts/` with the runner. Each stage is
-one prompt. The operator starts the next stage.
+The agent prompt goes in `.cursor/prompts/` with the runner. One prompt runs
+the stages in order, so an overnight run does not wait between them.
 
 ## Where state lives
 
 The runner keeps each account's status per phase (pending, done, failed,
-`needs_operator`) in the local app database, so a crash or rerun resumes where
+deferred, `needs_operator`) in the local app database, so a crash or rerun resumes where
 it stopped and skips finished accounts. The end-of-grace batch
 ([13](13-forced-migration-and-v4-shutdown.md)) and the operator's daily review
 of copied, remaining, and failed accounts
@@ -167,7 +196,9 @@ One plan set, after this doc is accepted:
   10,000 ([07](07-account-and-data-migration-model.md#account-caps-v4-did-not-have)).
 - The per-account check in [What compatible means](#what-compatible-means).
 - The pilot pick rules.
-- The run folder files and the agent prompt.
+- The run folder files and the agent prompt. Every prompt in the set is
+  Cursor Grok 4.7. Reasoning is the lowest level that can do that prompt.
+  Opus and Codex are not used.
 
 ## Honest limits and risks
 

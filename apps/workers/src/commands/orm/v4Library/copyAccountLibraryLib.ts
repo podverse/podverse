@@ -1,3 +1,6 @@
+import { DATABASE_CONSTANTS, DEFAULT_MAX_ADD_BY_RSS_FEEDS } from '@podverse/helpers';
+import { canonicalAddByRSSFeedUrl } from '@podverse/helpers-validation';
+
 const INT4_MAX = 2147483647;
 
 export type LibraryCount = {
@@ -679,4 +682,260 @@ export function episodeDecision(
     },
     readiness
   );
+}
+
+/**
+ * The copy writes only a listed tier up to this number. A larger count is reported for an
+ * operator.
+ */
+export const MIGRATION_CAP_MAX = 10000;
+
+export const ADD_BY_RSS_CAP = {
+  defaultLimit: DEFAULT_MAX_ADD_BY_RSS_FEEDS,
+  tiers: [200, 300, 400, 500, 1000, 10000],
+} as const;
+
+export const DIRECTORY_FOLLOW_CAP = {
+  defaultLimit: 500,
+  tiers: [1000, 2000, 3000, 4000, 5000, 10000],
+} as const;
+
+export type MigrationCapDecision =
+  | { outcome: 'default' }
+  | { outcome: 'tier'; tier: number }
+  | { outcome: 'needs_operator' };
+
+export type AddByRssCopyPlan =
+  | { action: 'copy'; writeTier: null; clearStored: boolean }
+  | { action: 'copy'; writeTier: number; clearStored: false }
+  | { action: 'needs_operator' }
+  | { action: 'membership_status_missing' };
+
+export type DirectoryFollowCopyPlan = {
+  action: 'copy' | 'needs_operator';
+  decision: MigrationCapDecision;
+};
+
+type MigrationCapSpec = {
+  readonly defaultLimit: number;
+  readonly tiers: readonly number[];
+};
+
+export function decideMigrationCap(count: number, spec: MigrationCapSpec): MigrationCapDecision {
+  if (count <= spec.defaultLimit) {
+    return { outcome: 'default' };
+  }
+  const tier = spec.tiers.find((listed) => listed >= count);
+  if (tier === undefined || tier > MIGRATION_CAP_MAX) {
+    return { outcome: 'needs_operator' };
+  }
+  return { outcome: 'tier', tier };
+}
+
+/** Feed URL stored on an add-by-RSS follow, or null when the value is blank. */
+export function addByRssFeedUrlForCopy(url: string): string | null {
+  const canonical = canonicalAddByRSSFeedUrl(url);
+  const chosen = typeof canonical === 'string' ? canonical : url;
+  const trimmed = chosen.trim();
+  if (trimmed === '') {
+    return null;
+  }
+  const max = DATABASE_CONSTANTS.varchar_url;
+  return trimmed.length <= max ? trimmed : trimmed.slice(0, max);
+}
+
+/** Distinct add-by-RSS feeds after canonicalization. Blank values do not count. */
+export function countAddByRssFeeds(urls: readonly string[]): number {
+  const feeds = new Set<string>();
+  for (const url of urls) {
+    const feedUrl = addByRssFeedUrlForCopy(url);
+    if (feedUrl !== null) {
+      feeds.add(feedUrl);
+    }
+  }
+  return feeds.size;
+}
+
+/** Distinct trimmed strings. Blank values do not count. */
+export function countDistinctText(values: readonly string[]): number {
+  const texts = new Set<string>();
+  for (const value of values) {
+    const trimmed = value.trim();
+    if (trimmed !== '') {
+      texts.add(trimmed);
+    }
+  }
+  return texts.size;
+}
+
+/**
+ * Podcast, playlist, and account follows added together. The same id in two lists counts in
+ * both. An id that will not resolve still counts.
+ */
+export function countDirectoryFollows(ids: {
+  podcastIds: readonly string[];
+  playlistFollowIds: readonly string[];
+  userFollowIds: readonly string[];
+}): number {
+  return (
+    countDistinctText(ids.podcastIds) +
+    countDistinctText(ids.playlistFollowIds) +
+    countDistinctText(ids.userFollowIds)
+  );
+}
+
+export function addByRssCopyPlan(
+  count: number,
+  stored: number | null,
+  statusRowExists: boolean
+): AddByRssCopyPlan {
+  if (stored !== null && stored >= count) {
+    return { action: 'copy', writeTier: null, clearStored: false };
+  }
+  const decision = decideMigrationCap(count, ADD_BY_RSS_CAP);
+  if (decision.outcome === 'needs_operator') {
+    return { action: 'needs_operator' };
+  }
+  if (decision.outcome === 'default') {
+    if (stored !== null) {
+      return { action: 'copy', writeTier: null, clearStored: true };
+    }
+    return { action: 'copy', writeTier: null, clearStored: false };
+  }
+  if (!statusRowExists) {
+    return { action: 'membership_status_missing' };
+  }
+  return { action: 'copy', writeTier: decision.tier, clearStored: false };
+}
+
+export function directoryFollowCopyPlan(count: number): DirectoryFollowCopyPlan {
+  const decision = decideMigrationCap(count, DIRECTORY_FOLLOW_CAP);
+  if (decision.outcome === 'needs_operator') {
+    return { action: 'needs_operator', decision };
+  }
+  return { action: 'copy', decision };
+}
+
+export type LibraryCopyGroup =
+  | 'directory_follow'
+  | 'add_by_rss'
+  | 'archived_items'
+  | 'clips'
+  | 'playlists'
+  | 'playback'
+  | 'closeout';
+
+export type LibraryGroupError = {
+  group: LibraryCopyGroup;
+  class: string;
+};
+
+function isErrorFields(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null;
+}
+
+function nonEmptyString(value: unknown): value is string {
+  return typeof value === 'string' && value !== '';
+}
+
+/**
+ * Classifies a group refusal from `code` and `constraint` only. The message is left out
+ * because it can contain a feed URL.
+ */
+export function libraryCopyErrorClass(error: unknown): string {
+  if (isErrorFields(error)) {
+    if (nonEmptyString(error.constraint)) {
+      return `db_constraint:${error.constraint}`;
+    }
+    if (error.code === 'P0001') {
+      return 'cap_refused';
+    }
+    if (nonEmptyString(error.code)) {
+      return `db_constraint:${error.code}`;
+    }
+  }
+  if (error instanceof Error) {
+    return `unexpected:${error.name}`;
+  }
+  return 'unexpected:unknown';
+}
+
+/** True when every group committed and none was left for an operator. */
+export function shouldSetLibraryCopiedAt(input: {
+  groupErrors: readonly { class: string }[];
+  needsOperatorGroups: readonly string[];
+}): boolean {
+  return input.groupErrors.length === 0 && input.needsOperatorGroups.length === 0;
+}
+
+/**
+ * Playlist members in v4 order, then any episode or clip the order list omitted.
+ * A blank id, an order entry that is not an episode or clip on this playlist, and a
+ * repeated id are left out.
+ */
+export function orderedMembers(
+  playlist: V4PlaylistKey
+): Array<{ kind: 'episode' | 'clip'; id: string }> {
+  const episodes = new Set(playlist.episodeIds);
+  const clips = new Set(playlist.mediaRefIds);
+  const ordered: Array<{ kind: 'episode' | 'clip'; id: string }> = [];
+  const seen = new Set<string>();
+  const push = (kind: 'episode' | 'clip', id: string): void => {
+    if (blankToNull(id) === null || seen.has(id)) {
+      return;
+    }
+    seen.add(id);
+    ordered.push({ kind, id });
+  };
+  for (const id of playlist.orderIds) {
+    if (episodes.has(id)) {
+      push('episode', id);
+    } else if (clips.has(id)) {
+      push('clip', id);
+    }
+  }
+  for (const id of playlist.episodeIds) {
+    push('episode', id);
+  }
+  for (const id of playlist.mediaRefIds) {
+    push('clip', id);
+  }
+  return ordered;
+}
+
+/** Matches the playlist resource trigger, which rejects the insert that would make row 10001. */
+export const PLAYLIST_RESOURCE_LIMIT = 10000;
+
+/**
+ * Members `writePlaylistMember` would insert or record as pending. An official clip, or a
+ * clip with no media ref, is omitted. A clip that is not local yet, and an episode that is
+ * waiting or gone, still count: a later replay inserts the waiting rows.
+ */
+export function playlistRowsSubjectToResourceLimit<MediaRef extends { official: boolean }>(
+  playlist: V4PlaylistKey,
+  mediaRefs: ReadonlyMap<string, MediaRef>
+): number {
+  let count = 0;
+  for (const member of orderedMembers(playlist)) {
+    if (member.kind === 'clip') {
+      const mediaRef = mediaRefs.get(member.id);
+      if (mediaRef === undefined || mediaRef.official) {
+        continue;
+      }
+    }
+    count += 1;
+  }
+  return count;
+}
+
+/** v4 playlist ids that would exceed the playlist resource limit. */
+export function playlistsOverLimitFromSnapshot(snapshot: V4LibrarySnapshot): string[] {
+  const mediaRefs = new Map(snapshot.mediaRefs.map((mediaRef) => [mediaRef.id, mediaRef]));
+  const overLimit: string[] = [];
+  for (const playlist of snapshot.playlists) {
+    if (playlistRowsSubjectToResourceLimit(playlist, mediaRefs) > PLAYLIST_RESOURCE_LIMIT) {
+      overLimit.push(playlist.id);
+    }
+  }
+  return overLimit;
 }

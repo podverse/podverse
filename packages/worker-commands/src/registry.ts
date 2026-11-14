@@ -67,6 +67,15 @@ const WORKER_COMMAND_DEFS: readonly WorkerCommandDef[] = [
     example_cli: 'npm run v4_seed_account_catalog -w apps/workers -- --v4-id abcd123 --dry-run',
   },
   {
+    name: 'v4RunFullRehearsal',
+    label: 'v4: run a local migration rehearsal',
+    description:
+      'Copy one stage of v4 accounts into the local database: identity, catalog, library, replay, membership, then a per-account check. Refuses a non-local database. Does not refresh the v4 snapshot.',
+    category: 'orm',
+    risk: 'normal',
+    example_cli: 'npm run v4_run_full_rehearsal -w apps/workers -- --stage pilot',
+  },
+  {
     name: 'billingImportLegacyMembershipExpiry',
     label: 'Billing: import legacy membership expiry',
     description:

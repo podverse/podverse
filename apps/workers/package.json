@@ -22,6 +22,7 @@
     "v4_replay_legacy_rows": "node ./dist/index.js v4ReplayLegacyRows",
     "v4_seed_account_identity": "node ./dist/index.js v4SeedAccountIdentity",
     "v4_seed_account_catalog": "node ./dist/index.js v4SeedAccountCatalog",
+    "v4_run_full_rehearsal": "node ./dist/index.js v4RunFullRehearsal",
     "billing_reconcile": "node ./dist/index.js billingReconcile",
     "billing_checkout_channel_enable": "node ./dist/index.js billingCheckoutChannelEnable",
     "billing_processor_product_add": "node ./dist/index.js billingProcessorProductAdd",
@@ -91,6 +92,7 @@
     "@podverse/worker-commands": "*",
     "amqplib": "^2.2.1",
     "axios": "^1.19.0",
+    "bcrypt": "^6.0.0",
     "ioredis": "^6.0.0",
     "pg": "^8.23.0",
     "sharp": "^0.35.5",
@@ -100,6 +102,7 @@
   },
   "devDependencies": {
     "@dotenvx/dotenvx": "^1.54.1",
+    "@types/bcrypt": "^6.0.0",
     "@types/node": "^24.12.0",
     "nodemon": "^3.1.14",
     "ts-node": "^10.9.2",

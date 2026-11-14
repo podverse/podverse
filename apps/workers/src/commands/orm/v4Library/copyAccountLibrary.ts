@@ -9,7 +9,16 @@ import {
   isValidNanoIdV2IdText,
 } from '@podverse/orm';
 
-import { applyLibraryCopy } from './copyAccountLibraryApply.js';
+import type {
+  AddByRssCap,
+  ApplyLibraryCopyResult,
+  DirectoryFollowCap,
+} from './copyAccountLibraryApply.js';
+import {
+  applyLibraryCopy,
+  directoryFollowCapFromSnapshot,
+  readAddByRssCap,
+} from './copyAccountLibraryApply.js';
 import type {
   LibraryCopyReport,
   LocalCatalog,
@@ -24,6 +33,7 @@ import {
   classifyLibraryCopy,
   matchedChannelIdTexts,
   parsePodcastIndexId,
+  playlistsOverLimitFromSnapshot,
 } from './copyAccountLibraryLib.js';
 
 export const V4_COPY_ACCOUNT_LIBRARY_HELP = `v4CopyAccountLibrary
@@ -35,9 +45,11 @@ its feed parse has finished or failed is archived or snapshotted, not left
 waiting. Queue, history, and now playing wait until the feed is settled: a
 parse finished, or the migration retries are used up. Every row the copy
 cannot finish is recorded in legacy_pending_row for a later replay, and each
-v4 id it resolved is recorded in legacy_id_map. The pass sets
-v4_library_copied_at when the pass finishes. Apply refuses unless DB_HOST
-is local.
+v4 id it resolved is recorded in legacy_id_map. Each group commits on its own:
+directory follows, Add by RSS, archived items, clips, playlists, and playback.
+A refusal in one group rolls that group back and the other groups stay.
+v4_library_copied_at is set only when every group committed and none was left
+for an operator. Apply refuses unless DB_HOST is local.
 
 Flags:
   --v4-id id    v4 users.id (required)
@@ -57,6 +69,22 @@ The log is the id and counts. No email, url, or title is logged.
   dropped       not copied. Queue, history, and now playing keep only
                 episodes still in a feed of a settled show
   pending       rows recorded in legacy_pending_row (overlaps the others)
+
+Add by RSS over the default writes the smallest tier on max_add_by_rss_feeds
+before the feed rows when no stored number already covers the count. At or
+under the default, a stored number below the count is set to null and 100 is
+not written. A stored number that already covers the count is left unchanged,
+including a number above 10000. Past 10000, when no stored number covers the
+count, the copy writes no Add by RSS rows and reports needs_operator. The copy
+never writes a number above 10000.
+
+Directory follows over the default are logged with the tier that would be
+stored. No directory-follow column is written. Past 10000 copies no directory
+follows and reports needs_operator. The account's other groups still copy.
+
+A playlist that would hold more than 10000 resources is not copied and is
+reported needs_operator. Other playlists on that account still copy. The copy
+does not keep the first 10000 members.
 `;
 
 const USER_SQL = `
@@ -788,12 +816,34 @@ export function assertLocalDatabase(): void {
   }
 }
 
+export type V4LibraryCommandResult =
+  | { action: 'help' }
+  | { action: 'skip_missing_account'; v4Id: string }
+  | { action: 'skip_already_copied'; v4Id: string }
+  | {
+      action: 'dry_run';
+      v4Id: string;
+      report: LibraryCopyReport;
+      addByRssCap: AddByRssCap;
+      directoryFollowCap: DirectoryFollowCap;
+      playlistsOverLimit: string[];
+    }
+  | {
+      action: 'apply';
+      v4Id: string;
+      report: LibraryCopyReport;
+      apply: ApplyLibraryCopyResult;
+    };
+
 function logFinished(
   v4Id: string,
   action: string,
   dryRun: boolean,
   report: LibraryCopyReport | null,
-  apply: Record<string, number> | null
+  apply: ApplyLibraryCopyResult | null,
+  addByRssCap: AddByRssCap | null,
+  directoryFollowCap: DirectoryFollowCap | null,
+  playlistsOverLimit: readonly string[] | null
 ): void {
   getLogger().info(dryRun ? 'v4 library dry run finished' : 'v4 library copy finished', {
     dryRun,
@@ -801,16 +851,21 @@ function logFinished(
     action,
     ...(report === null ? {} : report),
     ...(apply === null ? {} : { apply }),
+    ...(addByRssCap === null ? {} : { addByRssCap }),
+    ...(directoryFollowCap === null ? {} : { directoryFollowCap }),
+    ...(playlistsOverLimit === null ? {} : { playlistsOverLimit }),
   });
 }
 
 /**
  * Counts one v4 library against local v5. The log is the id and the counts.
  */
-export const v4CopyAccountLibrary = async (args: CommandLineArgs) => {
+export const v4CopyAccountLibrary = async (
+  args: CommandLineArgs
+): Promise<V4LibraryCommandResult> => {
   if (hasOption(args, 'help')) {
     process.stdout.write(V4_COPY_ACCOUNT_LIBRARY_HELP);
-    return;
+    return { action: 'help' };
   }
 
   const v4Id = optionValue(args, 'v4-id');
@@ -836,12 +891,12 @@ export const v4CopyAccountLibrary = async (args: CommandLineArgs) => {
       where: { id_text: v4Id },
     });
   if (account === null) {
-    logFinished(v4Id, 'skip_missing_account', dryRun, null, null);
-    return;
+    logFinished(v4Id, 'skip_missing_account', dryRun, null, null, null, null, null);
+    return { action: 'skip_missing_account', v4Id };
   }
   if (account.v4_library_copied_at !== null && account.v4_library_copied_at !== undefined) {
-    logFinished(v4Id, 'skip_already_copied', dryRun, null, null);
-    return;
+    logFinished(v4Id, 'skip_already_copied', dryRun, null, null, null, null, null);
+    return { action: 'skip_already_copied', v4Id };
   }
 
   const snapshot = await readV4Snapshot(connectionString, v4Id);
@@ -853,9 +908,35 @@ export const v4CopyAccountLibrary = async (args: CommandLineArgs) => {
   }
   const report = classifyLibraryCopy(snapshot, catalog);
   if (dryRun) {
-    logFinished(v4Id, 'dry_run', true, report, null);
-    return;
+    const addByRssCap = await readAddByRssCap(
+      {
+        query: (sql, parameters) => queryV5(sql, parameters ?? []),
+      },
+      account.id,
+      snapshot.addByRssUrls
+    );
+    const directoryFollowCap = directoryFollowCapFromSnapshot(snapshot);
+    const playlistsOverLimit = playlistsOverLimitFromSnapshot(snapshot);
+    logFinished(
+      v4Id,
+      'dry_run',
+      true,
+      report,
+      null,
+      addByRssCap,
+      directoryFollowCap,
+      playlistsOverLimit
+    );
+    return {
+      action: 'dry_run',
+      v4Id,
+      report,
+      addByRssCap,
+      directoryFollowCap,
+      playlistsOverLimit,
+    };
   }
   const applied = await applyLibraryCopy(account.id, account.id_text, snapshot, catalog);
-  logFinished(v4Id, 'apply', false, report, applied);
+  logFinished(v4Id, 'apply', false, report, applied, null, null, null);
+  return { action: 'apply', v4Id, report, apply: applied };
 };

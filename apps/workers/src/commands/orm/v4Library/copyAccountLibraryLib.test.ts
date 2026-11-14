@@ -4,17 +4,29 @@ import type {
   LocalCatalog,
   V4EpisodeKey,
   V4LibrarySnapshot,
+  V4PlaylistKey,
   V4PodcastKey,
 } from './copyAccountLibraryLib.js';
 import {
+  ADD_BY_RSS_CAP,
+  addByRssCopyPlan,
   classifyLibraryCopy,
+  countAddByRssFeeds,
+  countDirectoryFollows,
+  decideMigrationCap,
+  DIRECTORY_FOLLOW_CAP,
+  directoryFollowCopyPlan,
   episodeDecision,
   isSeedablePodcast,
+  libraryCopyErrorClass,
   listPositionAt,
   matchedChannelIdTexts,
   parsePodcastIndexId,
   playbackLegacyId,
   playbackPendingStatus,
+  PLAYLIST_RESOURCE_LIMIT,
+  playlistRowsSubjectToResourceLimit,
+  shouldSetLibraryCopiedAt,
   subscriptionPendingStatus,
 } from './copyAccountLibraryLib.js';
 
@@ -394,6 +406,336 @@ describe('classifyLibraryCopy', () => {
   });
 });
 
+const LISTED_ADD_BY_RSS_TIERS = [200, 300, 400, 500, 1000, 10000];
+
+type CapCase = {
+  count: number;
+  outcome: 'default' | 'tier' | 'needs_operator';
+  tier?: number;
+};
+
+type AddByRssPlanCase = {
+  count: number;
+  stored: number | null;
+  statusRowExists: boolean;
+} & (
+  | { action: 'copy'; writeTier: number | null; clearStored: boolean }
+  | { action: 'needs_operator' | 'membership_status_missing' }
+);
+
+type ListedCapSpec = {
+  readonly defaultLimit: number;
+  readonly tiers: readonly number[];
+};
+
+function expectListedCap(spec: ListedCapSpec, row: CapCase): void {
+  const decision = decideMigrationCap(row.count, spec);
+  if (row.outcome === 'tier') {
+    expect(decision).toEqual({ outcome: 'tier', tier: row.tier });
+    return;
+  }
+  expect(decision).toEqual({ outcome: row.outcome });
+}
+
+describe('migration cap', () => {
+  const addByRssCaps: CapCase[] = [
+    { count: 0, outcome: 'default' },
+    { count: 100, outcome: 'default' },
+    { count: 101, outcome: 'tier', tier: 200 },
+    { count: 200, outcome: 'tier', tier: 200 },
+    { count: 201, outcome: 'tier', tier: 300 },
+    { count: 300, outcome: 'tier', tier: 300 },
+    { count: 301, outcome: 'tier', tier: 400 },
+    { count: 400, outcome: 'tier', tier: 400 },
+    { count: 401, outcome: 'tier', tier: 500 },
+    { count: 500, outcome: 'tier', tier: 500 },
+    { count: 501, outcome: 'tier', tier: 1000 },
+    { count: 1000, outcome: 'tier', tier: 1000 },
+    { count: 1001, outcome: 'tier', tier: 10000 },
+    { count: 5215, outcome: 'tier', tier: 10000 },
+    { count: 10000, outcome: 'tier', tier: 10000 },
+    { count: 10001, outcome: 'needs_operator' },
+  ];
+
+  const directoryFollowCaps: CapCase[] = [
+    { count: 0, outcome: 'default' },
+    { count: 500, outcome: 'default' },
+    { count: 501, outcome: 'tier', tier: 1000 },
+    { count: 1000, outcome: 'tier', tier: 1000 },
+    { count: 1001, outcome: 'tier', tier: 2000 },
+    { count: 2000, outcome: 'tier', tier: 2000 },
+    { count: 2001, outcome: 'tier', tier: 3000 },
+    { count: 3000, outcome: 'tier', tier: 3000 },
+    { count: 3001, outcome: 'tier', tier: 4000 },
+    { count: 4000, outcome: 'tier', tier: 4000 },
+    { count: 4001, outcome: 'tier', tier: 5000 },
+    { count: 4314, outcome: 'tier', tier: 5000 },
+    { count: 5000, outcome: 'tier', tier: 5000 },
+    { count: 5001, outcome: 'tier', tier: 10000 },
+    { count: 10000, outcome: 'tier', tier: 10000 },
+    { count: 10001, outcome: 'needs_operator' },
+  ];
+
+  const addByRssPlans: AddByRssPlanCase[] = [
+    {
+      count: 150,
+      stored: null,
+      statusRowExists: true,
+      action: 'copy',
+      writeTier: 200,
+      clearStored: false,
+    },
+    {
+      count: 80,
+      stored: null,
+      statusRowExists: true,
+      action: 'copy',
+      writeTier: null,
+      clearStored: false,
+    },
+    {
+      count: 80,
+      stored: null,
+      statusRowExists: false,
+      action: 'copy',
+      writeTier: null,
+      clearStored: false,
+    },
+    { count: 150, stored: null, statusRowExists: false, action: 'membership_status_missing' },
+    {
+      count: 150,
+      stored: 200,
+      statusRowExists: true,
+      action: 'copy',
+      writeTier: null,
+      clearStored: false,
+    },
+    {
+      count: 180,
+      stored: 150,
+      statusRowExists: true,
+      action: 'copy',
+      writeTier: 200,
+      clearStored: false,
+    },
+    {
+      count: 100,
+      stored: 17,
+      statusRowExists: true,
+      action: 'copy',
+      writeTier: null,
+      clearStored: true,
+    },
+    {
+      count: 80,
+      stored: 50,
+      statusRowExists: true,
+      action: 'copy',
+      writeTier: null,
+      clearStored: true,
+    },
+    {
+      count: 80,
+      stored: 80,
+      statusRowExists: true,
+      action: 'copy',
+      writeTier: null,
+      clearStored: false,
+    },
+    {
+      count: 100,
+      stored: 100,
+      statusRowExists: true,
+      action: 'copy',
+      writeTier: null,
+      clearStored: false,
+    },
+    {
+      count: 80,
+      stored: 200,
+      statusRowExists: true,
+      action: 'copy',
+      writeTier: null,
+      clearStored: false,
+    },
+    {
+      count: 40,
+      stored: 15000,
+      statusRowExists: true,
+      action: 'copy',
+      writeTier: null,
+      clearStored: false,
+    },
+    {
+      count: 101,
+      stored: 50,
+      statusRowExists: true,
+      action: 'copy',
+      writeTier: 200,
+      clearStored: false,
+    },
+    {
+      count: 101,
+      stored: 100,
+      statusRowExists: true,
+      action: 'copy',
+      writeTier: 200,
+      clearStored: false,
+    },
+    {
+      count: 150,
+      stored: 100,
+      statusRowExists: true,
+      action: 'copy',
+      writeTier: 200,
+      clearStored: false,
+    },
+    {
+      count: 10000,
+      stored: null,
+      statusRowExists: true,
+      action: 'copy',
+      writeTier: 10000,
+      clearStored: false,
+    },
+    { count: 10001, stored: null, statusRowExists: true, action: 'needs_operator' },
+    { count: 10001, stored: 10000, statusRowExists: true, action: 'needs_operator' },
+    {
+      count: 10001,
+      stored: 10001,
+      statusRowExists: true,
+      action: 'copy',
+      writeTier: null,
+      clearStored: false,
+    },
+    {
+      count: 10001,
+      stored: 50000,
+      statusRowExists: true,
+      action: 'copy',
+      writeTier: null,
+      clearStored: false,
+    },
+  ];
+
+  it('chooses the smallest add-by-rss tier that covers the count', () => {
+    for (const row of addByRssCaps) {
+      expectListedCap(ADD_BY_RSS_CAP, row);
+    }
+  });
+
+  it('chooses the smallest directory-follow tier that covers the count', () => {
+    for (const row of directoryFollowCaps) {
+      expectListedCap(DIRECTORY_FOLLOW_CAP, row);
+    }
+  });
+
+  it('reports a listed tier above the max for an operator', () => {
+    expect(decideMigrationCap(15000, { defaultLimit: 100, tiers: [20000] })).toEqual({
+      outcome: 'needs_operator',
+    });
+  });
+
+  it('counts distinct canonical add-by-rss feeds', () => {
+    expect(countAddByRssFeeds([])).toBe(0);
+    expect(countAddByRssFeeds([''])).toBe(0);
+    expect(countAddByRssFeeds(['   '])).toBe(0);
+    expect(countAddByRssFeeds(['https://example.com/feed', 'https://example.com/feed'])).toBe(1);
+    expect(countAddByRssFeeds(['https://example.com/feed', 'https://example.com/feed/'])).toBe(1);
+    expect(
+      countAddByRssFeeds(['https://user:pass@example.com/feed', 'https://example.com/feed'])
+    ).toBe(1);
+    expect(countAddByRssFeeds(['not a url'])).toBe(1);
+  });
+
+  it('counts directory follows per list', () => {
+    expect(
+      countDirectoryFollows({
+        podcastIds: ['pod'],
+        playlistFollowIds: ['list'],
+        userFollowIds: ['user'],
+      })
+    ).toBe(3);
+    expect(
+      countDirectoryFollows({
+        podcastIds: ['pod', '  ', ''],
+        playlistFollowIds: [],
+        userFollowIds: [],
+      })
+    ).toBe(1);
+    expect(
+      countDirectoryFollows({
+        podcastIds: ['pod', 'pod'],
+        playlistFollowIds: [],
+        userFollowIds: [],
+      })
+    ).toBe(1);
+    expect(
+      countDirectoryFollows({
+        podcastIds: ['same'],
+        playlistFollowIds: [],
+        userFollowIds: ['same'],
+      })
+    ).toBe(2);
+  });
+
+  it('plans an add-by-rss copy from the count and any stored cap', () => {
+    for (const row of addByRssPlans) {
+      const plan = addByRssCopyPlan(row.count, row.stored, row.statusRowExists);
+      if (row.action === 'copy') {
+        expect(plan).toEqual({
+          action: 'copy',
+          writeTier: row.writeTier,
+          clearStored: row.clearStored,
+        });
+      } else {
+        expect(plan).toEqual({ action: row.action });
+        expect('writeTier' in plan).toBe(false);
+        expect('clearStored' in plan).toBe(false);
+      }
+      if (plan.action === 'copy') {
+        const listedTier =
+          plan.writeTier === null || LISTED_ADD_BY_RSS_TIERS.includes(plan.writeTier);
+        expect(listedTier).toBe(true);
+        expect(plan.writeTier).not.toBe(100);
+        if (typeof plan.writeTier === 'number') {
+          expect(plan.clearStored).toBe(false);
+        }
+        if (plan.clearStored) {
+          expect(plan.writeTier).toBeNull();
+          expect(row.stored).not.toBeNull();
+          expect(row.count).toBeLessThanOrEqual(100);
+          if (row.stored !== null) {
+            expect(row.stored).toBeLessThan(row.count);
+          }
+        }
+      }
+      if (row.stored !== null && row.stored >= row.count) {
+        expect(plan).toEqual({ action: 'copy', writeTier: null, clearStored: false });
+      }
+    }
+  });
+
+  it('plans a directory-follow copy without a stored override', () => {
+    expect(directoryFollowCopyPlan(500)).toEqual({
+      action: 'copy',
+      decision: { outcome: 'default' },
+    });
+    expect(directoryFollowCopyPlan(501)).toEqual({
+      action: 'copy',
+      decision: { outcome: 'tier', tier: 1000 },
+    });
+    expect(directoryFollowCopyPlan(4314)).toEqual({
+      action: 'copy',
+      decision: { outcome: 'tier', tier: 5000 },
+    });
+    expect(directoryFollowCopyPlan(10001)).toEqual({
+      action: 'needs_operator',
+      decision: { outcome: 'needs_operator' },
+    });
+  });
+});
+
 describe('pending row status', () => {
   it('maps a playback decision to unresolved while waiting and dropped otherwise', () => {
     expect(playbackPendingStatus('resolved')).toBeNull();
@@ -436,5 +778,147 @@ describe('list position', () => {
     expect(listPositionAt(1, 1)).toBe('1.00000001');
     expect(listPositionAt(-1, 0)).toBe('-1.00000000');
     expect(listPositionAt(-1, 1)).toBe('-0.99999999');
+  });
+});
+
+describe('library copy group errors', () => {
+  it('names a constraint and leaves the message out', () => {
+    expect(
+      libraryCopyErrorClass({
+        constraint: 'playlist_resource_playlist_id_item_id_key',
+        code: '23505',
+        message: 'https://example.com/feed',
+      })
+    ).toBe('db_constraint:playlist_resource_playlist_id_item_id_key');
+  });
+
+  it('records a raised cap refusal', () => {
+    expect(
+      libraryCopyErrorClass({
+        code: 'P0001',
+        message: 'Playlist 9 cannot have more than 10000 resources',
+      })
+    ).toBe('cap_refused');
+  });
+
+  it('uses the sqlstate when no constraint is present', () => {
+    expect(libraryCopyErrorClass({ code: '23503' })).toBe('db_constraint:23503');
+  });
+
+  it('names an error that has no database code', () => {
+    expect(libraryCopyErrorClass(new TypeError('x'))).toBe('unexpected:TypeError');
+  });
+
+  it('names a non-error throw as unknown', () => {
+    expect(libraryCopyErrorClass('nope')).toBe('unexpected:unknown');
+  });
+
+  it('sets the copied timestamp only when every group committed', () => {
+    expect(shouldSetLibraryCopiedAt({ groupErrors: [], needsOperatorGroups: [] })).toBe(true);
+    expect(
+      shouldSetLibraryCopiedAt({
+        groupErrors: [{ class: 'cap_refused' }],
+        needsOperatorGroups: [],
+      })
+    ).toBe(false);
+    expect(
+      shouldSetLibraryCopiedAt({ groupErrors: [], needsOperatorGroups: ['playlists'] })
+    ).toBe(false);
+    expect(
+      shouldSetLibraryCopiedAt({
+        groupErrors: [{ class: 'cap_refused' }],
+        needsOperatorGroups: ['playlists'],
+      })
+    ).toBe(false);
+  });
+});
+
+describe('playlist resource limit', () => {
+  const noMediaRefs = new Map<string, { official: boolean }>();
+
+  function episodeIds(count: number): string[] {
+    return Array.from({ length: count }, (_, index) => `ep${index}`);
+  }
+
+  function playlist(overrides: Partial<V4PlaylistKey> = {}): V4PlaylistKey {
+    return {
+      id: 'pl1',
+      episodeIds: [],
+      mediaRefIds: [],
+      orderIds: [],
+      ...overrides,
+    };
+  }
+
+  it('counts 10000 episodes as within the limit and 10001 as over it', () => {
+    expect(PLAYLIST_RESOURCE_LIMIT).toBe(10000);
+    expect(
+      playlistRowsSubjectToResourceLimit(
+        playlist({ id: 'within', episodeIds: episodeIds(10000) }),
+        noMediaRefs
+      )
+    ).toBe(10000);
+    expect(
+      playlistRowsSubjectToResourceLimit(
+        playlist({ id: 'over', episodeIds: episodeIds(10001) }),
+        noMediaRefs
+      )
+    ).toBe(10001);
+  });
+
+  it('does not count a blank episode id', () => {
+    expect(
+      playlistRowsSubjectToResourceLimit(playlist({ episodeIds: ['', '  ', 'ep1'] }), noMediaRefs)
+    ).toBe(1);
+  });
+
+  it('counts a duplicate episode id once', () => {
+    expect(
+      playlistRowsSubjectToResourceLimit(
+        playlist({ episodeIds: ['ep1', 'ep1'], orderIds: ['ep1', 'ep1'] }),
+        noMediaRefs
+      )
+    ).toBe(1);
+  });
+
+  it('ignores an order entry that is not an episode or a clip on the playlist', () => {
+    expect(
+      playlistRowsSubjectToResourceLimit(
+        playlist({ episodeIds: ['ep1'], orderIds: ['not-a-member', 'ep1'] }),
+        noMediaRefs
+      )
+    ).toBe(1);
+  });
+
+  it('skips an official clip and a clip with no media ref', () => {
+    const mediaRefs = new Map<string, { official: boolean }>([
+      ['officialClip', { official: true }],
+      ['realClip', { official: false }],
+    ]);
+    expect(
+      playlistRowsSubjectToResourceLimit(
+        playlist({ mediaRefIds: ['officialClip'], orderIds: ['officialClip'] }),
+        mediaRefs
+      )
+    ).toBe(0);
+    expect(
+      playlistRowsSubjectToResourceLimit(
+        playlist({ mediaRefIds: ['missingClip'], orderIds: ['missingClip'] }),
+        mediaRefs
+      )
+    ).toBe(0);
+    expect(
+      playlistRowsSubjectToResourceLimit(
+        playlist({ mediaRefIds: ['realClip'], orderIds: ['realClip'] }),
+        mediaRefs
+      )
+    ).toBe(1);
+  });
+
+  it('counts one playlist without changing another playlist passed separately', () => {
+    const over = playlist({ id: 'over', episodeIds: episodeIds(10001) });
+    const other = playlist({ id: 'other', episodeIds: ['epA', 'epB'] });
+    expect(playlistRowsSubjectToResourceLimit(over, noMediaRefs)).toBe(10001);
+    expect(playlistRowsSubjectToResourceLimit(other, noMediaRefs)).toBe(2);
   });
 });
