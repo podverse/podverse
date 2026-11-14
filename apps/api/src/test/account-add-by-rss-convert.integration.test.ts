@@ -8,10 +8,10 @@ import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
 
 import {
   AccountMembershipEnum,
-  MediumEnum,
-  SharableStatusEnum,
   formatGuidEnclosureUrl,
   getAddByRSSHashId,
+  MediumEnum,
+  SharableStatusEnum,
 } from '@podverse/helpers';
 import type { ORMContext } from '@podverse/orm';
 
@@ -656,9 +656,7 @@ describe('Add by RSS directory conversion', () => {
         [otherRowId]
       )
     );
-    expect(otherStill).toEqual([
-      { item_id: null, add_by_rss_hash_id: playlistHash },
-    ]);
+    expect(otherStill).toEqual([{ item_id: null, add_by_rss_hash_id: playlistHash }]);
 
     expect(await addByRssFollowCount(account.id, feedUrl)).toBe(0);
     expect(timeMs(await directoryFollowSeenAt(account.id, channel.channelId))).toBe(

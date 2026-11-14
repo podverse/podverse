@@ -5,9 +5,7 @@ export type SignedInDirectoryRefreshFailure = 'match' | 'promotion';
 
 export type SignedInAddByRssRefreshDeps = {
   convertAccountFeed: (feed: { feedUrl: string; feedGuid: string | null }) => Promise<unknown>;
-  findMatches: (
-    feeds: readonly AddByRssMatchFeedInput[]
-  ) => Promise<ReadonlyMap<string, unknown>>;
+  findMatches: (feeds: readonly AddByRssMatchFeedInput[]) => Promise<ReadonlyMap<string, unknown>>;
   force: boolean;
   lastDirectoryMatchAtMs: number | null;
   listMatchFeeds: () => Promise<readonly AddByRssMatchFeedInput[]>;

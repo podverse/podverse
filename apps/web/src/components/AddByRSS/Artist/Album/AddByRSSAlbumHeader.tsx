@@ -24,8 +24,8 @@ import {
 } from '../../../../utils/addByRSS/actions';
 import { emitAddByRSSFeedChanged } from '../../../../utils/addByRSS/feedChangedEvent';
 import type { AddByRSSFeedRecord } from '../../../../utils/addByRSS/types';
-import { channelPathForMedium } from '../../../../utils/redirect/mergedIdentity';
 import { addByRSSChannelHeaderTriple } from '../../../../utils/image/addByRSSChannelHeaderCandidates';
+import { channelPathForMedium } from '../../../../utils/redirect/mergedIdentity';
 import { CommonAlbumHeader } from '../../../Common/Artist/Album/CommonAlbumHeader';
 import { CommonAlbumHeaderViewDesktop } from '../../../Common/Artist/Album/CommonAlbumHeaderViewDesktop';
 import { CommonAlbumHeaderViewTablet } from '../../../Common/Artist/Album/CommonAlbumHeaderViewTablet';

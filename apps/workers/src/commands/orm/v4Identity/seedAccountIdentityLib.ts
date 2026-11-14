@@ -1,3 +1,5 @@
+import { SharableStatusEnum } from '@podverse/helpers';
+
 const BCRYPT_HASH = /^\$2[aby]\$\d{2}\$[./A-Za-z0-9]{53}$/;
 const EMAIL_MAX = 255;
 const NAME_MAX = 255;
@@ -8,6 +10,7 @@ export type V4IdentitySource = {
   displayName: string | null;
   verified: boolean;
   passwordHash: string;
+  isPublic: boolean | null;
 };
 
 export type V4IdentityParseFailure = 'bad_email' | 'bad_name' | 'bad_password' | 'bad_verified';
@@ -36,6 +39,7 @@ export type V4IdentityRow = {
   displayName: string | null;
   verified: boolean | null;
   passwordHash: string | null;
+  isPublic: boolean | null;
 };
 
 /**
@@ -70,8 +74,14 @@ export function parseV4IdentityRow(row: V4IdentityRow): V4IdentityParseResult {
       displayName: normalizedName,
       verified: row.verified,
       passwordHash: row.passwordHash,
+      isPublic: row.isPublic,
     },
   };
+}
+
+/** v4 serves a profile to anyone only when `users.isPublic` is true. */
+export function v5AccountSharableStatusForV4(isPublic: boolean | null): SharableStatusEnum {
+  return isPublic === true ? SharableStatusEnum.Public : SharableStatusEnum.Private;
 }
 
 /**

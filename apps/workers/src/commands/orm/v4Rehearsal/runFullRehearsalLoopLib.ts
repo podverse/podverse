@@ -58,6 +58,14 @@ export function progressCounts(input: {
   return { done, failed, skipped, total };
 }
 
+/**
+ * Library order: an email-case twin merges into the kept account only after that account's own
+ * copy, so merged ids run after every other id. Each group keeps its order.
+ */
+export function mergedIdsLast(ids: readonly string[], mergedIds: ReadonlySet<string>): string[] {
+  return [...ids.filter((id) => !mergedIds.has(id)), ...ids.filter((id) => mergedIds.has(id))];
+}
+
 export function parseStoredRun(
   value: unknown,
   stage: RehearsalStage

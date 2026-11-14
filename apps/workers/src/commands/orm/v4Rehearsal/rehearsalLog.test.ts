@@ -246,6 +246,50 @@ describe('rehearsal summary', () => {
     expect(errors).toBe(`${line}\n${line.replace('eFv5NFx', 'abc1234')}\n`);
   });
 
+  it('writes catalog parse failures by reason and keeps them when the log is reopened', async () => {
+    const { log, root } = await tempLog(START);
+    await log.recordCatalog({
+      waitingAtDeadline: 4,
+      failedByReason: { http_404: 2, dns_not_found: 1, timeout: 0 },
+      oversizeRaised: 5,
+      oversizeGaveUp: 2,
+      now: UPDATED,
+    });
+
+    const summary = record(await readJson(path.join(log.dir, 'summary.json')));
+    expect(summary.catalog).toEqual({
+      waitingAtDeadline: 4,
+      failedByReason: { http_404: 2, dns_not_found: 1 },
+      oversizeRaised: 5,
+      oversizeGaveUp: 2,
+    });
+    const md = await readFile(path.join(log.dir, 'summary.md'), 'utf8');
+    expect(md).toContain('## Catalog parse failures by reason');
+    expect(md).toContain('| http_404 | 2 |');
+    expect(md).toContain('| dns_not_found | 1 |');
+    expect(md.indexOf('| http_404 |')).toBeLessThan(md.indexOf('| dns_not_found |'));
+    expect(md).toContain('- Waiting at deadline: 4');
+    expect(md).toContain('- Oversize raised: 5');
+    expect(md).toContain('- Oversize gave up: 2');
+    expect(md).not.toContain('timeout');
+
+    const again = await openRehearsalLog({ runId: RUN_ID, now: START, rootDir: root });
+    await again.appendError({
+      v4Id: 'eFv5NFx',
+      phase: PHASE,
+      group: null,
+      className: 'parse_failed',
+      message: 'parse failed',
+      now: UPDATED,
+    });
+    expect(record(await readJson(path.join(log.dir, 'summary.json'))).catalog).toEqual({
+      waitingAtDeadline: 4,
+      failedByReason: { http_404: 2, dns_not_found: 1 },
+      oversizeRaised: 5,
+      oversizeGaveUp: 2,
+    });
+  });
+
   it('caps example ids at three and omits caller secrets from the error log', async () => {
     const { log } = await tempLog(START);
     const row = JSON.stringify({

@@ -38,6 +38,9 @@ export class AccountMembershipStatus {
   max_follows?: number | null;
 
   @Column({ type: 'integer', nullable: true })
+  max_queue_resources?: number | null;
+
+  @Column({ type: 'integer', nullable: true })
   max_manual_refreshes_per_hour?: number | null;
 
   @Column({ type: 'boolean', nullable: true })

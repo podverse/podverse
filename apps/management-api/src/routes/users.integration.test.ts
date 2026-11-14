@@ -429,10 +429,10 @@ describe('PATCH /users/:id', () => {
 
     expect(res.status).toBe(200);
     expect(res.body.user.max_follows).toBe(-1);
-    expect(readWriteQueryMock).toHaveBeenCalledWith(expect.stringContaining('max_follows = $1'), [
-      -1,
-      1,
-    ]);
+    expect(readWriteQueryMock).toHaveBeenCalledWith(
+      expect.stringContaining('max_follows = $1'),
+      [-1, 1]
+    );
   });
 
   it('returns 404 for non-existent user', async () => {

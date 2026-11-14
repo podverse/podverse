@@ -10,12 +10,12 @@ import {
 import type { NativeCacheBrowseNode } from '../data/nativeCache';
 import { accountRepository } from '../data/repositories/accountRepository';
 import { runAddByRssLoginSettle } from '../data/repositories/addByRssLoginSettle';
-import type { AddByRssRefreshTicket } from '../data/repositories/addByRssRepository';
-import { addByRssRepository } from '../data/repositories/addByRssRepository';
 import {
   addByRssPromotion,
   directoryMatchRequestAnswered,
 } from '../data/repositories/addByRssPromotion';
+import type { AddByRssRefreshTicket } from '../data/repositories/addByRssRepository';
+import { addByRssRepository } from '../data/repositories/addByRssRepository';
 import { autoDownloadRepository } from '../data/repositories/autoDownloadRepository';
 import { channelItemsRepository } from '../data/repositories/channelItemsRepository';
 import type { ChannelItemWindow } from '../data/repositories/channelItemWindow';

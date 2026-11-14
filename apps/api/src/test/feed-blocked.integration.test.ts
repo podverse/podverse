@@ -109,7 +109,11 @@ describe('blocked feed entry', () => {
     return { id: account.id, idText: account.id_text };
   }
 
-  async function seedBlockedFeed(): Promise<{ feedId: number; feedUrl: string; podcastIndexId: number }> {
+  async function seedBlockedFeed(): Promise<{
+    feedId: number;
+    feedUrl: string;
+    podcastIndexId: number;
+  }> {
     const manager = requireManager();
     const { Feed } = await import('@podverse/orm');
     const feedUrl = `https://feed-blocked-${randomUUID()}.example.com/feed.xml`;

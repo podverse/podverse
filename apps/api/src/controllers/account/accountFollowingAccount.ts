@@ -13,7 +13,11 @@ import type { Request, Response } from 'express';
 import Joi from 'joi';
 
 import { followLimitRefusal, SharableStatusEnum } from '@podverse/helpers';
-import { AccountFollowingAccountService, AccountService, FollowLimitReachedError } from '@podverse/orm';
+import {
+  AccountFollowingAccountService,
+  AccountService,
+  FollowLimitReachedError,
+} from '@podverse/orm';
 
 import { handleGenericErrorResponse } from '../helpers/error.js';
 

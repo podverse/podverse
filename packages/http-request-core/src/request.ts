@@ -98,18 +98,16 @@ export const createRequestClient = (options?: RequestClientOptions) => {
   };
 };
 
-interface ErrorWithStatusCode extends Error {
-  statusCode?: number;
-}
-
 export const throwRequestError = (error: unknown): never => {
   if (error instanceof Error) {
-    const errorWithStatusCode = error as ErrorWithStatusCode;
-    if (errorWithStatusCode.statusCode) {
-      throw new Error(`HTTP Error: ${errorWithStatusCode.statusCode} - ${error.message}`);
-    }
-
-    throw new Error(`Unknown Error: ${error.message}`);
+    const statusCode = Reflect.get(error, 'statusCode');
+    const wrapped =
+      typeof statusCode === 'number' && statusCode
+        ? new Error(`HTTP Error: ${statusCode} - ${error.message}`)
+        : new Error(`Unknown Error: ${error.message}`);
+    // The cause keeps status, codes, and typed failures for a later classifier.
+    wrapped.cause = error;
+    throw wrapped;
   }
 
   throw new Error('An unexpected error occurred');

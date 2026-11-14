@@ -1,7 +1,11 @@
 import { useCallback, useEffect, useRef } from 'react';
 
 import { generateQueueResourceAbridgedIndex } from '@podverse/helpers/queue/abridged';
-import type { PlaybackLoadDecision, PlaybackLoadRequest, PlaybackTarget } from '@podverse/playback-core';
+import type {
+  PlaybackLoadDecision,
+  PlaybackLoadRequest,
+  PlaybackTarget,
+} from '@podverse/playback-core';
 import { resolvePlaybackLoadDecision } from '@podverse/playback-core/resolvePlaybackLoadDecision';
 
 import { useAuth } from '../auth/AuthProvider';

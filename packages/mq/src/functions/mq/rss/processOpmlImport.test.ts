@@ -395,8 +395,8 @@ describe('processOpmlImportJob', () => {
 
   it('stops new directory follows at the tier and keeps the follow sentence', async () => {
     const { cacheGetJson, cacheSetJson } = createMemoryCache();
-    hasFollowedChannelMock.mockImplementation(async (_accountId: number, channelIdText: string) =>
-      channelIdText === 'ch-already'
+    hasFollowedChannelMock.mockImplementation(
+      async (_accountId: number, channelIdText: string) => channelIdText === 'ch-already'
     );
     feedGetByUrlMock.mockImplementation(async ({ url }: { url: string }) => {
       if (url.includes('already')) {

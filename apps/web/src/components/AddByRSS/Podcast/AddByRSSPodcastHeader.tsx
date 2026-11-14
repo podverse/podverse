@@ -23,8 +23,8 @@ import {
   unfollowAddByRSSChannelAndClear,
 } from '../../../utils/addByRSS/actions';
 import type { AddByRSSFeedRecord } from '../../../utils/addByRSS/types';
-import { channelPathForMedium } from '../../../utils/redirect/mergedIdentity';
 import { addByRSSChannelHeaderTriple } from '../../../utils/image/addByRSSChannelHeaderCandidates';
+import { channelPathForMedium } from '../../../utils/redirect/mergedIdentity';
 import { CommonPodcastHeader } from '../../Common/Podcast/CommonPodcastHeader';
 import { CommonPodcastHeaderViewDesktop } from '../../Common/Podcast/CommonPodcastHeaderViewDesktop';
 import { CommonPodcastHeaderViewTablet } from '../../Common/Podcast/CommonPodcastHeaderViewTablet';

@@ -1,11 +1,15 @@
 import { describe, expect, it } from 'vitest';
 
+import { SharableStatusEnum } from '@podverse/helpers';
+
 import {
   CARRIED_TRIAL_WINDOW_DAYS,
   decideIdentitySeed,
   decideV4Membership,
   parseV4IdentityRow,
   preferV4Identity,
+  readV4Timestamp,
+  v5AccountSharableStatusForV4,
 } from './seedAccountIdentityLib.js';
 
 const BCRYPT = `$2b$10$${'a'.repeat(53)}`;
@@ -17,6 +21,7 @@ function row(overrides: Partial<Parameters<typeof parseV4IdentityRow>[0]> = {}) 
     displayName: 'Person',
     verified: true,
     passwordHash: BCRYPT,
+    isPublic: false,
     ...overrides,
   };
 }
@@ -32,8 +37,22 @@ describe('parseV4IdentityRow', () => {
         displayName: 'Person',
         verified: true,
         passwordHash: BCRYPT,
+        isPublic: false,
       },
     });
+  });
+
+  it('passes the public flag through, including null', () => {
+    const asPublic = parseV4IdentityRow(row({ isPublic: true }));
+    expect(asPublic.ok).toBe(true);
+    if (asPublic.ok) {
+      expect(asPublic.source.isPublic).toBe(true);
+    }
+    const asMissing = parseV4IdentityRow(row({ isPublic: null }));
+    expect(asMissing.ok).toBe(true);
+    if (asMissing.ok) {
+      expect(asMissing.source.isPublic).toBeNull();
+    }
   });
 
   it('stores a blank name as null', () => {
@@ -58,6 +77,14 @@ describe('parseV4IdentityRow', () => {
       ok: false,
       reason: 'bad_password',
     });
+  });
+});
+
+describe('v5AccountSharableStatusForV4', () => {
+  it('maps a public v4 profile to public and every other value to private', () => {
+    expect(v5AccountSharableStatusForV4(true)).toBe(SharableStatusEnum.Public);
+    expect(v5AccountSharableStatusForV4(false)).toBe(SharableStatusEnum.Private);
+    expect(v5AccountSharableStatusForV4(null)).toBe(SharableStatusEnum.Private);
   });
 });
 
@@ -178,5 +205,12 @@ describe('decideV4Membership', () => {
         now,
       })
     ).toEqual({ tier: 'trial', carriedTrialEndsAt: null });
+  });
+});
+
+describe('readV4Timestamp', () => {
+  it('reads a UTC timestamp string as that instant', () => {
+    const instant = '2026-11-14T21:28:39.000Z';
+    expect(readV4Timestamp(instant)).toEqual(new Date(instant));
   });
 });

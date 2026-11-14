@@ -1,5 +1,5 @@
 import { config } from '@api/config/index.js';
-import { ChannelController, channelAddByRssMatchRateLimit } from '@api/controllers/channel.js';
+import { channelAddByRssMatchRateLimit, ChannelController } from '@api/controllers/channel.js';
 import { asyncHandler } from '@api/middleware/asyncHandler.js';
 import { Router } from 'express';
 

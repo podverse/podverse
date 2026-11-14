@@ -167,10 +167,7 @@ describe('POST /channel/add-by-rss-match', () => {
     const res = await request(requireApp())
       .post(`${channelBase}/add-by-rss-match`)
       .send({
-        feeds: [
-          { feed_url: input, feed_guid: podcastGuid.toUpperCase() },
-          { feed_url: missing },
-        ],
+        feeds: [{ feed_url: input, feed_guid: podcastGuid.toUpperCase() }, { feed_url: missing }],
       });
 
     expect(res.status).toBe(200);

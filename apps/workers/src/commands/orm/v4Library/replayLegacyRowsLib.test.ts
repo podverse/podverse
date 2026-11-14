@@ -5,6 +5,7 @@ import type { ReplayCounts } from './replayLegacyRowsLib.js';
 import {
   contextNumber,
   contextText,
+  decideClipSwap,
   decideFollow,
   decidePlayback,
   decidePlaylistClip,
@@ -24,6 +25,7 @@ describe('replay row kinds', () => {
   it('leaves subscriptions out of the replay', () => {
     expect(isReplayRowKind('subscription')).toBe(false);
     expect(isReplayRowKind('follow_account')).toBe(true);
+    expect(isReplayRowKind('follow_playlist')).toBe(true);
   });
 
   it('writes a clip before a playlist member that points at it', () => {
@@ -88,6 +90,27 @@ describe('decidePlaylistClip', () => {
         }
       }
     }
+  });
+});
+
+describe('decideClipSwap', () => {
+  it('follows the Active-item path for any other reason', () => {
+    expect(decideClipSwap('waiting_parse', true, true)).toBe('normal');
+    expect(decideClipSwap('official_as_item', true, true)).toBe('normal');
+    expect(decideClipSwap('', false, false)).toBe('normal');
+  });
+
+  it('leaves clip_not_copied unresolved until the clip exists', () => {
+    expect(decideClipSwap('clip_not_copied', false, true)).toBe('wait');
+    expect(decideClipSwap('clip_not_copied', false, false)).toBe('wait');
+  });
+
+  it('replaces the episode row when that row is only a stand-in', () => {
+    expect(decideClipSwap('clip_not_copied', true, true)).toBe('swap');
+  });
+
+  it('inserts the clip beside the episode when the episode was played on its own', () => {
+    expect(decideClipSwap('clip_not_copied', true, false)).toBe('insert');
   });
 });
 

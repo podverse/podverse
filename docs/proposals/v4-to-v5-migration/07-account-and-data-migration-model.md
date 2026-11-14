@@ -46,6 +46,9 @@ one account per v4 user. v5 already keeps `account_credentials.email` unique,
 so the row reserves the address. The placeholder is that account row. There is
 no side table to drop. The seed copies `users.email`, the bcrypt
 hash, `users.name`, `users.emailVerified`, and `users.id` as `account.id_text`.
+`users.isPublic = true` sets the account public. `false` and null set it
+private. The seed writes that status when it creates the account or replaces
+a letter-case twin. An account it skips keeps the status it already has.
 It also writes the settings, membership status, and metaboost rows a signup
 creates. A future paid `membershipExpiration` sets Premium. A
 `freeTrialExpiration` that is still running and ends within 90 days becomes a
@@ -74,10 +77,14 @@ means a subscription, a followed playlist or user, an Add by RSS feed, or
 dated activity in history, queue, now playing, an owned playlist, or a user
 clip. Between used rows, the later dated activity wins, and a dated row beats
 a row with lists only. Otherwise a verified row wins, then the later account
-`updatedAt`. It logs the other v4 id. The left-out row's library is dropped,
-not merged: it has no v5 account, so `v4CopyAccountLibrary` logs
-`skip_missing_account` for it, and another account's follow of it stays
-unresolved. A mixed-case address with no twin is
+`updatedAt`. It logs the other v4 id and writes a `legacy_id_map` `user`
+row for it (`resolve_key` `email_case_twin`) naming the kept account. The
+left-out row's library merges into that account: `v4CopyAccountLibrary`
+waits until the kept account's own copy set `v4_library_copied_at`, then
+writes playlists and clips under their v4 ids with the kept account as
+owner, keeps each shared follow, feed, or queue item once, and sizes the
+caps from the combined counts. Another account's follow of either id lands
+on the kept account. A mixed-case address with no twin is
 stored in lowercase. v5 stores the trimmed lowercase address, and a check
 constraint refuses any other form (`0006_account_email_lowercase.sql`). The
 migration rewrites an existing mixed-case address first, and stops if two rows
@@ -218,16 +225,27 @@ copies it, from that account's v4 counts at that moment. The rules:
 
 Known caps:
 
-| Cap                                  | Default | Tiers migration may write           | Shipped |
-| ------------------------------------ | ------- | ----------------------------------- | ------- |
-| Add by RSS (`max_add_by_rss_feeds`)  | 100     | 200, 300, 400, 500, 1000, 10000     | Yes     |
-| Directory follows (`max_follows`)    | 500     | 1000, 2000, 3000, 4000, 5000, 10000 | Yes     |
-| Resources per playlist (SQL trigger) | 10,000  | None. Over it is `needs_operator`.  | Yes     |
+| Cap                                  | Default | Tiers migration may write                 | Shipped |
+| ------------------------------------ | ------- | ----------------------------------------- | ------- |
+| Add by RSS (`max_add_by_rss_feeds`)  | 100     | 200, 300, 400, 500, 1000, 10000           | Yes     |
+| Directory follows (`max_follows`)    | 500     | 1000, 2000, 3000, 4000, 5000, 10000       | Yes     |
+| Queue rows (`max_queue_resources`)   | 10,000  | 20000, 30000, 40000, 50000, 60000, 100000 | Yes     |
+| Resources per playlist (SQL trigger) | 10,000  | None. Over it is `needs_operator`.        | Yes     |
 
 Directory follows count subscribed channels, followed playlists, and followed
-accounts as one total. Clips, queue, history, and now playing have no cap that refuses a copied row.
-The full local rehearsal ([16](16-full-local-migration-rehearsal.md)) is where
-another one would show up, as an error class.
+accounts as one total. Clips have no cap that refuses a copied row. The full
+local rehearsal ([16](16-full-local-migration-rehearsal.md)) is where another
+one would show up, as an error class.
+
+Queue, history, and now playing share one cap per queue. An account has one
+queue per medium. Null `max_queue_resources` uses the default of 10,000.
+There is no unlimited value. The copy writes the smallest tier that covers
+the account's largest queue after collapsing to one row per item or clip. It
+trims each queue to that tier before inserting: upcoming and now playing
+stay, and the oldest history row by played time is dropped first. Those
+inserts skip the per-row count. A stored number that already covers the
+count is left unchanged. Past 100,000 the copy writes no tier, keeps 100,000
+rows, and records `needs_operator`.
 
 The tier lists come from the drafts in
 [account-add-by-rss-cap-100](/.llm/plans/completed/account-add-by-rss-cap-100/01-enforce-add-by-rss-tier.md)
@@ -254,9 +272,6 @@ records `needs_operator`. Add by RSS past 10,000 still writes no rows.
 
 ## Future plan sets
 
-- Have the library copy write each cap tier before the rows it covers, and
-  record `needs_operator` past 10,000. See
-  [Account caps v4 did not have](#account-caps-v4-did-not-have).
 - API/worker design for `migrateAccountFromV4`.
 - Mobile and web loading-screen UX and failure retry.
 - Conflict-report tooling for operators.

@@ -37,13 +37,13 @@ describe('buildAddByRSSChapterResponses', () => {
     expect(chapterShape(rows)).toEqual([
       {
         id_text: 'item1-ch-0',
-        start_time: '0',
-        end_time: '30',
+        start_time: '0.00',
+        end_time: '30.00',
         table_of_contents: true,
       },
       {
         id_text: 'item1-ch-1',
-        start_time: '30',
+        start_time: '30.00',
         end_time: null,
         table_of_contents: true,
       },
@@ -60,13 +60,13 @@ describe('buildAddByRSSChapterResponses', () => {
     expect(chapterShape(rows)).toEqual([
       {
         id_text: 'item1-ch-0',
-        start_time: '10',
-        end_time: '25',
+        start_time: '10.00',
+        end_time: '25.00',
         table_of_contents: false,
       },
       {
         id_text: 'item1-ch-1',
-        start_time: '40',
+        start_time: '40.00',
         end_time: null,
         table_of_contents: true,
       },

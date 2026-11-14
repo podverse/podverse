@@ -3,7 +3,9 @@ import { describe, expect, it } from 'vitest';
 import type { LocalCatalog, V4PodcastKey } from '../v4Library/copyAccountLibraryLib.js';
 import type { StageCatalogShow, StageCatalogSource } from './seedStageCatalogLib.js';
 import {
+  catalogWaitIsDone,
   classifyStageCatalog,
+  countFailedParseReasons,
   countSettledParses,
   refusalForDuplicateCreates,
   stageChannelTakesFirstParse,
@@ -186,6 +188,8 @@ describe('stageShowNeedsFirstParse', () => {
     isParsing: null,
     lastFinishedParseTime: null,
     lastFailedParseTime: null,
+    lastParseFailureReason: null,
+    maxResponseBodyBytesOverride: null,
   };
 
   it('is true only when parsing, finished, and failed are all unset', () => {
@@ -212,5 +216,37 @@ describe('countSettledParses', () => {
         { settled: false, lastFinishedParseTime: null },
       ])
     ).toEqual({ settled: 2, failedParse: 1, waiting: 1 });
+  });
+});
+
+describe('catalogWaitIsDone', () => {
+  it('is done when nothing is waiting, even before the deadline', () => {
+    expect(catalogWaitIsDone(0, 1_000, 86_400_000)).toBe(true);
+    expect(catalogWaitIsDone(0, 1_000, null)).toBe(true);
+  });
+
+  it('is done when the deadline has passed and feeds are still waiting', () => {
+    expect(catalogWaitIsDone(3, 86_400_000, 86_400_000)).toBe(true);
+    expect(catalogWaitIsDone(3, 86_400_001, 86_400_000)).toBe(true);
+  });
+
+  it('keeps waiting when the deadline has not passed, and when there is no deadline', () => {
+    expect(catalogWaitIsDone(3, 86_399_999, 86_400_000)).toBe(false);
+    expect(catalogWaitIsDone(3, 86_400_000, null)).toBe(false);
+  });
+});
+
+describe('countFailedParseReasons', () => {
+  it('counts reasons only for settled feeds that never finished', () => {
+    expect(
+      countFailedParseReasons([
+        { settled: true, lastFinishedParseTime: null, lastParseFailureReason: 'http_404' },
+        { settled: true, lastFinishedParseTime: null, lastParseFailureReason: 'http_404' },
+        { settled: true, lastFinishedParseTime: null, lastParseFailureReason: 'timeout' },
+        { settled: true, lastFinishedParseTime: new Date(0), lastParseFailureReason: 'http_410' },
+        { settled: false, lastFinishedParseTime: null, lastParseFailureReason: 'dns_not_found' },
+        { settled: true, lastFinishedParseTime: null, lastParseFailureReason: null },
+      ])
+    ).toEqual({ http_404: 2, timeout: 1 });
   });
 });

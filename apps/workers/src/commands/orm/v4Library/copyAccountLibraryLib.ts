@@ -1,3 +1,4 @@
+import type { QueueResourceMigrationTier } from '@podverse/helpers';
 import {
   ADD_BY_RSS_FEED_TIERS,
   DATABASE_CONSTANTS,
@@ -6,6 +7,9 @@ import {
   FOLLOW_LIMIT_TIERS,
   isUnlimitedAddByRssFeedLimit,
   isUnlimitedFollowLimit,
+  QUEUE_RESOURCE_DEFAULT_LIMIT,
+  QUEUE_RESOURCE_LIMIT_TIERS,
+  queueResourceLimitFor,
   splitFeedUrlUserinfo,
 } from '@podverse/helpers';
 import { canonicalAddByRSSFeedUrl } from '@podverse/helpers-validation';
@@ -140,6 +144,7 @@ type ParseReadiness = 'attempted' | 'settled';
 
 export type PendingRowKind =
   | 'follow_account'
+  | 'follow_playlist'
   | 'playlist_clip'
   | 'history'
   | 'queue'
@@ -441,9 +446,63 @@ export function playbackLegacyId(row: V4PlaybackKey): string | null {
   return blankToNull(row.mediaRefId) ?? blankToNull(row.episodeId);
 }
 
+/**
+ * How a playback row that names a mediaRef is stored. A blank id is not a clip. When the
+ * clip was written, the row is that clip. An official chapter or soundbite is its episode.
+ * Any other mediaRef waits until that clip exists, including one missing from the snapshot.
+ */
+export type ClipPointerOutcome =
+  | { kind: 'clip' }
+  | { kind: 'not_a_clip' }
+  | { kind: 'stand_in'; status: 'unresolved'; reason: 'clip_not_copied' }
+  | { kind: 'stand_in'; status: 'resolved'; reason: 'official_as_item' };
+
+export function clipPointerOutcome(
+  mediaRefId: string | null,
+  mediaRef: { official: boolean } | undefined,
+  clipWritten: boolean
+): ClipPointerOutcome {
+  if (mediaRefId === null || mediaRefId.trim() === '') {
+    return { kind: 'not_a_clip' };
+  }
+  if (clipWritten) {
+    return { kind: 'clip' };
+  }
+  if (mediaRef?.official === true) {
+    return { kind: 'stand_in', status: 'resolved', reason: 'official_as_item' };
+  }
+  return { kind: 'stand_in', status: 'unresolved', reason: 'clip_not_copied' };
+}
+
+/**
+ * True when playback will store this mediaRef as a clip: it is already in v5, or this
+ * account's copy writes it before the queue. A clip still waiting on its feed is not written.
+ */
+function playbackClipWritten(
+  mediaRefId: string,
+  mediaRef: V4MediaRefKey | undefined,
+  context: ClassifyContext
+): boolean {
+  if (context.catalog.clipIdTexts.has(mediaRefId)) {
+    return true;
+  }
+  if (mediaRef === undefined || !mediaRef.owned || mediaRef.official) {
+    return false;
+  }
+  return episodeOutcome(mediaRef.episodeId, context, 'attempted') !== 'waiting';
+}
+
 function tallyPlayback(count: LibraryCount, row: V4PlaybackKey, context: ClassifyContext): void {
   const kind = classifyPlayback(row, context);
-  tally(count, kind, kind !== 'resolved' && playbackLegacyId(row) !== null);
+  const mediaRefId = blankToNull(row.mediaRefId);
+  const mediaRef = mediaRefId === null ? undefined : context.mediaRefs.get(mediaRefId);
+  const pointer = clipPointerOutcome(
+    mediaRefId,
+    mediaRef,
+    mediaRefId !== null && playbackClipWritten(mediaRefId, mediaRef, context)
+  );
+  const standIn = kind === 'resolved' && pointer.kind === 'stand_in';
+  tally(count, kind, (kind !== 'resolved' && playbackLegacyId(row) !== null) || standIn);
 }
 
 /**
@@ -574,19 +633,14 @@ export function classifyLibraryCopy(
 
   for (const url of snapshot.addByRssUrls) {
     const text = blankToNull(url);
-    if (text === null) {
+    if (text === null || addByRssFeedUrlForCopy(url) === null) {
       tally(report.addByRss, 'dropped');
       continue;
     }
     tally(report.addByRss, catalog.feedUrls.has(text) ? 'resolved' : 'unresolved');
   }
 
-  classifyIdList(
-    snapshot.playlistFollowIds,
-    catalog.playlistIdTexts,
-    report.followsPlaylist,
-    false
-  );
+  classifyIdList(snapshot.playlistFollowIds, catalog.playlistIdTexts, report.followsPlaylist, true);
   classifyIdList(snapshot.userFollowIds, catalog.accountIdTexts, report.followsUser, true);
 
   for (const playlist of snapshot.playlists) {
@@ -740,19 +794,20 @@ export function decideMigrationCap(count: number, spec: MigrationCapSpec): Migra
   return { outcome: 'tier', tier };
 }
 
-/** Feed URL stored on an add-by-RSS follow, or null when the value is blank. */
+/** Feed URL stored on an Add by RSS follow, or null when the value is not an http(s) URL. */
 export function addByRssFeedUrlForCopy(url: string): string | null {
   const canonical = canonicalAddByRSSFeedUrl(url);
-  const chosen = typeof canonical === 'string' ? canonical : url;
-  const trimmed = chosen.trim();
-  if (trimmed === '') {
+  if (canonical === null) {
     return null;
   }
   const max = DATABASE_CONSTANTS.varchar_url;
-  return trimmed.length <= max ? trimmed : trimmed.slice(0, max);
+  return canonical.length <= max ? canonical : canonical.slice(0, max);
 }
 
-/** Distinct add-by-RSS feeds after canonicalization. Blank values do not count. */
+/**
+ * Distinct add-by-RSS feeds after canonicalization. A value that is not an http(s) URL does
+ * not count.
+ */
 export function countAddByRssFeeds(urls: readonly string[]): number {
   const feeds = new Set<string>();
   for (const url of urls) {
@@ -764,6 +819,20 @@ export function countAddByRssFeeds(urls: readonly string[]): number {
   return feeds.size;
 }
 
+/** Non-blank values that are not an http(s) feed URL. */
+export function countAddByRssNotFeedUrl(urls: readonly string[]): number {
+  let count = 0;
+  for (const url of urls) {
+    if (url.trim() === '') {
+      continue;
+    }
+    if (addByRssFeedUrlForCopy(url) === null) {
+      count += 1;
+    }
+  }
+  return count;
+}
+
 function addByRssUrlHasUserinfo(url: string): boolean {
   const split = splitFeedUrlUserinfo(url);
   return split.username !== null || split.password !== null;
@@ -771,9 +840,9 @@ function addByRssUrlHasUserinfo(url: string): boolean {
 
 /**
  * Directory channel ids for matched add-by-RSS urls, and the urls that stay add-by-RSS.
- * Blank values are dropped. The rest are canonicalized and the first of each is kept, in
- * input order. A url with userinfo stays add-by-RSS, and so does every other copy of that
- * canonical url. The map is keyed by the canonical url.
+ * Blank values and values that are not an http(s) URL are dropped. The rest are canonicalized
+ * and the first of each is kept, in input order. A url with userinfo stays add-by-RSS, and so
+ * does every other copy of that canonical url. The map is keyed by the canonical url.
  */
 export function splitAddByRssUrlsByDirectoryMatch(
   urls: readonly string[],
@@ -868,6 +937,73 @@ export function addByRssCopyPlan(
     return { action: 'membership_status_missing' };
   }
   return { action: 'copy', writeTier: decision.tier, clearStored: false };
+}
+
+/**
+ * `legacy_id_map.resolve_key` on a `user` row whose v4 user lost its address to the other
+ * letter case of it. `v5_id_text` is the account that kept the address; that row's library
+ * is merged into it.
+ */
+export const EMAIL_CASE_TWIN_RESOLVE_KEY = 'email_case_twin';
+
+/**
+ * Distinct entries once a merged library joins the rows the account already has. Each key
+ * names one follow, feed, or queue row, so an entry on both sides counts once. The result
+ * goes to the same tier plan as a single account; a stored tier above it is kept.
+ */
+export function combinedDistinctCount(
+  existing: Iterable<string>,
+  incoming: Iterable<string>
+): number {
+  const keys = new Set<string>();
+  for (const key of existing) {
+    keys.add(key);
+  }
+  for (const key of incoming) {
+    keys.add(key);
+  }
+  return keys.size;
+}
+
+/**
+ * One key per follow a merged library brings, in the shape the account's own follow rows and
+ * pending follow rows are read in: `channel:<channel id>` for a resolved show,
+ * `subscription:<v4 id>` for one that is not, `playlist:<id>`, and `account:<account id>` or
+ * `follow_account:<v4 id>`. A follow of the account itself is left out.
+ */
+export function mergedFollowKeys(input: {
+  podcasts: ReadonlyArray<{ legacyId: string; channelId: number | null }>;
+  extraChannelIds: readonly number[];
+  playlistFollowIds: readonly string[];
+  users: ReadonlyArray<{ legacyId: string; accountId: number | null }>;
+  selfAccountId: number;
+}): string[] {
+  const keys: string[] = [];
+  for (const podcast of input.podcasts) {
+    keys.push(
+      podcast.channelId === null
+        ? `subscription:${podcast.legacyId}`
+        : `channel:${podcast.channelId}`
+    );
+  }
+  for (const channelId of input.extraChannelIds) {
+    keys.push(`channel:${channelId}`);
+  }
+  for (const playlistId of input.playlistFollowIds) {
+    const id = blankToNull(playlistId);
+    if (id !== null) {
+      keys.push(`playlist:${id}`);
+    }
+  }
+  for (const user of input.users) {
+    if (user.accountId === input.selfAccountId) {
+      continue;
+    }
+    keys.push(
+      user.accountId === null ? `follow_account:${user.legacyId}` : `account:${user.accountId}`
+    );
+  }
+  return keys;
 }
 
 export function directoryFollowCopyPlan(count: number): DirectoryFollowCopyPlan {
@@ -1057,4 +1193,72 @@ export function playlistsOverLimitFromSnapshot(snapshot: V4LibrarySnapshot): str
     }
   }
   return overLimit;
+}
+
+/** v4 `isPublic = false` is "Only with link", which is v5 unlisted. */
+export function v5SharableStatusForV4(isPublic: boolean | null | undefined): 'public' | 'unlisted' {
+  return isPublic === true ? 'public' : 'unlisted';
+}
+
+export type QueueTrimZone = 'now' | 'upcoming' | 'history';
+
+export type QueueTrimRow = {
+  zone: QueueTrimZone;
+  /** Lower values are earlier upcoming rows, or older history. */
+  sort: number;
+};
+
+/**
+ * Rows that stay under the queue cap. Upcoming and now playing stay while history is over
+ * the limit. Oldest history is dropped first. When history is gone and the list is still
+ * over the limit, now playing goes, then upcoming from the start.
+ */
+export function trimQueueToResourceLimit<T extends QueueTrimRow>(
+  rows: readonly T[],
+  limit: number
+): { kept: T[]; historyTrimmed: number } {
+  const indexed = rows.map((row, index) => ({ row, index }));
+  const bySort = (zone: QueueTrimZone): T[] =>
+    indexed
+      .filter((entry) => entry.row.zone === zone)
+      .sort((left, right) => left.row.sort - right.row.sort || left.index - right.index)
+      .map((entry) => entry.row);
+  const now = bySort('now');
+  const upcoming = bySort('upcoming');
+  const history = bySort('history');
+  const protectedRows = [...now, ...upcoming];
+  if (!Number.isFinite(limit) || limit < 0) {
+    return { kept: [], historyTrimmed: history.length };
+  }
+  const overflow = protectedRows.length + history.length - limit;
+  if (overflow <= 0) {
+    return { kept: [...protectedRows, ...history], historyTrimmed: 0 };
+  }
+  const historyDrop = Math.min(overflow, history.length);
+  const historyKept = history.slice(historyDrop);
+  const stillOver = protectedRows.length + historyKept.length - limit;
+  const protectedKept = stillOver > 0 ? protectedRows.slice(stillOver) : protectedRows;
+  return { kept: [...protectedKept, ...historyKept], historyTrimmed: historyDrop };
+}
+
+/**
+ * How many rows one queue may hold for this copy. A count past the last tier keeps that
+ * many rows and writes no tier. A higher stored tier is left in place.
+ */
+export function queueCopyTrimLimit(
+  stored: number | null,
+  decision: QueueResourceMigrationTier
+): number {
+  const maxTier = QUEUE_RESOURCE_LIMIT_TIERS[QUEUE_RESOURCE_LIMIT_TIERS.length - 1];
+  const maxRows = maxTier ?? QUEUE_RESOURCE_DEFAULT_LIMIT;
+  if (decision.outcome === 'needs_operator') {
+    return maxRows;
+  }
+  if (decision.outcome === 'tier') {
+    if (stored !== null && stored > decision.tier) {
+      return queueResourceLimitFor(stored);
+    }
+    return queueResourceLimitFor(decision.tier);
+  }
+  return queueResourceLimitFor(stored);
 }

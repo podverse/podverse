@@ -76,16 +76,27 @@ hand. The message to record is `Missing clean database dump.`
 
 ## Parser and web
 
-Catalog waits until feeds are settled. It does not start the parser. A restore disconnects
-database sessions, so a parser that was already running does not finish the wait.
+Catalog waits until nothing is waiting or `--catalog-wait-hours` (default 24) is reached.
+The rehearsal command does not start the parser or the job loop. A restore disconnects
+database sessions, so a parser or job loop that was already running does not finish the wait.
 
 - Before pilot, start `npm run dev:workers:parsers` in the background from the repo root
   (**Workers**). Record the pid.
 - When a log line `rehearsal restore=finished` appears, stop the pid this prompt started
   and start `npm run dev:workers:parsers` again. Record the new pid. Do not stop a process
   this prompt did not start. If this prompt has not started one yet, start one.
-- Do not start `scheduled_jobs_run_due`. Do not add a timeout. The catalog wait is allowed
-  to run for days.
+- Start the scheduled job loop in the background (**Workers**) beside the parsers, after
+  `rehearsal restore=finished`, and record its pid. Restart it on the same rule as the
+  parsers. If the stage does not print `rehearsal restore=finished`, start the loop when
+  the parsers start. It claims at most 100 due jobs per pass, so run it in a loop. In the
+  agent's shell:
+  `while true; do npm run scheduled_jobs_run_due -w apps/workers -- -limit 100; sleep 60; done`.
+  When handing it to the operator, give the fish form:
+  `while true; npm run scheduled_jobs_run_due -w apps/workers -- -limit 100; sleep 60; end`.
+- The catalog wait ends when nothing is waiting or after `--catalog-wait-hours` (default
+  24). Pass a smaller value for pilot when the operator asks. Do not add any other timeout.
+- After the run, keep the job loop running and rerun `v4_replay_legacy_rows` for the run's
+  accounts until no `waiting_parse` rows remain or the retries have all settled.
 - Before `--stage full`, request `http://localhost:3002`. When it does not respond, start
   `npm run dev -w apps/web` in the background (**Dev**) and wait until it responds. When
   it already responds, do not start a second server.
@@ -100,7 +111,7 @@ Run output is `.artifacts/v4-full-rehearsal/<run-id>/`. The folder is gitignored
 | `run.json`     | Read it. Stage, flags, `startedAt`. No account rows.                                                                                                                  |
 | `summary.json` | Read it only through the mark script's `summary` mode, which drops `exampleV4Ids`.                                                                                    |
 | `errors.jsonl` | Do not open it. The mark script streams it.                                                                                                                           |
-| `summary.md`   | Counts only. Quoting a count is fine.                                                                                                                                 |
+| `summary.md`   | Counts only. Read `## Catalog parse failures by reason` (reason and count), waiting at deadline, oversize raised, and oversize gave up. Quoting a count is fine.      |
 | `pick.json`    | Do not open it.                                                                                                                                                       |
 | `dumps/`       | Do not open it.                                                                                                                                                       |
 | `deferred.md`  | Do not open it in chat. The mark script lists `##` headings.                                                                                                          |
@@ -351,6 +362,8 @@ Stop, still without asking, when any of these happen:
 - the first build fails
 - `Missing clean database dump.`
 - the command refuses a non-local database
+- the command refuses to start because the process is not `TZ=UTC`
+  (`v4RunFullRehearsal must run with TZ=UTC.`)
 - `Missing V4_DATABASE_URL.`
 - `http://localhost:3002` never responds after the web process was started for the full
   stage

@@ -1,4 +1,5 @@
 import type { DTOItemChapterCreate } from '@podverse/helpers';
+import { DATABASE_CONSTANTS } from '@podverse/helpers';
 import { isValidHttpUrl } from '@podverse/helpers-validation';
 
 import type { PIChapter } from '../../types/partytime.js';
@@ -21,21 +22,35 @@ function mapChapterLocation(location: PIChapter['location']): DTOItemChapterCrea
   };
 }
 
+/** A chapter time string that fits `media_player_time`, or null when it does not. */
+const storedChapterTime = (raw: string | null | undefined): string | null => {
+  if (raw === null || raw === undefined || raw.trim() === '') {
+    return null;
+  }
+  return DATABASE_CONSTANTS.mediaPlayerTimeOrNull(Number(raw));
+};
+
 export const compatParsedChapters = (chapters: PIChapter[]): DTOItemChapterCreate[] => {
-  return chapters.map((chapter) => {
+  const rows: DTOItemChapterCreate[] = [];
+  for (const chapter of chapters) {
+    const start_time = storedChapterTime(chapter.startTime);
+    if (start_time === null) {
+      continue;
+    }
     const data_hash = getPIChapterMd5Hash(chapter);
     const location = mapChapterLocation(chapter.location);
-    return {
-      start_time: chapter.startTime,
-      end_time: chapter.endTime || null,
+    rows.push({
+      start_time,
+      end_time: storedChapterTime(chapter.endTime),
       title: chapter.title || null,
       img: (isValidHttpUrl(chapter.img) && chapter.img) || null,
       web_url: (isValidHttpUrl(chapter.url) && chapter.url) || null,
       table_of_contents: chapter.toc === false ? false : true,
       data_hash,
       ...(location ? { location } : {}),
-    };
-  });
+    });
+  }
+  return rows;
 };
 
 /**

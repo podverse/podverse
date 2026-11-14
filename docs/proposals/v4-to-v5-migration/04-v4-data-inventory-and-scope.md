@@ -87,7 +87,7 @@ Types are the snapshot types. "Null" is `information_schema.is_nullable`.
 | `resetPasswordTokenExpiration`     | timestamp          | yes  | Drop.                                                    |
 | `membershipExpiration`             | timestamp          | yes  | CSV column `membership_expires_at`.                      |
 | `freeTrialExpiration`              | timestamp          | yes  | Trial grant if the end is within 90 days.                |
-| `isPublic`                         | boolean            | no   | Public profile flag.                                     |
+| `isPublic`                         | boolean            | no   | Public when true; else private.                          |
 | `isDevAdmin`                       | boolean            | no   | Do not bulk-copy.                                        |
 | `isPodpingAdmin`                   | boolean            | no   | Do not bulk-copy.                                        |
 | `roles`                            | varchar[]          | no   | Drop from member import.                                 |

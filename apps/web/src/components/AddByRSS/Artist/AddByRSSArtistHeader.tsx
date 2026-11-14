@@ -27,8 +27,8 @@ import {
 } from '../../../utils/addByRSS/actions';
 import { loadAddByRSSArtistFollowedAlbums } from '../../../utils/addByRSS/artistUnsubscribe';
 import type { AddByRSSFeedRecord } from '../../../utils/addByRSS/types';
-import { channelPathForMedium } from '../../../utils/redirect/mergedIdentity';
 import { addByRSSChannelHeaderTriple } from '../../../utils/image/addByRSSChannelHeaderCandidates';
+import { channelPathForMedium } from '../../../utils/redirect/mergedIdentity';
 import { CommonArtistHeader } from '../../Common/Artist/CommonArtistHeader';
 import { CommonArtistHeaderViewDesktop } from '../../Common/Artist/CommonArtistHeaderViewDesktop';
 import { CommonArtistHeaderViewTablet } from '../../Common/Artist/CommonArtistHeaderViewTablet';

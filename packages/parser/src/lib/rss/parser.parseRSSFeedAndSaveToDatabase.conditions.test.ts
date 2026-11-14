@@ -12,9 +12,7 @@ const conditionMocks = vi.hoisted(() => ({
   getActiveConditionKeys: vi.fn(() => Promise.resolve([])),
 }));
 
-const getOrCreateByFeedMock = vi.hoisted(() =>
-  vi.fn().mockResolvedValue({ id: 1, id_text: 'c1' })
-);
+const getOrCreateByFeedMock = vi.hoisted(() => vi.fn().mockResolvedValue({ id: 1, id_text: 'c1' }));
 
 const {
   handleAllRemoteItemsFeedParsingMock,
@@ -70,6 +68,7 @@ vi.mock('@parser/factories/loggerService.js', () => ({
   loggerService: {
     info: vi.fn(),
     warn: warnMock,
+    debug: vi.fn(),
     logError: logErrorMock,
   },
 }));
@@ -274,7 +273,12 @@ describe('parseRSSFeedAndSaveToDatabase condition / policy gate', () => {
     expect(getOrCreateByFeedMock).not.toHaveBeenCalled();
     expect(conditionMocks.tryStartParsing).not.toHaveBeenCalled();
     expect(handleRequestRSSFeedMock).not.toHaveBeenCalled();
-    expect(logErrorMock).toHaveBeenCalled();
+    expect(warnMock).toHaveBeenCalledWith(
+      expect.stringContaining(
+        'Feed parse failed: feed_id=202 podcast_index_id=9001 reason=parse_error http_status=none'
+      )
+    );
+    expect(logErrorMock).not.toHaveBeenCalled();
   });
 
   it('sets oversized_detected and refreshes policy when HTTP path exceeds max response bytes', async () => {

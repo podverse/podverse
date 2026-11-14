@@ -4,6 +4,8 @@ import path from 'node:path';
 import { createInterface } from 'node:readline';
 import { fileURLToPath } from 'node:url';
 
+import type { FeedParseFailureReason } from '@podverse/helpers';
+import { FEED_PARSE_FAILURE_REASONS } from '@podverse/helpers';
 import { redactForLog } from '@podverse/helpers-backend';
 
 export const REHEARSAL_PHASES = [
@@ -95,12 +97,22 @@ type ClassSummary = {
   exampleV4Ids: string[];
 };
 
+export type RehearsalCatalogParseSummary = {
+  waitingAtDeadline: number;
+  failedByReason: Partial<Record<FeedParseFailureReason, number>>;
+  /** Feeds at the maximum body limit whose last failure is not `body_too_large`. */
+  oversizeRaised: number;
+  /** Feeds at the maximum body limit whose last failure is `body_too_large`. */
+  oversizeGaveUp: number;
+};
+
 type SummaryFile = {
   runId: string;
   updatedAt: string;
   phases: Record<string, PhaseSummary>;
   classes: Record<string, ClassSummary>;
   stop: StopRecord | null;
+  catalog?: RehearsalCatalogParseSummary;
 };
 
 type DumpEntry = {
@@ -114,6 +126,7 @@ type LoadedSummary = {
   phases: Map<RehearsalPhase, PhaseTotals>;
   classes: Map<string, ClassTotals>;
   stop: StopRecord | null;
+  catalog: RehearsalCatalogParseSummary | null;
 };
 
 export type RehearsalLog = {
@@ -184,6 +197,7 @@ export type RehearsalLog = {
   readErrorExamples(className: string): Promise<RehearsalErrorLine[]>;
   recordDump(input: { phase: RehearsalPhase; bytes: number; now: Date }): Promise<void>;
   recordStop(input: { phase: RehearsalPhase; now: Date }): Promise<void>;
+  recordCatalog(input: RehearsalCatalogParseSummary & { now: Date }): Promise<void>;
 };
 
 type RunInput = Parameters<RehearsalLog['writeRun']>[0];
@@ -452,6 +466,7 @@ function parseSummary(value: unknown, runId: string): LoadedSummary | null {
     phases: parsePhases(value.phases),
     classes: parseClasses(value.classes),
     stop: parseStop(value.stop),
+    catalog: parseCatalog(value.catalog),
   };
 }
 
@@ -528,6 +543,89 @@ function parseExampleIds(value: unknown): string[] {
     }
   }
   return ids;
+}
+
+function catalogParseSummary(input: RehearsalCatalogParseSummary): RehearsalCatalogParseSummary {
+  if (
+    !isNonNegativeInteger(input.waitingAtDeadline) ||
+    !isNonNegativeInteger(input.oversizeRaised) ||
+    !isNonNegativeInteger(input.oversizeGaveUp)
+  ) {
+    throw new Error('invalid_counts');
+  }
+  const failedByReason: Partial<Record<FeedParseFailureReason, number>> = {};
+  for (const reason of FEED_PARSE_FAILURE_REASONS) {
+    const count = input.failedByReason[reason];
+    if (count === undefined) {
+      continue;
+    }
+    if (!isNonNegativeInteger(count)) {
+      throw new Error('invalid_counts');
+    }
+    if (count > 0) {
+      failedByReason[reason] = count;
+    }
+  }
+  return {
+    waitingAtDeadline: input.waitingAtDeadline,
+    failedByReason,
+    oversizeRaised: input.oversizeRaised,
+    oversizeGaveUp: input.oversizeGaveUp,
+  };
+}
+
+function parseCatalog(value: unknown): RehearsalCatalogParseSummary | null {
+  if (!isRecord(value) || !isNonNegativeInteger(value.waitingAtDeadline)) {
+    return null;
+  }
+  const failedByReason = parseFailedByReason(value.failedByReason);
+  if (failedByReason === null) {
+    return null;
+  }
+  const oversizeRaised = nonNegativeCountOrZero(value.oversizeRaised);
+  const oversizeGaveUp = nonNegativeCountOrZero(value.oversizeGaveUp);
+  if (oversizeRaised === null || oversizeGaveUp === null) {
+    return null;
+  }
+  return {
+    waitingAtDeadline: value.waitingAtDeadline,
+    failedByReason,
+    oversizeRaised,
+    oversizeGaveUp,
+  };
+}
+
+/** A missing count is zero. A present count that is not a non-negative integer is invalid. */
+function nonNegativeCountOrZero(value: unknown): number | null {
+  if (value === undefined) {
+    return 0;
+  }
+  if (!isNonNegativeInteger(value)) {
+    return null;
+  }
+  return value;
+}
+
+function parseFailedByReason(
+  value: unknown
+): Partial<Record<FeedParseFailureReason, number>> | null {
+  if (!isRecord(value)) {
+    return null;
+  }
+  const counts: Partial<Record<FeedParseFailureReason, number>> = {};
+  for (const reason of FEED_PARSE_FAILURE_REASONS) {
+    if (!Object.prototype.hasOwnProperty.call(value, reason)) {
+      continue;
+    }
+    const count = value[reason];
+    if (!isNonNegativeInteger(count)) {
+      return null;
+    }
+    if (count > 0) {
+      counts[reason] = count;
+    }
+  }
+  return counts;
 }
 
 function parseStop(value: unknown): StopRecord | null {
@@ -617,7 +715,34 @@ function renderSummaryMarkdown(summary: SummaryFile): string {
     lines.push(`| ${name} | ${entry.count} |`);
   }
   lines.push('');
+  appendCatalogMarkdown(lines, summary.catalog);
   return lines.join('\n');
+}
+
+function appendCatalogMarkdown(
+  lines: string[],
+  catalog: RehearsalCatalogParseSummary | undefined
+): void {
+  if (catalog === undefined) {
+    return;
+  }
+  lines.push('## Catalog parse failures by reason', '');
+  lines.push('| Reason | Count |');
+  lines.push('| --- | --- |');
+  for (const reason of FEED_PARSE_FAILURE_REASONS) {
+    const count = catalog.failedByReason[reason];
+    if (count === undefined) {
+      continue;
+    }
+    lines.push(`| ${reason} | ${count} |`);
+  }
+  lines.push(
+    '',
+    `- Waiting at deadline: ${catalog.waitingAtDeadline}`,
+    `- Oversize raised: ${catalog.oversizeRaised}`,
+    `- Oversize gave up: ${catalog.oversizeGaveUp}`,
+    ''
+  );
 }
 
 class RehearsalLogWriter implements RehearsalLog {
@@ -627,6 +752,7 @@ class RehearsalLogWriter implements RehearsalLog {
   private readonly classes = new Map<string, ClassTotals>();
   private readonly cursors = new Map<RehearsalPhase, ProgressCursor>();
   private stop: StopRecord | null = null;
+  private catalog: RehearsalCatalogParseSummary | null = null;
   private chain: Promise<void> = Promise.resolve();
 
   constructor(dir: string, runId: string, loaded: LoadedSummary | null) {
@@ -648,6 +774,7 @@ class RehearsalLogWriter implements RehearsalLog {
       });
     }
     this.stop = loaded.stop;
+    this.catalog = loaded.catalog;
   }
 
   writeRun(input: RunInput): Promise<void> {
@@ -818,6 +945,14 @@ class RehearsalLogWriter implements RehearsalLog {
     });
   }
 
+  recordCatalog(input: RehearsalCatalogParseSummary & { now: Date }): Promise<void> {
+    const catalog = catalogParseSummary(input);
+    return this.enqueue(async () => {
+      this.catalog = catalog;
+      await this.flushSummary(input.now);
+    });
+  }
+
   recordStop(input: { phase: RehearsalPhase; now: Date }): Promise<void> {
     assertPhase(input.phase);
     return this.enqueue(async () => {
@@ -969,13 +1104,22 @@ class RehearsalLogWriter implements RehearsalLog {
       }
       classes[name] = { count: entry.count, exampleV4Ids: [...entry.exampleV4Ids] };
     }
-    return {
+    const summary: SummaryFile = {
       runId: this.runId,
       updatedAt: now.toISOString(),
       phases,
       classes,
       stop: this.stop,
     };
+    if (this.catalog !== null) {
+      summary.catalog = {
+        waitingAtDeadline: this.catalog.waitingAtDeadline,
+        failedByReason: { ...this.catalog.failedByReason },
+        oversizeRaised: this.catalog.oversizeRaised,
+        oversizeGaveUp: this.catalog.oversizeGaveUp,
+      };
+    }
+    return summary;
   }
 
   private async flushSummary(now: Date): Promise<void> {

@@ -166,3 +166,109 @@
 - Who notices: people following a podcast, playlist, or account at the limit, and operators
   raising one account
 - Operator steps: none
+
+## v4 playlist follows survive copy order
+
+- Surfaces: workers (v4 migration), database
+- Change: a v4 playlist follow whose playlist is not copied yet is recorded and finished by
+  replay instead of being skipped. Migration `0014` adds the `follow_playlist` pending row kind.
+- Who notices: v4 users who follow another user's playlist
+- Operator steps: apply linear migrations
+
+## v4 queue and history rows that point at clips
+
+- Surfaces: workers (v4 migration)
+- Change: a v4 queue, history, or now-playing row that points at another user's clip is written
+  as that clip when it is already copied, or as its episode until replay swaps the clip in.
+  Official chapters and soundbites are written as their episode and recorded.
+- Who notices: v4 users who queued or played other users' clips or chapters
+- Operator steps: none
+
+## Large v4 listening histories are kept
+
+- Surfaces: database, workers (v4 migration)
+- Change: migration `0015` adds a per-account queue size tier (20k to 100k rows; default stays 10k). The v4 copy gives accounts with larger histories the smallest tier that fits instead of evicting history, and inserts their rows without a per-row count.
+- Who notices: about 25 v4 accounts with more than 10,000 history rows
+- Operator steps: apply linear migrations
+
+## v4 email-case twins keep both libraries
+
+- Surfaces: workers (v4 migration)
+- Change: when v4 stored one address twice with different letter case, the identity seed records the left-out v4 id in `legacy_id_map` (`resolve_key` `email_case_twin`) pointing at the account that kept the address. `v4CopyAccountLibrary` then merges that row's library (subscriptions, followed playlists and users, Add by RSS feeds, playlists, clips, queue, history, now playing) into the kept account, only after the kept account's own copy closed (`skip_merge_waiting` until then). Playlists and clips keep their v4 ids with the kept account as owner; a follow, feed, or queue item both rows had is kept once, and the follow, Add by RSS, and queue caps use the combined counts. Follows of either v4 id, including replayed ones, land on the kept account. The full rehearsal marks the left-out id's identity done against the kept account, defers its membership, runs its library after every other library, and verifies only its library coverage.
+- Who notices: about 50 v4 users whose address was stored twice; 36 had use on both rows
+- Operator steps: none
+
+## v4 migration commands require UTC
+
+- Surfaces: workers
+- Change: v4 migration commands read v4 dates as UTC and refuse to start unless the process runs
+  in UTC. The `v4_*` npm scripts set `TZ=UTC`.
+- Who notices: operators running a v4 rehearsal or migration from a laptop; trial and paid end
+  dates no longer shift by the host timezone
+- Operator steps: none when using the npm scripts
+
+## v4 "Only with link" playlists and clips stay shareable
+
+- Surfaces: workers (v4 migration)
+- Change: the v4 library copy writes v4 playlists and clips that were "Only with link" as unlisted
+  instead of private. Every v4 playlist was "Only with link".
+- Who notices: v4 users whose shared playlist or clip links would otherwise return 404 after
+  migration; followers of those playlists
+- Operator steps: none
+
+## v4 Add by RSS copy skips values that are not feed URLs
+
+- Surfaces: workers (v4 migration)
+- Change: v4 Add by RSS entries that are not http(s) URLs (file references, hashtags, stray text)
+  are skipped and counted instead of failing the account's whole Add by RSS copy.
+- Who notices: about 31 v4 accounts that would otherwise have lost every Add by RSS feed
+- Operator steps: none
+
+## Feed parse failures record a reason
+
+- Surfaces: parser, workers, database
+- Change: migration `0013` adds `feed_log.last_parse_failure_reason` (HTTP class, body too large,
+  DNS, TLS, timeout, connection, not a feed, database error, parse error). A finished parse clears
+  it. Parser failure logs are one line with the reason and never include the response body.
+- Who notices: operators reading parser logs or feed logs
+- Operator steps: apply linear migrations
+
+## v4 migration feed retries settle sooner
+
+- Surfaces: workers (v4 migration)
+- Change: a migration feed that fails for a permanent reason (404, 410, missing host, not a feed,
+  no feed URL) stops after 2 attempts. Other failures retry over about 3 days instead of 11. The
+  rehearsal's catalog wait ends after `--catalog-wait-hours` (default 24); remaining feeds keep
+  retrying and replay finishes them. The summary counts failures by reason.
+- Who notices: operators running a v4 rehearsal or migration
+- Operator steps: keep the scheduled job loop running after the catalog phase; rerun replay until
+  waiting rows are gone
+
+## Large v4-subscribed feeds parse during migration
+
+- Surfaces: workers (v4 migration)
+- Change: a v4 migration feed blocked for a body over the parser limit gets the maximum body limit
+  (50,000,000 bytes) and one more parse. If it is still too large it fails with reason
+  `body_too_large`. Ordinary parsing is unchanged.
+- Who notices: v4 subscribers of very large shows (about 250 at full scale) who would otherwise
+  see them empty
+- Operator steps: none
+
+## Feeds with huge episode durations parse again
+
+- Surfaces: parser
+- Change: an episode duration, soundbite, chapter, or value time split of 100,000,000 seconds or
+  more (or negative, or not a number) is dropped or stored empty instead of failing the whole feed
+  parse.
+- Who notices: listeners of feeds that publish durations in milliseconds or bytes; their episodes
+  now appear
+- Operator steps: none
+
+## v4 public profiles stay public
+
+- Surfaces: workers (v4 migration)
+- Change: a v4 account whose profile was public is created public in v5; every other migrated
+  account stays private.
+- Who notices: about 1,381 v4 users with public profiles, and people who follow them or have their
+  profile links
+- Operator steps: none

@@ -28,6 +28,7 @@ function args(overrides: Partial<ParsedRehearsalArgs> = {}): ParsedRehearsalArgs
     retryFailed: false,
     limit: null,
     runId: RUN_ID,
+    catalogWaitHours: 24,
     ...overrides,
   };
 }
@@ -93,6 +94,7 @@ function fakeLog(sink: Sink): RehearsalLog {
     recordStop: async (input) => {
       sink.events.push(`recordStop:${input.phase}`);
     },
+    recordCatalog: async () => undefined,
   };
 }
 

@@ -25,7 +25,7 @@ import {
 import type { FeedObject } from 'podverse-partytime/core';
 import { parseFeed } from 'podverse-partytime/core';
 
-import type { ImageShrinkHint } from '@podverse/helpers';
+import type { FeedParseFailureReason, ImageShrinkHint } from '@podverse/helpers';
 import {
   DEFAULT_HTTP_TIMEOUT_MS,
   getOnDemandParserEventDateRange,
@@ -35,7 +35,6 @@ import {
   resolveParserMaxFeedBodyBytes,
   sleep,
 } from '@podverse/helpers';
-import { getStatusCodeFromError, isTlsOrProtocolError } from '@podverse/helpers-requests';
 import { canonicalHttpOrHttpsUrl } from '@podverse/helpers-validation';
 import type { Channel, Feed, FeedPolicy, Item } from '@podverse/orm';
 import {
@@ -67,9 +66,19 @@ import { handleNewItemNotifications } from '../notifications/handleNewItemNotifi
 import { handleNewLiveItemNotifications } from '../notifications/handleNewLiveItemNotifications.js';
 import { handleNewRemoteItemNotifications } from '../notifications/handleNewRemoteItemNotifications.js';
 import { newRemoteItemsFromParsedChannel } from '../notifications/remoteAlbumNotification.js';
-import { FeedIsParsingError, FeedNoChangesSinceLastParsedError } from './errors.js';
+import {
+  FeedIsParsingError,
+  FeedNoChangesSinceLastParsedError,
+  FeedNotAFeedError,
+} from './errors.js';
+import {
+  classifyFeedParseFailure,
+  isMaxResponseSizeError,
+  readFeedParseHttpStatus,
+} from './feed/classifyFeedParseFailure.js';
 import { getParsedFeedMd5Hash } from './hash/parsedFeed.js';
 import { createParsedItemStableKeySet } from './itemStableKey.js';
+import { installPartytimeResponseBodyLogFilter } from './partytimeLogFilter.js';
 
 /*
   NOTE: All RSS feeds that have a podcast_index_id will be saved to the database.
@@ -77,6 +86,7 @@ import { createParsedItemStableKeySet } from './itemStableKey.js';
 */
 
 export const getAndParseRSSFeed = async (url: string, maxFeedBodyBytes: number) => {
+  installPartytimeResponseBodyLogFilter();
   const response = await _request(url, {
     maxResponseBytes: maxFeedBodyBytes,
   });
@@ -90,7 +100,7 @@ export const getAndParseRSSFeed = async (url: string, maxFeedBodyBytes: number) 
         `getAndParseRSSFeed: response body exceeds max (${bodyBytes} > ${maxFeedBodyBytes}) for ${url}`
       );
     }
-    throw new Error(`getAndParseRSSFeed: parsedFeed not found for ${url}`);
+    throw new FeedNotAFeedError();
   }
 
   return parsedFeed;
@@ -182,17 +192,49 @@ async function resolvePendingChannelFollows({
   }
 }
 
-function isMaxResponseSizeError(error: unknown): boolean {
-  if (!(error instanceof Error)) {
-    return false;
-  }
+const FEED_PARSE_FAILURE_DETAIL_REASONS = new Set<FeedParseFailureReason>([
+  'db_value_out_of_range',
+  'db_error',
+  'parse_error',
+  'unknown',
+]);
 
-  const message = error.message.toLowerCase();
-  return (
-    message.includes('maxcontentlength') ||
-    message.includes('maxbodylength') ||
-    message.includes('response body exceeds max')
-  );
+function feedParseFailureDetail(error: unknown): string {
+  let message = '';
+  if (error instanceof Error) {
+    message = error.message;
+  } else if (typeof error === 'string') {
+    message = error;
+  }
+  const firstLine = message.split(/\r?\n/, 1)[0] ?? '';
+  return firstLine.replace(/<[^>]*>/g, '').slice(0, 200);
+}
+
+function logFeedParseFailure(
+  feed: Feed | null,
+  podcastIndexId: number,
+  error: unknown,
+  reason: FeedParseFailureReason,
+  statusCode: number | null
+): void {
+  const feedId = feed === null ? 'none' : String(feed.id);
+  const httpStatus = statusCode === null ? 'none' : String(statusCode);
+  let line = `Feed parse failed: feed_id=${feedId} podcast_index_id=${podcastIndexId} reason=${reason} http_status=${httpStatus}`;
+  if (FEED_PARSE_FAILURE_DETAIL_REASONS.has(reason)) {
+    const detail = feedParseFailureDetail(error);
+    if (detail.length > 0) {
+      line = `${line} ${detail}`;
+    }
+  }
+  loggerService.warn(line);
+  if (
+    FEED_PARSE_FAILURE_DETAIL_REASONS.has(reason) &&
+    error instanceof Error &&
+    typeof error.stack === 'string' &&
+    error.stack.length > 0
+  ) {
+    loggerService.debug(error.stack);
+  }
 }
 
 function assertLifecycleAndPolicyAllowParse(feed: Feed, feedPolicy: FeedPolicy | null): void {
@@ -469,7 +511,10 @@ export const parseRSSFeedAndSaveToDatabase = async (
     await deleteRemoteStubsForParsedFeed(feed, channel.id);
 
     const feedLogService = new FeedLogService();
-    await feedLogService.update(feed, { last_finished_parse_time: new Date() });
+    await feedLogService.update(feed, {
+      last_finished_parse_time: new Date(),
+      last_parse_failure_reason: null,
+    });
     parseSucceeded = true;
   } catch (error) {
     if (feed?.id && isMaxResponseSizeError(error)) {
@@ -492,21 +537,16 @@ export const parseRSSFeedAndSaveToDatabase = async (
       parseSkippedNoChanges = true;
       loggerService.warn(`Feed ${feed?.id} has no changes since last parsed.`);
     } else {
-      const statusCode = getStatusCodeFromError(error);
+      const reason = classifyFeedParseFailure(error);
+      const statusCode = readFeedParseHttpStatus(error);
       if (feed) {
         const feedLogService = new FeedLogService();
         await recordFeedParseFailure(feed, feedLogService, {
-          ...(statusCode ? { last_http_status: statusCode } : {}),
+          ...(typeof statusCode === 'number' ? { last_http_status: statusCode } : {}),
+          last_parse_failure_reason: reason,
         });
       }
-      if (isTlsOrProtocolError(error)) {
-        const tlsDetail = error instanceof Error ? error.message : String(error);
-        loggerService.warn(
-          `parseRSSFeedAndSaveToDatabase TLS/protocol error (feed skipped): ${url} podcast_index_id=${podcast_index_id} feed_id=${feed?.id ?? 'unknown'} — ${tlsDetail}`
-        );
-      } else {
-        loggerService.logError('parseRSSFeedAndSaveToDatabase', error as Error);
-      }
+      logFeedParseFailure(feed, podcast_index_id, error, reason, statusCode);
     }
   } finally {
     loggerService.info(

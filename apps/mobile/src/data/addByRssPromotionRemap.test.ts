@@ -1,6 +1,9 @@
 import { describe, expect, it } from 'vitest';
 
-import { DEVICE_PLAYBACK_ACCOUNT_ID, DEVICE_PLAYBACK_QUEUE_ID } from '../lib/playback/devicePlaybackKey';
+import {
+  DEVICE_PLAYBACK_ACCOUNT_ID,
+  DEVICE_PLAYBACK_QUEUE_ID,
+} from '../lib/playback/devicePlaybackKey';
 import type { AddByRssPromotionMove, AddByRssPromotionSnapshot } from './addByRssPromotionRemap';
 import { addByRssPromotionRemap } from './addByRssPromotionRemap';
 import type { IdentityPlayback } from './identityRemap';
@@ -140,9 +143,7 @@ describe('addByRssPromotionRemap', () => {
       { channelIdText: CHANNEL, filePath: '/matched.mp3', itemIdText: ITEM },
       { channelIdText: FEED, filePath: '/unmatched.mp3', itemIdText: UNMATCHED },
     ]);
-    expect(result.movedDownloadItemIds).toEqual([
-      { fromItemIdText: DOWNLOAD, toItemIdText: ITEM },
-    ]);
+    expect(result.movedDownloadItemIds).toEqual([{ fromItemIdText: DOWNLOAD, toItemIdText: ITEM }]);
     expect(result.snapshot.playableItems).toEqual([
       { itemIdText: ITEM, payloadJson: `{"id_text":"${ITEM}"}`, source: 'download' },
       { itemIdText: 'live-1', payloadJson: '{}', source: 'live' },
@@ -227,10 +228,7 @@ describe('addByRssPromotionRemap', () => {
   });
 
   it('stores a feed-level position on the device playback key when no row exists yet', () => {
-    const result = addByRssPromotionRemap(
-      { ...emptySnapshot(), feedPlaybackPosition: '15' },
-      move
-    );
+    const result = addByRssPromotionRemap({ ...emptySnapshot(), feedPlaybackPosition: '15' }, move);
     expect(result.snapshot.playback).toEqual([
       {
         accountIdText: DEVICE_PLAYBACK_ACCOUNT_ID,

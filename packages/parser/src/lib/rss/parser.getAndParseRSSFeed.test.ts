@@ -6,11 +6,13 @@ vi.mock('../_request.js', () => ({
 
 vi.mock('podverse-partytime/core', () => ({
   parseFeed: vi.fn(),
+  setPartytimeLogger: vi.fn(),
 }));
 
 import { parseFeed } from 'podverse-partytime/core';
 
 import { _request } from '../_request.js';
+import { FeedNotAFeedError } from './errors.js';
 import { getAndParseRSSFeed } from './parser.js';
 
 describe('getAndParseRSSFeed', () => {
@@ -43,8 +45,8 @@ describe('getAndParseRSSFeed', () => {
     vi.mocked(_request).mockResolvedValue({ data: '<rss></rss>' });
     vi.mocked(parseFeed).mockReturnValue(null);
 
-    await expect(getAndParseRSSFeed('https://example.com/feed.xml', 12345)).rejects.toThrow(
-      'getAndParseRSSFeed: parsedFeed not found for https://example.com/feed.xml'
+    await expect(getAndParseRSSFeed('https://example.com/feed.xml', 12345)).rejects.toBeInstanceOf(
+      FeedNotAFeedError
     );
   });
 

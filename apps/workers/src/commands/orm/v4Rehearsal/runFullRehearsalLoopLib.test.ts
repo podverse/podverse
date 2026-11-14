@@ -4,6 +4,7 @@ import type { AccountPhaseStatusValue } from './accountPhaseStatus.js';
 import {
   assertProgressLine,
   failureWindowTripped,
+  mergedIdsLast,
   parseStoredPick,
   parseStoredRun,
   progressCounts,
@@ -185,5 +186,20 @@ describe('assertProgressLine', () => {
       'invalid_progress_line'
     );
     expect(errorMessage(() => assertProgressLine('phase=library'))).toBe('invalid_progress_line');
+  });
+});
+
+describe('mergedIdsLast', () => {
+  it('runs email-case twin merges after every other library and keeps each group in order.', () => {
+    expect(
+      mergedIdsLast(
+        ['twin0001', 'kept0001', 'twin0002', 'kept0002'],
+        new Set(['twin0001', 'twin0002'])
+      )
+    ).toEqual(['kept0001', 'kept0002', 'twin0001', 'twin0002']);
+    expect(mergedIdsLast(['kept0001', 'kept0002'], new Set<string>())).toEqual([
+      'kept0001',
+      'kept0002',
+    ]);
   });
 });

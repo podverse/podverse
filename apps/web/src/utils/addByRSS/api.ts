@@ -102,8 +102,7 @@ export const enqueueAddByRSSParseAll = async (params: {
 
 export const matchAddByRSSFeeds = async (
   feeds: DTOAddByRSSMatchFeedRef[]
-): Promise<DTOAddByRSSMatchResponse> =>
-  getApiRequestService().reqChannelAddByRSSMatch({ feeds });
+): Promise<DTOAddByRSSMatchResponse> => getApiRequestService().reqChannelAddByRSSMatch({ feeds });
 
 export const convertAddByRSSFeed = async (params: {
   feed_url: string;

@@ -11,6 +11,7 @@ const PILOT: ParsedRehearsalArgs = {
   retryFailed: false,
   limit: null,
   runId: null,
+  catalogWaitHours: 24,
 };
 
 const RUN_ID = '20261113T043700Z';
@@ -58,7 +59,27 @@ describe('parseRehearsalArgs', () => {
       retryFailed: true,
       limit: 0,
       runId: RUN_ID,
+      catalogWaitHours: 24,
     });
+  });
+
+  it('accepts --catalog-wait-hours 6 and rejects 0, a negative, a blank, and a non-number.', () => {
+    expect(parseRehearsalArgs({ stage: 'pilot', 'catalog-wait-hours': '6' }).catalogWaitHours).toBe(
+      6
+    );
+    const message = '--catalog-wait-hours must be a positive number.';
+    expect(
+      errorMessage(() => parseRehearsalArgs({ stage: 'pilot', 'catalog-wait-hours': '0' }))
+    ).toBe(message);
+    expect(
+      errorMessage(() => parseRehearsalArgs({ stage: 'pilot', 'catalog-wait-hours': '-1' }))
+    ).toBe(message);
+    expect(
+      errorMessage(() => parseRehearsalArgs({ stage: 'pilot', 'catalog-wait-hours': '' }))
+    ).toBe(message);
+    expect(
+      errorMessage(() => parseRehearsalArgs({ stage: 'pilot', 'catalog-wait-hours': 'no' }))
+    ).toBe(message);
   });
 
   it('throws Missing --stage. when --stage is missing or blank.', () => {

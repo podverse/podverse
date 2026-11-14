@@ -65,12 +65,18 @@ function storedLimitFromRows(rows: unknown): number | null {
 }
 
 /** Serializes follow inserts for one account. */
-export async function lockAccountForFollow(manager: EntityManager, accountId: number): Promise<void> {
+export async function lockAccountForFollow(
+  manager: EntityManager,
+  accountId: number
+): Promise<void> {
   await manager.query(`SELECT id FROM account WHERE id = $1 FOR UPDATE`, [accountId]);
 }
 
 /** Channel, playlist, and account follows, counted together, plus the stored tier. */
-export async function readFollowRoom(manager: EntityManager, accountId: number): Promise<FollowRoom> {
+export async function readFollowRoom(
+  manager: EntityManager,
+  accountId: number
+): Promise<FollowRoom> {
   const storedRows = await manager.query(
     `SELECT max_follows FROM account_membership_status WHERE account_id = $1`,
     [accountId]
@@ -89,10 +95,7 @@ export async function readFollowRoom(manager: EntityManager, accountId: number):
   };
 }
 
-export function decideFollowRoom(
-  room: FollowRoom,
-  alreadyFollowed: boolean
-): FollowInsertDecision {
+export function decideFollowRoom(room: FollowRoom, alreadyFollowed: boolean): FollowInsertDecision {
   return decideFollowInsert({
     alreadyFollowed,
     followedCount: room.followedCount,

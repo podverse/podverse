@@ -343,10 +343,7 @@ const nextAutoDownloadCandidates = (
     const nextId = itemIdForResource(row.itemIdText, hashToItem, downloadToItem);
     return {
       originalItemIdText: row.itemIdText,
-      row:
-        nextId === undefined
-          ? row
-          : { ...row, channelIdText, itemIdText: nextId },
+      row: nextId === undefined ? row : { ...row, channelIdText, itemIdText: nextId },
     };
   });
   const next: IdentityAutoDownloadItem[] = [];
@@ -516,12 +513,7 @@ export const addByRssPromotionRemap = (
         downloadToItem
       ),
       playbackOutbox: nextOutbox(snapshot.playbackOutbox, hashToItem, downloadToItem),
-      sectionChrome: nextSectionChrome(
-        snapshot.sectionChrome,
-        move,
-        hashToItem,
-        downloadToItem
-      ),
+      sectionChrome: nextSectionChrome(snapshot.sectionChrome, move, hashToItem, downloadToItem),
       subscribedChannelIds,
     },
   };

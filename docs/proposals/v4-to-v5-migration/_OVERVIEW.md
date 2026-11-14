@@ -117,7 +117,8 @@ commits them.
 | Beta cookies stay on each API host, not on .podverse.fm                  | Decided |
 | Over a v5 cap default, the copy writes the smallest covering tier        | Decided |
 | Cap tiers are chosen per account at copy time, not from the snapshot     | Decided |
-| Past tier 10,000 a group stops for the operator; nothing is truncated    | Decided |
+| Past the last tier a group stops for the operator                        | Decided |
+| A queue past 100,000 keeps 100,000 rows and is `needs_operator`          | Decided |
 | A tier is the cap after the copy; removing rows does not lower it        | Decided |
 | Every account is copied to a local v5 database before the grace period   | Decided |
 | Full rehearsal stages: pilot by rule, then 1,000 random, then all        | Decided |
@@ -204,11 +205,11 @@ flowchart LR
    build that temporarily uses the v4 store ids in a private channel. The
    feed-list field reading is written in that doc and gates the Continue
    Migration screen. It is not the next rehearsal step.
-5. **Add by RSS directory match**
+3. **Add by RSS directory match**
    ([08](08-mobile-first-launch-migration.md#add-by-rss-directory-match)) on
    mobile, web, and the API. It ships on its own, before the migration.
-3. **Store identity and signing inventory** ([03](03-store-identity-and-signing.md)).
-4. **Legacy-id map design** ([05](05-id-mapping-and-catalog-seeding.md)).
+4. **Store identity and signing inventory** ([03](03-store-identity-and-signing.md)).
+5. **Legacy-id map design** ([05](05-id-mapping-and-catalog-seeding.md)).
 
 ## Related existing material
 

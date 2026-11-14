@@ -1,14 +1,19 @@
 import { timerManager } from '@parser/factories/timerManager.js';
 import type { FeedObject } from 'podverse-partytime/core';
 
-import { getStatusCodeFromError, throwRequestError } from '@podverse/helpers-requests';
+import { throwRequestError } from '@podverse/helpers-requests';
 import type { Feed } from '@podverse/orm';
 import { FeedLogService, FeedService } from '@podverse/orm';
 
 import { getParserConfig } from '../../../context.js';
-import { FeedIsParsingError, FeedNoChangesSinceLastParsedError } from '../errors.js';
+import {
+  FeedIsParsingError,
+  FeedNoChangesSinceLastParsedError,
+  FeedNotAFeedError,
+} from '../errors.js';
 import { getParsedFeedMd5Hash } from '../hash/parsedFeed.js';
 import { getAndParseRSSFeed } from '../parser.js';
+import { classifyFeedParseFailure, readFeedParseHttpStatus } from './classifyFeedParseFailure.js';
 import { recordFeedParseFailure } from './recordFeedParseFailure.js';
 
 export const handleGetRSSFeed = async (url: string, podcast_index_id: number): Promise<Feed> => {
@@ -63,9 +68,10 @@ export const handleRequestRSSFeed = async (
       last_good_http_status_time: new Date(),
     });
   } catch (error) {
-    const statusCode = getStatusCodeFromError(error);
+    const statusCode = readFeedParseHttpStatus(error);
     await recordFeedParseFailure(feed, feedLogService, {
-      ...(statusCode ? { last_http_status: statusCode } : {}),
+      ...(typeof statusCode === 'number' ? { last_http_status: statusCode } : {}),
+      last_parse_failure_reason: classifyFeedParseFailure(error),
     });
     return throwRequestError(error);
   }
@@ -73,8 +79,9 @@ export const handleRequestRSSFeed = async (
   if (!parsedFeed) {
     await recordFeedParseFailure(feed, feedLogService, {
       last_http_status: 200,
+      last_parse_failure_reason: 'not_a_feed',
     });
-    return throwRequestError('parsedFeed no data found');
+    return throwRequestError(new FeedNotAFeedError());
   }
 
   timerManager.end('handleRequestRSSFeed');

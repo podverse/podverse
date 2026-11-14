@@ -71,12 +71,7 @@ describe('runSignedInAddByRssRefresh', () => {
         order.push('refresh');
       },
     });
-    expect(order).toEqual([
-      `convert:${FEED_A}`,
-      `convert:${FEED_B}`,
-      'membership',
-      'refresh',
-    ]);
+    expect(order).toEqual([`convert:${FEED_A}`, `convert:${FEED_B}`, 'membership', 'refresh']);
     expect(logFailure).toHaveBeenCalledTimes(1);
     expect(logFailure.mock.calls[0]?.[0]).toBe('promotion');
   });

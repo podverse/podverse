@@ -36,6 +36,7 @@ vi.mock('@podverse/helpers-requests', () => ({
   }),
 }));
 
+import { FeedNotAFeedError } from '../errors.js';
 import { handleRequestRSSFeed } from './feed.js';
 
 const feed = {
@@ -53,12 +54,11 @@ describe('handleRequestRSSFeed empty parsed feed', () => {
   it('records parse failure instead of last_finished_parse_time when parsed feed is empty', async () => {
     getAndParseRSSFeedMock.mockResolvedValue(null);
 
-    await expect(handleRequestRSSFeed(feed, 10_000_000)).rejects.toThrow(
-      'parsedFeed no data found'
-    );
+    await expect(handleRequestRSSFeed(feed, 10_000_000)).rejects.toBeInstanceOf(FeedNotAFeedError);
 
     expect(recordFeedParseFailureMock).toHaveBeenCalledWith(feed, expect.any(Object), {
       last_http_status: 200,
+      last_parse_failure_reason: 'not_a_feed',
     });
     expect(feedLogUpdateMock).not.toHaveBeenCalledWith(
       feed,

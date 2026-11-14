@@ -21,8 +21,7 @@ export type AddByRssMigrationTier =
   | { outcome: 'needs_operator' };
 
 export type AddByRssFeedInsertDecision =
-  | { action: 'update' | 'insert' }
-  | { action: 'refuse'; limit: number };
+  { action: 'update' | 'insert' } | { action: 'refuse'; limit: number };
 
 export function isUnlimitedAddByRssFeedLimit(
   value: number | null | undefined

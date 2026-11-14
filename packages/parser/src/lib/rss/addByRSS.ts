@@ -12,6 +12,7 @@ import { canonicalHttpOrHttpsUrl } from '@podverse/helpers-validation';
 import type { CredentialsWithheldDecision } from './addByRSSRedirectAuth.js';
 import { buildCredentialScopedBeforeRedirect } from './addByRSSRedirectAuth.js';
 import { getRawFeedMd5Hash } from './hash/rawFeed.js';
+import { installPartytimeResponseBodyLogFilter } from './partytimeLogFilter.js';
 
 export type AddByRSSConditionalCache = {
   feedHash?: string;
@@ -143,6 +144,7 @@ export const parseRSSFeedForAddByRSS = async (
     };
   }
 
+  installPartytimeResponseBodyLogFilter();
   const parsedFeed = parseFeed(rawFeed, {
     allowMissingGuid: true,
     maxFeedBodyBytes: resolveParserMaxFeedBodyBytes(process.env.PARSER_MAX_FEED_BODY_BYTES),

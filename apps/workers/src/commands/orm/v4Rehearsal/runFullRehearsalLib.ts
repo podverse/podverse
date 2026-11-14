@@ -1,5 +1,6 @@
 import type { CommandLineArgs } from '@workers/commands/index.js';
 
+import { catalogWaitHoursFromArgs } from '../v4Catalog/catalogWaitHours.js';
 import { hasOption, optionValue } from '../v4Library/copyAccountLibrary.js';
 import type { RehearsalPhase, RehearsalStage } from './rehearsalLog.js';
 import { REHEARSAL_PHASES, REHEARSAL_STAGES } from './rehearsalLog.js';
@@ -15,6 +16,7 @@ const ALLOWED_KEYS = new Set([
   'retry-failed',
   'limit',
   'run-id',
+  'catalog-wait-hours',
 ]);
 
 export type ParsedRehearsalArgs = {
@@ -24,6 +26,7 @@ export type ParsedRehearsalArgs = {
   retryFailed: boolean;
   limit: number | null;
   runId: string | null;
+  catalogWaitHours: number;
 };
 
 function assertKnownKeys(args: CommandLineArgs): void {
@@ -99,5 +102,6 @@ export function parseRehearsalArgs(args: CommandLineArgs): ParsedRehearsalArgs {
     retryFailed,
     limit: limitOrNull(args),
     runId: runIdOrNull(args, resume),
+    catalogWaitHours: catalogWaitHoursFromArgs(args),
   };
 }

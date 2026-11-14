@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
+import { parseLegacyMembershipExpiresAt } from './importLegacyMembershipExpiryLib.js';
 import type {
   PaidExpiryQueryRow,
   RebuildLegacyMembershipExpiryFileResult,
@@ -62,6 +63,9 @@ describe('addUtcYears', () => {
 describe('PAID_EXPIRY_SOURCE_SQL', () => {
   it('reads membership and the App Store window and does not write', () => {
     expect(PAID_EXPIRY_SOURCE_SQL).toContain('"membershipExpiration"');
+    expect(PAID_EXPIRY_SOURCE_SQL).toContain(
+      `to_char(u."membershipExpiration", 'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"')`
+    );
     expect(PAID_EXPIRY_SOURCE_SQL).toContain('"appStorePurchase"');
     expect(PAID_EXPIRY_SOURCE_SQL).toContain('"ownerId"');
     expect(PAID_EXPIRY_SOURCE_SQL).toContain('purchase_date_ms');
@@ -75,6 +79,30 @@ describe('PAID_EXPIRY_SOURCE_SQL', () => {
 });
 
 describe('buildPaidExpiryCsv', () => {
+  it('keeps the instant of an expiry read as UTC text', () => {
+    const stored = '2026-11-14T21:28:39.000Z';
+    expect(parseLegacyMembershipExpiresAt(stored)).toEqual(new Date(stored));
+    expect(
+      buildPaidExpiryCsv(
+        ['utc'],
+        [
+          queryRow({
+            id_text: 'utc',
+            email: 'utc@example.com',
+            membership_expires_at: stored,
+          }),
+        ],
+        NOW
+      )
+    ).toEqual(
+      expiryFile(`email,membership_expires_at\nutc@example.com,${stored}\n`, {
+        rowsWritten: 1,
+        futureUncapped: 1,
+        futureIds: ['utc'],
+      })
+    );
+  });
+
   it('keeps a year-9000 expiry when there is no App Store window row', () => {
     const stored = '9000-01-01T00:00:00Z';
     expect(

@@ -245,7 +245,8 @@ and counts. Episodes that left the feed are not copied.
 
 Base + ORM + MQ, plus `V4_DATABASE_URL` read by this command. The command does
 not refresh that snapshot. `--stage` is `pilot`, `sample`, or `full`. Optional
-flags are `--phase`, `--resume`, `--run-id`, `--retry-failed`, and `--limit`.
+flags are `--phase`, `--resume`, `--run-id`, `--retry-failed`, `--limit`, and
+`--catalog-wait-hours` (default 24).
 Apply refuses unless `DB_HOST` is local.
 
 `sample` and `full` restore `.artifacts/v4-full-rehearsal/clean.dump` unless
@@ -259,7 +260,9 @@ when both are non-empty. Otherwise they use the read-write pair. The password
 is passed only as the spawned process environment `PGPASSWORD`. It is not a
 process argument and it is not logged.
 
-The catalog phase waits until feeds are settled. It does not start the parser.
+The catalog phase waits until feeds are settled or `--catalog-wait-hours` is
+reached, whichever is first. Feeds still waiting keep retrying, and a later
+replay finishes their pending rows. It does not start the parser.
 Before `sample` and `full` restore, other client sessions on the local app
 database are disconnected. Start the parser again after the restore line
 `rehearsal restore=finished` or the catalog wait does not end.

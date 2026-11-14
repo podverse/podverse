@@ -3,11 +3,11 @@ import type { MQOpmlImportFeed } from '@queue/types/mq.js';
 
 import {
   addByRssFeedLimitReachedMessage,
-  followLimitReachedMessage,
   buildOpmlImportHourlyKey,
   type CacheGetJson,
   type CacheSetJson,
   emptyOpmlImportTotals,
+  followLimitReachedMessage,
   getOpmlImportHourBucket,
   getOpmlImportRetryAfterSeconds,
   incrementOpmlImportTotals,
@@ -24,8 +24,8 @@ import {
   AccountPendingFollowingChannelService,
   AddByRssFeedLimitReachedError,
   FeedService,
-  FollowLimitReachedError,
   findBlockedFeed,
+  FollowLimitReachedError,
 } from '@podverse/orm';
 
 import { mqRSSAdd } from './add.js';

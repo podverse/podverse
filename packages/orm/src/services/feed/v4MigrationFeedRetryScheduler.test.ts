@@ -19,10 +19,13 @@ vi.mock('@orm/services/account/scheduledJob.js', () => ({
 
 import {
   buildV4MigrationFeedRetryDedupeKey,
+  decideMigrationFeedRetry,
   getV4MigrationFeedRetryBackoffMs,
   isV4MigrationFeedSettled,
   parseV4MigrationFeedRetryPayload,
   scheduleV4MigrationFeedRetry,
+  V4_MIGRATION_FEED_PERMANENT_MAX_ATTEMPTS,
+  V4_MIGRATION_FEED_RETRY_FIRST_DELAY_MS,
   V4_MIGRATION_FEED_RETRY_JOB_TYPE,
   V4_MIGRATION_FEED_RETRY_MAX_ATTEMPTS,
 } from './v4MigrationFeedRetryScheduler.js';
@@ -68,22 +71,55 @@ describe('scheduleV4MigrationFeedRetry', () => {
       run_after: runAfter,
     });
     expect(V4_MIGRATION_FEED_RETRY_MAX_ATTEMPTS).toBe(6);
+    expect(V4_MIGRATION_FEED_PERMANENT_MAX_ATTEMPTS).toBe(2);
+    expect(V4_MIGRATION_FEED_RETRY_FIRST_DELAY_MS).toBe(15 * 60 * 1000);
   });
 });
 
 describe('getV4MigrationFeedRetryBackoffMs', () => {
-  it('steps through 1 hour, 6 hours, 24 hours, 72 hours, and 168 hours', () => {
+  it('steps through 1 hour, 6 hours, and then one day', () => {
     expect([1, 2, 3, 4, 5].map(getV4MigrationFeedRetryBackoffMs)).toEqual([
       HOUR_MS,
       6 * HOUR_MS,
       24 * HOUR_MS,
-      72 * HOUR_MS,
-      168 * HOUR_MS,
+      24 * HOUR_MS,
+      24 * HOUR_MS,
     ]);
   });
 
-  it('keeps the longest delay past the ladder', () => {
-    expect(getV4MigrationFeedRetryBackoffMs(9)).toBe(168 * HOUR_MS);
+  it('keeps a one day delay past the ladder', () => {
+    expect(getV4MigrationFeedRetryBackoffMs(6)).toBe(24 * HOUR_MS);
+    expect(getV4MigrationFeedRetryBackoffMs(9)).toBe(24 * HOUR_MS);
+  });
+});
+
+describe('decideMigrationFeedRetry', () => {
+  it('retries a permanent failure on the first attempt', () => {
+    expect(decideMigrationFeedRetry(1, 'http_404')).toEqual({
+      action: 'retry',
+      message: 'Migration feed parse failed: reason=http_404',
+    });
+  });
+
+  it('fails a permanent failure on the second attempt', () => {
+    expect(decideMigrationFeedRetry(2, 'http_404')).toEqual({
+      action: 'fail',
+      reason: 'http_404',
+    });
+  });
+
+  it('retries a timeout on the fifth attempt', () => {
+    expect(decideMigrationFeedRetry(5, 'timeout')).toEqual({
+      action: 'retry',
+      message: 'Migration feed parse failed: reason=timeout',
+    });
+  });
+
+  it('retries a missing reason as unknown', () => {
+    expect(decideMigrationFeedRetry(4, null)).toEqual({
+      action: 'retry',
+      message: 'Migration feed parse failed: reason=unknown',
+    });
   });
 });
 

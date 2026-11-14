@@ -22,8 +22,8 @@ import type {
   PromotionOutbox,
 } from '../addByRssPromotionRemap';
 import { addByRssPromotionRemap } from '../addByRssPromotionRemap';
-import { getDb, initializeDatabase, schema } from '../db';
 import type { AppDatabase } from '../db';
+import { getDb, initializeDatabase, schema } from '../db';
 import type { DownloadRow } from '../db/schema';
 import type { IdentityPlayback } from '../identityRemap';
 import { reprojectLibraryChildrenForChannel, reprojectLibraryIndex } from '../nativeCache';
@@ -31,8 +31,8 @@ import { rowToListedFeedRecord } from './addByRssListedFeeds';
 import { addByRssRepository } from './addByRssRepository';
 import { formatDirectoryChannelGoneDetail } from './directoryChannelGone';
 import { downloadsRepository } from './downloadsRepository';
-import type { PlaybackOutboxResourceKind } from './playbackOutbox';
 import { playableItemRepository } from './playableItemRepository';
+import type { PlaybackOutboxResourceKind } from './playbackOutbox';
 import { playlistRepository } from './playlistRepository';
 import { queueRepository } from './queueRepository';
 import type { SubscribedChannel } from './subscriptionsMerge';
@@ -45,10 +45,8 @@ export const ADD_BY_RSS_PROMOTED_CODE = 'add_by_rss_promoted_to_directory';
 
 const ADD_BY_RSS_RESOURCE: PlaybackOutboxResourceKind = 'add_by_rss';
 
-/** The handle `getDb().transaction` passes its callback. Sync SQLite returns that handle directly. */
-const promotionTransaction = (db: AppDatabase) => db.transaction((tx) => tx);
-
-type PromotionTransaction = ReturnType<typeof promotionTransaction>;
+/** The handle `getDb().transaction` passes its callback. */
+type PromotionTransaction = Parameters<Parameters<AppDatabase['transaction']>[0]>[0];
 
 const playbackKey = (row: IdentityPlayback): string => {
   return `${row.accountIdText}\0${row.queueIdText}\0${row.resourceKind}\0${row.resourceIdText}`;
@@ -328,7 +326,9 @@ const persistDownloads = async (
   }
   for (const row of before.downloads) {
     if (!afterIds.has(row.itemIdText)) {
-      await transaction.delete(schema.download).where(eq(schema.download.itemIdText, row.itemIdText));
+      await transaction
+        .delete(schema.download)
+        .where(eq(schema.download.itemIdText, row.itemIdText));
     }
   }
   for (const row of after.downloads) {
@@ -647,7 +647,10 @@ const persistPlayable = async (
     await transaction
       .delete(schema.playableItem)
       .where(
-        and(eq(schema.playableItem.itemIdText, row.itemIdText), eq(schema.playableItem.source, row.source))
+        and(
+          eq(schema.playableItem.itemIdText, row.itemIdText),
+          eq(schema.playableItem.source, row.source)
+        )
       );
   }
   for (const row of after) {
@@ -830,11 +833,7 @@ export const addByRssPromotion = {
       })
     );
     if (response.converted) {
-      const match = await matchFromConvertedItems(
-        params.feedUrl,
-        response.channel,
-        response.items
-      );
+      const match = await matchFromConvertedItems(params.feedUrl, response.channel, response.items);
       return addByRssPromotion.promoteLocally({
         accountSync: true,
         context: params.context,
@@ -964,10 +963,7 @@ export const addByRssPromotion = {
   },
 
   /** The same error-log row the refresh writes, for an add that had nothing local to move. */
-  recordPromotion: async (
-    channel: DTOChannelDirectoryMatch,
-    movedItems: number
-  ): Promise<void> => {
+  recordPromotion: async (channel: DTOChannelDirectoryMatch, movedItems: number): Promise<void> => {
     await appendPromoted(channel.id_text, channel.title, movedItems);
     homeFeedRefresh.notify();
   },

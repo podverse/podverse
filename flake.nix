@@ -30,7 +30,7 @@
             kubectl
             kubernetes-helm
             kustomize
-            postgresql
+            postgresql_18
             redis
             sqlite
             git

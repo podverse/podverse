@@ -239,10 +239,20 @@ Every account, on a local v5 database. The design is
 
 - [x] Caps v4 did not have. Decided: an account over a default keeps its
       whole library at the smallest tier that covers it, decided at copy
-      time. Past 10,000 is `needs_operator`, not a partial copy. See
+      time. Past the last tier is `needs_operator`. A queue uses tiers through
+      100,000 and keeps 100,000 rows past that. See
       [07](07-account-and-data-migration-model.md#account-caps-v4-did-not-have).
 - [ ] Plan set for the runner, cap tiers in the library copy, the
       per-account check, the pilot pick, the run folder, and the agent prompt.
+- [ ] Job loop for each stage. In **Workers**, beside the parsers, after
+      `rehearsal restore=finished`, start it and record its pid. Restart it
+      when a restore finishes, on the same rule as the parsers. If the stage
+      does not restore, start it when the parsers start. It claims at most
+      100 due jobs per pass:
+      `while true; npm run scheduled_jobs_run_due -w apps/workers -- -limit 100; sleep 60; end`
+- [ ] Replay after each stage. Keep that loop running and rerun
+      `v4_replay_legacy_rows` for the run's accounts until no `waiting_parse`
+      rows remain or the retries have all settled.
 - [ ] Pilot stage, about 100 accounts picked by rule. Zero `unaccounted`.
       Every error class fixed or accepted.
 - [ ] Sample stage, about 1,000 random accounts on a clean database. Record

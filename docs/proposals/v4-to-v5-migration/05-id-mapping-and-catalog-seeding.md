@@ -236,7 +236,8 @@ description, and times are copied even when the episode cannot be found; see
 
 v4 `startTime` and `endTime` are integers. v5 `clip.start_time` and `end_time`
 are decimals. Copy the integer as a whole number of seconds. v4
-`mediaRefs.isPublic` sets the clip's sharable status.
+`mediaRefs.isPublic` and `playlists.isPublic` set sharable status: `true` is
+public and `false` is unlisted. v4 served both to anyone who had the link.
 
 ### Episodes that left the feed
 
@@ -296,19 +297,26 @@ up. Two pieces cover that.
 **Migration feed retry.** `v4SeedAccountCatalog` apply writes one
 `v4-migration-feed-retry` job (`scheduled_job`, dedupe key
 `v4-migration-feed-retry:<feedId>`, 6 attempts) for each show it creates, due
-1 hour later, before it queues the first `rss-slow` parse. `scheduledJobsRunDue`
-completes the job without parsing when `feed_log.last_finished_parse_time` is
-later than the job's `created_at`. Otherwise it force parses, and when no parse
-finished it requeues the job 1 hour, 6 hours, 24 hours, 3 days, then 7 days
-later. Only feeds the migration created get this schedule. Ordinary feeds keep
-their current parse cadence, and every other job type keeps the shared
-5-minute exponential backoff.
+15 minutes later, before it queues the first `rss-slow` parse.
+`scheduledJobsRunDue` completes the job without parsing when
+`feed_log.last_finished_parse_time` is later than the job's `created_at`.
+Otherwise it force parses. A permanent failure (`http_404`, `http_410`,
+`dns_not_found`, `not_a_feed`, or `no_feed_url`) fails the job after its 2nd
+attempt. Any other failure requeues 1 hour, 6 hours, 1 day, 1 day, then 1 day
+later, about 3.3 days in all. Only feeds the migration created get this
+schedule. Ordinary feeds keep their current parse cadence, and every other job
+type keeps the shared 5-minute exponential backoff.
+
+The rehearsal catalog wait ends when every mapped feed is settled or after
+`--catalog-wait-hours` (default 24 hours), whichever is first. Feeds still
+waiting at that deadline keep retrying in the job loop. A later replay run
+finishes their pending rows when a parse succeeds.
 
 A feed is settled when `last_finished_parse_time` is set, or its retry job is
-`failed` (attempts used up) or `cancelled`. A feed with no retry job is settled
-once a parse has finished or failed, so feeds seeded before the retry existed
-still settle. `isV4MigrationFeedSettled` and `getV4MigrationFeedSettledByFeedId`
-in `@podverse/orm` hold the rule.
+`failed` or `cancelled`. A feed with no retry job is settled once a parse has
+finished or failed, so feeds seeded before the retry existed still settle.
+`isV4MigrationFeedSettled` and `getV4MigrationFeedSettledByFeedId` in
+`@podverse/orm` hold the rule.
 
 Clips and playlist members do not wait for settled. Once the first parse has
 finished or failed, they become Archived items, which a later successful
@@ -330,7 +338,7 @@ positions only in `context`.
 | `playlist_clip`                   | `<playlist id>:<mediaRef>`   | Another user's clip whose owner is not copied yet                              |
 | `snapshot_clip`                   | v4 mediaRef id               | Written as a snapshot (`resolved` / `snapshot`) or still waiting               |
 | `snapshot_playlist_member`        | `<playlist id>:<member>`     | Written as a snapshot (`resolved` / `snapshot`) or still waiting               |
-| `history`, `queue`, `now_playing` | mediaRef id, else episode id | No Active item: `unresolved` until the feed is settled, then `dropped`         |
+| `history`, `queue`, `now_playing` | mediaRef id, else episode id | No Active item, or a mediaRef that is not this account's own clip.             |
 
 Each playlist member keeps its own `list_position`, including members the copy
 could not write, so a replay inserts one at its v4 place. The copy also
@@ -354,6 +362,12 @@ does.
 | `snapshot_clip`                   | Writes a waiting clip once its feed parse finished or failed; reattaches a snapshot once its show is local                           |
 | `snapshot_playlist_member`        | Same as `snapshot_clip`, at the member's recorded slot                                                                               |
 | `subscription`                    | Left as the copy recorded it                                                                                                         |
+
+A `clip_not_copied` playback row is finished once that clip exists. When the
+episode row was only a stand-in, replay replaces it with the clip. When the
+episode was also queued or played on its own, replay inserts the clip and
+leaves the episode. `official_as_item` is a record and is not read. See
+Playback rows.
 
 A reattached snapshot gets `item_id` (an Archived item when the episode left
 the feed) and loses `removed_source` and `source_removed_at`. History is placed
@@ -380,6 +394,9 @@ v4 playlists.id
   → an itemsOrder id with no join row is dropped
   → playlist_resource.list_position = 1, then + 0.00000001 each row
 ```
+
+`playlists.isPublic` sets `playlist.sharable_status_id`: `true` is public and
+`false` is unlisted. v4 served both to anyone who had the link.
 
 The two join tables are the playlist. `itemsOrder` only sorts those members.
 An order id with no join row is dropped and counted. A join member the array
@@ -426,7 +443,12 @@ v4 users.id
   → password hash copied onto account_credentials.password
   → users.name → account_profile.display_name
   → users.emailVerified → account.verified
+  → users.isPublic → account.sharable_status_id
 ```
+
+`users.isPublic = true` sets that status to public. `false` and null set it
+to private. The seed writes the status when it creates the account or replaces
+a letter-case twin. An account it skips keeps the status already stored.
 
 `subscribedPodcastIds` resolves through the podcast chain into
 `account_following_channel`. `subscribedPlaylistIds` resolves through playlist
@@ -469,6 +491,28 @@ item, or soundbite item is not Active. A playback row whose episode left the
 feed (results 3 and 4 above) is therefore **dropped** and counted, not copied
 onto an archived item. The clip itself survives through the rules above.
 
+A playback row can name a mediaRef that is not this account's own clip. The
+copy looks up those clips once per account. The pending row's `legacy_id` is
+the mediaRef id and its `row_kind` is the zone (`history`, `queue`, or
+`now_playing`).
+
+| mediaRef                                                         | Written         | Pending row                            |
+| ---------------------------------------------------------------- | --------------- | -------------------------------------- |
+| Another user's clip already in v5 (`clip.id_text` = mediaRef id) | the clip        | none                                   |
+| Another user's clip not in v5 yet                                | the parent item | `unresolved`, reason `clip_not_copied` |
+| Official (chapter or soundbite)                                  | the parent item | `resolved`, reason `official_as_item`  |
+
+Replay finishes a `clip_not_copied` row once that clip exists. When no other
+playback row of the account names the same episode without a mediaRef, replay
+replaces the episode row with the clip and keeps that row's list position,
+play time, completed flag, and playback position. When the episode was also
+queued or played on its own, replay inserts the clip and leaves the episode.
+`official_as_item` is a record. Replay does not read it. It reads `unresolved`
+rows and `resolved` rows with reason `snapshot`.
+
+A `clip_not_copied` row whose owner is never copied (an email twin whose
+library is left out) stays `unresolved`. The parent item already plays.
+
 ### Durable legacy map
 
 `legacy_id_map` (app migration `0005_v4_rehearsal_schema.sql`). The library
@@ -483,6 +527,13 @@ copy writes `mapped` rows for the ids it resolved:
 | `resolve_key` | Numeric Podcast Index id, feed URL, `podcastGuid`, episode `guid`, or `mediaUrl`   |
 | `status`      | `mapped`, `unresolved`, `dropped`                                                  |
 | `v4_feed_url` | `podcast` rows only: the v4 authority `feedUrls.url`. Nullable. Public catalog URL |
+
+The identity seed writes one more kind of `user` row. When v4 stored an
+address twice with different letter case, the left-out v4 id maps to the
+account that kept the address: `v5_kind` `account`, `v5_id_text` the kept
+account's id, `resolve_key` `email_case_twin`, `status` `mapped`. The
+library copy merges that id's library into the kept account, and follow
+lookups of the id resolve to the kept account. A dry run writes no row.
 
 Uses: login migration, web redirects ([11](11-web-api-and-url-cutover.md)),
 mobile first-launch remap ([08](08-mobile-first-launch-migration.md)), and

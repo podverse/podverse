@@ -30,8 +30,10 @@ string. The seed keeps a used row over a never-used one, then the later dated
 activity, then a verified row, then the later account `updatedAt`, and logs
 the other id. Under that rule it keeps 30 lowercase rows and 20 mixed-case
 rows. No never-used row wins over a used one, and no left-out row has a
-future paid expiry. In 36 pairs the left-out row also had use. Its library
-is dropped, not merged, and only its v4 id is logged. Six
+future paid expiry. In 36 pairs the left-out row also had use. The left-out
+id gets a `legacy_id_map` row (`resolve_key` `email_case_twin`) naming the
+kept account. Its library merges into that account after the kept row's own
+copy, and follows of either id resolve there. Six
 mixed-case addresses have no twin and are stored lowercase. v5 stores only a
 trimmed lowercase address (`0006_account_email_lowercase.sql`). Sign-in,
 signup, email change, and the management user routes lowercase the typed

@@ -1,11 +1,18 @@
 import { describe, expect, it } from 'vitest';
 
-import { ADD_BY_RSS_DIRECTORY_MATCH_MAX_FEEDS, ADD_BY_RSS_DIRECTORY_MATCH_MAX_ITEMS } from '@podverse/helpers/dto';
+import {
+  ADD_BY_RSS_DIRECTORY_MATCH_MAX_FEEDS,
+  ADD_BY_RSS_DIRECTORY_MATCH_MAX_ITEMS,
+} from '@podverse/helpers/dto';
 import { convertParsedRSSFeedToCompat } from '@podverse/parser-mapping';
 
 import type { MobileAddByRSSFeedRecord } from '../../prefs/addByRSSFeeds';
+import {
+  buildAddByRssMatchRefs,
+  localItemRefsForFeed,
+  shouldRunDirectoryMatch,
+} from './directoryMatch';
 import { addByRssDownloadItemIdText } from './downloadIdText';
-import { buildAddByRssMatchRefs, localItemRefsForFeed, shouldRunDirectoryMatch } from './directoryMatch';
 
 const feed = (
   feedUrl: string,
@@ -67,7 +74,10 @@ describe('buildAddByRssMatchRefs', () => {
 
   it('drops credentialed feeds, userinfo, and device-local guids', () => {
     const chunks = buildAddByRssMatchRefs([
-      feed('https://example.com/open.xml', 1, { channelIdText: 'device-1', guidPrefix: 'device-1' }),
+      feed('https://example.com/open.xml', 1, {
+        channelIdText: 'device-1',
+        guidPrefix: 'device-1',
+      }),
       feed('https://example.com/secret.xml', 1, { requiresCredentials: true }),
       feed('http://user:pass@example.com/private.xml', 1),
     ]);

@@ -1,14 +1,15 @@
-import type { Feed } from '@podverse/orm';
-import type { FeedLogService } from '@podverse/orm';
+import type { FeedParseFailureReason } from '@podverse/helpers';
+import type { Feed, FeedLogService } from '@podverse/orm';
 
 type RecordFeedParseFailureExtras = {
   last_http_status?: number | null;
+  last_parse_failure_reason: FeedParseFailureReason;
 };
 
 export async function recordFeedParseFailure(
   feed: Feed,
   feedLogService: FeedLogService,
-  extras: RecordFeedParseFailureExtras = {}
+  extras: RecordFeedParseFailureExtras
 ): Promise<void> {
   const feedLog = await feedLogService.get(feed);
   await feedLogService.update(feed, {

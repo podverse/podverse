@@ -211,9 +211,9 @@ describe('promoteMatchingAddByRSSFeeds', () => {
     const second = feed('https://example.com/second.xml');
     matchAddByRSSFeedsMock.mockRejectedValueOnce(new Error('match down'));
 
-    await expect(
-      promoteMatchingAddByRSSFeeds({ feeds: [first], force: true })
-    ).resolves.toEqual({ convertedFeedUrls: [] });
+    await expect(promoteMatchingAddByRSSFeeds({ feeds: [first], force: true })).resolves.toEqual({
+      convertedFeedUrls: [],
+    });
 
     matchAddByRSSFeedsMock.mockResolvedValue({
       matches: [matched(first.feedUrl), matched(second.feedUrl)],

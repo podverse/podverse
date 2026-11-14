@@ -20,9 +20,7 @@ import { assertNewFollowAllowed, FollowLimitReachedError } from './accountFollow
 export type AddByRssDirectoryRowSurface = 'queue' | 'playlist';
 
 export type AddByRssDirectoryCollisionDecision =
-  | { action: 'leave' }
-  | { action: 'move' }
-  | { action: 'drop'; playbackPosition: string | null };
+  { action: 'leave' } | { action: 'move' } | { action: 'drop'; playbackPosition: string | null };
 
 type LoadedRow = {
   surface: AddByRssDirectoryRowSurface;
@@ -370,9 +368,7 @@ async function keptDirectoryRows(
 }
 
 function parentIdsFor(rows: readonly MatchedRow[], surface: AddByRssDirectoryRowSurface): number[] {
-  return [
-    ...new Set(rows.filter((row) => row.surface === surface).map((row) => row.parentId)),
-  ];
+  return [...new Set(rows.filter((row) => row.surface === surface).map((row) => row.parentId))];
 }
 
 async function moveRow(manager: EntityManager, row: MatchedRow): Promise<void> {
@@ -394,10 +390,10 @@ async function dropRow(
   playbackPosition: string | null
 ): Promise<void> {
   if (row.surface === 'queue' && playbackPosition !== null) {
-    await manager.query(
-      `UPDATE queue_resource SET playback_position = $2::numeric WHERE id = $1`,
-      [kept.id, playbackPosition]
-    );
+    await manager.query(`UPDATE queue_resource SET playback_position = $2::numeric WHERE id = $1`, [
+      kept.id,
+      playbackPosition,
+    ]);
     kept.playbackPosition = playbackPosition;
   }
   const sql =

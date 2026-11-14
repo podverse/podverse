@@ -10,7 +10,7 @@ import type {
 import {
   judgeAccountCompatibility,
   judgePublicPath,
-  selectPublicSamplePaths,
+  selectSharedSamplePaths,
   V4_VERIFY_SQL,
   V5_VERIFY_SQL,
 } from './verifyAccount.js';
@@ -57,6 +57,7 @@ function passingInput(
   return {
     v4Id,
     accountIdText: v4Id,
+    merged: false,
     now: NOW,
     subscribedPodcastIds: [],
     subscribedPlaylistIds: [],
@@ -291,6 +292,51 @@ describe('judgeAccountCompatibility library accounting', () => {
     });
   });
 
+  it('A v4 playlist follow with an unresolved follow_playlist pending row passes. With neither a follow nor a pending row it is unaccounted.', () => {
+    expect(
+      judgeAccountCompatibility(
+        passingInput({
+          subscribedPlaylistIds: ['playlist1'],
+          pendingRows: [
+            { rowKind: 'follow_playlist', legacyId: 'playlist1', status: 'unresolved' },
+          ],
+        })
+      )
+    ).toEqual({ ok: true });
+    expect(
+      judgeAccountCompatibility(passingInput({ subscribedPlaylistIds: ['playlist1'] }))
+    ).toEqual({
+      ok: false,
+      class: 'unaccounted',
+      group: 'followsPlaylist',
+      exampleId: 'playlist1',
+      message: 'followsPlaylist 1 v4, 0 covered',
+    });
+  });
+
+  it('A follow of an email-case twin passes through its map row to the kept account, and a twin of the account itself counts as its own id.', () => {
+    const twinOf = (id: string, kept: string): VerifyLegacyMapRow => ({
+      legacyKind: 'user',
+      legacyId: id,
+      v5Kind: 'account',
+      v5IdText: kept,
+      status: 'mapped',
+    });
+    expect(
+      judgeAccountCompatibility(
+        passingInput({
+          subscribedUserIds: ['twin0001', 'twin0002'],
+          followedAccountIdTexts: ['kept0001'],
+          legacyMap: [
+            userMap('account1'),
+            twinOf('twin0001', 'kept0001'),
+            twinOf('twin0002', 'account1'),
+          ],
+        })
+      )
+    ).toEqual({ ok: true });
+  });
+
   it("A follow of the account's own id with no follow row passes. Any other missing user follow is unaccounted / followsUser.", () => {
     expect(judgeAccountCompatibility(passingInput({ subscribedUserIds: ['account1'] }))).toEqual({
       ok: true,
@@ -361,6 +407,41 @@ describe('judgeAccountCompatibility library accounting', () => {
       exampleId: 'ep22222',
     });
   });
+
+  it('A history row pointing at an official mediaRef passes with a resolved stand-in, and one pointing at another user clip passes only while that clip is still pending.', () => {
+    expect(
+      judgeAccountCompatibility(
+        passingInput({
+          playback: [{ episodeId: 'ep11111', mediaRefId: 'officia' }],
+          mediaRefs: [{ id: 'officia', official: true, owned: false, isPublic: true }],
+          pendingRows: [{ rowKind: 'history', legacyId: 'officia', status: 'resolved' }],
+        })
+      )
+    ).toEqual({ ok: true });
+    expect(
+      judgeAccountCompatibility(
+        passingInput({
+          playback: [{ episodeId: 'ep11111', mediaRefId: 'clipthe' }],
+          mediaRefs: [{ id: 'clipthe', official: false, owned: false, isPublic: true }],
+          pendingRows: [{ rowKind: 'history', legacyId: 'clipthe', status: 'unresolved' }],
+        })
+      )
+    ).toEqual({ ok: true });
+    expect(
+      judgeAccountCompatibility(
+        passingInput({
+          playback: [{ episodeId: 'ep11111', mediaRefId: 'clipthe' }],
+          mediaRefs: [{ id: 'clipthe', official: false, owned: false, isPublic: true }],
+          queueResourceIdTexts: [],
+        })
+      )
+    ).toMatchObject({
+      ok: false,
+      class: 'unaccounted',
+      group: 'playback',
+      exampleId: 'clipthe',
+    });
+  });
 });
 
 describe('judgeAccountCompatibility sign-in and public ids', () => {
@@ -407,8 +488,64 @@ describe('judgeAccountCompatibility sign-in and public ids', () => {
   });
 });
 
+describe('judgeAccountCompatibility email-case twin merge', () => {
+  function mergedInput(
+    overrides: Partial<JudgeAccountCompatibilityInput> = {}
+  ): JudgeAccountCompatibilityInput {
+    return passingInput({
+      v4Id: 'twin0001',
+      accountIdText: 'kept0001',
+      merged: true,
+      v5PasswordHash: 'kept-row-hash',
+      v4EmailVerified: false,
+      v5Verified: true,
+      membershipExpiration: new Date('2027-01-01T00:00:00.000Z'),
+      accountMembershipId: AccountMembershipEnum.Trial,
+      legacyMap: [
+        {
+          legacyKind: 'user',
+          legacyId: 'twin0001',
+          v5Kind: 'account',
+          v5IdText: 'kept0001',
+          status: 'mapped',
+        },
+        playlistMap('playlis'),
+      ],
+      ...overrides,
+    });
+  }
+
+  it('A merged id whose subscriptions and playlists are in the kept account passes without judging sign-in or membership.', () => {
+    expect(
+      judgeAccountCompatibility(
+        mergedInput({
+          subscribedPodcastIds: ['podcast1'],
+          followedChannelIdTexts: ['podcast1', 'keptpod1'],
+          playlists: [{ id: 'playlis', isPublic: false, episodeIds: [], mediaRefIds: [] }],
+          playlistIdTexts: ['playlis'],
+        })
+      )
+    ).toEqual({ ok: true });
+  });
+
+  it('A merged playlist missing from the kept account is unaccounted / playlists.', () => {
+    expect(
+      judgeAccountCompatibility(
+        mergedInput({
+          playlists: [{ id: 'playlis', isPublic: false, episodeIds: [], mediaRefIds: [] }],
+        })
+      )
+    ).toMatchObject({
+      ok: false,
+      class: 'unaccounted',
+      group: 'playlists',
+      exampleId: 'playlis',
+    });
+  });
+});
+
 describe('judgePublicPath', () => {
-  it('Public-path status 200 passes. Status 404 is public_path. A redirect whose path contains the id passes. A redirect to /profiles is public_path.', () => {
+  it('An unlisted playlist answering 200 passes. Status 404 is public_path. A redirect whose path contains the id passes. A redirect to /profiles is public_path.', () => {
     const id = 'abc1234';
     const requestedPath = `/playlist/${id}`;
     expect(judgePublicPath({ id, requestedPath, status: 200, location: null })).toEqual({
@@ -453,14 +590,14 @@ describe('judgePublicPath', () => {
     });
   });
 
-  it('Public samples are the first three public written playlists and clips sorted by id, and do not include a profile path.', () => {
+  it('Shared samples are the first three written playlists and user clips sorted by id, including ones that are not public, and do not include a profile path.', () => {
     expect(
-      selectPublicSamplePaths(
+      selectSharedSamplePaths(
         passingInput({
           playlists: [
             { id: 'plddddd', isPublic: true, episodeIds: [], mediaRefIds: [] },
             { id: 'plbbbbb', isPublic: true, episodeIds: [], mediaRefIds: [] },
-            { id: 'plaaaaa', isPublic: true, episodeIds: [], mediaRefIds: [] },
+            { id: 'plaaaaa', isPublic: false, episodeIds: [], mediaRefIds: [] },
             { id: 'plccccc', isPublic: true, episodeIds: [], mediaRefIds: [] },
             { id: 'pleeeee', isPublic: true, episodeIds: [], mediaRefIds: [] },
             { id: 'plfffff', isPublic: false, episodeIds: [], mediaRefIds: [] },
@@ -470,7 +607,7 @@ describe('judgePublicPath', () => {
           mediaRefs: [
             { id: 'clddddd', official: false, owned: true, isPublic: true },
             { id: 'clbbbbb', official: false, owned: true, isPublic: true },
-            { id: 'claaaaa', official: false, owned: true, isPublic: true },
+            { id: 'claaaaa', official: false, owned: true, isPublic: false },
             { id: 'clccccc', official: false, owned: true, isPublic: true },
             { id: 'cleeeee', official: false, owned: true, isPublic: true },
             { id: 'cloffcl', official: true, owned: true, isPublic: true },
@@ -716,6 +853,42 @@ describe('judgeAccountCompatibility caps', () => {
     ).toEqual({ ok: true });
   });
 
+  it('30 feeds plus 8 values that are not feed urls pass when the 30 feeds are written, and cap_tier counts only the feeds.', () => {
+    const notFeedUrls = [
+      '#one',
+      '#two',
+      'content://media/external/file/1',
+      'content://media/external/file/2',
+      '{"a":1}',
+      'file:///x',
+      'podcast',
+      'hello',
+    ];
+    const feeds = feedUrls(30);
+    expect(
+      judgeAccountCompatibility(
+        passingInput({
+          addByRssUrls: [...feeds, ...notFeedUrls],
+          addByRssFeedUrls: feeds,
+        })
+      )
+    ).toEqual({ ok: true });
+    expect(
+      judgeAccountCompatibility(
+        passingInput({
+          addByRssUrls: [...feedUrls(101), ...notFeedUrls],
+          addByRssFeedUrls: feedUrls(101),
+        })
+      )
+    ).toEqual({
+      ok: false,
+      class: 'cap_tier',
+      group: 'addByRss',
+      exampleId: null,
+      message: 'addByRss 101 v4, stored null',
+    });
+  });
+
   it('Count 150 with column 200 passes, and every canonical URL is written. Count 150 with null, or with a number below 150, is cap_tier. Count 150 with a stored number at or above 150, including a number above 10000, passes.', () => {
     expect(judgeAccountCompatibility(withFeeds(150, 200, true))).toEqual({ ok: true });
     expect(judgeAccountCompatibility(withFeeds(150, 150, true))).toEqual({ ok: true });
@@ -929,6 +1102,34 @@ describe('judgeAccountCompatibility caps', () => {
       ok: false,
       class: 'needs_operator',
       group: 'addByRss',
+    });
+  });
+
+  it('A 54000-row history that was kept passes. A 120000-row history is needs_operator, not unaccounted.', () => {
+    const kept = numbered('h', 54000);
+    expect(
+      judgeAccountCompatibility(
+        passingInput({
+          playback: kept.map((episodeId) => ({ episodeId, mediaRefId: null })),
+          queueResourceIdTexts: kept,
+        })
+      )
+    ).toEqual({ ok: true });
+
+    const over = numbered('h', 120000);
+    expect(
+      judgeAccountCompatibility(
+        passingInput({
+          playback: over.map((episodeId) => ({ episodeId, mediaRefId: null })),
+          queueResourceIdTexts: over.slice(0, 100000),
+        })
+      )
+    ).toEqual({
+      ok: false,
+      class: 'needs_operator',
+      group: 'playback',
+      exampleId: null,
+      message: 'playback 120000 v4',
     });
   });
 

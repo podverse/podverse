@@ -253,11 +253,11 @@ commit those values.
 While v4 is still the installed app, record the platform, the OS version, and
 these counts:
 
-| Key                            | Counts                                                          |
-| ------------------------------ | --------------------------------------------------------------- |
-| `SUBSCRIBED_PODCASTS`          | Objects. Objects with a title. Objects with `feedUrls[0].url`.  |
-| `ADD_BY_RSS_PODCASTS`          | Objects. Objects with a title. Objects with a feed address.     |
-| `ADD_BY_RSS_PODCAST_FEED_URLS` | Addresses.                                                      |
+| Key                            | Counts                                                         |
+| ------------------------------ | -------------------------------------------------------------- |
+| `SUBSCRIBED_PODCASTS`          | Objects. Objects with a title. Objects with `feedUrls[0].url`. |
+| `ADD_BY_RSS_PODCASTS`          | Objects. Objects with a title. Objects with a feed address.    |
+| `ADD_BY_RSS_PODCAST_FEED_URLS` | Addresses.                                                     |
 
 A key the phone never had may be absent. Then install the private build and
 record the same counts from that build. iOS and Android are separate results.

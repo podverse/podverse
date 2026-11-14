@@ -139,7 +139,9 @@ const isRecord = (value: unknown): value is Record<string, unknown> => {
 };
 
 /** A completed row wins. Otherwise the further playback position wins. */
-export const preferCompletedThenFurther = <T extends { completed: boolean; playbackPosition: number }>(
+export const preferCompletedThenFurther = <
+  T extends { completed: boolean; playbackPosition: number },
+>(
   group: readonly T[]
 ): T => {
   const completedRows = group.filter((row) => row.completed);
@@ -292,10 +294,7 @@ const moveDownloads = (
 
   const result: IdentityDownload[] = [];
   for (const [itemIdText, group] of groups) {
-    const preferred = preferUnmovedRow(
-      group,
-      (row) => row.originalItemIdText === itemIdText
-    );
+    const preferred = preferUnmovedRow(group, (row) => row.originalItemIdText === itemIdText);
     result.push({
       channelIdText: preferred.channelIdText,
       filePath: preferred.filePath,
@@ -483,10 +482,7 @@ const moveAutoDownloadItems = (
   }
   const result: IdentityAutoDownloadItem[] = [];
   for (const [itemIdText, group] of groups) {
-    const preferred = preferUnmovedRow(
-      group,
-      (row) => row.originalItemIdText === itemIdText
-    );
+    const preferred = preferUnmovedRow(group, (row) => row.originalItemIdText === itemIdText);
     result.push({
       channelIdText: preferred.channelIdText,
       itemIdText,
@@ -583,10 +579,7 @@ const movePlayableItems = (
   }
   const result: IdentityPlayableItem[] = [];
   for (const group of groups.values()) {
-    const preferred = preferUnmovedRow(
-      group,
-      (row) => row.originalItemIdText === row.itemIdText
-    );
+    const preferred = preferUnmovedRow(group, (row) => row.originalItemIdText === row.itemIdText);
     result.push({
       itemIdText: preferred.itemIdText,
       payloadJson: preferred.payloadJson,

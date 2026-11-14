@@ -18,7 +18,7 @@ Prompts do not run tests. The operator runs the cumulative verification after pr
 
 ## Phase 1
 
-- [ ] **01 — v4 timestamps are UTC regardless of the host timezone**
+- [x] **01 — v4 timestamps are UTC regardless of the host timezone**
 
 **Cursor model:** Cursor Grok 4.7 · **Reasoning:** extra high
 
@@ -29,7 +29,7 @@ Follow .llm/plans/active/v4-pilot-findings/00-EXECUTION-ORDER.md § Rules for ev
 This prompt shares its phase: put the release entry in the final message. Do not run tests. Do not commit.
 ```
 
-- [ ] **07 — A failed feed parse records why, and the log never prints a page body**
+- [x] **07 — A failed feed parse records why, and the log never prints a page body**
 
 **Cursor model:** Cursor Grok 4.7 · **Reasoning:** extra high
 
@@ -40,7 +40,7 @@ Follow .llm/plans/active/v4-pilot-findings/00-EXECUTION-ORDER.md § Rules for ev
 Migration number 0013. Run make db_regen_linear_baseline after the SQL. This prompt shares its phase: put the release entry in the final message. Do not run tests. Do not commit.
 ```
 
-- [ ] **10 — An out-of-range time in a feed no longer fails the whole parse**
+- [x] **10 — An out-of-range time in a feed no longer fails the whole parse**
 
 **Cursor model:** Cursor Grok 4.7 · **Reasoning:** medium
 
@@ -53,7 +53,7 @@ This prompt shares its phase: put the release entry in the final message. Do not
 
 ## Phase 2
 
-- [ ] **02 — v4 "Only with link" playlists and clips become v5 unlisted**
+- [x] **02 — v4 "Only with link" playlists and clips become v5 unlisted**
 
 **Cursor model:** Cursor Grok 4.7 · **Reasoning:** extra high
 
@@ -64,7 +64,7 @@ Follow .llm/plans/active/v4-pilot-findings/00-EXECUTION-ORDER.md § Rules for ev
 The copy and replay never write private for a playlist or clip. This prompt shares its phase: put the release entry in the final message. Do not run tests. Do not commit.
 ```
 
-- [ ] **08 — Permanent feed failures stop early, and the catalog wait has a deadline**
+- [x] **08 — Permanent feed failures stop early, and the catalog wait has a deadline**
 
 **Cursor model:** Cursor Grok 4.7 · **Reasoning:** extra high
 
@@ -77,7 +77,7 @@ This prompt shares its phase: put the release entry in the final message. Do not
 
 ## Phase 3
 
-- [ ] **03 — Add by RSS values that are not feed URLs are skipped, not fatal**
+- [x] **03 — Add by RSS values that are not feed URLs are skipped, not fatal**
 
 **Cursor model:** Cursor Grok 4.7 · **Reasoning:** high
 
@@ -88,7 +88,7 @@ Follow .llm/plans/active/v4-pilot-findings/00-EXECUTION-ORDER.md § Rules for ev
 Copy, dry run, and verify must count the same feeds. Never log the values. This prompt shares its phase: put the release entry in the final message. Do not run tests. Do not commit.
 ```
 
-- [ ] **09 — Large v4-subscribed feeds get the higher body limit once**
+- [x] **09 — Large v4-subscribed feeds get the higher body limit once**
 
 **Cursor model:** Cursor Grok 4.7 · **Reasoning:** extra high
 
@@ -99,7 +99,7 @@ Follow .llm/plans/active/v4-pilot-findings/00-EXECUTION-ORDER.md § Rules for ev
 Ordinary v5 parsing stays unchanged. This prompt shares its phase: put the release entry in the final message. Do not run tests. Do not commit.
 ```
 
-- [ ] **12 — v4 public profiles stay public**
+- [x] **12 — v4 public profiles stay public**
 
 **Cursor model:** Cursor Grok 4.7 · **Reasoning:** high
 
@@ -112,7 +112,7 @@ Do not touch verifyAccount.ts or copyAccountLibraryApply.ts. This prompt shares 
 
 ## Phase 4
 
-- [ ] **04 — A playlist follow waits for its playlist instead of being dropped**
+- [x] **04 — A playlist follow waits for its playlist instead of being dropped**
 
 **Cursor model:** Cursor Grok 4.7 · **Reasoning:** extra high
 
@@ -125,7 +125,7 @@ Migration number 0014. Run make db_regen_linear_baseline after the SQL. Append t
 
 ## Phase 5
 
-- [ ] **05 — Playback rows that point at a clip keep the clip or say why not**
+- [x] **05 — Playback rows that point at a clip keep the clip or say why not**
 
 **Cursor model:** Cursor Grok 4.7 · **Reasoning:** extra high
 
@@ -138,7 +138,7 @@ One clip lookup per account, not per row. Append the release entry to release-no
 
 ## Phase 6
 
-- [ ] **06 — Per-account queue size tier so large v4 histories are kept**
+- [x] **06 — Per-account queue size tier so large v4 histories are kept**
 
 **Cursor model:** Cursor Grok 4.7 · **Reasoning:** extra high
 
@@ -151,7 +151,7 @@ Migration number 0015. Run make db_regen_linear_baseline after the SQL. Report t
 
 ## Phase 7
 
-- [ ] **13 — The left-out email twin's library merges into the kept account**
+- [x] **13 — The left-out email twin's library merges into the kept account**
 
 **Cursor model:** Cursor Opus 5.5 · **Reasoning:** high
 
@@ -164,7 +164,7 @@ The merge always lands after the kept account's own copy. Append the release ent
 
 ## Phase 8
 
-- [ ] **11 — Rehearsal prompt, docs, release entries, and close**
+- [x] **11 — Rehearsal prompt, docs, release entries, and close**
 
 **Cursor model:** Cursor Grok 4.7 · **Reasoning:** medium
 

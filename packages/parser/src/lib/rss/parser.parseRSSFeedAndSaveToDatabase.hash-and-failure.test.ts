@@ -92,6 +92,7 @@ vi.mock('@parser/factories/loggerService.js', () => ({
   loggerService: {
     info: vi.fn(),
     warn: vi.fn(),
+    debug: vi.fn(),
     logError: logErrorMock,
   },
 }));
@@ -328,6 +329,7 @@ describe('parseRSSFeedAndSaveToDatabase failure timestamp and hash-on-success', 
       expect.objectContaining({
         parse_errors: 3,
         last_failed_parse_time: expect.any(Date),
+        last_parse_failure_reason: 'parse_error',
       })
     );
     expect(feedLogUpdateMock).not.toHaveBeenCalledWith(
@@ -353,7 +355,10 @@ describe('parseRSSFeedAndSaveToDatabase failure timestamp and hash-on-success', 
 
     expect(feedLogUpdateMock).toHaveBeenCalledWith(
       baseFeed,
-      expect.objectContaining({ last_finished_parse_time: expect.any(Date) })
+      expect.objectContaining({
+        last_finished_parse_time: expect.any(Date),
+        last_parse_failure_reason: null,
+      })
     );
     expect(feedServiceUpdateMock).toHaveBeenCalledWith(
       baseFeed.id,

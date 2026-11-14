@@ -1,3 +1,5 @@
+import type { FeedParseFailureReason } from '@podverse/helpers';
+import { FEED_PARSE_FAILURE_REASONS } from '@podverse/helpers';
 import { isValidNanoIdV2IdText } from '@podverse/orm';
 
 import type { LocalCatalog, V4PodcastKey } from '../v4Library/copyAccountLibraryLib.js';
@@ -43,6 +45,8 @@ export type StageFeedParseState = {
   isParsing: Date | null;
   lastFinishedParseTime: Date | null;
   lastFailedParseTime: Date | null;
+  lastParseFailureReason: FeedParseFailureReason | null;
+  maxResponseBodyBytesOverride: number | null;
 };
 
 export type StageSettledParseRow = {
@@ -239,4 +243,53 @@ export function countSettledParses(rows: readonly StageSettledParseRow[]): Stage
     }
   }
   return { settled, failedParse, waiting };
+}
+
+/** A null deadline waits until nothing is waiting. Zero waiting is done either way. */
+export function catalogWaitIsDone(
+  waiting: number,
+  elapsedMs: number,
+  deadlineMs: number | null
+): boolean {
+  if (waiting === 0) {
+    return true;
+  }
+  if (deadlineMs === null) {
+    return false;
+  }
+  return elapsedMs >= deadlineMs;
+}
+
+export function parseStoredFeedParseFailureReason(value: unknown): FeedParseFailureReason | null {
+  if (typeof value !== 'string') {
+    return null;
+  }
+  for (const reason of FEED_PARSE_FAILURE_REASONS) {
+    if (reason === value) {
+      return reason;
+    }
+  }
+  return null;
+}
+
+/**
+ * Counts failure reasons for settled feeds that never finished a parse. A waiting feed is
+ * left out, and a null reason is left out.
+ */
+export function countFailedParseReasons(
+  rows: readonly {
+    settled: boolean;
+    lastFinishedParseTime: Date | null;
+    lastParseFailureReason: FeedParseFailureReason | null;
+  }[]
+): Partial<Record<FeedParseFailureReason, number>> {
+  const counts: Partial<Record<FeedParseFailureReason, number>> = {};
+  for (const row of rows) {
+    if (!row.settled || row.lastFinishedParseTime !== null || row.lastParseFailureReason === null) {
+      continue;
+    }
+    const reason = row.lastParseFailureReason;
+    counts[reason] = (counts[reason] ?? 0) + 1;
+  }
+  return counts;
 }

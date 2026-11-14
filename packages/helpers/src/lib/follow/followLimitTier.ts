@@ -25,8 +25,7 @@ export type FollowMigrationTier =
   | { outcome: 'needs_operator'; writeStoredTier: null };
 
 export type FollowInsertDecision =
-  | { action: 'update' | 'insert' }
-  | { action: 'refuse'; limit: number };
+  { action: 'update' | 'insert' } | { action: 'refuse'; limit: number };
 
 export function isUnlimitedFollowLimit(
   value: number | null | undefined
