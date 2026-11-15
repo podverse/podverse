@@ -319,6 +319,18 @@
     "enter_video_full_screen": "Pantalla completa",
     "exit_video_full_screen": "Salir de pantalla completa"
   },
+  "migration": {
+    "v4_continue": {
+      "body_account": "Si tenías una cuenta, iniciar sesión copia eso, en este teléfono o en el sitio web, y no espera a esta pantalla.",
+      "body_file": "Este archivo es la lista de programas de este teléfono. No incluye listas de reproducción, clips, tu cola, el historial, las posiciones de reproducción, los archivos descargados ni tu membresía.",
+      "continue": "Continuar la migración",
+      "continue_error": "No se pudo continuar. Inténtalo de nuevo.",
+      "export_error": "No se pudo exportar el archivo. Inténtalo de nuevo.",
+      "saved_copy": "Guardé una copia, o quiero continuar sin una",
+      "sign_in": "Iniciar sesión",
+      "title": "Guarda tu lista de podcasts"
+    }
+  },
   "misc": {
     "clear": "Borrar"
   },

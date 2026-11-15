@@ -31,7 +31,12 @@ import { downloadManager } from '../downloads/downloadManager';
 import { useQueueResourcesLoadActive } from '../hooks/useQueueResourcesLoadActive';
 import { homeFeedRefresh } from '../lib/home/homeFeedRefresh';
 import {
+  resetV4ContinueMigrationOffer,
+  tryOfferV4ContinueMigration,
+} from '../migration/v4/offerV4ContinueMigration';
+import {
   registerV4CarryoverRowsSaved,
+  registerV4ContinueMigrationNeeded,
   runV4CarryoverReadOnce,
 } from '../migration/v4/readV4LocalState';
 import {
@@ -153,8 +158,10 @@ export function SyncProvider({ children }: PropsWithChildren) {
   }, [setAccount]);
 
   const isAuthenticatedRef = useRef(status === 'authenticated');
+  const authStatusRef = useRef(status);
   useEffect(() => {
     isAuthenticatedRef.current = status === 'authenticated';
+    authStatusRef.current = status;
   }, [status]);
 
   useEffect(() => {
@@ -202,6 +209,35 @@ export function SyncProvider({ children }: PropsWithChildren) {
     }),
     []
   );
+
+  const presentContinueMigration = useCallback(() => {
+    void tryOfferV4ContinueMigration(
+      () => authStatusRef.current === 'anonymous',
+      async () => {
+        if (authStatusRef.current !== 'anonymous') {
+          return false;
+        }
+        const navigation = await import('../navigation');
+        const open = (): boolean => {
+          if (authStatusRef.current !== 'anonymous') {
+            return false;
+          }
+          return navigation.navigateToV4ContinueMigrationScreen();
+        };
+        if (open()) {
+          return true;
+        }
+        await new Promise<void>((resolve) => {
+          setTimeout(resolve, 0);
+        });
+        return open();
+      }
+    ).catch((error: unknown) => {
+      if (__DEV__) {
+        console.warn('[v4-carryover] could not open the save screen', error);
+      }
+    });
+  }, []);
 
   const requestSync = useCallback(
     (trigger: SyncTrigger) => {
@@ -322,11 +358,25 @@ export function SyncProvider({ children }: PropsWithChildren) {
         })
         .catch(() => undefined);
     });
-    void runV4CarryoverReadOnce();
+    registerV4ContinueMigrationNeeded(presentContinueMigration);
+    void runV4CarryoverReadOnce().then(() => {
+      presentContinueMigration();
+    });
     return () => {
       registerV4CarryoverRowsSaved(null);
+      registerV4ContinueMigrationNeeded(null);
     };
-  }, [syncJobDeps]);
+  }, [presentContinueMigration, syncJobDeps]);
+
+  useEffect(() => {
+    if (status === 'authenticated') {
+      resetV4ContinueMigrationOffer();
+      return;
+    }
+    if (status === 'anonymous') {
+      presentContinueMigration();
+    }
+  }, [presentContinueMigration, status]);
 
   const [termsBlocked, setTermsBlocked] = useState(() => termsBlocksAccountSync());
   useEffect(() => {

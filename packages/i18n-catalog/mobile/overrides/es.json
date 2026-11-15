@@ -319,6 +319,18 @@
     "enter_video_full_screen": "",
     "exit_video_full_screen": ""
   },
+  "migration": {
+    "v4_continue": {
+      "body_account": "",
+      "body_file": "",
+      "continue": "",
+      "continue_error": "",
+      "export_error": "",
+      "saved_copy": "",
+      "sign_in": "",
+      "title": ""
+    }
+  },
   "misc": {
     "clear": ""
   },

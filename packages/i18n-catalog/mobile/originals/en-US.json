@@ -344,6 +344,18 @@
     "enter_video_full_screen": "Full Screen",
     "exit_video_full_screen": "Exit Full Screen"
   },
+  "migration": {
+    "v4_continue": {
+      "body_account": "If you had an account, signing in copies those, on this phone or on the website, and does not wait for this screen.",
+      "body_file": "This file is the list of shows on this phone. It does not include playlists, clips, your queue, history, playback positions, downloaded files, or your membership.",
+      "continue": "Continue Migration",
+      "continue_error": "Could not continue. Please try again.",
+      "export_error": "Could not export the file. Please try again.",
+      "saved_copy": "I saved a copy, or I want to continue without one",
+      "sign_in": "Sign In",
+      "title": "Save Your Podcast List"
+    }
+  },
   "misc": {
     "clear": "Clear"
   },

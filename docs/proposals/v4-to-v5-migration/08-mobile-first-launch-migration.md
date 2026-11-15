@@ -118,9 +118,14 @@ directory match too, then are saved as signed-out Add by RSS feeds. Titles come
 from `ADD_BY_RSS_PODCASTS` when readable. The first device parse fills them
 otherwise.
 
-Everything here is a queued sync job after first paint, one job at a time,
-behind the sync indicator. Failures go to the device error log and are retried
-on the next sync. Nothing blocks the first screen.
+The copy is a queued sync job after first paint, one job at a time, behind
+the sync indicator. When the staged rows include an outline, that job waits
+until the person taps Continue Migration on Save Your Podcast List. A read
+with no outline starts the job without that screen. A person who is signed in
+at the read waits, and the copy runs after the next sign-out only while those
+rows are still pending. Failures go to the device error log and are retried
+on the next sync. Nothing blocks the first screen, and the screen does not
+block sign-in.
 
 ## Add by RSS directory match
 
@@ -199,11 +204,10 @@ the file the old library wrote. The keys are `SUBSCRIBED_PODCAST_IDS` and
 
 ## Feed-list file before the phone copy
 
-Asked for on 2026-11-13: signed-out v4 users should be encouraged to save an
-OPML file before the phone copy runs. The screen is planned in
-[`.llm/plans/active/v4-signed-out-carryover/`](/.llm/plans/active/v4-signed-out-carryover/00-SUMMARY.md)
-and the [field spike](#field-spike) on iOS produced outlines, so the screen is next.
-Android was not run.
+Asked for on 2026-11-13: signed-out v4 users save an OPML file before the
+phone copy runs when the staged rows include an outline. The
+[field spike](#field-spike) on iOS produced outlines, and the screen is in
+the app. Android was not run.
 This is not a rehearsal step in [15](15-near-term-rehearsal-checklist.md). The
 account copy still starts at sign-in
 ([07](07-account-and-data-migration-model.md)) and does not wait for it.
@@ -277,11 +281,11 @@ the reader after the count is written into the open question below. Do not
 leave it in the app. Do not call the v5 account export or the signed-out
 device export.
 
-### Screen, after the spike
+### Screen
 
-Write this only if the spike produced at least one outline. If the old store
-cannot be read, or it has no outline, there is no screen. The phone copy
-stays the automatic pass above.
+The iOS field spike produced outlines, so the phone has this screen. Android
+was not run. If a phone's stored rows have no outline, there is no screen,
+and the phone copy stays the automatic pass above.
 
 - The screen paints from the local read. A network call does not sit in
   front of it.
@@ -326,10 +330,16 @@ stays the automatic pass above.
 - [`add-by-rss-directory-match`](/.llm/plans/completed/add-by-rss-directory-match/00-SUMMARY.md):
   the [Add by RSS directory match](#add-by-rss-directory-match) on mobile, web,
   and the API. Ships on its own, before the migration.
-- [`v4-signed-out-carryover`](/.llm/plans/active/v4-signed-out-carryover/00-SUMMARY.md):
-  the legacy lookup with feed URLs, the first-launch phone copy, and the
-  Continue Migration screen. Runs after the first set. Its mobile prompts wait
-  for the spike results below.
+- [`v4-signed-out-carryover`](/.llm/plans/completed/v4-signed-out-carryover/00-SUMMARY.md):
+  landed. `v4WriteLegacyPodcastMap` writes the podcast legacy map, including
+  the v4 feed URL. `POST /legacy/podcast/lookup` answers signed-out phones.
+  The library copy turns an Add by RSS URL that matches a directory channel
+  into a subscription. On first launch, a signed-out phone reads the v4
+  subscription lists once. When those rows include an outline, Save Your
+  Podcast List opens first: Export OPML shares the shows on the phone, and
+  Continue Migration starts the copy. Sign In stays available. A read with no
+  outline starts the copy without that screen. The spike bullets above stay
+  the record of what the private install could read. Android was not run.
 - Storage compatibility spike report and feed-list field spike report. Counts
   only. Operator-run on a private install. Not a step in
   [15](15-near-term-rehearsal-checklist.md).

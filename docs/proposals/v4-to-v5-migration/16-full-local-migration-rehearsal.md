@@ -80,6 +80,14 @@ those retries have settled. The runner also refuses to start unless the
 process offset is zero (`TZ=UTC`). The pilot and sample stages seed only the
 shows their accounts need.
 
+## Before go-live
+
+The rehearsal runner does not write the podcast legacy map. Before the store
+build is live, run `v4WriteLegacyPodcastMap` so
+`POST /legacy/podcast/lookup` can answer. Run `-dryRun` first. That pass
+counts and writes nothing. The apply writes the rows in
+[Legacy podcast lookup](05-id-mapping-and-catalog-seeding.md#legacy-podcast-lookup).
+
 Before each phase, the runner dumps the local database into the run folder,
 so a bad phase is undone by a restore instead of a reseed.
 

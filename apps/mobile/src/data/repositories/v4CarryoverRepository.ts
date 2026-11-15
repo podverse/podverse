@@ -1,4 +1,4 @@
-import { and, eq, inArray } from 'drizzle-orm';
+import { and, asc, eq, inArray } from 'drizzle-orm';
 
 import type { V4StagedEntry, V4StagedLegacyKind } from '../../migration/v4/parseV4LocalState';
 import { getDb, initializeDatabase, schema } from '../db';
@@ -93,7 +93,8 @@ const emptyCounts = (): V4CarryoverCounts => ({
  * Staged rows from the previous app's signed-out subscriptions.
  *
  * `v4_carryover.read_at` is set when that read finishes, including when it found nothing.
- * `v4_carryover.copy_allowed` is `'1'` when those rows may be resolved.
+ * `v4_carryover.copy_allowed` is `'1'` when those rows may be resolved. The read sets it when
+ * no row can be an OPML outline. The save screen sets it when the person continues.
  */
 export const v4CarryoverRepository = {
   bumpAttempts: async (legacyKind: V4StagedLegacyKind, legacyId: string): Promise<void> => {
@@ -194,6 +195,33 @@ export const v4CarryoverRepository = {
       if (mapped !== null) {
         listed.push(mapped);
       }
+    }
+    return listed;
+  },
+
+  /** Staged rows the save screen turns into an OPML file. */
+  listOutlineSources: async (): Promise<V4StagedEntry[]> => {
+    await initializeDatabase();
+    const rows = await getDb()
+      .select({
+        cachedFeedUrl: schema.v4CarryoverEntry.cachedFeedUrl,
+        cachedTitle: schema.v4CarryoverEntry.cachedTitle,
+        legacyId: schema.v4CarryoverEntry.legacyId,
+        legacyKind: schema.v4CarryoverEntry.legacyKind,
+      })
+      .from(schema.v4CarryoverEntry)
+      .orderBy(asc(schema.v4CarryoverEntry.legacyKind), asc(schema.v4CarryoverEntry.legacyId));
+    const listed: V4StagedEntry[] = [];
+    for (const row of rows) {
+      if (!isLegacyKind(row.legacyKind)) {
+        continue;
+      }
+      listed.push({
+        cachedFeedUrl: row.cachedFeedUrl,
+        cachedTitle: row.cachedTitle,
+        legacyId: row.legacyId,
+        legacyKind: row.legacyKind,
+      });
     }
     return listed;
   },

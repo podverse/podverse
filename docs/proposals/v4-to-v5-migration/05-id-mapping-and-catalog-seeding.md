@@ -143,13 +143,16 @@ Signed-out phones ([08](08-mobile-first-launch-migration.md)) and old
 `/podcast/:id` links ([11](11-web-api-and-url-cutover.md)) resolve v4
 podcast ids through one lookup.
 
-- The caller sends v4 podcast ids only, never a feed URL. No sign-in is
-  required. The lookup never queues a parse, so no signed-out path adds a
-  feed.
-- Before go-live, a worker writes one `podcast` legacy map row for every v4
-  podcast that is not flagged `spam` or `takedown` and has an authority feed
-  URL. `resolve_key` is the numeric Podcast Index id when the podcast is
-  public and has one, and null otherwise. `v4_feed_url` is the authority
+- The route is `POST /legacy/podcast/lookup`. The caller sends v4 podcast ids
+  only, never a feed URL, at most 2,000. No sign-in is required. The lookup
+  never queues a parse, so no signed-out path adds a feed.
+- Before go-live, run `v4WriteLegacyPodcastMap`
+  (`npm run v4_write_legacy_podcast_map -w apps/workers`) with `-dryRun`
+  first. That pass counts and writes nothing. The apply writes one `podcast`
+  legacy map row for every v4 podcast that is not flagged `spam` or
+  `takedown` and has an authority feed URL. `resolve_key` is the numeric
+  Podcast Index id when the podcast is public and has one, and null otherwise.
+  `v4_feed_url` is the authority
   `feedUrls.url`. A `spam` or `takedown` podcast gets a row with status
   `dropped`, no `resolve_key`, and no `v4_feed_url`. That is 4,784,967
   resolvable rows on this snapshot plus the non-public and flagged rows
@@ -592,10 +595,6 @@ database and no map file.
 - Schema and worker commands for the legacy map.
 - Worker command that queues the subscribed and viewed public shows on
   `rss-slow` at go-live, and a measurement of how long that queue takes.
-- Worker command that writes the `podcast` legacy map rows, the
-  `v4_feed_url` column, and the read-only API route for the
-  [legacy podcast lookup](#legacy-podcast-lookup): planned in
-  [`v4-signed-out-carryover`](/.llm/plans/active/v4-signed-out-carryover/00-SUMMARY.md).
 - [Feed source](#feed-source) column and `feed_add_event` table: a linear
   migration, and writers in the parser and the add routes.
 - Redirect handler design for [11](11-web-api-and-url-cutover.md).

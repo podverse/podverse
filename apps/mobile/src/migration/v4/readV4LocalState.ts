@@ -1,6 +1,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import { v4CarryoverRepository } from '../../data/repositories/v4CarryoverRepository';
+import { buildCarryoverOutlines, carryoverOutlineCount } from './carryoverOutlines';
 import type { V4StagedEntry } from './parseV4LocalState';
 import { parseV4LocalState } from './parseV4LocalState';
 
@@ -64,10 +65,33 @@ const readStoredState = async () => {
 };
 
 let onCarryoverRowsSaved: (() => void) | null = null;
+let onContinueMigrationNeeded: (() => void) | null = null;
 
-/** Called after a read stores at least one row, so sync can resolve them without waiting for another launch. */
+/** Called after a read stores rows the copy may resolve, so sync can run without waiting. */
 export const registerV4CarryoverRowsSaved = (listener: (() => void) | null): void => {
   onCarryoverRowsSaved = listener;
+};
+
+/** Called after a read leaves the copy waiting on the save screen. */
+export const registerV4ContinueMigrationNeeded = (listener: (() => void) | null): void => {
+  onContinueMigrationNeeded = listener;
+};
+
+/** Asks the registered sync listener to resolve staged rows. No-op until that listener is set. */
+export const notifyV4CarryoverRowsSaved = (): void => {
+  try {
+    onCarryoverRowsSaved?.();
+  } catch {
+    console.warn('[v4-carryover] could not schedule resolve');
+  }
+};
+
+const notifyContinueMigrationNeeded = (): void => {
+  try {
+    onContinueMigrationNeeded?.();
+  } catch {
+    console.warn('[v4-carryover] could not open the save screen');
+  }
 };
 
 const performRead = async (): Promise<void> => {
@@ -77,15 +101,16 @@ const performRead = async (): Promise<void> => {
     }
     const entries = await readStoredState();
     await v4CarryoverRepository.saveRead(entries);
-    await v4CarryoverRepository.setCopyAllowed();
+    const hasOutline = carryoverOutlineCount(buildCarryoverOutlines(entries)) > 0;
+    if (!hasOutline) {
+      await v4CarryoverRepository.setCopyAllowed();
+    }
     // eslint-disable-next-line no-console -- counts only; this line is the record of the one-time read
     console.info('[v4-carryover] read finished', summarize(entries));
-    if (entries.length > 0) {
-      try {
-        onCarryoverRowsSaved?.();
-      } catch {
-        console.warn('[v4-carryover] could not schedule resolve');
-      }
+    if (hasOutline) {
+      notifyContinueMigrationNeeded();
+    } else if (entries.length > 0) {
+      notifyV4CarryoverRowsSaved();
     }
   } catch {
     console.warn('[v4-carryover] read failed');
@@ -113,7 +138,8 @@ export const enqueueV4CarryoverWork = (task: () => Promise<void>): Promise<void>
  * Reads the previous app's signed-out lists once and stores them.
  *
  * A second call does nothing. A missing key is an empty list. A failed read still records that
- * it finished, so a broken store does not retry on every launch. Callers do not await this on
- * the render path.
+ * it finished, so a broken store does not retry on every launch. When the stored rows include an
+ * OPML outline, the copy waits for the save screen. Otherwise the copy may start immediately.
+ * Callers do not await this on the render path.
  */
 export const runV4CarryoverReadOnce = (): Promise<void> => enqueueV4CarryoverWork(performRead);

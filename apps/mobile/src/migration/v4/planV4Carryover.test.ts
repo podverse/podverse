@@ -43,9 +43,7 @@ describe('planV4Carryover', () => {
     );
 
     expect(plan.actions).toEqual([{ channel: show, channelIdText: 'chan0001', kind: 'subscribe' }]);
-    expect(plan.rows).toEqual([
-      { legacyId: 'pod-1', legacyKind: 'podcast', status: 'subscribed' },
-    ]);
+    expect(plan.rows).toEqual([{ legacyId: 'pod-1', legacyKind: 'podcast', status: 'subscribed' }]);
   });
 
   it('saves a feed-url answer as Add by RSS with the answer address and the cached title', () => {

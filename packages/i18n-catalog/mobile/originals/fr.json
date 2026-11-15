@@ -319,6 +319,18 @@
     "enter_video_full_screen": "Plein écran",
     "exit_video_full_screen": "Quitter le plein écran"
   },
+  "migration": {
+    "v4_continue": {
+      "body_account": "Si vous aviez un compte, la connexion copie ces éléments, sur ce téléphone ou sur le site, et n'attend pas cet écran.",
+      "body_file": "Ce fichier est la liste des émissions sur ce téléphone. Il n'inclut pas les listes de lecture, les clips, votre file d'attente, l'historique, les positions de lecture, les fichiers téléchargés, ni votre abonnement.",
+      "continue": "Continuer la migration",
+      "continue_error": "Impossible de continuer. Veuillez réessayer.",
+      "export_error": "Impossible d'exporter le fichier. Veuillez réessayer.",
+      "saved_copy": "J'ai enregistré une copie, ou je veux continuer sans",
+      "sign_in": "Connexion",
+      "title": "Enregistrez votre liste de podcasts"
+    }
+  },
   "misc": {
     "clear": "Effacer"
   },

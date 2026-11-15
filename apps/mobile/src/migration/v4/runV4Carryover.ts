@@ -193,9 +193,7 @@ const executeV4Carryover = async (deps: V4CarryoverRunDeps): Promise<void> => {
     return;
   }
 
-  const podcastIds = rows
-    .filter((row) => row.legacyKind === 'podcast')
-    .map((row) => row.legacyId);
+  const podcastIds = rows.filter((row) => row.legacyKind === 'podcast').map((row) => row.legacyId);
   const loaded =
     podcastIds.length === 0
       ? { answers: new Map<string, DTOLegacyPodcastLookupAnswer>(), complete: true }

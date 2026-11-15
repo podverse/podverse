@@ -5,12 +5,12 @@ the cumulative verification: [00-EXECUTION-ORDER.md](00-EXECUTION-ORDER.md).
 
 ## How to use
 
-Start only after `add-by-rss-directory-match` is complete. Prompts 01–05 are done and archived
+Start only after `add-by-rss-directory-match` is complete. Prompts 01–07 are done and archived
 under `.llm/plans/completed/v4-signed-out-carryover/`. The feed-list field spike passed
-on iOS 18.2: 2 outlines, 0 skipped. Android was not run. The next step is prompt 06.
+on iOS 18.2: 2 outlines, 0 skipped. Android was not run. The set is closed.
 
 **Run the set unattended (Root tab):** `./scripts/abcplan/run.sh run v4-signed-out-carryover`.
-One prompt per phase. The feed-list field spike is written in doc 08, so prompt 06 can run.
+One prompt per phase. The set is closed.
 Resume a stopped set with
 `./scripts/abcplan/run.sh run v4-signed-out-carryover --resume 'Spike results are in doc 08.'`
 (`/abcresume` gives the ready-made commands).
@@ -28,7 +28,7 @@ Prompts do not run tests. The operator runs the cumulative verification after pr
 ```
 Read and execute .llm/plans/completed/v4-signed-out-carryover/01-legacy-podcast-map.md
 
-Follow .llm/plans/active/v4-signed-out-carryover/00-EXECUTION-ORDER.md § Rules for every prompt.
+Follow .llm/plans/completed/v4-signed-out-carryover/00-EXECUTION-ORDER.md § Rules for every prompt.
 Run make db_regen_linear_baseline after the SQL. Do not run the worker command. Do not run tests.
 ```
 
@@ -41,7 +41,7 @@ Run make db_regen_linear_baseline after the SQL. Do not run the worker command. 
 ```
 Read and execute .llm/plans/completed/v4-signed-out-carryover/02-legacy-podcast-lookup-route.md
 
-Follow .llm/plans/active/v4-signed-out-carryover/00-EXECUTION-ORDER.md § Rules for every prompt.
+Follow .llm/plans/completed/v4-signed-out-carryover/00-EXECUTION-ORDER.md § Rules for every prompt.
 Batch every lookup; never one query per id. Do not run tests. Do not commit.
 ```
 
@@ -54,7 +54,7 @@ Batch every lookup; never one query per id. Do not run tests. Do not commit.
 ```
 Read and execute .llm/plans/completed/v4-signed-out-carryover/03-library-copy-directory-match.md
 
-Follow .llm/plans/active/v4-signed-out-carryover/00-EXECUTION-ORDER.md § Rules for every prompt.
+Follow .llm/plans/completed/v4-signed-out-carryover/00-EXECUTION-ORDER.md § Rules for every prompt.
 Copy, dry run, and verify must use the same split. Do not run tests. Do not commit.
 ```
 
@@ -67,7 +67,7 @@ Copy, dry run, and verify must use the same split. Do not run tests. Do not comm
 ```
 Read and execute .llm/plans/completed/v4-signed-out-carryover/04-mobile-carryover-read.md
 
-Follow .llm/plans/active/v4-signed-out-carryover/00-EXECUTION-ORDER.md § Rules for every prompt.
+Follow .llm/plans/completed/v4-signed-out-carryover/00-EXECUTION-ORDER.md § Rules for every prompt.
 Check the gate first. Never read the credentials key, the bearer token, or the Keychain.
 ```
 
@@ -80,33 +80,33 @@ Check the gate first. Never read the credentials key, the bearer token, or the K
 ```
 Read and execute .llm/plans/completed/v4-signed-out-carryover/05-mobile-carryover-resolve.md
 
-Follow .llm/plans/active/v4-signed-out-carryover/00-EXECUTION-ORDER.md § Rules for every prompt.
+Follow .llm/plans/completed/v4-signed-out-carryover/00-EXECUTION-ORDER.md § Rules for every prompt.
 Check the gate first. Blocked ids never become Add by RSS feeds. Do not run tests.
 ```
 
 ## Phase 6
 
-- [ ] **06 — Continue Migration screen (gated)**
+- [x] **06 — Continue Migration screen (gated)**
 
 **Cursor model:** Cursor Grok 4.7 · **Reasoning:** high
 
 ```
-Read and execute .llm/plans/active/v4-signed-out-carryover/06-continue-migration-screen.md
+Read and execute .llm/plans/completed/v4-signed-out-carryover/06-continue-migration-screen.md
 
-Follow .llm/plans/active/v4-signed-out-carryover/00-EXECUTION-ORDER.md § Rules for every prompt.
+Follow .llm/plans/completed/v4-signed-out-carryover/00-EXECUTION-ORDER.md § Rules for every prompt.
 Check the gate first. The screen paints with no network request. Do not run tests.
 ```
 
 ## Phase 7
 
-- [ ] **07 — Docs and close (last)**
+- [x] **07 — Docs and close (last)**
 
 **Cursor model:** Cursor Grok 4.7 · **Reasoning:** medium
 
 ```
-Read and execute .llm/plans/active/v4-signed-out-carryover/07-docs-and-close.md
+Read and execute .llm/plans/completed/v4-signed-out-carryover/07-docs-and-close.md
 
-Follow .llm/plans/active/v4-signed-out-carryover/00-EXECUTION-ORDER.md § Rules for every prompt.
+Follow .llm/plans/completed/v4-signed-out-carryover/00-EXECUTION-ORDER.md § Rules for every prompt.
 Archive the set, then end with the cumulative verification from 00-EXECUTION-ORDER.md exactly as
 written, with its tab labels.
 ```

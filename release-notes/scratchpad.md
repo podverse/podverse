@@ -304,3 +304,12 @@
   Shows v4 flagged as spam or takedown are left out. Results are counted in the error log.
 - Who notices: signed-out v4 users after the update
 - Operator steps: run `v4WriteLegacyPodcastMap` before this build ships
+
+## Mobile asks signed-out v4 users to save an OPML file before the carryover
+
+- Surfaces: mobile
+- Change: after updating from v4, a signed-out phone with readable v4 shows opens Save Your
+  Podcast List first. Export OPML shares the list of shows on the phone; Continue Migration (after
+  ticking the checkbox) starts the carryover. Sign In stays available.
+- Who notices: signed-out v4 users after the update
+- Operator steps: none

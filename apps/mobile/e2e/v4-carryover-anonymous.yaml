@@ -2,6 +2,7 @@ appId: com.podverse.app.next
 name: V4 Carryover Anonymous
 ---
 # A signed-out phone turns the previous app's subscriptions into local follows.
+# The save screen comes up first. Continue starts the copy.
 # Home lists directory follows and Add by RSS follows together.
 # Needs Mobile E2E API (:4230) for the legacy podcast lookup.
 
@@ -10,6 +11,20 @@ name: V4 Carryover Anonymous
 - openLink: podverse-next://e2e/v4-fixture
 
 - runFlow: shared/confirm-ios-open-dialog.yaml
+
+- extendedWaitUntil:
+    visible: "Save Your Podcast List"
+    timeout: ${TIMEOUT_FAST}
+
+- tapOn:
+    id: v4-continue-migration-saved-copy
+
+- assertVisible:
+    id: v4-continue-migration-continue
+    enabled: true
+
+- tapOn:
+    id: v4-continue-migration-continue
 
 - tapOn:
     id: tab-home
