@@ -69,7 +69,7 @@ Ran read-only on the 2026-10-30 snapshot. One account. v4 id `eFv5NFx`
 
 Nothing can write a migrated row until these exist. One plan set, then linear
 migrations and a regenerated baseline. The plan is
-[01-schema-groundwork.md](/.llm/plans/active/v4-rehearsal-schema/01-schema-groundwork.md).
+[01-schema-groundwork.md](/.llm/plans/completed/v4-rehearsal-schema/01-schema-groundwork.md).
 
 - [x] Loosen `nano_id_v2` from 9 characters to 7–15. New ids stay 10. On this
       snapshot, 410 users and 21,099 episodes are shorter than 9
@@ -239,10 +239,20 @@ Every account, on a local v5 database. The design is
 
 - [x] Caps v4 did not have. Decided: an account over a default keeps its
       whole library at the smallest tier that covers it, decided at copy
-      time. Past 10,000 is `needs_operator`, not a partial copy. See
+      time. Past the last tier is `needs_operator`. A queue uses tiers through
+      100,000 and keeps 100,000 rows past that. See
       [07](07-account-and-data-migration-model.md#account-caps-v4-did-not-have).
 - [ ] Plan set for the runner, cap tiers in the library copy, the
       per-account check, the pilot pick, the run folder, and the agent prompt.
+- [ ] Job loop for each stage. In **Workers**, beside the parsers, after
+      `rehearsal restore=finished`, start it and record its pid. Restart it
+      when a restore finishes, on the same rule as the parsers. If the stage
+      does not restore, start it when the parsers start. It claims at most
+      100 due jobs per pass. Run one loop only:
+      `while true; npm run scheduled_jobs_run_due -w apps/workers -- -limit 100; sleep 15; end`
+- [ ] Replay after each stage. Keep that loop running and rerun
+      `v4_replay_legacy_rows` for the run's accounts until no `waiting_parse`
+      rows remain or the retries have all settled.
 - [ ] Pilot stage, about 100 accounts picked by rule. Zero `unaccounted`.
       Every error class fixed or accepted.
 - [ ] Sample stage, about 1,000 random accounts on a clean database. Record

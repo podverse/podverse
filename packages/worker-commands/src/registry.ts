@@ -67,6 +67,24 @@ const WORKER_COMMAND_DEFS: readonly WorkerCommandDef[] = [
     example_cli: 'npm run v4_seed_account_catalog -w apps/workers -- --v4-id abcd123 --dry-run',
   },
   {
+    name: 'v4ImportFlaggedFeeds',
+    label: 'v4: import flagged feeds',
+    description:
+      'Write a blocked v5 feed for each v4 podcast flagged spam or takedown. Reads V4_DATABASE_URL. Creates no channel and queues no parse. A dry run writes nothing. Refuses a non-local database.',
+    category: 'orm',
+    risk: 'normal',
+    example_cli: 'npm run v4_import_flagged_feeds -w apps/workers -- --dry-run',
+  },
+  {
+    name: 'v4WriteLegacyPodcastMap',
+    label: 'v4: write legacy podcast map',
+    description:
+      'Write one legacy_id_map podcast row per v4 podcast. Reads V4_DATABASE_URL in a read-only transaction. Spam and takedown rows are dropped. A podcast with no http(s) authority feed URL is skipped. A row already mapped keeps that status. -dryRun counts and writes nothing.',
+    category: 'orm',
+    risk: 'normal',
+    example_cli: 'npm run v4_write_legacy_podcast_map -w apps/workers -- -dryRun',
+  },
+  {
     name: 'v4RunFullRehearsal',
     label: 'v4: run a local migration rehearsal',
     description:

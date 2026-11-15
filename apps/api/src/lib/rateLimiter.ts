@@ -12,6 +12,8 @@ export interface RateLimiterOptions {
   max: number;
   /** Optional custom key generator (e.g., per-user). */
   keyGenerator?: (req: Request) => string;
+  /** When true, the request is not counted and the limiter calls next. */
+  skip?: (req: Request) => boolean;
   /** If true, wraps limiter in ensureAuthenticated before applying rate limit. */
   requireAuth?: boolean;
   /** A store the caller keeps a handle on (to reset it); omitted, the limiter makes its own. */
@@ -30,13 +32,14 @@ function buildHandler(windowMs: number) {
 }
 
 function createLimiter(options: RateLimiterOptions) {
-  const { windowMs, max, keyGenerator, store } = options;
+  const { windowMs, max, keyGenerator, skip, store } = options;
   return rateLimit({
     windowMs,
     max,
     standardHeaders: true,
     legacyHeaders: false,
     ...(keyGenerator && { keyGenerator }),
+    ...(skip && { skip }),
     ...(store && { store }),
     handler: buildHandler(windowMs),
   });
@@ -177,7 +180,12 @@ export function rateLimitOptionalAuthEndpoint(options: {
  * Generic endpoint rate limiting (IP-based, default express-rate-limit behavior).
  * Does not require authentication and returns JSON with timing details when limited.
  */
-export function rateLimitEndpoint(options: { windowMs: number; max: number }) {
+export function rateLimitEndpoint(options: {
+  windowMs: number;
+  max: number;
+  keyGenerator?: (req: Request) => string;
+  skip?: (req: Request) => boolean;
+}) {
   return createLimiter(options);
 }
 

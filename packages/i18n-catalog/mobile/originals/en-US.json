@@ -214,7 +214,8 @@
       "live_status": "Checking What's Live",
       "clips": "Updating Your Clips",
       "home_feed": "Reading Home from This Device",
-      "identity_remap": "Updating Your Shows"
+      "identity_remap": "Updating Your Shows",
+      "v4_carryover": "Moving Your Podcasts"
     },
     "progress": "{completed} of {total}"
   },
@@ -270,6 +271,8 @@
     "outcome_success": "Succeeded",
     "directory_channel_gone": "Removed {channel} from this device. It is no longer in the directory.",
     "directory_channel_converted": "Moved {channel} to Add by RSS. It is no longer in the directory.",
+    "add_by_rss_promoted_to_directory": "Moved {channel} to {brand_name} Directory",
+    "v4_carryover_done": "Podcasts Moved from the Previous App",
     "row_a11y_hint": "Opens Full Details",
     "saved_footnote": "Full details are saved in More › Advanced › Error Log.",
     "kind": {
@@ -327,7 +330,12 @@
         "native_detail": "Player Error Detail",
         "parse_status": "Parse Status",
         "request_id": "Request ID",
-        "basic_auth": "Feed Username and Password"
+        "basic_auth": "Feed Username and Password",
+        "moved_items": "Episodes Moved",
+        "subscribed": "Subscribed",
+        "add_by_rss": "Add by RSS",
+        "blocked": "Left Out",
+        "waiting": "Waiting"
       }
     }
   },
@@ -335,6 +343,18 @@
     "chapter_tooltip": "Chapter: {title}",
     "enter_video_full_screen": "Full Screen",
     "exit_video_full_screen": "Exit Full Screen"
+  },
+  "migration": {
+    "v4_continue": {
+      "body_account": "If you had an account, signing in copies those, on this phone or on the website, and does not wait for this screen.",
+      "body_file": "This file is the list of shows on this phone. It does not include playlists, clips, your queue, history, playback positions, downloaded files, or your membership.",
+      "continue": "Continue Migration",
+      "continue_error": "Could not continue. Please try again.",
+      "export_error": "Could not export the file. Please try again.",
+      "saved_copy": "I saved a copy, or I want to continue without one",
+      "sign_in": "Sign In",
+      "title": "Save Your Podcast List"
+    }
   },
   "misc": {
     "clear": "Clear"

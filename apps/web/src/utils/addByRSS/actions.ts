@@ -2,6 +2,7 @@ import type {
   AddByRSSParseStatus,
   AddByRSSPublisherListedFeed,
   DTOAccount,
+  DTOChannelDirectoryMatch,
 } from '@podverse/helpers';
 import { createAddByRSSId, createAddByRSSIdText, sleep } from '@podverse/helpers';
 import type { AddByRSSBasicAuthCredentials } from '@podverse/helpers-validation/client';
@@ -174,11 +175,16 @@ export const enqueueAddByRSSParseWithStoredCredentials = async (params: {
   return enqueueAddByRSSParse({ feedUrl: params.feedUrl, cache: params.cache, credentials });
 };
 
+export type FollowAddByRSSResult =
+  | { kind: 'directory'; channel: DTOChannelDirectoryMatch; account: DTOAccount }
+  | { kind: 'add_by_rss'; requestId: string; record: AddByRSSFeedRecord; account: DTOAccount };
+
 /**
  * Follows a feed and queues its first parse. Credentials (explicit, else already stored on this
  * browser) are saved locally and sent only in the parse body; the follow carries just the flag.
  * A `seedRecord` (a listed album) gives the followed record its id, idText, and parsed feed, so
  * the album keeps its URL and shows its tracks while the follow's parse runs.
+ * A directory match subscribes to that channel and leaves no Add by RSS record or parse.
  */
 export const followAddByRSSChannelAndQueue = async (params: {
   accountId: string;
@@ -188,16 +194,26 @@ export const followAddByRSSChannelAndQueue = async (params: {
   imageUrl?: string | null;
   credentials?: AddByRSSBasicAuthCredentials | null;
   seedRecord?: AddByRSSFeedRecord | null;
-}): Promise<{ requestId: string; record: AddByRSSFeedRecord; account: DTOAccount }> => {
+}): Promise<FollowAddByRSSResult> => {
   const credentials =
     params.credentials ?? (await readStoredCredentials(params.accountId, params.feedUrl));
 
-  const account = await followAddByRSSChannel({
+  const followed = await followAddByRSSChannel({
     feedUrl: params.feedUrl,
     title: params.title ?? null,
     imageUrl: params.imageUrl ?? null,
     ...(credentials ? { requiresCredentials: true } : {}),
   });
+  const account = followed.account;
+
+  if (followed.directory_channel) {
+    const existing = await getAddByRSSFeedByUrl(params.feedUrl);
+    if (existing) {
+      await removeAddByRSSFeed(existing.idText);
+      emitAddByRSSFeedChanged(existing.feedUrl);
+    }
+    return { kind: 'directory', channel: followed.directory_channel, account };
+  }
 
   if (params.credentials) {
     await storeCredentials(params.accountId, params.feedUrl, params.credentials);
@@ -237,7 +253,7 @@ export const followAddByRSSChannelAndQueue = async (params: {
   try {
     await upsertAddByRSSFeed(record);
     const parseResponse = await enqueueAddByRSSParse({ feedUrl: params.feedUrl, credentials });
-    return { requestId: parseResponse.request_id, record, account };
+    return { kind: 'add_by_rss', requestId: parseResponse.request_id, record, account };
   } catch (error) {
     releaseAddByRSSParseInFlight(params.feedUrl);
     throw error;

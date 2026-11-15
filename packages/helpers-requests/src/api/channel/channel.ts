@@ -1,4 +1,9 @@
-import type { DTOChannel, DTOChannelDirectoryMatch } from '@podverse/helpers';
+import type {
+  DTOAddByRSSMatchFeedRef,
+  DTOAddByRSSMatchResponse,
+  DTOChannel,
+  DTOChannelDirectoryMatch,
+} from '@podverse/helpers';
 
 import type { ApiRequestService } from '../_request.js';
 import type { ApiListResponse } from '../_response.js';
@@ -32,6 +37,17 @@ export async function reqChannelGetByPodcastIndexId(
   return api.apiRequest<DTOChannel | null>({
     path: `/channel/podcast-index/${podcast_index_id}`,
     method: 'GET',
+  });
+}
+
+export async function reqChannelAddByRSSMatch(
+  api: ApiRequestService,
+  body: { feeds: DTOAddByRSSMatchFeedRef[] }
+): Promise<DTOAddByRSSMatchResponse> {
+  return api.apiRequest<DTOAddByRSSMatchResponse>({
+    path: '/channel/add-by-rss-match',
+    method: 'POST',
+    data: body,
   });
 }
 

@@ -1,10 +1,14 @@
+import { Account } from '@orm/entities/account/account.js';
 import { AccountFollowingAddByRSSChannel } from '@orm/entities/account/accountFollowingAddByRSSChannel.js';
+import { applyProperties } from '@orm/lib/applyProperties.js';
+import { hasDifferentValues } from '@orm/lib/hasDifferentValues.js';
 import { AccountService } from '@orm/services/account/account.js';
 import { BaseManyService } from '@orm/services/base/baseManyService.js';
+import { BillingPriceCatalogService } from '@orm/services/billingPriceCatalog.js';
 import type { EntityManager, FindManyOptions, FindOptionsSelect, FindOptionsWhere } from 'typeorm';
 import { Equal, In } from 'typeorm';
 
-import { DATABASE_CONSTANTS } from '@podverse/helpers';
+import { DATABASE_CONSTANTS, decideAddByRssFeedInsert } from '@podverse/helpers';
 
 /** http(s) with no `user:pass@`: the follow row is read by every device on the account. */
 const isStorableImageUrl = (value: string): boolean => {
@@ -27,6 +31,49 @@ export type AccountFollowingAddByRSSChannelDto = {
   /** Omitted on update leaves the stored flag unchanged. */
   requires_credentials?: boolean;
 };
+
+export type AddOrUpdateRSSChannelOptions = {
+  /** When false, a new feed is saved even at the tier. Fixture stacks use this. */
+  enforceLimit?: boolean;
+};
+
+/** Thrown when a new Add by RSS feed would pass the account's tier. */
+export class AddByRssFeedLimitReachedError extends Error {
+  readonly limit: number;
+  readonly code = 'add_by_rss_feed_limit_reached' as const;
+  readonly i18nKey = 'membership.add_by_rss_feed_limit_reached' as const;
+
+  constructor(limit: number) {
+    super(`Add by RSS feed limit reached (${limit})`);
+    this.name = 'AddByRssFeedLimitReachedError';
+    this.limit = limit;
+  }
+}
+
+function readStoredAddByRssLimit(value: unknown): number | null {
+  if (value === null || value === undefined) {
+    return null;
+  }
+  if (typeof value === 'number' && Number.isInteger(value)) {
+    return value;
+  }
+  if (typeof value === 'string' && /^-?\d+$/.test(value)) {
+    const parsed = Number.parseInt(value, 10);
+    return Number.isSafeInteger(parsed) ? parsed : null;
+  }
+  return null;
+}
+
+function storedAddByRssLimitFromStatusRows(rows: unknown): number | null {
+  if (!Array.isArray(rows) || rows.length === 0) {
+    return null;
+  }
+  const row = rows[0];
+  if (typeof row !== 'object' || row === null || !('max_add_by_rss_feeds' in row)) {
+    return null;
+  }
+  return readStoredAddByRssLimit(Reflect.get(row, 'max_add_by_rss_feeds'));
+}
 
 export type MarkAddByRSSChannelSeenEntry = {
   feed_url: string;
@@ -101,14 +148,60 @@ export class AccountFollowingAddByRSSChannelService extends BaseManyService<
 
   async addOrUpdateRSSChannel(
     account_id: number,
-    dto: AccountFollowingAddByRSSChannelDto
+    dto: AccountFollowingAddByRSSChannelDto,
+    options?: AddOrUpdateRSSChannelOptions
   ): Promise<AccountFollowingAddByRSSChannel> {
-    const account = await this.accountService.get(account_id);
-    if (!account) {
-      throw new Error('Account not found.');
-    }
+    const enforceLimit = options?.enforceLimit !== false;
+    const defaultLimit = enforceLimit
+      ? (await new BillingPriceCatalogService().resolveProductMembershipCapDefaults())
+          .maxAddByRSSFeeds
+      : 0;
 
-    return this._update(account, ['account_id', 'feed_url'], dto);
+    return this.repositoryReadWrite.manager.transaction(async (manager) => {
+      const account = await manager.findOne(Account, {
+        where: { id: account_id },
+        lock: { mode: 'pessimistic_write' },
+      });
+      if (account === null) {
+        throw new Error('Account not found.');
+      }
+
+      const repo = manager.getRepository(AccountFollowingAddByRSSChannel);
+      const existing = await repo.findOne({
+        where: { account_id: account.id, feed_url: dto.feed_url },
+      });
+
+      if (existing === null && enforceLimit) {
+        const storedLimit = storedAddByRssLimitFromStatusRows(
+          await manager.query(
+            `SELECT max_add_by_rss_feeds FROM account_membership_status WHERE account_id = $1`,
+            [account.id]
+          )
+        );
+        const followedCount = await repo.count({ where: { account_id: account.id } });
+        const decision = decideAddByRssFeedInsert({
+          alreadyFollowed: false,
+          followedCount,
+          storedLimit,
+          defaultLimit,
+        });
+        if (decision.action === 'refuse') {
+          throw new AddByRssFeedLimitReachedError(decision.limit);
+        }
+      }
+
+      if (existing !== null) {
+        if (!hasDifferentValues(existing, dto)) {
+          return existing;
+        }
+        return repo.save(applyProperties(existing, dto));
+      }
+
+      const created = new AccountFollowingAddByRSSChannel();
+      created.account = account;
+      created.account_id = account.id;
+      return repo.save(applyProperties(created, dto));
+    });
   }
 
   /**

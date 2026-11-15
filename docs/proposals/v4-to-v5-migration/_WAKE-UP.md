@@ -30,8 +30,10 @@ string. The seed keeps a used row over a never-used one, then the later dated
 activity, then a verified row, then the later account `updatedAt`, and logs
 the other id. Under that rule it keeps 30 lowercase rows and 20 mixed-case
 rows. No never-used row wins over a used one, and no left-out row has a
-future paid expiry. In 36 pairs the left-out row also had use. Its library
-is dropped, not merged, and only its v4 id is logged. Six
+future paid expiry. In 36 pairs the left-out row also had use. The left-out
+id gets a `legacy_id_map` row (`resolve_key` `email_case_twin`) naming the
+kept account. Its library merges into that account after the kept row's own
+copy, and follows of either id resolve there. Six
 mixed-case addresses have no twin and are stored lowercase. v5 stores only a
 trimmed lowercase address (`0006_account_email_lowercase.sql`). Sign-in,
 signup, email change, and the management user routes lowercase the typed
@@ -144,8 +146,12 @@ The clip stays empty. Do not invent a clip for that episode. The
 phone-storage spike is written in
 [08](08-mobile-first-launch-migration.md#storage-spike) and has not been run.
 It reads two keys on a private in-place install and leaves the app code
-alone. Doc 12 does not freeze or promote a beta database. Beta and
-production already share the production database.
+alone. A feed-list file before the phone copy is specified in
+[08](08-mobile-first-launch-migration.md#feed-list-file-before-the-phone-copy)
+and is deferred. Do not run that spike, and do not build Continue Migration,
+until the operator asks. It is not the next item in
+[15](15-near-term-rehearsal-checklist.md). Doc 12 does not freeze or promote
+a beta database. Beta and production already share the production database.
 
 ## Done
 

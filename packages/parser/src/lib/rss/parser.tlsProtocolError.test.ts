@@ -195,7 +195,7 @@ describe('parseRSSFeedAndSaveToDatabase TLS/protocol errors', () => {
 
     expect(result).toEqual({ remoteItemsToParse: [], imageHints: [] });
     expect(warnMock).toHaveBeenCalledWith(
-      expect.stringContaining('TLS/protocol error (feed skipped)')
+      'Feed parse failed: feed_id=202 podcast_index_id=3785 reason=tls_error http_status=none'
     );
     expect(logErrorMock).not.toHaveBeenCalled();
     expect(feedLogUpdateMock).toHaveBeenCalled();

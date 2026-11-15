@@ -15,6 +15,7 @@ import {
   MQ_QUEUES,
 } from '@podverse/helpers';
 import { mqRSSAdd } from '@podverse/mq';
+import { findBlockedFeed } from '@podverse/orm';
 
 import { handleGenericErrorResponse } from '../helpers/error.js';
 
@@ -56,6 +57,18 @@ export class MQController {
               };
 
               try {
+                const blockedFeed = await findBlockedFeed({
+                  url: finalDto.url,
+                  podcastIndexId: finalDto.podcast_index_id,
+                });
+                if (blockedFeed !== null) {
+                  res.status(403).json({
+                    message: 'This feed is blocked.',
+                    code: 'feed_blocked',
+                  });
+                  return;
+                }
+
                 const mqConstantMessageOptions = MQ_QUEUES['rss-on-demand'];
                 const dedupeTTLSeconds = getDedupeTTLSeconds(
                   mqConstantMessageOptions.dedupeCacheTimeMS

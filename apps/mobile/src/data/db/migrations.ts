@@ -345,6 +345,23 @@ export const MIGRATIONS: Migration[] = [
       `ALTER TABLE add_by_rss_feed ADD COLUMN followed_at INTEGER;`,
     ],
   },
+  {
+    version: 4,
+    statements: [
+      `CREATE TABLE IF NOT EXISTS v4_carryover_entry (
+        legacy_kind TEXT NOT NULL,
+        legacy_id TEXT NOT NULL,
+        cached_feed_url TEXT,
+        cached_title TEXT,
+        status TEXT NOT NULL,
+        attempts INTEGER NOT NULL DEFAULT 0,
+        updated_at INTEGER NOT NULL,
+        PRIMARY KEY (legacy_kind, legacy_id),
+        CHECK (legacy_kind IN ('podcast', 'add_by_rss')),
+        CHECK (status IN ('pending', 'subscribed', 'add_by_rss', 'blocked', 'waiting'))
+      );`,
+    ],
+  },
 ];
 
 export const LATEST_MIGRATION_VERSION: number = MIGRATIONS.reduce(

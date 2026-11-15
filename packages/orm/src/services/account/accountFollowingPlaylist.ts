@@ -8,6 +8,12 @@ import type { QueryParamsQueueMedium } from '@podverse/helpers';
 import { getQueueMediumIdFromType, SharableStatusEnum } from '@podverse/helpers';
 
 import { PlaylistService } from '../playlist/playlist.js';
+import {
+  decideFollowRoom,
+  FollowLimitReachedError,
+  lockAccountForFollow,
+  readFollowRoom,
+} from './accountFollowLimit.js';
 
 export class AccountFollowingPlaylistService extends BaseManyService<
   AccountFollowingPlaylist,
@@ -95,9 +101,27 @@ export class AccountFollowingPlaylistService extends BaseManyService<
       throw new Error('Playlist not found.');
     }
 
-    const dto = { playlist_id: playlist.id };
+    return this.repositoryReadWrite.manager.transaction(async (manager) => {
+      await lockAccountForFollow(manager, account.id);
+      const repo = manager.getRepository(AccountFollowingPlaylist);
+      const existing = await repo.findOne({
+        where: { account_id: account.id, playlist_id: playlist.id },
+      });
+      if (existing !== null) {
+        return existing;
+      }
 
-    return this._update(account, ['account_id', 'playlist_id'], dto);
+      const decision = decideFollowRoom(await readFollowRoom(manager, account.id), false);
+      if (decision.action === 'refuse') {
+        throw new FollowLimitReachedError(decision.limit);
+      }
+
+      const created = new AccountFollowingPlaylist();
+      created.account = account;
+      created.account_id = account.id;
+      created.playlist_id = playlist.id;
+      return repo.save(created);
+    });
   }
 
   async unfollowPlaylist(account_id: number, playlist_id_text: string): Promise<void> {

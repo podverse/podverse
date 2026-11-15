@@ -1,20 +1,31 @@
 import { Client } from 'pg';
 
-import { AccountMembershipEnum } from '@podverse/helpers';
+import {
+  AccountMembershipEnum,
+  ADD_BY_RSS_FEED_TIERS,
+  DEFAULT_MAX_ADD_BY_RSS_FEEDS,
+  isUnlimitedAddByRssFeedLimit,
+  isUnlimitedFollowLimit,
+  queueResourceMigrationTier,
+} from '@podverse/helpers';
 import { fetchWithTimeout } from '@podverse/helpers-backend';
-import { canonicalAddByRSSFeedUrl } from '@podverse/helpers-validation';
 import { getDataSourceReadWrite, isValidNanoIdV2IdText } from '@podverse/orm';
 
 import { decideV4Membership } from '../v4Identity/seedAccountIdentityLib.js';
 import { assertLocalDatabase } from '../v4Library/copyAccountLibrary.js';
+import { directoryChannelIdByAddByRssUrl } from '../v4Library/copyAccountLibraryApply.js';
+import {
+  EMAIL_CASE_TWIN_RESOLVE_KEY,
+  splitAddByRssUrlsByDirectoryMatch,
+} from '../v4Library/copyAccountLibraryLib.js';
 
 /** Add by RSS feeds kept when the stored column is null. The copy does not write this number. */
-export const ADD_BY_RSS_DEFAULT_LIMIT = 100;
+export const ADD_BY_RSS_DEFAULT_LIMIT = DEFAULT_MAX_ADD_BY_RSS_FEEDS;
 
 /** Tiers the copy may write. A stored number above the last tier still covers a count. */
-export const ADD_BY_RSS_TIERS = [200, 300, 400, 500, 1000, 10000] as const;
+export const ADD_BY_RSS_TIERS = ADD_BY_RSS_FEED_TIERS;
 
-/** Directory follows have no stored column. */
+/** Directory follows use this cap when `max_follows` is empty. */
 export const DIRECTORY_FOLLOW_DEFAULT_LIMIT = 500;
 
 /** Counts above the last tier are left for an operator. There is no column to read. */
@@ -106,11 +117,18 @@ export type VerifyPlaylistResource = {
 export type JudgeAccountCompatibilityInput = {
   v4Id: string;
   accountIdText: string;
+  /**
+   * The v4 id is an email-case twin whose library merged into `accountIdText`. Only library
+   * coverage is judged: sign-in fields and membership belong to the kept v4 row.
+   */
+  merged: boolean;
   now: Date;
   subscribedPodcastIds: readonly string[];
   subscribedPlaylistIds: readonly string[];
   subscribedUserIds: readonly string[];
   addByRssUrls: readonly string[];
+  /** Canonical add-by-RSS url to the directory channel the copy follows. */
+  addByRssDirectoryChannelIdByUrl: ReadonlyMap<string, number>;
   playlists: readonly VerifyPlaylist[];
   mediaRefs: readonly VerifyMediaRef[];
   playback: readonly VerifyPlaybackRow[];
@@ -123,9 +141,11 @@ export type JudgeAccountCompatibilityInput = {
   accountMembershipId: number | null;
   membershipExpiresAt: Date | null;
   maxAddByRssFeeds: number | null;
+  maxFollows: number | null;
   appStoreWindow: boolean;
   grants: readonly VerifyGrant[];
   followedChannelIdTexts: readonly string[];
+  followedChannelIds: readonly number[];
   followedPlaylistIdTexts: readonly string[];
   followedAccountIdTexts: readonly string[];
   addByRssFeedUrls: readonly string[];
@@ -149,6 +169,7 @@ export type VerifyAccountOptions = {
 type AddByRssFacts = {
   count: number;
   canonicalUrls: readonly string[];
+  directoryChannelIds: readonly number[];
   stored: number | null;
   covers: boolean;
   hasFeedRow: boolean;
@@ -168,7 +189,15 @@ type LibraryFacts = {
   addByRss: AddByRssFacts;
   directoryCount: number;
   directoryPartial: boolean;
+  /** Some follow evidence exists and at least one v4 follow is missing. */
+  directoryIncomplete: boolean;
+  /** Unlimited, or a stored tier at or above the count. */
+  directoryCovered: boolean;
   playlists: readonly PlaylistState[];
+  /** Distinct playback ids. The copy caps each medium on its own; this total can be larger. */
+  playbackCount: number;
+  /** That total is past the last queue tier. */
+  playbackNeedsOperator: boolean;
 };
 
 type PlaybackId = {
@@ -257,6 +286,17 @@ FROM account
 WHERE id_text = $1
 `;
 
+const V5_MERGED_ACCOUNT_SQL = `
+SELECT a.id, a.id_text, a.verified
+FROM legacy_id_map m
+INNER JOIN account a ON a.id_text = m.v5_id_text
+WHERE m.legacy_kind = 'user'
+  AND m.legacy_id = $1
+  AND m.v5_kind = 'account'
+  AND m.resolve_key = $2
+  AND m.status = 'mapped'
+`;
+
 const V5_CREDENTIALS_SQL = `
 SELECT password
 FROM account_credentials
@@ -266,7 +306,8 @@ WHERE account_id = $1
 const V5_MEMBERSHIP_SQL = `
 SELECT account_membership_id,
        to_char(membership_expires_at, 'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"') AS membership_expires_at,
-       max_add_by_rss_feeds
+       max_add_by_rss_feeds,
+       max_follows
 FROM account_membership_status
 WHERE account_id = $1
 `;
@@ -281,7 +322,7 @@ WHERE account_id = $1
 `;
 
 const V5_FOLLOWED_CHANNEL_SQL = `
-SELECT c.id_text
+SELECT c.id, c.id_text
 FROM account_following_channel f
 INNER JOIN channel c ON c.id = f.channel_id
 WHERE f.account_id = $1
@@ -370,6 +411,7 @@ export const V4_VERIFY_SQL = {
 /** v5 selects for one account. Pending context is not read. */
 export const V5_VERIFY_SQL = {
   account: V5_ACCOUNT_SQL,
+  mergedAccount: V5_MERGED_ACCOUNT_SQL,
   credentials: V5_CREDENTIALS_SQL,
   membership: V5_MEMBERSHIP_SQL,
   grant: V5_GRANT_SQL,
@@ -411,8 +453,10 @@ type V5VerifySource = {
   accountMembershipId: number | null;
   membershipExpiresAt: Date | null;
   maxAddByRssFeeds: number | null;
+  maxFollows: number | null;
   grants: VerifyGrant[];
   followedChannelIdTexts: string[];
+  followedChannelIds: number[];
   followedPlaylistIdTexts: string[];
   followedAccountIdTexts: string[];
   addByRssFeedUrls: string[];
@@ -555,29 +599,6 @@ function addUtcYears(date: Date, years: number): Date {
   );
 }
 
-function countAddByRss(urls: readonly string[]): { count: number; canonicalUrls: string[] } {
-  const seen = new Set<string>();
-  const canonicalUrls: string[] = [];
-  const canonicalSeen = new Set<string>();
-  for (const url of urls) {
-    const raw = trimmed(url);
-    if (raw === null) {
-      continue;
-    }
-    const canonical = canonicalAddByRSSFeedUrl(raw);
-    const key = canonical === null ? `raw\n${raw}` : `url\n${canonical}`;
-    if (seen.has(key)) {
-      continue;
-    }
-    seen.add(key);
-    if (canonical !== null && !canonicalSeen.has(canonical)) {
-      canonicalSeen.add(canonical);
-      canonicalUrls.push(canonical);
-    }
-  }
-  return { count: seen.size, canonicalUrls };
-}
-
 function mediaRefMap(mediaRefs: readonly VerifyMediaRef[]): Map<string, VerifyMediaRef> {
   const map = new Map<string, VerifyMediaRef>();
   for (const mediaRef of mediaRefs) {
@@ -643,6 +664,74 @@ function directoryFollowCount(input: JudgeAccountCompatibilityInput): number {
   );
 }
 
+function directoryFollowsComplete(input: JudgeAccountCompatibilityInput): boolean {
+  const channels = textSet(input.followedChannelIdTexts);
+  for (const id of distinctText(input.subscribedPodcastIds)) {
+    if (channels.has(id)) {
+      continue;
+    }
+    const mapped = mappedV5(input.legacyMap, 'podcast', id);
+    if (mapped !== null && channels.has(mapped)) {
+      continue;
+    }
+    if (pendingCovers(input.pendingRows, ['subscription'], id, true)) {
+      continue;
+    }
+    return false;
+  }
+  const playlists = textSet(input.followedPlaylistIdTexts);
+  for (const id of distinctText(input.subscribedPlaylistIds)) {
+    if (playlists.has(id) || pendingCovers(input.pendingRows, ['follow_playlist'], id, false)) {
+      continue;
+    }
+    return false;
+  }
+  const self = selfUserIds(input);
+  for (const id of distinctText(input.subscribedUserIds)) {
+    if (self.has(id) || followsUserCovered(input, id)) {
+      continue;
+    }
+    return false;
+  }
+  return true;
+}
+
+/** The account's own v4 ids: the verified id, the kept id, and every twin merged into it. */
+function selfUserIds(input: JudgeAccountCompatibilityInput): Set<string> {
+  const ids = new Set([input.v4Id, input.accountIdText]);
+  for (const row of input.legacyMap) {
+    if (
+      row.legacyKind === 'user' &&
+      row.v5Kind === 'account' &&
+      row.status === 'mapped' &&
+      row.v5IdText === input.accountIdText
+    ) {
+      ids.add(row.legacyId);
+    }
+  }
+  return ids;
+}
+
+/** A followed v4 user is covered by its account, by the account its twin row names, or pending. */
+function followsUserCovered(input: JudgeAccountCompatibilityInput, id: string): boolean {
+  const accounts = textSet(input.followedAccountIdTexts);
+  if (accounts.has(id)) {
+    return true;
+  }
+  const mapped = mappedV5(input.legacyMap, 'user', id);
+  if (mapped !== null && accounts.has(mapped)) {
+    return true;
+  }
+  return pendingCovers(input.pendingRows, ['follow_account'], id, true);
+}
+
+function directoryStoredCovers(stored: number | null, count: number): boolean {
+  if (isUnlimitedFollowLimit(stored)) {
+    return true;
+  }
+  return stored !== null && stored >= count;
+}
+
 function directoryPartial(input: JudgeAccountCompatibilityInput): boolean {
   if (
     hasText(input.followedChannelIdTexts) ||
@@ -652,7 +741,10 @@ function directoryPartial(input: JudgeAccountCompatibilityInput): boolean {
     return true;
   }
   return input.pendingRows.some(
-    (row) => row.rowKind === 'subscription' || row.rowKind === 'follow_account'
+    (row) =>
+      row.rowKind === 'subscription' ||
+      row.rowKind === 'follow_account' ||
+      row.rowKind === 'follow_playlist'
   );
 }
 
@@ -688,19 +780,28 @@ function buildPlaylistStates(input: JudgeAccountCompatibilityInput): PlaylistSta
 }
 
 function buildFacts(input: JudgeAccountCompatibilityInput): LibraryFacts {
-  const counted = countAddByRss(input.addByRssUrls);
+  const split = splitAddByRssUrlsByDirectoryMatch(
+    input.addByRssUrls,
+    input.addByRssDirectoryChannelIdByUrl
+  );
   const stored = storedNumber(input.maxAddByRssFeeds);
+  const playbackCount = distinctPlayback(input.playback).length;
   return {
     addByRss: {
-      count: counted.count,
-      canonicalUrls: counted.canonicalUrls,
+      count: split.addByRssUrls.length,
+      canonicalUrls: split.addByRssUrls,
+      directoryChannelIds: split.directoryChannelIds,
       stored,
-      covers: stored !== null && stored >= counted.count,
+      covers: stored !== null && stored >= split.addByRssUrls.length,
       hasFeedRow: hasText(input.addByRssFeedUrls),
     },
     directoryCount: directoryFollowCount(input),
     directoryPartial: directoryPartial(input),
+    directoryIncomplete: directoryPartial(input) && !directoryFollowsComplete(input),
+    directoryCovered: directoryStoredCovers(input.maxFollows, directoryFollowCount(input)),
     playlists: buildPlaylistStates(input),
+    playbackCount,
+    playbackNeedsOperator: queueResourceMigrationTier(playbackCount).outcome === 'needs_operator',
   };
 }
 
@@ -782,7 +883,11 @@ function capCut(facts: LibraryFacts): VerifyAccountResult | null {
       `addByRss ${facts.addByRss.count} v4, feeds written`
     );
   }
-  if (facts.directoryCount > DIRECTORY_FOLLOW_CAP_MAX && facts.directoryPartial) {
+  if (
+    facts.directoryCount > DIRECTORY_FOLLOW_CAP_MAX &&
+    !facts.directoryCovered &&
+    facts.directoryIncomplete
+  ) {
     return failure(
       'cap_cut',
       'directoryFollows',
@@ -911,7 +1016,7 @@ function unaccountedFollows(
   input: JudgeAccountCompatibilityInput,
   facts: LibraryFacts
 ): VerifyAccountResult | null {
-  if (facts.directoryCount > DIRECTORY_FOLLOW_CAP_MAX) {
+  if (facts.directoryCount > DIRECTORY_FOLLOW_CAP_MAX && !facts.directoryCovered) {
     return null;
   }
   const channels = textSet(input.followedChannelIdTexts);
@@ -936,19 +1041,20 @@ function unaccountedFollows(
   const playlists = unaccountedResult(
     'followsPlaylist',
     distinctText(input.subscribedPlaylistIds),
-    (id) => textSet(input.followedPlaylistIdTexts).has(id),
+    (id) =>
+      textSet(input.followedPlaylistIdTexts).has(id) ||
+      pendingCovers(input.pendingRows, ['follow_playlist'], id, false),
     (id) => id
   );
   if (playlists !== null) {
     return playlists;
   }
-  const users = distinctText(input.subscribedUserIds).filter((id) => id !== input.v4Id);
+  const self = selfUserIds(input);
+  const users = distinctText(input.subscribedUserIds).filter((id) => !self.has(id));
   return unaccountedResult(
     'followsUser',
     users,
-    (id) =>
-      textSet(input.followedAccountIdTexts).has(id) ||
-      pendingCovers(input.pendingRows, ['follow_account'], id, true),
+    (id) => followsUserCovered(input, id),
     (id) => id
   );
 }
@@ -967,6 +1073,19 @@ function unaccountedLibrary(
     );
     if (addByRss !== null) {
       return addByRss;
+    }
+    const followedChannelIds = new Set(input.followedChannelIds);
+    const matchedChannels = unaccountedResult(
+      'addByRss',
+      facts.addByRss.directoryChannelIds.map((channelId) => String(channelId)),
+      (id) => {
+        const channelId = integerOrNull(id);
+        return channelId !== null && followedChannelIds.has(channelId);
+      },
+      () => null
+    );
+    if (matchedChannels !== null) {
+      return matchedChannels;
     }
   }
   const playlistIds = facts.playlists
@@ -1034,6 +1153,9 @@ function unaccountedLibrary(
   if (clipResult !== null) {
     return clipResult;
   }
+  if (facts.playbackNeedsOperator) {
+    return null;
+  }
   const queueIds = textSet(input.queueResourceIdTexts);
   const playback = distinctPlayback(input.playback);
   return unaccountedResult(
@@ -1063,6 +1185,9 @@ function unaccounted(
 
 function capTier(facts: LibraryFacts): VerifyAccountResult | null {
   const { count, stored } = facts.addByRss;
+  if (isUnlimitedAddByRssFeedLimit(stored)) {
+    return null;
+  }
   if (count > ADD_BY_RSS_CAP_MAX) {
     return null;
   }
@@ -1110,8 +1235,9 @@ function publicId(
   facts: LibraryFacts
 ): VerifyAccountResult | null {
   if (
-    input.accountIdText !== input.v4Id ||
-    !mapMatches(input.legacyMap, 'user', input.v4Id, 'account')
+    !input.merged &&
+    (input.accountIdText !== input.v4Id ||
+      !mapMatches(input.legacyMap, 'user', input.v4Id, 'account'))
   ) {
     return failure('public_id', 'publicId', input.v4Id, 'user');
   }
@@ -1223,7 +1349,7 @@ function needsOperator(facts: LibraryFacts): VerifyAccountResult | null {
   if (addByRssUncovered(facts.addByRss) && !facts.addByRss.hasFeedRow) {
     return failure('needs_operator', 'addByRss', null, `addByRss ${facts.addByRss.count} v4`);
   }
-  if (facts.directoryCount > DIRECTORY_FOLLOW_CAP_MAX && !facts.directoryPartial) {
+  if (facts.directoryCount > DIRECTORY_FOLLOW_CAP_MAX && !facts.directoryCovered) {
     return failure(
       'needs_operator',
       'directoryFollows',
@@ -1240,6 +1366,9 @@ function needsOperator(facts: LibraryFacts): VerifyAccountResult | null {
         `playlists ${playlist.memberIds.length} v4`
       );
     }
+  }
+  if (facts.playbackNeedsOperator) {
+    return failure('needs_operator', 'playback', null, `playback ${facts.playbackCount} v4`);
   }
   return null;
 }
@@ -1273,7 +1402,7 @@ export function judgeAccountCompatibility(
   if (tier !== null) {
     return tier;
   }
-  const signIn = signInFields(input);
+  const signIn = input.merged ? null : signInFields(input);
   if (signIn !== null) {
     return signIn;
   }
@@ -1281,7 +1410,7 @@ export function judgeAccountCompatibility(
   if (publicRow !== null) {
     return publicRow;
   }
-  const membershipResult = membership(input);
+  const membershipResult = input.merged ? null : membership(input);
   if (membershipResult !== null) {
     return membershipResult;
   }
@@ -1305,8 +1434,9 @@ function locationPathname(location: string): string | null {
 }
 
 /**
- * Whether one sampled playlist or clip response shows that public page.
- * A redirect passes when its path is the requested path or one segment is the id.
+ * Whether one sampled playlist or clip page answers without a sign-in.
+ * Public and unlisted pages both return 200. A redirect passes when its path
+ * is the requested path or one segment is the id.
  */
 export function judgePublicPath(input: {
   id: string;
@@ -1332,13 +1462,14 @@ export function judgePublicPath(input: {
 }
 
 /**
- * Written public playlists and clips to sample, playlists first. At most three of each,
- * sorted by id. Profile paths are not included.
+ * Written playlists and user clips to sample, playlists first. Public and
+ * unlisted rows are both included. At most three of each, sorted by id.
+ * Profile paths are not included.
  */
-export function selectPublicSamplePaths(input: JudgeAccountCompatibilityInput): string[] {
+export function selectSharedSamplePaths(input: JudgeAccountCompatibilityInput): string[] {
   const facts = buildFacts(input);
   const playlistIds = facts.playlists
-    .filter((playlist) => playlist.isPublic && playlist.hasRow && !playlist.overCap)
+    .filter((playlist) => playlist.hasRow && !playlist.overCap)
     .map((playlist) => playlist.id)
     .sort()
     .slice(0, PUBLIC_SAMPLE_LIMIT);
@@ -1347,9 +1478,7 @@ export function selectPublicSamplePaths(input: JudgeAccountCompatibilityInput): 
     input.mediaRefs
       .filter((mediaRef) => {
         const id = trimmed(mediaRef.id);
-        return (
-          id !== null && mediaRef.owned && !mediaRef.official && mediaRef.isPublic && clips.has(id)
-        );
+        return id !== null && mediaRef.owned && !mediaRef.official && clips.has(id);
       })
       .map((mediaRef) => mediaRef.id)
   )
@@ -1382,7 +1511,7 @@ async function samplePublicPaths(
   origin: string,
   requestPath: (url: string) => Promise<{ status: number; location: string | null }>
 ): Promise<VerifyAccountResult> {
-  for (const requestedPath of selectPublicSamplePaths(input)) {
+  for (const requestedPath of selectSharedSamplePaths(input)) {
     const id =
       requestedPath
         .split('/')
@@ -1524,6 +1653,22 @@ async function readV4(connectionString: string, v4Id: string): Promise<V4VerifyS
   }
 }
 
+function followedChannels(rows: Record<string, unknown>[]): { idTexts: string[]; ids: number[] } {
+  const idTexts: string[] = [];
+  const ids: number[] = [];
+  for (const row of rows) {
+    const idText = textOrNull(row.id_text);
+    const id = integerOrNull(row.id);
+    if (idText !== null) {
+      idTexts.push(idText);
+    }
+    if (id !== null) {
+      ids.push(id);
+    }
+  }
+  return { idTexts, ids };
+}
+
 function idTexts(rows: Record<string, unknown>[], column = 'id_text'): string[] {
   const ids: string[] = [];
   for (const row of rows) {
@@ -1651,6 +1796,9 @@ function legacyMapKeys(v4Id: string, source: V4VerifySource): { kinds: string[];
     ids.push(trimmedId);
   };
   add('user', v4Id);
+  for (const id of source.userIds) {
+    add('user', id);
+  }
   for (const id of source.podcastIds) {
     add('podcast', id);
   }
@@ -1674,10 +1822,26 @@ function legacyMapKeys(v4Id: string, source: V4VerifySource): { kinds: string[];
   return { kinds, ids };
 }
 
-async function readV5Account(v4Id: string): Promise<V5AccountRow | null> {
+/**
+ * The account with the v4 id, otherwise the account an email-case twin row names. `merged` is
+ * true for the second.
+ */
+async function readV5Account(v4Id: string): Promise<(V5AccountRow & { merged: boolean }) | null> {
+  const own = await readV5AccountRow(V5_ACCOUNT_SQL, [v4Id]);
+  if (own !== null) {
+    return { ...own, merged: false };
+  }
+  const merged = await readV5AccountRow(V5_MERGED_ACCOUNT_SQL, [v4Id, EMAIL_CASE_TWIN_RESOLVE_KEY]);
+  return merged === null ? null : { ...merged, merged: true };
+}
+
+async function readV5AccountRow(
+  sql: string,
+  values: readonly unknown[]
+): Promise<V5AccountRow | null> {
   let rows: Record<string, unknown>[];
   try {
-    rows = await queryV5(V5_ACCOUNT_SQL, [v4Id]);
+    rows = await queryV5(sql, values);
   } catch (error) {
     throw new Error('Could not read the v5 account.', { cause: error });
   }
@@ -1736,6 +1900,7 @@ async function readV5(
     ]);
     const membershipRow = membershipRows[0];
     const credential = credentials[0];
+    const channelsFollowed = followedChannels(channels);
     return {
       passwordHash: credential === undefined ? '' : passwordText(credential.password),
       accountMembershipId:
@@ -1744,8 +1909,10 @@ async function readV5(
         membershipRow === undefined ? null : dateOrNull(membershipRow.membership_expires_at),
       maxAddByRssFeeds:
         membershipRow === undefined ? null : integerOrNull(membershipRow.max_add_by_rss_feeds),
+      maxFollows: membershipRow === undefined ? null : integerOrNull(membershipRow.max_follows),
       grants: grantsFrom(grantRows),
-      followedChannelIdTexts: idTexts(channels),
+      followedChannelIdTexts: channelsFollowed.idTexts,
+      followedChannelIds: channelsFollowed.ids,
       followedPlaylistIdTexts: idTexts(followedPlaylists),
       followedAccountIdTexts: idTexts(followedAccounts),
       addByRssFeedUrls: idTexts(feeds, 'feed_url'),
@@ -1763,19 +1930,22 @@ async function readV5(
 
 function buildInput(
   v4Id: string,
-  account: V5AccountRow,
+  account: V5AccountRow & { merged: boolean },
   v4: V4VerifySource,
   v5: V5VerifySource,
-  now: Date
+  now: Date,
+  addByRssDirectoryChannelIdByUrl: ReadonlyMap<string, number>
 ): JudgeAccountCompatibilityInput {
   return {
     v4Id,
     accountIdText: account.idText,
+    merged: account.merged,
     now,
     subscribedPodcastIds: v4.podcastIds,
     subscribedPlaylistIds: v4.playlistIds,
     subscribedUserIds: v4.userIds,
     addByRssUrls: v4.addByRssUrls,
+    addByRssDirectoryChannelIdByUrl,
     playlists: v4.playlists,
     mediaRefs: v4.mediaRefs,
     playback: v4.playback,
@@ -1788,9 +1958,11 @@ function buildInput(
     accountMembershipId: v5.accountMembershipId,
     membershipExpiresAt: v5.membershipExpiresAt,
     maxAddByRssFeeds: v5.maxAddByRssFeeds,
+    maxFollows: v5.maxFollows,
     appStoreWindow: v4.appStoreWindow,
     grants: v5.grants,
     followedChannelIdTexts: v5.followedChannelIdTexts,
+    followedChannelIds: v5.followedChannelIds,
     followedPlaylistIdTexts: v5.followedPlaylistIdTexts,
     followedAccountIdTexts: v5.followedAccountIdTexts,
     addByRssFeedUrls: v5.addByRssFeedUrls,
@@ -1837,13 +2009,15 @@ export async function verifyAccount(
     throw new Error('Password sign-in needs both the password and the compare function.');
   }
   const v5 = await readV5(account.id, v4, v4Id);
-  const input = buildInput(v4Id, account, v4, v5, options.now);
+  const addByRssDirectoryChannelIdByUrl = await directoryChannelIdByAddByRssUrl(v4.addByRssUrls);
+  const input = buildInput(v4Id, account, v4, v5, options.now, addByRssDirectoryChannelIdByUrl);
   const judged = judgeAccountCompatibility(input);
   if (!judged.ok && resultRank(judged.class) < resultRank('sign_in_rejected')) {
     return judged;
   }
   if (
     v4Id === REHEARSAL_SIGN_IN_ID &&
+    !account.merged &&
     options.rehearsalPassword !== null &&
     options.comparePassword !== null
   ) {

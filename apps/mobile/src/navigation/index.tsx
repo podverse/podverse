@@ -76,6 +76,7 @@ import { LibraryPlaylistsScreen } from '../screens/library/LibraryPlaylistsScree
 import { LibraryQueueScreen } from '../screens/library/LibraryQueueScreen';
 import { PlaylistDetailScreen } from '../screens/library/PlaylistDetailScreen';
 import { PlaylistFormScreen } from '../screens/library/PlaylistFormScreen';
+import { V4ContinueMigrationScreen } from '../screens/migration/V4ContinueMigrationScreen';
 import type { ApiKeyExpirationChoice } from '../screens/more/accountApiKeyRows';
 import { MoreAboutScreen } from '../screens/more/MoreAboutScreen';
 import { MoreAdvancedScreen } from '../screens/more/MoreAdvancedScreen';
@@ -305,6 +306,7 @@ export const ROOT_STACK_ROUTES = {
   ImageViewer: 'ImageViewer',
   MakeClip: 'MakeClip',
   MainTabs: 'MainTabs',
+  V4ContinueMigration: 'V4ContinueMigration',
   NotificationsInbox: 'NotificationsInbox',
   Search: ROOT_SEARCH_ROUTE_NAME,
   V4vInfo: 'V4vInfo',
@@ -657,6 +659,7 @@ export type RootStackParamList = {
   MainTabs: NavigatorScreenParams<MobileTabParamList> | undefined;
   NotificationsInbox: undefined;
   Search: NavigatorScreenParams<SearchStackParamList> | undefined;
+  V4ContinueMigration: undefined;
   V4vInfo: undefined;
 };
 
@@ -1160,6 +1163,18 @@ export function navigateToNotificationsInboxScreen(): void {
   // Pop a root slide-up (full player, Search, image viewer) so the inbox is not buried under it.
   rootNavigationRef.navigate(ROOT_STACK_ROUTES.MainTabs, undefined, { pop: true });
   rootNavigationRef.navigate(ROOT_STACK_ROUTES.NotificationsInbox);
+}
+
+/** Opens the signed-out save screen. False until the root navigator is ready. */
+export function navigateToV4ContinueMigrationScreen(): boolean {
+  if (!rootNavigationRef.isReady()) {
+    return false;
+  }
+  if (rootNavigationRef.getCurrentRoute()?.name === ROOT_STACK_ROUTES.V4ContinueMigration) {
+    return true;
+  }
+  rootNavigationRef.navigate(ROOT_STACK_ROUTES.V4ContinueMigration);
+  return true;
 }
 
 export function navigateToSearchScreen(params?: SearchStackParamList['SearchRoot']): void {
@@ -2512,6 +2527,15 @@ export function MobileTabNavigator({
             component={V4vInfoScreen}
             name={ROOT_STACK_ROUTES.V4vInfo}
             options={ROOT_SLIDE_UP_SCREEN_OPTIONS}
+          />
+          <RootStack.Screen
+            component={V4ContinueMigrationScreen}
+            name={ROOT_STACK_ROUTES.V4ContinueMigration}
+            options={{
+              ...ROOT_SLIDE_UP_SCREEN_OPTIONS,
+              fullScreenGestureEnabled: false,
+              gestureEnabled: false,
+            }}
           />
           <RootStack.Screen
             component={ImageViewerScreen}

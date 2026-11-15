@@ -1,5 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
+import { ADD_BY_RSS_FEED_LIMIT_UNLIMITED } from '@podverse/helpers';
+
 import type {
   LocalCatalog,
   V4EpisodeKey,
@@ -10,24 +12,36 @@ import type {
 import {
   ADD_BY_RSS_CAP,
   addByRssCopyPlan,
+  addByRssFeedUrlForCopy,
   classifyLibraryCopy,
+  clipPointerOutcome,
+  combinedDistinctCount,
   countAddByRssFeeds,
+  countAddByRssNotFeedUrl,
   countDirectoryFollows,
   decideMigrationCap,
   DIRECTORY_FOLLOW_CAP,
   directoryFollowCopyPlan,
+  directoryFollowTotal,
+  directoryFollowWritePlan,
   episodeDecision,
+  extraMatchedDirectoryChannelIds,
   isSeedablePodcast,
   libraryCopyErrorClass,
   listPositionAt,
   matchedChannelIdTexts,
+  mergedFollowKeys,
   parsePodcastIndexId,
   playbackLegacyId,
   playbackPendingStatus,
   PLAYLIST_RESOURCE_LIMIT,
   playlistRowsSubjectToResourceLimit,
+  queueCopyTrimLimit,
   shouldSetLibraryCopiedAt,
+  splitAddByRssUrlsByDirectoryMatch,
   subscriptionPendingStatus,
+  trimQueueToResourceLimit,
+  v5SharableStatusForV4,
 } from './copyAccountLibraryLib.js';
 
 function catalog(overrides: Partial<LocalCatalog> = {}): LocalCatalog {
@@ -176,7 +190,7 @@ describe('classifyLibraryCopy', () => {
   it('counts add-by-rss urls and follows against local rows', () => {
     const report = classifyLibraryCopy(
       snapshot({
-        addByRssUrls: ['https://feeds.example/a', '  ', 'https://feeds.example/missing'],
+        addByRssUrls: ['https://feeds.example/a', '  ', 'https://feeds.example/missing', '#tag'],
         playlistFollowIds: ['playlist1', 'missing-playlist'],
         userFollowIds: ['user1'],
       }),
@@ -187,12 +201,12 @@ describe('classifyLibraryCopy', () => {
       })
     );
 
-    expect(report.addByRss).toMatchObject({ total: 3, resolved: 1, unresolved: 1, dropped: 1 });
+    expect(report.addByRss).toMatchObject({ total: 4, resolved: 1, unresolved: 1, dropped: 2 });
     expect(report.followsPlaylist).toMatchObject({
       total: 2,
       resolved: 1,
       unresolved: 1,
-      pending: 0,
+      pending: 1,
     });
     expect(report.followsUser).toMatchObject({ total: 1, resolved: 1, unresolved: 0, pending: 0 });
   });
@@ -404,6 +418,57 @@ describe('classifyLibraryCopy', () => {
 
     expect(report.nowPlaying).toEqual({ ...emptyCount, total: 1, dropped: 1, pending: 1 });
   });
+
+  it('counts a pending row for a resolved playback mediaRef that is not stored as a clip', () => {
+    const settled = catalog({
+      channelIdTexts: new Set(['podSettled']),
+      itemIdTexts: new Set(['epListed']),
+      attemptedChannelIdTexts: new Set(['podSettled']),
+      settledChannelIdTexts: new Set(['podSettled']),
+    });
+    const listed = {
+      podcasts: [podcast('podSettled', { podcastIndexId: '7' })],
+      episodes: [episode('epListed', 'podSettled')],
+    };
+    const historyFor = (
+      mediaRef: { id: string; official: boolean; owned: boolean },
+      localClips?: ReadonlySet<string>
+    ) =>
+      classifyLibraryCopy(
+        snapshot({
+          ...listed,
+          clips: mediaRef.owned ? [{ ...mediaRef, episodeId: 'epListed' }] : [],
+          mediaRefs: [{ ...mediaRef, episodeId: 'epListed' }],
+          history: [{ episodeId: 'epListed', mediaRefId: mediaRef.id }],
+        }),
+        catalog({
+          ...settled,
+          clipIdTexts: localClips ?? new Set<string>(),
+        })
+      ).history;
+
+    expect(historyFor({ id: 'officia', official: true, owned: false })).toEqual({
+      ...emptyCount,
+      total: 1,
+      resolved: 1,
+      pending: 1,
+    });
+    expect(historyFor({ id: 'clipthe', official: false, owned: false })).toEqual({
+      ...emptyCount,
+      total: 1,
+      resolved: 1,
+      pending: 1,
+    });
+    expect(
+      historyFor({ id: 'clipthe', official: false, owned: false }, new Set(['clipthe']))
+    ).toEqual({ ...emptyCount, total: 1, resolved: 1, pending: 0 });
+    expect(historyFor({ id: 'clipown', official: false, owned: true })).toEqual({
+      ...emptyCount,
+      total: 1,
+      resolved: 1,
+      pending: 0,
+    });
+  });
 });
 
 const LISTED_ADD_BY_RSS_TIERS = [200, 300, 400, 500, 1000, 10000];
@@ -450,6 +515,7 @@ describe('migration cap', () => {
     { count: 401, outcome: 'tier', tier: 500 },
     { count: 500, outcome: 'tier', tier: 500 },
     { count: 501, outcome: 'tier', tier: 1000 },
+    { count: 600, outcome: 'tier', tier: 1000 },
     { count: 1000, outcome: 'tier', tier: 1000 },
     { count: 1001, outcome: 'tier', tier: 10000 },
     { count: 5215, outcome: 'tier', tier: 10000 },
@@ -591,6 +657,14 @@ describe('migration cap', () => {
       clearStored: false,
     },
     {
+      count: 600,
+      stored: null,
+      statusRowExists: true,
+      action: 'copy',
+      writeTier: 1000,
+      clearStored: false,
+    },
+    {
       count: 10000,
       stored: null,
       statusRowExists: true,
@@ -611,6 +685,30 @@ describe('migration cap', () => {
     {
       count: 10001,
       stored: 50000,
+      statusRowExists: true,
+      action: 'copy',
+      writeTier: null,
+      clearStored: false,
+    },
+    {
+      count: 80,
+      stored: ADD_BY_RSS_FEED_LIMIT_UNLIMITED,
+      statusRowExists: true,
+      action: 'copy',
+      writeTier: null,
+      clearStored: false,
+    },
+    {
+      count: 5215,
+      stored: ADD_BY_RSS_FEED_LIMIT_UNLIMITED,
+      statusRowExists: true,
+      action: 'copy',
+      writeTier: null,
+      clearStored: false,
+    },
+    {
+      count: 10001,
+      stored: ADD_BY_RSS_FEED_LIMIT_UNLIMITED,
       statusRowExists: true,
       action: 'copy',
       writeTier: null,
@@ -645,7 +743,72 @@ describe('migration cap', () => {
     expect(
       countAddByRssFeeds(['https://user:pass@example.com/feed', 'https://example.com/feed'])
     ).toBe(1);
-    expect(countAddByRssFeeds(['not a url'])).toBe(1);
+    expect(countAddByRssFeeds(['not a url'])).toBe(0);
+  });
+
+  it('skips values that are not http(s) feed urls and counts only the feeds', () => {
+    const notFeeds = ['#tag', 'content://media/external/file/1', '{"a":1}', 'file:///x', 'podcast'];
+    for (const value of notFeeds) {
+      expect(addByRssFeedUrlForCopy(value)).toBeNull();
+    }
+    expect(countAddByRssNotFeedUrl(notFeeds)).toBe(notFeeds.length);
+    expect(countAddByRssNotFeedUrl(['', '   ', ...notFeeds])).toBe(notFeeds.length);
+
+    expect(addByRssFeedUrlForCopy('HTTP://Example.com/feed')).toBe('http://example.com/feed');
+    expect(addByRssFeedUrlForCopy(' https://example.com/feed ')).toBe('https://example.com/feed');
+    expect(addByRssFeedUrlForCopy('https:/example.com/feed')).toBe('https://example.com/feed');
+
+    const mixed = [
+      'HTTP://Example.com/feed',
+      '#tag',
+      ' https://example.com/other ',
+      'content://media/external/file/1',
+      'https://example.com/feed',
+    ];
+    expect(countAddByRssFeeds(mixed)).toBe(3);
+    expect(countAddByRssNotFeedUrl(mixed)).toBe(2);
+    expect(splitAddByRssUrlsByDirectoryMatch(mixed, new Map()).addByRssUrls).toEqual([
+      'http://example.com/feed',
+      'https://example.com/other',
+      'https://example.com/feed',
+    ]);
+  });
+
+  it('splits matched add-by-rss urls into directory channels and leaves the rest', () => {
+    const matched = new Map<string, number>([
+      ['https://feeds.example/a', 11],
+      ['http://feeds.example/a', 11],
+      ['https://feeds.example/secret', 99],
+      ['https://feeds.example/b', 22],
+    ]);
+    expect(
+      splitAddByRssUrlsByDirectoryMatch(
+        [
+          'https://feeds.example/a/',
+          'HTTPS://feeds.example/a',
+          'http://feeds.example/a',
+          'https://feeds.example/secret',
+          'https://user:pass@feeds.example/secret',
+          'https://feeds.example/b',
+          'https://feeds.example/kept',
+          '  ',
+        ],
+        matched
+      )
+    ).toEqual({
+      directoryChannelIds: [11, 22],
+      addByRssUrls: ['https://feeds.example/secret', 'https://feeds.example/kept'],
+    });
+    expect(splitAddByRssUrlsByDirectoryMatch([], matched)).toEqual({
+      directoryChannelIds: [],
+      addByRssUrls: [],
+    });
+    expect(
+      splitAddByRssUrlsByDirectoryMatch(['https://user:pass@feeds.example/secret'], matched)
+    ).toEqual({
+      directoryChannelIds: [],
+      addByRssUrls: ['https://feeds.example/secret'],
+    });
   });
 
   it('counts directory follows per list', () => {
@@ -720,19 +883,58 @@ describe('migration cap', () => {
     expect(directoryFollowCopyPlan(500)).toEqual({
       action: 'copy',
       decision: { outcome: 'default' },
+      writeTier: null,
     });
     expect(directoryFollowCopyPlan(501)).toEqual({
       action: 'copy',
       decision: { outcome: 'tier', tier: 1000 },
+      writeTier: 1000,
     });
     expect(directoryFollowCopyPlan(4314)).toEqual({
       action: 'copy',
       decision: { outcome: 'tier', tier: 5000 },
+      writeTier: 5000,
     });
     expect(directoryFollowCopyPlan(10001)).toEqual({
       action: 'needs_operator',
       decision: { outcome: 'needs_operator' },
+      writeTier: null,
     });
+  });
+
+  it('writes the covering tier, keeps a higher stored tier, and never writes unlimited', () => {
+    expect(directoryFollowWritePlan(563, null).writeTier).toBe(1000);
+    expect(directoryFollowWritePlan(1910, null).writeTier).toBe(2000);
+    expect(directoryFollowWritePlan(4314, null).writeTier).toBe(5000);
+    expect(directoryFollowWritePlan(563, 5000)).toEqual({
+      action: 'copy',
+      decision: { outcome: 'tier', tier: 1000 },
+      writeTier: null,
+    });
+    expect(directoryFollowWritePlan(1500, 1000).writeTier).toBe(2000);
+    expect(directoryFollowWritePlan(10001, -1)).toEqual({
+      action: 'copy',
+      decision: { outcome: 'needs_operator' },
+      writeTier: null,
+    });
+    expect(directoryFollowWritePlan(10001, null)).toEqual({
+      action: 'needs_operator',
+      decision: { outcome: 'needs_operator' },
+      writeTier: null,
+    });
+    expect(directoryFollowWritePlan(10001, null).writeTier).not.toBe(-1);
+  });
+
+  it('adds matched channels that the podcast subscriptions will not already follow', () => {
+    expect(extraMatchedDirectoryChannelIds([4, 4, 9], new Set([4]))).toEqual([9]);
+    expect(
+      directoryFollowTotal({
+        podcastIds: ['p1', 'p1'],
+        playlistFollowIds: [],
+        userFollowIds: [],
+        extraMatchedChannelIds: [9],
+      })
+    ).toBe(2);
   });
 });
 
@@ -754,6 +956,37 @@ describe('pending row status', () => {
     expect(playbackLegacyId({ episodeId: 'ep1', mediaRefId: 'clip1' })).toBe('clip1');
     expect(playbackLegacyId({ episodeId: 'ep1', mediaRefId: '  ' })).toBe('ep1');
     expect(playbackLegacyId({ episodeId: null, mediaRefId: null })).toBeNull();
+  });
+
+  it('treats a blank mediaRef as not a clip', () => {
+    expect(clipPointerOutcome(null, undefined, false)).toEqual({ kind: 'not_a_clip' });
+    expect(clipPointerOutcome('  ', { official: true }, true)).toEqual({ kind: 'not_a_clip' });
+  });
+
+  it('keeps a mediaRef whose clip was written', () => {
+    expect(clipPointerOutcome('clip1', { official: true }, true)).toEqual({ kind: 'clip' });
+    expect(clipPointerOutcome('clip1', undefined, true)).toEqual({ kind: 'clip' });
+  });
+
+  it('records an official chapter or soundbite as its episode', () => {
+    expect(clipPointerOutcome('chap1', { official: true }, false)).toEqual({
+      kind: 'stand_in',
+      status: 'resolved',
+      reason: 'official_as_item',
+    });
+  });
+
+  it('waits on another user clip, including a mediaRef missing from the snapshot', () => {
+    expect(clipPointerOutcome('clip2', { official: false }, false)).toEqual({
+      kind: 'stand_in',
+      status: 'unresolved',
+      reason: 'clip_not_copied',
+    });
+    expect(clipPointerOutcome('clip2', undefined, false)).toEqual({
+      kind: 'stand_in',
+      status: 'unresolved',
+      reason: 'clip_not_copied',
+    });
   });
 
   it('waits on a subscription the seed creates and records the rest as not seeded', () => {
@@ -920,5 +1153,118 @@ describe('playlist resource limit', () => {
     const other = playlist({ id: 'other', episodeIds: ['epA', 'epB'] });
     expect(playlistRowsSubjectToResourceLimit(over, noMediaRefs)).toBe(10001);
     expect(playlistRowsSubjectToResourceLimit(other, noMediaRefs)).toBe(2);
+  });
+});
+
+describe('trimQueueToResourceLimit', () => {
+  const row = (id: string, zone: 'now' | 'upcoming' | 'history', sort: number) => ({
+    id,
+    zone,
+    sort,
+  });
+
+  it('keeps upcoming and now playing and drops the oldest history first', () => {
+    const rows = [
+      row('now', 'now', 0),
+      row('up', 'upcoming', 0),
+      row('oldest', 'history', 1),
+      row('middle', 'history', 2),
+      row('newest', 'history', 3),
+    ];
+    expect(trimQueueToResourceLimit(rows, 10)).toEqual({
+      kept: rows,
+      historyTrimmed: 0,
+    });
+    const trimmed = trimQueueToResourceLimit(rows, 4);
+    expect(trimmed.historyTrimmed).toBe(1);
+    expect(trimmed.kept.map((entry) => entry.id)).toEqual(['now', 'up', 'middle', 'newest']);
+  });
+
+  it('drops now playing before upcoming once history is gone', () => {
+    const rows = [row('now', 'now', 0), row('up', 'upcoming', 1), row('oldest', 'history', 1)];
+    const trimmed = trimQueueToResourceLimit(rows, 1);
+    expect(trimmed.historyTrimmed).toBe(1);
+    expect(trimmed.kept.map((entry) => entry.id)).toEqual(['up']);
+  });
+});
+
+describe('queueCopyTrimLimit', () => {
+  it('uses the tier, keeps a higher stored tier, and keeps 100000 past the last tier', () => {
+    expect(queueCopyTrimLimit(null, { outcome: 'default' })).toBe(10000);
+    expect(queueCopyTrimLimit(null, { outcome: 'tier', tier: 60000 })).toBe(60000);
+    expect(queueCopyTrimLimit(100000, { outcome: 'tier', tier: 60000 })).toBe(100000);
+    expect(queueCopyTrimLimit(null, { outcome: 'needs_operator' })).toBe(100000);
+    expect(queueCopyTrimLimit(20000, { outcome: 'needs_operator' })).toBe(100000);
+  });
+});
+
+describe('v5SharableStatusForV4', () => {
+  it('maps v4 public to public and false, null, and undefined to unlisted', () => {
+    expect(v5SharableStatusForV4(true)).toBe('public');
+    expect(v5SharableStatusForV4(false)).toBe('unlisted');
+    expect(v5SharableStatusForV4(null)).toBe('unlisted');
+    expect(v5SharableStatusForV4(undefined)).toBe('unlisted');
+  });
+});
+
+describe('email-case twin merge caps', () => {
+  const keys = (prefix: string, from: number, to: number): string[] =>
+    Array.from({ length: to - from }, (_, index) => `${prefix}${from + index}`);
+
+  it('counts an entry the account and the merged library share once.', () => {
+    expect(combinedDistinctCount(['channel:1', 'channel:2'], ['channel:2', 'channel:3'])).toBe(3);
+    expect(combinedDistinctCount([], [])).toBe(0);
+  });
+
+  it('raises the follow tier from the combined count and keeps a larger stored tier.', () => {
+    const combined = combinedDistinctCount(keys('channel:', 0, 400), keys('channel:', 300, 600));
+    expect(combined).toBe(600);
+    expect(directoryFollowWritePlan(combined, null).writeTier).toBe(1000);
+    expect(directoryFollowWritePlan(1200, 2000)).toMatchObject({ action: 'copy', writeTier: null });
+    expect(directoryFollowWritePlan(1500, 1000)).toMatchObject({ action: 'copy', writeTier: 2000 });
+  });
+
+  it('raises the Add by RSS tier from the combined feeds and leaves a stored number that covers them.', () => {
+    const combined = combinedDistinctCount(
+      keys('https://feeds.example/', 0, 80),
+      keys('https://feeds.example/', 60, 120)
+    );
+    expect(combined).toBe(120);
+    expect(addByRssCopyPlan(combined, null, true)).toEqual({
+      action: 'copy',
+      writeTier: 200,
+      clearStored: false,
+    });
+    expect(addByRssCopyPlan(300, 500, true)).toEqual({
+      action: 'copy',
+      writeTier: null,
+      clearStored: false,
+    });
+  });
+
+  it('keys merged follows the way the account reads its own and skips a follow of the account itself.', () => {
+    expect(
+      mergedFollowKeys({
+        podcasts: [
+          { legacyId: 'podcast1', channelId: 11 },
+          { legacyId: 'podcast2', channelId: null },
+        ],
+        extraChannelIds: [12],
+        playlistFollowIds: ['playlist1', ' '],
+        users: [
+          { legacyId: 'kept0001', accountId: 7 },
+          { legacyId: 'other001', accountId: 8 },
+          { legacyId: 'waiting1', accountId: null },
+        ],
+        selfAccountId: 7,
+      })
+    ).toEqual([
+      'channel:11',
+      'subscription:podcast2',
+      'channel:12',
+      'playlist:playlist1',
+      'account:8',
+      'follow_account:waiting1',
+    ]);
   });
 });

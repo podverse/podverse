@@ -33,7 +33,10 @@ export const compatItemDto = (parsedItem: Episode, options?: CompatItemDtoOption
 });
 
 export const compatItemAboutDto = (parsedItem: Episode) => ({
-  duration: parsedItem.duration?.toFixed(2) || null,
+  // A zero duration in a feed means the length is unknown.
+  duration: parsedItem.duration
+    ? DATABASE_CONSTANTS.mediaPlayerTimeOrNull(parsedItem.duration)
+    : null,
   explicit: parsedItem.explicit || false,
   website_link_url:
     (isValidHttpUrl(parsedItem.link) &&
@@ -281,9 +284,14 @@ export const compatItemSoundbiteDtos = (parsedItem: Episode) => {
 
   if (parsedItem?.podcastSoundbites?.length) {
     for (const s of parsedItem.podcastSoundbites) {
+      const start_time = DATABASE_CONSTANTS.mediaPlayerTimeOrNull(s.startTime);
+      const duration = DATABASE_CONSTANTS.mediaPlayerTimeOrNull(s.duration);
+      if (start_time === null || duration === null) {
+        continue;
+      }
       dtos.push({
-        start_time: DATABASE_CONSTANTS.getMediaPlayerNumeric(s.startTime),
-        duration: DATABASE_CONSTANTS.getMediaPlayerNumeric(s.duration),
+        start_time,
+        duration,
         title: s.title?.slice(0, DATABASE_CONSTANTS.varchar_normal) || null,
       });
     }

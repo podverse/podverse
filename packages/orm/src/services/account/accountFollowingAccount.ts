@@ -6,6 +6,13 @@ import { Not } from 'typeorm';
 
 import { SharableStatusEnum } from '@podverse/helpers';
 
+import {
+  decideFollowRoom,
+  FollowLimitReachedError,
+  lockAccountForFollow,
+  readFollowRoom,
+} from './accountFollowLimit.js';
+
 export type AccountFollowingAccountDto = {
   following_account_id_text: string;
 };
@@ -74,11 +81,27 @@ export class AccountFollowingAccountService extends BaseManyService<
       throw new Error('You cannot follow your own account.');
     }
 
-    const finalDto = {
-      following_account_id: accountToFollow.id,
-    };
+    return this.repositoryReadWrite.manager.transaction(async (manager) => {
+      await lockAccountForFollow(manager, account.id);
+      const repo = manager.getRepository(AccountFollowingAccount);
+      const existing = await repo.findOne({
+        where: { account_id: account.id, following_account_id: accountToFollow.id },
+      });
+      if (existing !== null) {
+        return existing;
+      }
 
-    return this._update(account, ['account_id', 'following_account_id'], finalDto);
+      const decision = decideFollowRoom(await readFollowRoom(manager, account.id), false);
+      if (decision.action === 'refuse') {
+        throw new FollowLimitReachedError(decision.limit);
+      }
+
+      const created = new AccountFollowingAccount();
+      created.account = account;
+      created.account_id = account.id;
+      created.following_account_id = accountToFollow.id;
+      return repo.save(created);
+    });
   }
 
   async unfollowAccount(account_id: number, dto: AccountFollowingAccountDto): Promise<void> {

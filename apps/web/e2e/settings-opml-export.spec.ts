@@ -52,6 +52,9 @@ async function mockOpmlImportApis(
           failed: 0,
           skippedExisting: 0,
           rateLimited: includeRateLimited ? 1 : 0,
+          blocked: 0,
+          feedLimitReached: 0,
+          followLimitReached: 0,
         },
         ...(includeRateLimited
           ? {

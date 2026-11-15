@@ -72,7 +72,9 @@ import { defineConfig } from 'vitest/config';
  * the serial background sync queue with its trigger planning (`src/sync/syncQueue.ts`,
  * `src/sync/syncJobPlan.ts` — kept free of RN/Expo imports so serialization, dedupe, growing totals,
  * and failure isolation are testable; the job bodies that reach repositories (`src/sync/syncJobs.ts`)
- * and the RN triggers (`src/sync/SyncProvider.tsx`) are excluded), the derived connectivity rules
+ * and the RN triggers (`src/sync/SyncProvider.tsx`) are excluded), the signed-in Add by RSS
+ * refresh order (`src/sync/addByRssSignedInRefresh.ts` — conversion before the membership check,
+ * and a conversion failure still reaches the parse refresh), the derived connectivity rules
  * that decide whether the network is usable — entry debounce, success-only exit, probe backoff,
  * dwell floor, device-versus-server attribution, and whether an already-armed probe timer should
  * keep counting (`src/net/connectivityMachine.ts` — pure and
@@ -155,7 +157,8 @@ import { defineConfig } from 'vitest/config';
  * decision to swap a live remote stream onto a just-finished download of that same enclosure
  * (`src/lib/playback/planDownloadCompletePlaybackHandoff.ts`). The
  * migration ladder (`src/data/db/migrations.ts`) is covered because the statement list is data, not a
- * connection. Scope
+ * connection. The signed-out list parser (`src/migration/v4/parseV4LocalState.ts`) is covered
+ * because it is a pure function of four stored strings. Scope
  * the `include` narrowly so tests never pull in native/Expo modules — the excluded adapter
  * (`src/bridge/nativePlaybackBridge.ts`) imports `expo-modules-core`, and repositories import
  * `expo-sqlite`, so neither is tested here. `apps/mobile` is a standalone install; run with
@@ -189,7 +192,11 @@ export default defineConfig({
       'src/config/publicWebBaseUrl.test.ts',
       'src/config/deepLinkSchemes.test.ts',
       'src/data/db/migrations.test.ts',
+      'src/migration/v4/carryoverOutlines.test.ts',
+      'src/migration/v4/parseV4LocalState.test.ts',
+      'src/migration/v4/planV4Carryover.test.ts',
       'src/data/identityRemap.test.ts',
+      'src/data/addByRssPromotionRemap.test.ts',
       'src/data/repositories/addByRssListedFeeds.test.ts',
       'src/data/repositories/channelItemWindow.test.ts',
       'src/data/repositories/channelLiveStatus.test.ts',
@@ -216,6 +223,7 @@ export default defineConfig({
       'src/lib/addByRss/deviceItemSections.test.ts',
       'src/lib/addByRss/deviceListedFeeds.test.ts',
       'src/lib/addByRss/deviceParseEngine.test.ts',
+      'src/lib/addByRss/directoryMatch.test.ts',
       'src/lib/addByRss/domain.test.ts',
       'src/lib/addByRss/feedWalk.test.ts',
       'src/lib/addByRss/publisherRefs.test.ts',
@@ -319,6 +327,7 @@ export default defineConfig({
       'src/screens/more/errorLogMailto.test.ts',
       'src/shims/intlPolyfills.test.ts',
       'src/shims/nodeCryptoShim.test.ts',
+      'src/sync/addByRssSignedInRefresh.test.ts',
       'src/sync/syncErrorClassification.test.ts',
       'src/sync/syncJobKinds.test.ts',
       'src/sync/syncQueue.test.ts',

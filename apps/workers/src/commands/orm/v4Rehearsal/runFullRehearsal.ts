@@ -1,4 +1,5 @@
 import type { CommandLineArgs } from '@workers/commands/index.js';
+import { requireUtcProcess } from '@workers/lib/v4/requireUtcProcess.js';
 
 import { assertLocalDatabase, hasOption } from '../v4Library/copyAccountLibrary.js';
 import { parseRehearsalArgs } from './runFullRehearsalLib.js';
@@ -18,6 +19,8 @@ Flags:
   --run-id id      The run folder name
   --retry-failed   Include failed accounts
   --limit n        Most accounts to process in a phase
+  --catalog-wait-hours n
+                   Hours before the catalog wait stops (default 24)
   --help           Show this text
 
 sample and full restore .artifacts/v4-full-rehearsal/clean.dump unless
@@ -28,12 +31,22 @@ that does not already hold rehearsal accounts.
 This command reads V4_DATABASE_URL and does not refresh it. Run --stage full
 again after that snapshot is replaced, before go-live.
 
-The catalog phase waits until feeds are settled. It does not start the parser.
+The catalog phase waits until feeds are settled or the catalog wait deadline
+is reached, whichever is first. Feeds still waiting keep retrying, and a later
+replay finishes their pending rows. It does not start the parser.
+
+Retry jobs this command creates use the rehearsal schedule: the first retry
+15 minutes after seeding, then 2, 5, 10, 15, and 30 minutes, so a failing
+feed settles about 75 minutes after seeding. Go-live seeding keeps the
+standard schedule, which runs for days.
+
 Apply refuses unless DB_HOST is local.
 `;
 
-/** The command refuses a non-local database before any phase runs. */
+/** The command refuses a non-UTC process and a non-local database before any phase runs. */
 export const v4RunFullRehearsal = async (args: CommandLineArgs) => {
+  requireUtcProcess('v4RunFullRehearsal');
+
   if (hasOption(args, 'help')) {
     process.stdout.write(V4_RUN_FULL_REHEARSAL_HELP);
     return;

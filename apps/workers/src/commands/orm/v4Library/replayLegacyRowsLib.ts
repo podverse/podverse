@@ -9,6 +9,7 @@ export type ReplayRowKind = Exclude<PendingRowKind, 'subscription'>;
  */
 export const REPLAY_ROW_KINDS: readonly ReplayRowKind[] = [
   'follow_account',
+  'follow_playlist',
   'snapshot_clip',
   'playlist_clip',
   'snapshot_playlist_member',
@@ -31,7 +32,7 @@ export type ReplayAction = 'write' | 'keep' | 'resolve' | 'drop';
 export type ReplayDecision = { action: ReplayAction; reason: string };
 
 /** Final status and reason for one row. */
-export type ReplayResult = { status: PendingRowStatus; reason: string; outcome: string };
+export type ReplayResult = { status: PendingRowStatus; reason: string | null; outcome: string };
 
 export function contextText(context: Record<string, unknown>, key: string): string | null {
   const value = context[key];
@@ -87,6 +88,25 @@ export function decidePlaylistClip(input: {
  * Queue, history, and now playing from the copy's Active-item check. `dropped` is returned
  * there only once the feed is settled, so an unsettled feed keeps waiting.
  */
+/**
+ * A playback row recorded because it pointed at a clip this account did not own.
+ * `wait` leaves it unresolved. `swap` replaces the episode row with the clip.
+ * `insert` adds the clip beside the episode. Any other reason follows the Active-item path.
+ */
+export function decideClipSwap(
+  reason: string,
+  clipFound: boolean,
+  itemStandIn: boolean
+): 'wait' | 'swap' | 'insert' | 'normal' {
+  if (reason !== 'clip_not_copied') {
+    return 'normal';
+  }
+  if (!clipFound) {
+    return 'wait';
+  }
+  return itemStandIn ? 'swap' : 'insert';
+}
+
 export function decidePlayback(
   outcome: { active: true } | { active: false; status: PendingRowStatus; reason: string }
 ): ReplayDecision {

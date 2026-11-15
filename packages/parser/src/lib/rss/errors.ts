@@ -11,3 +11,11 @@ export class FeedNoChangesSinceLastParsedError extends Error {
     this.name = 'FeedNoChangesSinceLastParsedError';
   }
 }
+
+/** The response body was not an RSS or Atom feed. */
+export class FeedNotAFeedError extends Error {
+  constructor() {
+    super('Feed body is not an RSS or Atom feed');
+    this.name = 'FeedNotAFeedError';
+  }
+}

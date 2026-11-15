@@ -23,13 +23,15 @@ describe('recordFeedParseFailure', () => {
     feedLogUpdateMock.mockResolvedValue({});
   });
 
-  it('increments parse_errors and sets last_failed_parse_time', async () => {
+  it('writes the failure reason with the count and time', async () => {
     await recordFeedParseFailure(feed, new FeedLogService(), {
       last_http_status: 500,
+      last_parse_failure_reason: 'http_5xx',
     });
 
     expect(feedLogUpdateMock).toHaveBeenCalledWith(feed, {
       last_http_status: 500,
+      last_parse_failure_reason: 'http_5xx',
       parse_errors: 5,
       last_failed_parse_time: expect.any(Date),
     });
@@ -38,9 +40,12 @@ describe('recordFeedParseFailure', () => {
   it('starts parse_errors at 1 when feed log row is missing', async () => {
     feedLogGetMock.mockResolvedValue(null);
 
-    await recordFeedParseFailure(feed, new FeedLogService());
+    await recordFeedParseFailure(feed, new FeedLogService(), {
+      last_parse_failure_reason: 'parse_error',
+    });
 
     expect(feedLogUpdateMock).toHaveBeenCalledWith(feed, {
+      last_parse_failure_reason: 'parse_error',
       parse_errors: 1,
       last_failed_parse_time: expect.any(Date),
     });

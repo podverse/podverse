@@ -24,7 +24,8 @@ type MembershipMark = {
 type FutureMembershipClass = 'membership_unmatched' | 'membership_ambiguous' | 'membership_invalid';
 
 /**
- * A closed copy is done. A refusal stays failed even when a group is also left for an operator.
+ * A closed copy is done, and so is a merge with no refusal or operator group: a merge never sets
+ * `v4_library_copied_at`. A refusal stays failed even when a group is also left for an operator.
  */
 export function classifyLibraryResult(result: V4LibraryCommandResult): LibraryPhaseDecision {
   switch (result.action) {
@@ -42,6 +43,18 @@ export function classifyLibraryResult(result: V4LibraryCommandResult): LibraryPh
         status: 'failed',
         className: 'missing_v5_account',
         errors: [{ group: null, className: 'missing_v5_account', message: 'no v5 account' }],
+      };
+    case 'skip_merge_waiting':
+      return {
+        status: 'failed',
+        className: 'kept_library_not_copied',
+        errors: [
+          {
+            group: null,
+            className: 'kept_library_not_copied',
+            message: 'kept account library not copied',
+          },
+        ],
       };
     case 'apply':
       return classifyApply(result.apply);
@@ -161,7 +174,7 @@ function classifyApply(
   if (operator.length > 0) {
     return { status: 'needs_operator', className: 'needs_operator', errors: operator };
   }
-  if (apply.libraryCopiedAtSet) {
+  if (apply.libraryCopiedAtSet || apply.merged) {
     return doneLibrary();
   }
   return {

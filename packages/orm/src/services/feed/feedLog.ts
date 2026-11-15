@@ -3,6 +3,7 @@ import { FeedLog } from '@orm/entities/feed/feedLog.js';
 import { isPostgresUniqueViolation } from '@orm/lib/postgresUniqueViolation.js';
 import { BaseOneService } from '@orm/services/base/baseOneService.js';
 
+import type { FeedParseFailureReason } from '@podverse/helpers';
 import { sleep } from '@podverse/helpers';
 
 /** Short delay before retry so the other transaction can commit (ms). */
@@ -13,6 +14,7 @@ type FeedLogDto = {
   last_good_http_status_time?: Date | null;
   last_finished_parse_time?: Date | null;
   last_failed_parse_time?: Date | null;
+  last_parse_failure_reason?: FeedParseFailureReason | null;
   parse_errors?: number;
 };
 

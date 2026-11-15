@@ -58,7 +58,7 @@ export function mergeRedirectRouteFromPath(pathname: string): MergeRedirectRoute
   return null;
 }
 
-export function channelPathForMedium(mediumId: number, idText: string): string {
+export function channelPathForMedium(mediumId: number | null, idText: string): string {
   const kind = getChannelRouteKind(mediumId);
   if (kind === 'album') {
     return buildAlbumPath(idText);

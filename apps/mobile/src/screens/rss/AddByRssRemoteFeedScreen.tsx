@@ -8,6 +8,7 @@ import { SearchDetailView } from '../../components/searchDetail/SearchDetailView
 import { ListEmpty } from '../../components/state/ListEmpty';
 import { addByRssRepository } from '../../data';
 import { useAddByRssAddFlow } from '../../hooks/useAddByRssAddFlow';
+import { replaceWithDirectoryChannel } from '../../lib/navigation/replaceDirectoryChannel';
 import { OFFLINE_UNAVAILABLE_MESSAGE_KEY } from '../../lib/offlineModeViews';
 import { useOfflineMode } from '../../prefs/offlineMode';
 import type { ThemedStylesTheme } from '../../theme/useThemedStyles';
@@ -51,6 +52,9 @@ export function AddByRssRemoteFeedScreen({ navigation, route }: AddByRssRemoteFe
         return;
       }
       navigation.goBack();
+    },
+    onDirectoryChannel: (channel) => {
+      replaceWithDirectoryChannel(navigation, channel);
     },
     onNotice: setNoticeKey,
     setInputValue,

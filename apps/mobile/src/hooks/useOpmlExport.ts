@@ -1,16 +1,13 @@
-import * as FileSystem from 'expo-file-system/legacy';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { Share } from 'react-native';
 
 import { requestWithMobileAuthRefresh } from '../auth';
 import type { AuthStatus } from '../auth/AuthProvider';
 import { useAuth } from '../auth/AuthProvider';
-import { isMobileE2eFromEnv } from '../config/env';
 import { addByRssRepository, subscriptionsRepository } from '../data/repositories';
 import type { DirectoryFeedUrlLookupResult } from '../lib/opml/directoryFeedUrlLookup';
 import { lookupDirectoryFeedUrls, sleepUnlessAborted } from '../lib/opml/directoryFeedUrlLookup';
-import { buildDeviceOpmlExport, opmlExportFilename } from '../lib/opml/opmlExportFile';
-import { presentShareSheet } from '../lib/share/shareSheetPassthrough';
+import { buildDeviceOpmlExport } from '../lib/opml/opmlExportFile';
+import { shareOpmlFile } from '../lib/opml/shareOpmlFile';
 import { isOfflineModeEnabled } from '../prefs/offlineMode';
 
 /**
@@ -110,27 +107,6 @@ const buildDeviceExport = async (
   return { kind: 'file', notice: deviceExportNotice(lookupResult.missingCount), text };
 };
 
-/** Write the export to the cache directory and open the share sheet. False when aborted. */
-const writeAndShareOpml = async (text: string, signal: AbortSignal): Promise<boolean> => {
-  const baseDirectory = FileSystem.cacheDirectory ?? FileSystem.documentDirectory;
-  if (baseDirectory === null) {
-    throw new Error('No writable mobile file-system directory');
-  }
-  if (signal.aborted) {
-    return false;
-  }
-  const filename = opmlExportFilename(new Date());
-  const fileUri = `${baseDirectory}${filename}`;
-  await FileSystem.writeAsStringAsync(fileUri, text);
-  if (signal.aborted) {
-    return false;
-  }
-  if (!isMobileE2eFromEnv()) {
-    await presentShareSheet(() => Share.share({ title: filename, url: fileUri }));
-  }
-  return !signal.aborted;
-};
-
 /**
  * Every Export OPML control. Signed in, it shares the account's server export. Signed out, it
  * builds the file on the device. Leaving the screen mid-export writes no file and opens no share
@@ -210,7 +186,7 @@ export const useOpmlExport = (): UseOpmlExportResult => {
         successNotice = outcome.notice;
       }
 
-      const shared = await writeAndShareOpml(text, signal);
+      const shared = await shareOpmlFile(text, signal);
       if (shared) {
         setNotice(successNotice);
       }

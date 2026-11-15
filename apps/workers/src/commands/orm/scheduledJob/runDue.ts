@@ -3,6 +3,7 @@ import { parsePodcastIndexFeedDirectly } from '@workers/commands/parser/rss/pars
 import { getPodcastIndexConfig } from '@workers/config/index.js';
 import { getIndexProvider } from '@workers/factories/indexProvider.js';
 import { getLogger } from '@workers/factories/logger.js';
+import { getPodcastIndexService } from '@workers/factories/podcastIndexService.js';
 import {
   recheckRemoteChannelStub,
   repointRemoteChannelStub,
@@ -12,14 +13,21 @@ import {
   computeExponentialBackoffDelayMs,
   FIVE_MINUTES_MS,
   getErrorMessage,
+  PARSER_MAX_FEED_BODY_BYTES_MAX,
 } from '@podverse/helpers';
-import type { ScheduledJob } from '@podverse/orm';
+import type { Feed, ScheduledJob } from '@podverse/orm';
 import {
   ADMIN_NOTIFICATION_SEND_JOB_TYPE,
   AdminNotificationCampaignService,
+  decideMigrationFeedRetry,
   dispatchAdminNotificationCampaign,
   FEED_FORCE_REPARSE_JOB_TYPE,
+  FeedConditionSourceEnum,
+  FeedConditionTypeKeyEnum,
   FeedLifecycleStateKeyEnum,
+  FeedLogService,
+  FeedPolicyReasonEnum,
+  FeedPolicyService,
   FeedService,
   getV4MigrationFeedRetryBackoffMs,
   parseAdminNotificationSendPayload,
@@ -28,7 +36,7 @@ import {
   parseRemoteStubRecheckPayload,
   parseRemoteStubRepointPayload,
   parseV4MigrationFeedRetryPayload,
-  readFeedLastFinishedParseTime,
+  readFeedLastParseOutcome,
   REMOTE_STUB_PROMOTE_JOB_TYPE,
   REMOTE_STUB_RECHECK_JOB_TYPE,
   REMOTE_STUB_REPOINT_JOB_TYPE,
@@ -37,10 +45,10 @@ import {
   V4_MIGRATION_FEED_RETRY_JOB_TYPE,
 } from '@podverse/orm';
 
-type JobHandlerResult = {
-  outcome: 'completed' | 'cancelled';
-  reason?: string;
-};
+import { decideMigrationOversize } from './v4MigrationFeedOversize.js';
+
+type JobHandlerResult =
+  { outcome: 'completed' | 'cancelled'; reason?: string } | { outcome: 'failed'; reason: string };
 
 type JobHandler = (job: ScheduledJob) => Promise<JobHandlerResult>;
 
@@ -156,10 +164,35 @@ function finishedAfter(lastFinishedParseTime: Date | null, since: Date): boolean
 }
 
 /**
- * Parses a migration-seeded feed whose first parse may have failed. A parse that finished after
- * the job was created means the work is done. `parseRSSFeedAndSaveToDatabase` records a failed
- * parse in `feed_log` instead of throwing, so the handler throws when no parse finished, which
- * requeues the job on the migration retry ladder.
+ * The URL `parsePodcastIndexFeedDirectly` fetches. A missing or empty URL is the same check
+ * that function fails on before it parses.
+ */
+function podcastIndexFeedUrl(value: unknown): unknown {
+  if (typeof value !== 'object' || value === null || !('feed' in value)) {
+    return undefined;
+  }
+  const feed: unknown = value.feed;
+  if (typeof feed !== 'object' || feed === null || !('url' in feed)) {
+    return undefined;
+  }
+  return feed.url;
+}
+
+async function recordNoFeedUrl(feed: Feed): Promise<void> {
+  await new FeedLogService().update(feed, {
+    last_failed_parse_time: new Date(),
+    last_parse_failure_reason: 'no_feed_url',
+  });
+}
+
+/**
+ * Parses a migration-seeded feed whose first parse may have failed. When the last failure is a
+ * body over the parser limit, or the oversized condition is active, and the feed's body limit
+ * is below the parser maximum, this raises that limit once, clears the oversized condition, and
+ * parses. A feed already at the maximum fails with `body_too_large`. A parse that finished after
+ * the job was created means the work is done. A feed with no URL to fetch fails the job. A
+ * permanent failure fails the job after its second attempt. Any other unfinished parse throws,
+ * which requeues the job until it uses its attempts.
  */
 const handleV4MigrationFeedRetry: JobHandler = async (job) => {
   const payload = parseV4MigrationFeedRetryPayload(job.payload);
@@ -167,9 +200,39 @@ const handleV4MigrationFeedRetry: JobHandler = async (job) => {
     throw new Error('Invalid v4-migration-feed-retry payload');
   }
 
-  const feed = await new FeedService().get(payload.feedId);
+  const feedService = new FeedService();
+  let feed = await feedService.get(payload.feedId);
   if (feed === null) {
     return { outcome: 'cancelled', reason: 'Feed not found' };
+  }
+
+  const before = await readFeedLastParseOutcome(feed.id);
+  const currentOverride = feed.max_response_body_bytes_override;
+  const oversize = decideMigrationOversize({
+    lastFailureReason: before.lastParseFailureReason,
+    oversizedConditionActive:
+      feed.feed_policy?.primary_block_reason === FeedPolicyReasonEnum.OversizedDetected,
+    currentOverride: typeof currentOverride === 'number' ? currentOverride : null,
+  });
+  if (oversize === 'give_up') {
+    return { outcome: 'failed', reason: 'body_too_large' };
+  }
+  if (oversize === 'raise') {
+    const updated = await feedService.update(feed.id, {
+      max_response_body_bytes_override: PARSER_MAX_FEED_BODY_BYTES_MAX,
+    });
+    await new FeedPolicyService().setCondition({
+      feedId: feed.id,
+      conditionKey: FeedConditionTypeKeyEnum.OversizedDetected,
+      isActive: false,
+      source: FeedConditionSourceEnum.Auto,
+      note: 'v4 migration raised body limit',
+    });
+    const policy = await feedService.refreshFeedPolicy(feed.id);
+    // The parse gate reads lifecycle and policy from this feed. Lifecycle is unchanged.
+    // Policy is the recomputed row, with the oversized condition cleared.
+    updated.feed_policy = policy;
+    feed = updated;
   }
 
   const cancelled = cancelledWhenFeedMayNotBeParsed(feed);
@@ -177,8 +240,14 @@ const handleV4MigrationFeedRetry: JobHandler = async (job) => {
     return cancelled;
   }
 
-  if (finishedAfter(await readFeedLastFinishedParseTime(feed.id), job.created_at)) {
+  if (finishedAfter(before.lastFinishedParseTime, job.created_at)) {
     return { outcome: 'completed' };
+  }
+
+  const indexed = await getPodcastIndexService().podcastGetById(feed.podcast_index_id);
+  if (!podcastIndexFeedUrl(indexed)) {
+    await recordNoFeedUrl(feed);
+    return { outcome: 'failed', reason: 'no_feed_url' };
   }
 
   await parsePodcastIndexFeedDirectly(feed.podcast_index_id, true, {
@@ -186,8 +255,13 @@ const handleV4MigrationFeedRetry: JobHandler = async (job) => {
     suppressNewItemSideEffectsPublishedBeforeMs: job.created_at.getTime(),
   });
 
-  if (!finishedAfter(await readFeedLastFinishedParseTime(feed.id), job.created_at)) {
-    throw new Error('Migration feed parse did not finish');
+  const after = await readFeedLastParseOutcome(feed.id);
+  if (!finishedAfter(after.lastFinishedParseTime, job.created_at)) {
+    const decision = decideMigrationFeedRetry(job.attempts, after.lastParseFailureReason);
+    if (decision.action === 'fail') {
+      return { outcome: 'failed', reason: decision.reason };
+    }
+    throw new Error(decision.message);
   }
   return { outcome: 'completed' };
 };
@@ -284,15 +358,23 @@ const jobHandlers: Record<string, JobHandler> = {
   [V4_MIGRATION_FEED_RETRY_JOB_TYPE]: handleV4MigrationFeedRetry,
 };
 
+function v4MigrationFeedRetryBackoffMs(job: ScheduledJob): number {
+  const payload = parseV4MigrationFeedRetryPayload(job.payload);
+  return getV4MigrationFeedRetryBackoffMs(
+    job.attempts,
+    payload === null ? 'standard' : payload.schedule
+  );
+}
+
 /** Job types that retry on their own schedule instead of the shared exponential backoff. */
-const backoffMsByJobType: Record<string, (attempts: number) => number> = {
-  [V4_MIGRATION_FEED_RETRY_JOB_TYPE]: getV4MigrationFeedRetryBackoffMs,
+const backoffMsByJobType: Record<string, (job: ScheduledJob) => number> = {
+  [V4_MIGRATION_FEED_RETRY_JOB_TYPE]: v4MigrationFeedRetryBackoffMs,
 };
 
 function backoffMsFor(job: ScheduledJob): number {
   const backoffForType = backoffMsByJobType[job.job_type];
   if (backoffForType) {
-    return backoffForType(job.attempts);
+    return backoffForType(job);
   }
   return computeExponentialBackoffDelayMs(job.attempts, BASE_BACKOFF_MS, BACKOFF_JITTER_MS);
 }
@@ -357,6 +439,11 @@ export const scheduledJobsRunDue = async (args: CommandLineArgs) => {
         await scheduledJobService.markCancelled(job.id, result.reason);
         logger.info(
           `scheduledJobsRunDue cancelled id=${job.id} dedupe_key=${job.dedupe_key}${result.reason ? ` reason=${result.reason}` : ''}`
+        );
+      } else if (result.outcome === 'failed') {
+        await scheduledJobService.markFailed(job.id, result.reason);
+        logger.error(
+          `scheduledJobsRunDue marked failed id=${job.id} dedupe_key=${job.dedupe_key} attempts=${job.attempts}/${job.max_attempts} error="${result.reason}"`
         );
       } else {
         await scheduledJobService.markCompleted(job.id);

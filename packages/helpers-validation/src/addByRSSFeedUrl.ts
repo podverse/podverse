@@ -42,6 +42,57 @@ export function canonicalAddByRSSFeedUrl(feedUrl: string): string | null {
 }
 
 /**
+ * Path forms a directory row may use for one feed. The host root stays a single slash. Any other
+ * path is stored both without a trailing slash and with one.
+ */
+function directoryMatchPathForms(pathname: string): string[] {
+  if (pathname === '/' || pathname === '') {
+    return ['/'];
+  }
+  const bare = pathname.replace(/\/+$/, '');
+  if (bare === '' || bare === '/') {
+    return ['/'];
+  }
+  return [bare, `${bare}/`];
+}
+
+/**
+ * URL forms a directory feed row may be stored under for one Add by RSS feed URL.
+ * Scheme, host case, a default port, a fragment, and a trailing slash on a non-root path are not
+ * different feeds. A query string and a `www.` host are. A URL that carries userinfo, or that is
+ * not http(s), matches nothing.
+ */
+export function addByRSSDirectoryMatchUrlVariants(feedUrl: string): string[] {
+  const split = splitFeedUrlUserinfo(feedUrl);
+  if (split.username !== null || split.password !== null) {
+    return [];
+  }
+  const canonical = canonicalAddByRSSFeedUrl(feedUrl);
+  if (canonical === null) {
+    return [];
+  }
+
+  const parsed = new URL(canonical);
+  parsed.hash = '';
+  const pathForms = directoryMatchPathForms(parsed.pathname);
+  const variants: string[] = [];
+  const seen = new Set<string>();
+  for (const protocol of ['https:', 'http:'] as const) {
+    for (const pathname of pathForms) {
+      const next = new URL(parsed.href);
+      next.protocol = protocol;
+      next.pathname = pathname;
+      next.hash = '';
+      if (!seen.has(next.href)) {
+        seen.add(next.href);
+        variants.push(next.href);
+      }
+    }
+  }
+  return variants;
+}
+
+/**
  * Separates credentials from a feed URL. Explicit credentials win; otherwise a complete
  * `user:pass@` pair on the URL is used. The returned URL never carries userinfo, even when the
  * userinfo was incomplete and therefore discarded. Returns null when the URL is not http(s).

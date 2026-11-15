@@ -1,6 +1,7 @@
 import { useCallback, useMemo, useRef, useState } from 'react';
 import { Keyboard } from 'react-native';
 
+import type { DTOChannelDirectoryMatch } from '@podverse/helpers/dto';
 import {
   canSubmitAddByRssFeed,
   resolveAddByRSSFeedUrlCredentials,
@@ -10,6 +11,7 @@ import { requestWithMobileAuthRefresh } from '../auth';
 import { useAuth } from '../auth/AuthProvider';
 import { addByRssCredentialStore, addByRssRepository } from '../data';
 import { syncEventLogRepository } from '../data/repositories';
+import { addByRssPromotion } from '../data/repositories/addByRssPromotion';
 import {
   buildAddByRssAddErrorLog,
   buildAddByRssParseFailureLog,
@@ -31,6 +33,7 @@ import { useAddByRssParsePath } from './useAddByRssParsePath';
 type UseAddByRssAddFlowOptions = {
   inputValue: string;
   onAfterAdd: () => Promise<void>;
+  onDirectoryChannel?: (channel: DTOChannelDirectoryMatch) => void | Promise<void>;
   onNotice: (messageKey: string | null) => void;
   setInputValue: (value: string) => void;
 };
@@ -56,6 +59,7 @@ const resolveTypedCredentials = (
 export function useAddByRssAddFlow({
   inputValue,
   onAfterAdd,
+  onDirectoryChannel,
   onNotice,
   setInputValue,
 }: UseAddByRssAddFlowOptions) {
@@ -156,7 +160,7 @@ export function useAddByRssAddFlow({
       // syncs. Signed out, the feed stays on this phone.
       if (parsePath === 'server') {
         // The follow only flags the feed; the username and password never leave in it.
-        await requestWithMobileAuthRefresh(authContext, async (api) =>
+        const followed = await requestWithMobileAuthRefresh(authContext, async (api) =>
           api.reqAccountFollowAddByRSSChannel({
             feed_url: feedUrl,
             image_url: null,
@@ -164,6 +168,29 @@ export function useAddByRssAddFlow({
             title: feedUrl,
           })
         );
+        if (followed.directory_channel !== null) {
+          const channel = followed.directory_channel;
+          try {
+            await addByRssPromotion.subscribeDirectoryChannel(channel.id_text);
+          } catch (error) {
+            console.warn('[add-by-rss] directory promotion failed', { error, feedCount: 1 });
+          }
+          try {
+            await addByRssPromotion.recordPromotion(channel, 0);
+          } catch (error) {
+            console.warn('[add-by-rss] directory promotion log failed', { error, feedCount: 1 });
+          }
+          setInputValue('');
+          setUsername('');
+          setPassword('');
+          setUseBasicAuthState(false);
+          if (onDirectoryChannel !== undefined) {
+            await onDirectoryChannel(channel);
+          } else {
+            await onAfterAdd();
+          }
+          return;
+        }
       }
 
       // Saved before the parse so a rejected pair stays available to correct on the credentials
@@ -174,6 +201,43 @@ export function useAddByRssAddFlow({
       );
       if (credentials !== null && credentialOwner !== null) {
         await addByRssCredentialStore.set(credentialOwner, feedUrl, credentials);
+      }
+
+      // A URL with no credentials may already be a directory channel. A failed lookup still parses
+      // on this device and does not surface an error.
+      if (parsePath !== 'server' && credentials === null) {
+        let promoted: DTOChannelDirectoryMatch | null = null;
+        try {
+          const matches = await addByRssPromotion.findMatches(authContext, [
+            { feedUrl, items: [], podcastGuid: null },
+          ]);
+          const match = matches.get(feedUrl);
+          if (match?.channel !== undefined && match.channel !== null) {
+            const entry = await addByRssPromotion.subscribeDirectoryChannel(match.channel.id_text);
+            if (entry !== null) {
+              promoted = match.channel;
+            }
+          }
+        } catch (error) {
+          console.warn('[add-by-rss] directory match failed', { error, feedCount: 1 });
+        }
+        if (promoted !== null) {
+          try {
+            await addByRssPromotion.recordPromotion(promoted, 0);
+          } catch (error) {
+            console.warn('[add-by-rss] directory promotion log failed', { error, feedCount: 1 });
+          }
+          setInputValue('');
+          setUsername('');
+          setPassword('');
+          setUseBasicAuthState(false);
+          if (onDirectoryChannel !== undefined) {
+            await onDirectoryChannel(promoted);
+          } else {
+            await onAfterAdd();
+          }
+          return;
+        }
       }
 
       const { requestId, result } = await addByRssRepository.parseNowByPath(
@@ -228,6 +292,7 @@ export function useAddByRssAddFlow({
     inputValue,
     isTierKnown,
     onAfterAdd,
+    onDirectoryChannel,
     onNotice,
     openGate,
     parsePath,

@@ -33,6 +33,8 @@ const BASE_ORM_COMMANDS = [
   'billingCheckoutChannelEnable',
   'billingImportLegacyMembershipExpiry',
   'v4CopyAccountLibrary',
+  'v4ImportFlaggedFeeds',
+  'v4WriteLegacyPodcastMap',
   'v4ReplayLegacyRows',
   'v4SeedAccountIdentity',
   'billingProcessorProductAdd',

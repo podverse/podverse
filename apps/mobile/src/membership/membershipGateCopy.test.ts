@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest';
 import type { AccessDenialReason, MembershipTier } from '@podverse/helpers';
 
 import {
+  followLimitDialogCopy,
   membershipGateConfirmDestination,
   membershipGateConfirmLabelKey,
   membershipGateConfirmTestID,
@@ -21,6 +22,16 @@ const REASONS: AccessDenialReason[] = [
 const signedOut = { isLoggedIn: false, tier: null };
 const trial: { isLoggedIn: true; tier: MembershipTier } = { isLoggedIn: true, tier: 'trial' };
 const premium: { isLoggedIn: true; tier: MembershipTier } = { isLoggedIn: true, tier: 'premium' };
+
+describe('followLimitDialogCopy', () => {
+  it('asks for the follow-limit sentence and no renew action', () => {
+    expect(followLimitDialogCopy(500)).toEqual({
+      bodyKey: 'membership.follow_limit_reached',
+      bodyValues: { limit: 500 },
+      titleKey: 'membership.gate.title_limit',
+    });
+  });
+});
 
 describe('membershipGateMessageKeys', () => {
   it('returns the trial expired body unless the tier is premium', () => {

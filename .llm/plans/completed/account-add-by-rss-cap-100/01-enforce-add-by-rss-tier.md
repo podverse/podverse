@@ -1,10 +1,13 @@
 # Add by RSS limit, default 100
 
-Deferred. To run it, open a chat and say: "Implement
-`.llm/plans/active/account-add-by-rss-cap-500.md`."
+**Cursor model:** Cursor Grok 4.7 · **Reasoning:** extra high
+
+Run it with `./scripts/abcplan/run.sh run account-add-by-rss-cap-100` after
+`add-by-rss-directory-match`, `v4-flagged-feed-block`, and `v4-signed-out-carryover` prompt 03.
+Order and the operator verification: [00-EXECUTION-ORDER.md](00-EXECUTION-ORDER.md).
 
 Add by RSS is outside the follow total in
-[account-follow-cap-5000.md](account-follow-cap-5000.md). Each feed is parsed on our
+[account-follow-cap-500](../account-follow-cap-500/01-enforce-follow-tier.md). Each feed is parsed on our
 servers. The default limit is 100. Management can raise one account.
 
 The migration rule is decided in
@@ -15,14 +18,13 @@ that covers its count, decided at copy time. It never writes Unlimited. A librar
 operator raises the account. The counts below come from an old snapshot and are examples.
 The full-rehearsal runner plan set
 ([16](/docs/proposals/v4-to-v5-migration/16-full-local-migration-rehearsal.md)) writes the
-tier in `v4CopyAccountLibrary`. Trial and Premium already share the default of 100; a line
-below that still says Trial is 10 is leftover draft text.
+tier in `v4CopyAccountLibrary`. Trial and Premium share the default of 100.
 
 ## Tiers
 
 | Tier | Who gets it |
 | --- | --- |
-| 100 | Default for Premium. Stored as empty. |
+| 100 | Default for Trial and Premium. Stored as empty. |
 | 200 | |
 | 300 | |
 | 400 | |
@@ -85,10 +87,18 @@ then copies every address. A library of 100 or fewer keeps an empty override and
 shared default of 100. Past 10000 the group is `needs_operator` and nothing is copied.
 New adds after the copy are refused at the tier.
 
+Addresses that match a directory channel are copied as directory follows and are not
+counted; the tier comes from the addresses left
+(`.llm/plans/completed/v4-signed-out-carryover/03-library-copy-directory-match.md`). The same
+holds for new adds: `POST /account/follow/add-by-rss-channel` follows the directory channel
+for a matching URL before the cap check, so a matched add is never refused at the tier
+(`add-by-rss-directory-match` prompt 02). Signed-out phones parse on the device and have no
+limit.
+
 ## Tests
 
 - Premium with an empty override is refused at 100 with the new sentence and no renew path.
-- Trial at 10 still gets the existing renew sentence.
+- Trial with an empty override is refused at 100 with the same sentence and no renew path.
 - A stored tier of 200 allows the 101st feed and refuses the 201st.
 - Updating a feed already followed succeeds at the cap.
 - The account at 5,215 resolves to 10000. A library past 10000 is `needs_operator`, copies
@@ -103,6 +113,28 @@ New adds after the copy are refused at the tier.
 - [ ] Count-and-insert in `addOrUpdateRSSChannel`, covering OPML
 - [ ] New 403, OpenAPI, and the catalog sentence in four locales
 - [ ] Web, mobile, and OPML show that sentence when the tier is the reason
-- [ ] Trial renew sentence unchanged
+- [ ] Trial and Premium share the 100 refusal, with no renew sentence
 - [ ] Tests listed above
 - [ ] v4 library copy writes the grandfather tier, 10000 for the library of 5,215, and never Unlimited
+
+## Release scratchpad
+
+```markdown
+## Add by RSS limit uses shared tiers
+
+- Surfaces: api, web, mobile, management-web, workers
+- Change: Trial and Premium share a default of 100 Add by RSS feeds. Management can raise one
+  account to 200, 300, 400, 500, 1000, 10000, or Unlimited. A new add at the account's tier
+  returns 403 `add_by_rss_feed_limit_reached` with no renew path. A URL that matches a directory
+  channel does not count. Migration writes the smallest tier that covers the addresses left and
+  never writes Unlimited.
+- Who notices: people adding a feed at the limit, and operators raising one account
+- Operator steps: none
+```
+
+## Close
+
+This prompt is last. Append the scratchpad entry, then move
+`.llm/plans/active/account-add-by-rss-cap-100/` to
+`.llm/plans/completed/account-add-by-rss-cap-100/`. Do not commit. End the final message with
+the cumulative verification in `00-EXECUTION-ORDER.md`. Do not run those commands.

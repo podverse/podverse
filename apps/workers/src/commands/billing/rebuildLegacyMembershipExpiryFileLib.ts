@@ -13,7 +13,7 @@ SELECT ids.id AS id_text,
        u.email,
        CASE
          WHEN u."membershipExpiration" IS NULL THEN NULL
-         ELSE to_char(u."membershipExpiration", 'YYYY-MM-DD"T"HH24:MI:SS"Z"')
+         ELSE to_char(u."membershipExpiration", 'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"')
        END AS membership_expires_at,
        (u.id IS NOT NULL) AS found,
        COALESCE(

@@ -224,6 +224,8 @@ Every phone `<area>` you can pass. Each line is one top-level file under
 npm run mobile:e2e:test -- --platform ios add-by-rss
 npm run mobile:e2e:test -- --platform ios add-by-rss-credentials
 npm run mobile:e2e:test -- --platform ios add-by-rss-anonymous
+npm run mobile:e2e:test -- --platform ios add-by-rss-directory-match-anonymous
+npm run mobile:e2e:test -- --platform ios add-by-rss-directory-match-signed-in
 npm run mobile:e2e:test -- --platform ios add-by-rss-anonymous-artist
 npm run mobile:e2e:test -- --platform ios add-by-rss-anonymous-sections
 npm run mobile:e2e:test -- --platform ios add-by-rss-anonymous-podroll
@@ -287,6 +289,7 @@ npm run mobile:e2e:test -- --platform ios taste-profile-consent
 npm run mobile:e2e:test -- --platform ios terms-account-access
 npm run mobile:e2e:test -- --platform ios terms-taste-profile-consent
 npm run mobile:e2e:test -- --platform ios track
+npm run mobile:e2e:test -- --platform ios v4-carryover-anonymous
 npm run mobile:e2e:test -- --platform ios v4v
 npm run mobile:e2e:test -- --platform ios video-transition
 ```
@@ -297,6 +300,8 @@ npm run mobile:e2e:test -- --platform ios video-transition
 npm run mobile:e2e:test -- --platform android add-by-rss
 npm run mobile:e2e:test -- --platform android add-by-rss-credentials
 npm run mobile:e2e:test -- --platform android add-by-rss-anonymous
+npm run mobile:e2e:test -- --platform android add-by-rss-directory-match-anonymous
+npm run mobile:e2e:test -- --platform android add-by-rss-directory-match-signed-in
 npm run mobile:e2e:test -- --platform android add-by-rss-anonymous-artist
 npm run mobile:e2e:test -- --platform android add-by-rss-anonymous-sections
 npm run mobile:e2e:test -- --platform android add-by-rss-anonymous-podroll
@@ -360,6 +365,7 @@ npm run mobile:e2e:test -- --platform android taste-profile-consent
 npm run mobile:e2e:test -- --platform android terms-account-access
 npm run mobile:e2e:test -- --platform android terms-taste-profile-consent
 npm run mobile:e2e:test -- --platform android track
+npm run mobile:e2e:test -- --platform android v4-carryover-anonymous
 npm run mobile:e2e:test -- --platform android v4v
 npm run mobile:e2e:test -- --platform android video-transition
 ```
@@ -490,6 +496,7 @@ npm run mobile:e2e:test -- search-unparsed
 npm run mobile:e2e:test -- settings-developer
 npm run mobile:e2e:test -- settings-downloads
 npm run mobile:e2e:test -- subscriptions-anonymous
+npm run mobile:e2e:test -- v4-carryover-anonymous
 npm run mobile:e2e:test -- taste-profile
 npm run mobile:e2e:test -- taste-profile-consent
 npm run mobile:e2e:test -- terms-account-access
@@ -536,6 +543,9 @@ channel without fetching the feed, so the Basic challenge itself is checked by h
 to another host does not receive the username and password, and checks that they are still on
 the phone after signing in and signing out again.
 
+`add-by-rss-directory-match-signed-in` signs in as the seeded account and adds the
+directory-match fixture. The podcast page opens instead of an Add by RSS feed.
+
 `hls-playback` uses **Play E2E HLS** on the same page (`testID=e2e-play-hls-item`). It plays
 the seeded VOD HLS playlist `e2e-hls-vod.m3u8` from `tools/test-assets/assets/e2e/hls/`. If those
 files are missing, regenerate E2E media (same command as the video fixture) and reseed.
@@ -547,6 +557,8 @@ the default sequential slots.
 npm run mobile:e2e:test -- add-by-rss
 npm run mobile:e2e:test -- add-by-rss-credentials
 npm run mobile:e2e:test -- add-by-rss-anonymous
+npm run mobile:e2e:test -- add-by-rss-directory-match-anonymous
+npm run mobile:e2e:test -- add-by-rss-directory-match-signed-in
 npm run mobile:e2e:test -- add-by-rss-anonymous-artist
 npm run mobile:e2e:test -- add-by-rss-anonymous-sections
 npm run mobile:e2e:test -- add-by-rss-anonymous-podroll

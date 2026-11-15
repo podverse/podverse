@@ -1,6 +1,7 @@
 import { config } from '@api/config/index.js';
 import { AccountController } from '@api/controllers/account/account.js';
 import { AccountAddByRSSChaptersTranscriptController } from '@api/controllers/account/accountAddByRSSChaptersTranscript.js';
+import { AccountAddByRSSConvertController } from '@api/controllers/account/accountAddByRSSConvert.js';
 import { AccountAddByRSSParseController } from '@api/controllers/account/accountAddByRSSParse.js';
 import {
   AccountAddByRSSRemoteItemController,
@@ -198,6 +199,11 @@ router.post(
   '/add-by-rss/chapters-transcript',
   rateLimitEndpoint(config.rateLimits.accountAddByRssChaptersTranscript),
   asyncHandler(AccountAddByRSSChaptersTranscriptController.getChaptersAndTranscript)
+);
+router.post(
+  '/add-by-rss/convert-to-channel',
+  rateLimitEndpoint(config.rateLimits.accountAddByRssParseEnqueue),
+  asyncHandler(AccountAddByRSSConvertController.convert)
 );
 router.post('/add-by-rss/parse', asyncHandler(AccountAddByRSSParseController.enqueueParse));
 router.post('/add-by-rss/parse/all', asyncHandler(AccountAddByRSSParseController.enqueueParseAll));

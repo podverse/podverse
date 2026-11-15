@@ -34,6 +34,7 @@ tags:
   - name: identity
   - name: item
   - name: legal
+  - name: legacy
   - name: item-chapter
   - name: item-soundbite
   - name: item-transcript
@@ -109,6 +110,20 @@ components:
           - ios
           - android
           - foss
+    LegacyInstallIdHeader:
+      in: header
+      name: X-Podverse-Install-Id
+      required: false
+      description: >-
+        A random id the phone keeps. When it is 16–64 characters of letters, digits, underscore,
+        or hyphen, the request also counts against the per-install limit. Any other value is
+        ignored.
+      schema:
+        type: string
+        minLength: 16
+        maxLength: 64
+        pattern: "^[A-Za-z0-9_-]+$"
+        example: phone-install-id-01
     PageQueryRequired:
       in: query
       name: page
@@ -792,6 +807,7 @@ components:
                 (e.g. `membership.membership_expired`,
                 `membership.feature_not_available_for_account_type`,
                 `membership.add_by_rss_feed_limit_reached`,
+                `membership.follow_limit_reached`,
                 `membership.manual_refresh_hourly_limit_reached`). Clients localise the user-facing
                 message from this key.
               example: membership.membership_expired
@@ -799,14 +815,16 @@ components:
               type: integer
               nullable: true
               description: >-
-                Present on `add_by_rss_feed_limit_reached`: the account's Add by RSS feed limit.
+                Present on `add_by_rss_feed_limit_reached` (the account's Add by RSS feed limit)
+                and on `follow_limit_reached` (the account's follow tier).
             renewPath:
               type: string
               nullable: true
               description: >-
                 Present on membership denials. Destination path for the renew/extend action (web
                 route; native clients map it to their own membership screen). Absent on
-                `add_by_rss_feed_limit_reached`; raising that limit is a support request, not a purchase.
+                `add_by_rss_feed_limit_reached` and `follow_limit_reached`. Raising the Add by RSS
+                limit is a support request. The follow limit has no renew path and no support action.
               example: /membership/renew
     ApiKeyPermissionRequirement:
       type: object
@@ -1691,6 +1709,135 @@ components:
                 - directory_unavailable
       discriminator:
         propertyName: kind
+    ApiPostAccountAddByRssConvertToChannelRequest:
+      type: object
+      description: >-
+        Converts one Add by RSS follow into a directory channel follow. `feed_guid` is the
+        podcast guid when the client has one. A different guid is not a match.
+      required:
+        - feed_url
+      properties:
+        feed_url:
+          type: string
+          format: uri
+          maxLength: 2048
+        feed_guid:
+          type: string
+          nullable: true
+          maxLength: 255
+      example:
+        feed_url: https://example.com/feed.xml
+        feed_guid: null
+    ApiPostAccountAddByRssConvertToChannelConverted:
+      type: object
+      required:
+        - converted
+        - channel
+        - items
+        - queue_rows_moved
+        - queue_rows_dropped
+        - playlist_rows_moved
+        - playlist_rows_dropped
+      properties:
+        converted:
+          type: boolean
+          enum:
+            - true
+        channel:
+          type: object
+          required:
+            - id_text
+            - title
+            - medium_id
+          properties:
+            id_text:
+              type: string
+            title:
+              type: string
+              nullable: true
+            medium_id:
+              type: integer
+              nullable: true
+        items:
+          type: array
+          description: Queue and owned playlist rows moved onto a directory episode or dropped as duplicates.
+          items:
+            type: object
+            required:
+              - add_by_rss_hash_id
+              - item_id_text
+            properties:
+              add_by_rss_hash_id:
+                type: string
+              item_id_text:
+                type: string
+        queue_rows_moved:
+          type: integer
+        queue_rows_dropped:
+          type: integer
+        playlist_rows_moved:
+          type: integer
+        playlist_rows_dropped:
+          type: integer
+      example:
+        converted: true
+        channel:
+          id_text: kM7T2xYqLp
+          title: Example Show
+          medium_id: 2
+        items:
+          - add_by_rss_hash_id: 0123456789abcdef0123456789abcdef
+            item_id_text: aB3dE5fG7h
+        queue_rows_moved: 2
+        queue_rows_dropped: 0
+        playlist_rows_moved: 0
+        playlist_rows_dropped: 1
+    ApiPostAccountAddByRssConvertToChannelNotConverted:
+      type: object
+      required:
+        - converted
+        - reason
+        - channel
+      properties:
+        converted:
+          type: boolean
+          enum:
+            - false
+        reason:
+          type: string
+          enum:
+            - no_match
+            - not_followed
+            - requires_credentials
+            - follow_limit
+        channel:
+          nullable: true
+          description: The directory channel when the follow is already gone. Null otherwise.
+          type: object
+          required:
+            - id_text
+            - title
+            - medium_id
+          properties:
+            id_text:
+              type: string
+            title:
+              type: string
+              nullable: true
+            medium_id:
+              type: integer
+              nullable: true
+      example:
+        converted: false
+        reason: not_followed
+        channel:
+          id_text: kM7T2xYqLp
+          title: Example Show
+          medium_id: 2
+    ApiPostAccountAddByRssConvertToChannelResponse200:
+      oneOf:
+        - $ref: "#/components/schemas/ApiPostAccountAddByRssConvertToChannelConverted"
+        - $ref: "#/components/schemas/ApiPostAccountAddByRssConvertToChannelNotConverted"
     ApiPostAccountAddByRssParseRequest:
       type: object
       description: >-
@@ -1984,6 +2131,59 @@ components:
     ApiPostAccountFollowAddByRssChannelResponse200:
       allOf:
         - $ref: "#/components/schemas/MessageResponse"
+        - type: object
+          required:
+            - directory_channel
+          properties:
+            directory_channel:
+              nullable: true
+              description: Null when the feed stays Add by RSS.
+              type: object
+              required:
+                - id_text
+                - title
+                - medium_id
+              properties:
+                id_text:
+                  type: string
+                title:
+                  type: string
+                  nullable: true
+                medium_id:
+                  type: integer
+                  nullable: true
+      example:
+        message: RSS channel added/updated successfully
+        directory_channel: null
+    ApiPostAccountFollowAddByRssChannelDirectoryResponse200:
+      type: object
+      required:
+        - message
+        - directory_channel
+      properties:
+        message:
+          type: string
+        directory_channel:
+          type: object
+          required:
+            - id_text
+            - title
+            - medium_id
+          properties:
+            id_text:
+              type: string
+            title:
+              type: string
+              nullable: true
+            medium_id:
+              type: integer
+              nullable: true
+      example:
+        message: Followed directory channel
+        directory_channel:
+          id_text: kM7T2xYqLp
+          title: Example Show
+          medium_id: 2
     ApiGetAccountFollowAddByRssChannelAccountIdTextResponse200:
       type: array
       items:
@@ -2049,6 +2249,10 @@ components:
             - followed
             - already_following
             - not_found
+            - follow_limit
+        limit:
+          type: integer
+          description: Present when `outcome` is `follow_limit`. The account's follow tier.
     ApiPostAccountFollowChannelBulkResponse200:
       type: object
       required:
@@ -2062,6 +2266,7 @@ components:
             - followed
             - already_following
             - not_found
+            - follow_limit
           properties:
             requested:
               type: integer
@@ -2070,6 +2275,28 @@ components:
             already_following:
               type: integer
             not_found:
+              type: integer
+            follow_limit:
+              type: integer
+        follow_limit:
+          type: object
+          description: Present when any result is `follow_limit`. There is no renew path.
+          required:
+            - message
+            - code
+            - i18nKey
+            - limit
+          properties:
+            message:
+              type: string
+            code:
+              type: string
+              enum:
+                - follow_limit_reached
+            i18nKey:
+              type: string
+              example: membership.follow_limit_reached
+            limit:
               type: integer
         results:
           type: array
@@ -2081,6 +2308,7 @@ components:
           followed: 1
           already_following: 1
           not_found: 0
+          follow_limit: 0
         results:
           - channel_id_text: "kM7T2xYqLp"
             outcome: followed
@@ -3800,6 +4028,190 @@ components:
         medium_id:
           type: integer
           nullable: true
+    ApiPostChannelAddByRSSMatchRequest:
+      type: object
+      required:
+        - feeds
+      properties:
+        feeds:
+          type: array
+          minItems: 1
+          maxItems: 100
+          items:
+            type: object
+            required:
+              - feed_url
+            properties:
+              feed_url:
+                type: string
+                maxLength: 2048
+              feed_guid:
+                type: string
+                nullable: true
+                maxLength: 255
+              items:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    guid:
+                      type: string
+                      nullable: true
+                      maxLength: 2048
+                    enclosure_url:
+                      type: string
+                      nullable: true
+                      maxLength: 4096
+      example:
+        feeds:
+          - feed_url: https://example.com/show
+            feed_guid: null
+            items:
+              - guid: episode-1
+                enclosure_url: https://example.com/episode-1.mp3
+    ApiPostChannelAddByRSSMatchResponse200:
+      type: object
+      required:
+        - matches
+      properties:
+        matches:
+          type: array
+          items:
+            type: object
+            required:
+              - feed_url
+              - channel
+              - items
+            properties:
+              feed_url:
+                type: string
+              channel:
+                type: object
+                nullable: true
+                required:
+                  - id_text
+                  - title
+                  - medium_id
+                properties:
+                  id_text:
+                    type: string
+                  title:
+                    type: string
+                    nullable: true
+                  medium_id:
+                    type: integer
+                    nullable: true
+              items:
+                type: array
+                items:
+                  type: object
+                  required:
+                    - guid
+                    - enclosure_url
+                    - item_id_text
+                  properties:
+                    guid:
+                      type: string
+                      nullable: true
+                    enclosure_url:
+                      type: string
+                      nullable: true
+                    item_id_text:
+                      type: string
+                      nullable: true
+    ApiPostLegacyPodcastLookupRequest:
+      type: object
+      required:
+        - podcast_ids
+      properties:
+        podcast_ids:
+          type: array
+          minItems: 1
+          maxItems: 2000
+          items:
+            type: string
+            minLength: 1
+            maxLength: 14
+      example:
+        podcast_ids:
+          - pod123
+          - pod456
+    ApiPostLegacyPodcastLookupResponse200:
+      type: object
+      required:
+        - answers
+      properties:
+        answers:
+          type: array
+          items:
+            oneOf:
+              - type: object
+                required:
+                  - podcast_id
+                  - kind
+                  - channel
+                properties:
+                  podcast_id:
+                    type: string
+                  kind:
+                    type: string
+                    enum:
+                      - channel
+                  channel:
+                    type: object
+                    required:
+                      - id_text
+                      - title
+                      - medium_id
+                      - image_url
+                    properties:
+                      id_text:
+                        type: string
+                      title:
+                        type: string
+                        nullable: true
+                      medium_id:
+                        type: integer
+                        nullable: true
+                      image_url:
+                        type: string
+                        nullable: true
+              - type: object
+                required:
+                  - podcast_id
+                  - kind
+                  - feed_url
+                properties:
+                  podcast_id:
+                    type: string
+                  kind:
+                    type: string
+                    enum:
+                      - feed_url
+                  feed_url:
+                    type: string
+              - type: object
+                required:
+                  - podcast_id
+                  - kind
+                properties:
+                  podcast_id:
+                    type: string
+                  kind:
+                    type: string
+                    enum:
+                      - blocked
+              - type: object
+                required:
+                  - podcast_id
+                  - kind
+                properties:
+                  podcast_id:
+                    type: string
+                  kind:
+                    type: string
+                    enum:
+                      - not_here
     ApiGetClipPublicCategoryOldestResponse200:
       allOf:
         - $ref: "#/components/schemas/ClipListResponse"
@@ -6999,6 +7411,79 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ServiceUnavailableErrorResponse"
+  /account/add-by-rss/convert-to-channel:
+    post:
+      operationId: apiPostAccountAddByRssConvertToChannel
+      tags:
+        - account
+      summary: POST /account/add-by-rss/convert-to-channel
+      description: >-
+        Converts one Add by RSS follow into a directory channel follow and moves this account's
+        queue and owned playlist rows onto directory episodes. Password-protected feeds are not
+        converted. Membership is not required. An API key needs subscriptions create.
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+        - apiKeyAuth: []
+      x-api-key-permission:
+        resource: subscriptions
+        action: create
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ApiPostAccountAddByRssConvertToChannelRequest"
+      responses:
+        "200":
+          description: The follow was converted, or the reason it was not.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiPostAccountAddByRssConvertToChannelResponse200"
+              example:
+                converted: true
+                channel:
+                  id_text: kM7T2xYqLp
+                  title: Example Show
+                  medium_id: 2
+                items:
+                  - add_by_rss_hash_id: 0123456789abcdef0123456789abcdef
+                    item_id_text: aB3dE5fG7h
+                queue_rows_moved: 2
+                queue_rows_dropped: 0
+                playlist_rows_moved: 0
+                playlist_rows_dropped: 1
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ValidationErrorResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthenticationErrorResponse"
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthorizationErrorResponse"
+        "429":
+          description: Too many requests
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TooManyRequestsErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InternalServerErrorResponse"
   /account/add-by-rss/parse:
     post:
       operationId: apiPostAccountAddByRssParse
@@ -7177,7 +7662,8 @@ paths:
         - account
       summary: GET /account/add-by-rss/feed-limit
       description: >-
-        The signed-in account's Add by RSS feed limit: its override, or the shared default.
+        The signed-in account's Add by RSS feed limit: a stored tier, or the shared default.
+        Unlimited (-1) is returned as the shared default and is not refused on add.
         Authenticated endpoint (cookieAuth or bearerAuth). An API key needs add_by_rss read.
       security:
         - bearerAuth: []
@@ -7983,7 +8469,9 @@ paths:
               schema:
                 $ref: "#/components/schemas/AuthenticationErrorResponse"
         "403":
-          description: Forbidden
+          description: >-
+            Forbidden. `follow_limit_reached` when the account is at its follow tier.
+            The body carries `limit` and `i18nKey` and no `renewPath`.
           content:
             application/json:
               schema:
@@ -8006,7 +8494,11 @@ paths:
       tags:
         - account
       summary: POST /account/follow/add-by-rss-channel
-      description: Auto-generated from route matrix. Authenticated endpoint (cookieAuth or bearerAuth). An API key needs add_by_rss create.
+      description: >-
+        Authenticated endpoint (cookieAuth or bearerAuth). An API key needs add_by_rss create.
+        A blocked feed returns 403 with code `feed_blocked` and is not followed.
+        A URL that is already a parsed directory channel follows that channel and returns 200.
+        Any other feed is saved as Add by RSS and returns 201.
       security:
         - bearerAuth: []
         - cookieAuth: []
@@ -8021,6 +8513,12 @@ paths:
             schema:
               $ref: "#/components/schemas/ApiPostAccountFollowAddByRssChannelRequest"
       responses:
+        "200":
+          description: The URL is a directory channel. The account follows that channel.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiPostAccountFollowAddByRssChannelDirectoryResponse200"
         "201":
           description: RSS channel added/updated successfully
           content:
@@ -8040,7 +8538,10 @@ paths:
               schema:
                 $ref: "#/components/schemas/AuthenticationErrorResponse"
         "403":
-          description: Forbidden
+          description: >-
+            Forbidden. `feed_blocked` when the feed's lifecycle or policy blocks adding it.
+            That response does not follow the feed and does not match it to a directory channel.
+            `add_by_rss_feed_limit_reached` when the account is at its Add by RSS cap.
           content:
             application/json:
               schema:
@@ -8154,7 +8655,9 @@ paths:
               schema:
                 $ref: "#/components/schemas/AuthenticationErrorResponse"
         "403":
-          description: Forbidden
+          description: >-
+            Forbidden. `follow_limit_reached` when the account is at its follow tier.
+            The body carries `limit` and `i18nKey` and no `renewPath`.
           content:
             application/json:
               schema:
@@ -8267,7 +8770,9 @@ paths:
               schema:
                 $ref: "#/components/schemas/AuthenticationErrorResponse"
         "403":
-          description: Forbidden
+          description: >-
+            Forbidden. `follow_limit_reached` when the account is at its follow tier.
+            The body carries `limit` and `i18nKey` and no `renewPath`.
           content:
             application/json:
               schema:
@@ -14155,6 +14660,64 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/InternalServerErrorResponse"
+  /channel/add-by-rss-match:
+    post:
+      operationId: apiPostChannelAddByRSSMatch
+      tags:
+        - channel
+      summary: POST /channel/add-by-rss-match
+      description: >-
+        Public endpoint. For each Add by RSS feed URL, returns the parsed public directory channel
+        it matches, and the directory episode for each listed item. At most 100 feeds and 500 items
+        in one request. Scheme, host case, a default port, a fragment, and a trailing slash are not
+        different feeds. A query string and a www host are. A URL with userinfo does not match. A
+        client podcast:guid that differs from the channel guid does not match. A session is
+        optional. The rate limit counts per account when signed in and per IP address when signed
+        out. Reads public directory data only and writes nothing.
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ApiPostChannelAddByRSSMatchRequest"
+      responses:
+        "200":
+          description: One match row per input feed, in input order.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiPostChannelAddByRSSMatchResponse200"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ValidationErrorResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthenticationErrorResponse"
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthorizationErrorResponse"
+        "429":
+          description: Too many requests
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TooManyRequestsErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InternalServerErrorResponse"
   /channel/subscribed/az:
     get:
       operationId: apiGetChannelSubscribedAz
@@ -16923,6 +17486,52 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/InternalServerErrorResponse"
+  /legacy/podcast/lookup:
+    post:
+      operationId: apiPostLegacyPodcastLookup
+      tags:
+        - legacy
+      summary: POST /legacy/podcast/lookup
+      description: >-
+        Public endpoint. For each v4 podcast id, returns the v5 directory channel, the v4 feed URL
+        when v5 has not parsed the show, blocked for spam and takedown, or not_here. At most 2000
+        ids. A session is not required. The rate limit counts per IP address, and also per
+        X-Podverse-Install-Id when that header is 16–64 characters of letters, digits, underscore,
+        or hyphen. Reads public catalog data only, writes nothing, and does not queue a parse.
+      security: []
+      parameters:
+        - $ref: "#/components/parameters/LegacyInstallIdHeader"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ApiPostLegacyPodcastLookupRequest"
+      responses:
+        "200":
+          description: One answer per input id, in input order.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiPostLegacyPodcastLookupResponse200"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ValidationErrorResponse"
+        "429":
+          description: Too many requests
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TooManyRequestsErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InternalServerErrorResponse"
   /live-item/category/recent:
     get:
       operationId: apiGetLiveItemCategoryRecent
@@ -17777,7 +18386,10 @@ paths:
       tags:
         - mq
       summary: POST /mq/rss/add/on-demand
-      description: Auto-generated from route matrix. Authenticated endpoint (cookieAuth or bearerAuth). An API key needs add_by_rss create.
+      description: >-
+        Auto-generated from route matrix. Authenticated endpoint (cookieAuth or bearerAuth).
+        An API key needs add_by_rss create. A blocked feed returns 403 with code `feed_blocked`
+        and is not enqueued.
       security:
         - bearerAuth: []
         - cookieAuth: []
@@ -17811,7 +18423,9 @@ paths:
               schema:
                 $ref: "#/components/schemas/AuthenticationErrorResponse"
         "403":
-          description: Forbidden
+          description: >-
+            Forbidden. `feed_blocked` when the feed's lifecycle or policy blocks parse or add.
+            That response does not enqueue a parse and does not spend the on-demand dedupe key.
           content:
             application/json:
               schema:
@@ -17834,7 +18448,10 @@ paths:
       tags:
         - mq
       summary: POST /mq/rss/refresh/on-demand
-      description: Auto-generated from route matrix. Authenticated endpoint (cookieAuth or bearerAuth). An API key needs add_by_rss create.
+      description: >-
+        Auto-generated from route matrix. Authenticated endpoint (cookieAuth or bearerAuth).
+        An API key needs add_by_rss create. A blocked feed returns 403 with code `feed_blocked`
+        and is not enqueued.
       security:
         - bearerAuth: []
         - cookieAuth: []
@@ -17868,7 +18485,10 @@ paths:
               schema:
                 $ref: "#/components/schemas/AuthenticationErrorResponse"
         "403":
-          description: Forbidden
+          description: >-
+            Forbidden. `feed_blocked` when the feed's lifecycle or policy blocks parse or add.
+            That response does not enqueue a parse and does not spend the hourly refresh count.
+            `manual_refresh_hourly_limit_reached` when the account is at its hourly refresh cap.
           content:
             application/json:
               schema:

@@ -5,6 +5,7 @@ import path from 'node:path';
 import bcrypt from 'bcrypt';
 import { Client } from 'pg';
 
+import { ONE_HOUR_MS } from '@podverse/helpers';
 import { ACCOUNT_PHASE_STATUS_CHUNK, getDataSourceReadWrite } from '@podverse/orm';
 
 import { billingImportLegacyMembershipExpiry } from '../../billing/importLegacyMembershipExpiry.js';
@@ -13,6 +14,10 @@ import type { V4SeedStageCatalogProgress } from '../v4Catalog/seedStageCatalog.j
 import { v4SeedStageCatalog } from '../v4Catalog/seedStageCatalog.js';
 import { v4SeedAccountIdentity } from '../v4Identity/seedAccountIdentity.js';
 import { v4CopyAccountLibrary } from '../v4Library/copyAccountLibrary.js';
+import {
+  listEmailCaseTwinIds,
+  loadAccountsForLegacyUsers,
+} from '../v4Library/copyAccountLibraryApply.js';
 import { v4ReplayLegacyRows } from '../v4Library/replayLegacyRows.js';
 import type { AccountPhase } from './accountPhaseStatus.js';
 import {
@@ -32,6 +37,7 @@ import {
   webOriginForStage,
 } from './rehearsalPhaseOutcome.js';
 import type { RehearsalRunContext } from './runFullRehearsalLoop.js';
+import { mergedIdsLast } from './runFullRehearsalLoopLib.js';
 import { verifyAccount } from './verifyAccount.js';
 
 export const SNAPSHOT_UPDATED_AT_SQL = `SELECT to_char(max(users."updatedAt"), 'YYYY-MM-DD"T"HH24:MI:SS"Z"') AS snapshot_at
@@ -120,10 +126,14 @@ export async function runIdentityPhase(context: RehearsalRunContext): Promise<vo
   // Commands in this pass can replace one another's rows, so the account id is read
   // from the table after the pass.
   const accountIds = await readAccountIds(holdIds);
+  const twinAccounts = await loadAccountsForLegacyUsers(
+    getDataSourceReadWrite(),
+    holdIds.filter((v4Id) => !accountIds.has(v4Id))
+  );
   let finished = 0;
   for (const v4Id of holdIds) {
     try {
-      await applyIdentityHold(context, v4Id, accountIds.get(v4Id));
+      await applyIdentityHold(context, v4Id, accountIds.get(v4Id), twinAccounts.get(v4Id)?.id);
     } catch (error) {
       await recordThrownAccount(context, 'identity', v4Id, 'identity', error);
     }
@@ -150,12 +160,23 @@ export async function runCatalogPhase(context: RehearsalRunContext): Promise<voi
       message: 'parse failed',
     });
   }
+  await context.log.recordCatalog({
+    waitingAtDeadline: seeded.waitingAtDeadline,
+    failedByReason: seeded.failedByReason,
+    oversizeRaised: seeded.oversizeRaised,
+    oversizeGaveUp: seeded.oversizeGaveUp,
+    now: context.wallClock(),
+  });
   await markPhaseDone(context, 'catalog', ids);
 }
 
 export async function runLibraryPhase(context: RehearsalRunContext): Promise<void> {
   await ensureAccountPhaseRows(pickedV4Ids(context), 'library');
-  const ids = await context.runnableIds('library');
+  const runnable = await context.runnableIds('library');
+  const ids = mergedIdsLast(
+    runnable,
+    await listEmailCaseTwinIds(getDataSourceReadWrite(), runnable)
+  );
   for (const v4Id of ids) {
     try {
       await writeLibraryAccount(context, v4Id);
@@ -310,10 +331,15 @@ async function markIdentityFailed(
   await context.noteAccount({ failed: true });
 }
 
+/**
+ * A left-out email-case twin whose map row names the kept account is identity done against that
+ * account. Its membership belongs to the kept row and is deferred; its library still merges.
+ */
 async function applyIdentityHold(
   context: RehearsalRunContext,
   v4Id: string,
-  accountId: number | undefined
+  accountId: number | undefined,
+  mergedAccountId: number | undefined
 ): Promise<void> {
   if (sweepIdentity(accountId !== undefined) === 'done' && accountId !== undefined) {
     await setAccountPhaseStatus({
@@ -322,6 +348,14 @@ async function applyIdentityHold(
       status: 'done',
       accountId,
     });
+  } else if (mergedAccountId !== undefined) {
+    await setAccountPhaseStatus({
+      v4UserId: v4Id,
+      phase: 'identity',
+      status: 'done',
+      accountId: mergedAccountId,
+    });
+    await deferAccountPhases(v4Id, ['membership'], 'email_case_merged');
   } else {
     await deferAccountPhases(v4Id, ALL_ACCOUNT_PHASES, 'email_case_left_out');
   }
@@ -378,6 +412,8 @@ async function seedRehearsalCatalog(
       stage: context.stage,
       v4Ids: context.stage === 'full' ? [] : ids,
       dryRun: false,
+      waitDeadlineMs: context.catalogWaitHours * ONE_HOUR_MS,
+      retrySchedule: 'rehearsal',
       onProgress: (progress) => {
         context.writeLine(catalogProgressLine(progress));
         progressWrites.push(context.emitProgress());
@@ -392,14 +428,18 @@ async function seedRehearsalCatalog(
 }
 
 function catalogProgressLine(progress: V4SeedStageCatalogProgress): string {
-  return [
+  const parts = [
     'rehearsal phase=catalog',
     `created=${progress.created}`,
     `queued=${progress.queued}`,
     `settled=${progress.settled}`,
     `failed_parse=${progress.failedParse}`,
     `waiting=${progress.waiting}`,
-  ].join(' ');
+  ];
+  if (progress.deadlineReached === true) {
+    parts.push('deadline=reached');
+  }
+  return parts.join(' ');
 }
 
 async function writeLibraryAccount(context: RehearsalRunContext, v4Id: string): Promise<void> {

@@ -36,11 +36,18 @@ const emptyReport = {
   nowPlaying: emptyCount,
 };
 
-const emptyAddByRssCap = { count: 0, action: 'copy' as const, writeTier: null };
+const emptyAddByRssCap = {
+  count: 0,
+  action: 'copy' as const,
+  writeTier: null,
+  addByRssMatchedToDirectory: 0,
+  addByRssNotFeedUrl: 0,
+};
 const emptyDirectoryFollowCap = {
   count: 0,
   action: 'copy' as const,
   decision: { outcome: 'default' as const },
+  writeTier: null,
 };
 
 describe('classifyLibraryResult', () => {
@@ -62,6 +69,39 @@ describe('classifyLibraryResult', () => {
       status: 'failed',
       className: 'library_not_closed',
       errors: [{ group: null, className: 'library_not_closed', message: 'library not closed' }],
+    });
+  });
+
+  it('marks a clean email-case twin merge done although it never sets v4_library_copied_at.', () => {
+    expect(
+      classifyApply({
+        groupErrors: [],
+        needsOperatorGroups: [],
+        libraryCopiedAtSet: false,
+        merged: true,
+      })
+    ).toEqual({ status: 'done', className: null, errors: [] });
+    expect(
+      classifyApply({
+        groupErrors: [],
+        needsOperatorGroups: ['add_by_rss'],
+        libraryCopiedAtSet: false,
+        merged: true,
+      }).status
+    ).toBe('needs_operator');
+  });
+
+  it('fails a merge that ran before the kept account copied its own library.', () => {
+    expect(classifyLibraryResult({ action: 'skip_merge_waiting', v4Id: 'abcdefg' })).toEqual({
+      status: 'failed',
+      className: 'kept_library_not_copied',
+      errors: [
+        {
+          group: null,
+          className: 'kept_library_not_copied',
+          message: 'kept account library not copied',
+        },
+      ],
     });
   });
 
@@ -282,6 +322,7 @@ function classifyApply(input: {
   groupErrors: Array<{ group: 'playlists'; class: string }>;
   needsOperatorGroups: string[];
   libraryCopiedAtSet: boolean;
+  merged?: boolean;
 }) {
   return classifyLibraryResult({
     action: 'apply',
@@ -297,9 +338,13 @@ function classifyApply(input: {
       groupErrors: input.groupErrors,
       needsOperatorGroups: input.needsOperatorGroups,
       libraryCopiedAtSet: input.libraryCopiedAtSet,
+      merged: input.merged ?? false,
       addByRssCap: emptyAddByRssCap,
       directoryFollowCap: emptyDirectoryFollowCap,
       playlistsOverLimit: [],
+      queueTier: null,
+      queueNeedsOperator: 0,
+      historyTrimmed: 0,
     },
   });
 }

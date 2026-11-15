@@ -10,6 +10,7 @@ describe('getSyncLogLabelKey', () => {
     expect(getSyncLogLabelKey('add-by-rss-listed-feeds')).toBe('sync.job.rss_feeds');
     expect(getSyncLogLabelKey('add-by-rss-device-parse')).toBe('sync.job.rss_feeds');
     expect(getSyncLogLabelKey('add-by-rss-listed-resolve')).toBe('sync.job.rss_feeds');
+    expect(getSyncLogLabelKey('v4-carryover')).toBe('sync.job.v4_carryover');
   });
 
   it('returns the Home diagnostic label so a hung cache read is readable in More', () => {

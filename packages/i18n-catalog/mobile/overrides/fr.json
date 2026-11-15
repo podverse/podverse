@@ -214,7 +214,8 @@
       "clips": "",
       "home_feed": "",
       "auto_download": "",
-      "identity_remap": ""
+      "identity_remap": "",
+      "v4_carryover": ""
     },
     "progress": ""
   },
@@ -279,7 +280,12 @@
         "native_detail": "",
         "parse_status": "",
         "request_id": "",
-        "basic_auth": ""
+        "basic_auth": "",
+        "moved_items": "",
+        "subscribed": "",
+        "add_by_rss": "",
+        "blocked": "",
+        "waiting": ""
       }
     },
     "title": "",
@@ -295,6 +301,8 @@
     "outcome_success": "",
     "directory_channel_gone": "",
     "directory_channel_converted": "",
+    "add_by_rss_promoted_to_directory": "",
+    "v4_carryover_done": "",
     "row_a11y_hint": "",
     "saved_footnote": "",
     "kind": {
@@ -310,6 +318,18 @@
     "chapter_tooltip": "",
     "enter_video_full_screen": "",
     "exit_video_full_screen": ""
+  },
+  "migration": {
+    "v4_continue": {
+      "body_account": "",
+      "body_file": "",
+      "continue": "",
+      "continue_error": "",
+      "export_error": "",
+      "saved_copy": "",
+      "sign_in": "",
+      "title": ""
+    }
   },
   "misc": {
     "clear": ""

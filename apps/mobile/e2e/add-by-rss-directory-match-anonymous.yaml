@@ -1,0 +1,45 @@
+appId: com.podverse.app.next
+name: Add By RSS Directory Match Anonymous
+---
+# Signed out, an RSS URL Podverse has already parsed opens the directory podcast instead of
+# storing an Add by RSS feed. The URL is the e2e directory-match fixture.
+# Needs flow_needs_e2e_api + flow_needs_test_assets.
+
+- runFlow: shared/launch-and-connect.yaml
+
+- tapOn:
+    id: tab-my-library
+- assertVisible:
+    id: library-hub-screen
+- tapOn:
+    id: library-nav-add-by-rss
+- assertVisible:
+    id: rss-root-screen
+- assertVisible:
+    id: rss-feeds-empty
+- takeScreenshot: add-by-rss-directory-match-anonymous-empty
+
+- tapOn:
+    id: rss-add-button
+- assertVisible:
+    id: rss-add-screen
+- assertNotVisible:
+    id: premium-gate-modal
+- tapOn:
+    id: rss-url-input
+- inputText: http://localhost:2111/feeds/directory-match-podcast.rss
+- assertVisible:
+    id: rss-add-submit
+    enabled: true
+- tapOn:
+    id: rss-add-submit
+
+- extendedWaitUntil:
+    visible:
+      id: podcast-detail-screen
+    timeout: ${TIMEOUT_SLOWER}
+- extendedWaitUntil:
+    visible:
+      text: "E2E Directory Match Podcast"
+    timeout: ${TIMEOUT_SLOWER}
+- takeScreenshot: add-by-rss-directory-match-anonymous-detail

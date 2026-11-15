@@ -11,6 +11,26 @@ file one reasoning level higher, still on Cursor Grok 4.7.
 One prompt runs every stage. Do not ask the operator a question. Do not commit. Do not
 push. Do not open a pull request. Leave edits in the working tree.
 
+When the operator runs a stage by hand instead, give them [Operator-run stage](#operator-run-stage)
+and do not launch anything.
+
+## Clean start
+
+Check these before the first pilot. The overnight agent does not wipe a database. When one
+fails, stop the night and name it.
+
+- Every worker process comes from this checkout. Postgres, Artemis, and Valkey are shared
+  containers, so a parser or job loop left running from another checkout, including a
+  deleted one, keeps consuming with old code. `ps -axo pid,command | rg 'dist/index.js'`
+  and `lsof -a -p <pid> -d cwd` show where each one runs.
+- This checkout has `apps/workers/.env` and `infra/config/local/db.env`. A new worktree
+  gets them from `make local_env_worktree_setup`.
+- The local app database holds no rehearsal accounts: `account_phase_status` is empty.
+  A pilot copies into the database as it is, and the first pilot writes `clean.dump` from
+  it. Sample and full restore that file, so a dirty start carries into every later stage.
+- `.artifacts/v4-full-rehearsal/clean.dump` is missing, or was written from a clean
+  database.
+
 ## What it runs
 
 From the monorepo root, three processes, each with a new run id. Do not pass `--resume`
@@ -76,16 +96,39 @@ hand. The message to record is `Missing clean database dump.`
 
 ## Parser and web
 
-Catalog waits until feeds are settled. It does not start the parser. A restore disconnects
-database sessions, so a parser that was already running does not finish the wait.
+Catalog waits until nothing is waiting or `--catalog-wait-hours` (default 24) is reached.
+The rehearsal command does not start the parser or the job loop. A restore disconnects
+database sessions, so a parser or job loop that was already running does not finish the wait.
 
-- Before pilot, start `npm run dev:workers:parsers` in the background from the repo root
-  (**Workers**). Record the pid.
-- When a log line `rehearsal restore=finished` appears, stop the pid this prompt started
-  and start `npm run dev:workers:parsers` again. Record the new pid. Do not stop a process
-  this prompt did not start. If this prompt has not started one yet, start one.
-- Do not start `scheduled_jobs_run_due`. Do not add a timeout. The catalog wait is allowed
-  to run for days.
+- Before pilot, start `npm run dev:workers:parsers` and `npm run dev:workers:parsers:catalog`
+  in the background from the repo root (**Workers**). Record both pids. Catalog parses
+  go to `rss-slow`, which is slow priority on the `rss-normal` queue. Each consumer handles
+  one feed at a time and a feed lock keeps two consumers off the same feed, so six
+  `rss-normal` consumers parse about twice as fast as three. Six parser processes plus
+  the other consumers stay well under the local Postgres limit of 200 connections. Do not
+  start more than that.
+- When a log line `rehearsal restore=finished` appears, stop the pids this prompt started
+  and start both commands again. Record the new pids. Do not stop a process this prompt
+  did not start. If this prompt has not started them yet, start them. A pilot never
+  prints that line.
+- Start the scheduled job loop in the background (**Workers**) beside the parsers, after
+  `rehearsal restore=finished`, and record its pid. Restart it on the same rule as the
+  parsers. If the stage does not print `rehearsal restore=finished`, start the loop when
+  the parsers start. It claims at most 100 due jobs per pass, so run it in a loop. In the
+  agent's shell:
+  `while true; do npm run scheduled_jobs_run_due -w apps/workers -- -limit 100; sleep 15; done`.
+  When handing it to the operator, give the fish form:
+  `while true; npm run scheduled_jobs_run_due -w apps/workers -- -limit 100; sleep 15; end`.
+  Run one loop only. Two loops can claim the same job.
+- Retry jobs the rehearsal creates use the rehearsal schedule, `rehearsal` in the job
+  payload: first retry 15 minutes after seeding, then 2, 5, 10, 15, and 30 minutes. A
+  feed that keeps failing settles about 75 minutes after seeding, and a permanent reason
+  settles on the second attempt. Go-live seeding keeps the standard schedule, which runs
+  for days. Do not change the rehearsal back to the standard schedule to measure it.
+- The catalog wait ends when nothing is waiting or after `--catalog-wait-hours` (default
+  24). Pass 3 for pilot as a safety net. Do not add any other timeout.
+- After the run, keep the job loop running and rerun `v4_replay_legacy_rows` for the run's
+  accounts until no `waiting_parse` rows remain or the retries have all settled.
 - Before `--stage full`, request `http://localhost:3002`. When it does not respond, start
   `npm run dev -w apps/web` in the background (**Dev**) and wait until it responds. When
   it already responds, do not start a second server.
@@ -100,7 +143,7 @@ Run output is `.artifacts/v4-full-rehearsal/<run-id>/`. The folder is gitignored
 | `run.json`     | Read it. Stage, flags, `startedAt`. No account rows.                                                                                                                  |
 | `summary.json` | Read it only through the mark script's `summary` mode, which drops `exampleV4Ids`.                                                                                    |
 | `errors.jsonl` | Do not open it. The mark script streams it.                                                                                                                           |
-| `summary.md`   | Counts only. Quoting a count is fine.                                                                                                                                 |
+| `summary.md`   | Counts only. Read `## Catalog parse failures by reason` (reason and count), waiting at deadline, oversize raised, and oversize gave up. Quoting a count is fine.      |
 | `pick.json`    | Do not open it.                                                                                                                                                       |
 | `dumps/`       | Do not open it.                                                                                                                                                       |
 | `deferred.md`  | Do not open it in chat. The mark script lists `##` headings.                                                                                                          |
@@ -351,6 +394,8 @@ Stop, still without asking, when any of these happen:
 - the first build fails
 - `Missing clean database dump.`
 - the command refuses a non-local database
+- the command refuses to start because the process is not `TZ=UTC`
+  (`v4RunFullRehearsal must run with TZ=UTC.`)
 - `Missing V4_DATABASE_URL.`
 - `http://localhost:3002` never responds after the web process was started for the full
   stage
@@ -375,3 +420,77 @@ counts are fine.
 In the morning the operator reviews each `deferred.md` with an agent and decides each
 entry. This prompt does not start that review. `fixes.md` is the list of uncommitted
 edits to review.
+
+## Operator-run stage
+
+When the operator asks how to run a stage, give these steps in this order, with the tab
+names. Every block is fish. Check [Clean start](#clean-start) yourself first and say what
+it found: stray worker processes and their checkout, missing env files, rehearsal rows
+already in the database, and an old `clean.dump`. Recommend the wipe only when that check
+found rehearsal rows, and say that the database container is shared by every local
+checkout.
+
+1. **Root**: stop every worker process, from any checkout. This also stops a dev parser
+   from another checkout.
+
+   ```bash
+   pkill -f 'dist/index.js (mqRSSRunParser|mqAddByRSSRunParser|mqOpmlImportRun|mqRSSRunLiveItemListener|scheduledJobsRunDue)'
+   ```
+
+2. **Root**, new worktree only: `make local_env_worktree_setup`.
+
+3. **Root**, only when the database holds rehearsal rows: wipe and rebuild the app
+   database. The management database stays. The second line reapplies every linear
+   migration and seeds the local dev accounts.
+
+   ```bash
+   make local_db_reset
+   make local_db_init
+   mkdir -p .artifacts/v4-full-rehearsal-old
+   mv .artifacts/v4-full-rehearsal .artifacts/v4-full-rehearsal-old/(date -u +%Y%m%dT%H%M%SZ)
+   ```
+
+   Skip the last two lines when `.artifacts/v4-full-rehearsal` does not exist.
+
+4. **Root**: build this checkout. The parsers and the job loop run from `dist`.
+
+   ```bash
+   npm run build:packages
+   npm run build -w apps/workers
+   ```
+
+5. **Workers**: leave running.
+
+   ```bash
+   npm run dev:workers:parsers
+   ```
+
+6. A second **Workers** tab: leave running.
+
+   ```bash
+   npm run dev:workers:parsers:catalog
+   ```
+
+7. A third **Workers** tab: leave running. Migration feed retries run only here. Run one
+   loop only.
+
+   ```bash
+   while true; npm run scheduled_jobs_run_due -w apps/workers -- -limit 100; sleep 15; end
+   ```
+
+8. **Root**: the stage. The first line loads the snapshot URL into this shell only.
+
+   ```bash
+   set -gx V4_DATABASE_URL (grep '^V4_DATABASE_URL=' ~/.config/podverse/v4-database-url | string split -f 2 -m 1 '=')
+   npm run v4_run_full_rehearsal -w apps/workers -- --stage pilot --catalog-wait-hours 3
+   ```
+
+   For sample and full, restart steps 5–7 after the log prints
+   `rehearsal restore=finished`. The restore disconnects them.
+
+How long a pilot takes: identity, replay, membership, and verify take minutes each. The
+library copy took 23 minutes for 100 accounts. The catalog phase ends when no feed is
+waiting, or at `--catalog-wait-hours`, whichever comes first. With the rehearsal retry
+schedule that is the time to parse the queue once plus about an hour for the last failing
+feeds, so a pilot is about 2 to 3 hours end to end. Stop the Workers tabs with Control-C
+after the stage exits and replay has no `waiting_parse` rows left.

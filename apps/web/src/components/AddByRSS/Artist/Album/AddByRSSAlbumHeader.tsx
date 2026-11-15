@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import React, { useState } from 'react';
 import { FaCircleDollarToSlot, FaCommentDollar, FaGlobe, FaRss } from 'react-icons/fa6';
@@ -24,6 +25,7 @@ import {
 import { emitAddByRSSFeedChanged } from '../../../../utils/addByRSS/feedChangedEvent';
 import type { AddByRSSFeedRecord } from '../../../../utils/addByRSS/types';
 import { addByRSSChannelHeaderTriple } from '../../../../utils/image/addByRSSChannelHeaderCandidates';
+import { channelPathForMedium } from '../../../../utils/redirect/mergedIdentity';
 import { CommonAlbumHeader } from '../../../Common/Artist/Album/CommonAlbumHeader';
 import { CommonAlbumHeaderViewDesktop } from '../../../Common/Artist/Album/CommonAlbumHeaderViewDesktop';
 import { CommonAlbumHeaderViewTablet } from '../../../Common/Artist/Album/CommonAlbumHeaderViewTablet';
@@ -50,6 +52,7 @@ export const AddByRSSAlbumHeader: React.FC<AddByRSSAlbumHeaderProps> = ({ feed }
   const tFeatures = useTranslations('features');
   const tInstructions = useTranslations('instructions');
   const tMisc = useTranslations('misc');
+  const router = useRouter();
   const { loggedInAccount, setLoggedInAccount } = useAccount();
   const { setModalLoginRequired, setModalBoost } = useModals();
   const { tryHandleMembershipGateError } = useMembershipGate();
@@ -97,7 +100,7 @@ export const AddByRSSAlbumHeader: React.FC<AddByRSSAlbumHeaderProps> = ({ feed }
         });
         setLoggedInAccount(nextAccount);
       } else {
-        const { account: nextAccount } = await followAddByRSSChannelAndQueue({
+        const followed = await followAddByRSSChannelAndQueue({
           accountId: loggedInAccount.id_text,
           feedUrl,
           resourceType: 'albums',
@@ -105,7 +108,13 @@ export const AddByRSSAlbumHeader: React.FC<AddByRSSAlbumHeaderProps> = ({ feed }
           imageUrl: imageUrl ?? null,
           seedRecord: feed,
         });
-        setLoggedInAccount(nextAccount);
+        setLoggedInAccount(followed.account);
+        if (followed.kind === 'directory') {
+          router.replace(
+            channelPathForMedium(followed.channel.medium_id, followed.channel.id_text)
+          );
+          return;
+        }
         emitAddByRSSFeedChanged(feedUrl);
       }
     } catch (error) {

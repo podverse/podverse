@@ -6,7 +6,7 @@ import { useTranslations } from 'next-intl';
 import { useEffect, useMemo, useRef, useState } from 'react';
 
 import type { PremiumBillingCadence, ResolvedProductMembership } from '@podverse/helpers';
-import { AccountMembershipEnum } from '@podverse/helpers';
+import { AccountMembershipEnum, DEFAULT_MAX_FOLLOWS } from '@podverse/helpers';
 import type { FormDropdownOption } from '@podverse/ui';
 import {
   Alert,
@@ -28,6 +28,10 @@ import {
 import { ManagementLoadingSpinnerOverlay } from '../../../../components/LoadingSpinner/ManagementLoadingSpinnerOverlay';
 import { MembershipAdvancedOverridesGroup } from '../../../../components/MembershipAdvancedOverridesGroup/MembershipAdvancedOverridesGroup';
 import {
+  addByRssFeedLimitSelectOptions,
+  selectAddByRssFeedLimitToStored,
+} from '../../../../lib/addByRssFeedLimitSelect';
+import {
   computeDefaultExpiryInput,
   fallbackProductMembershipFromEnv,
   resolveAdvancedOverrideDefaults,
@@ -36,6 +40,10 @@ import {
   STORAGE_EXPIRY_KEY,
   tierLimitPlaceholders,
 } from '../../../../lib/createUserFormDefaults';
+import {
+  followLimitSelectOptions,
+  selectFollowLimitToStored,
+} from '../../../../lib/followLimitSelect';
 import { getResolvedProductMembership } from '../../../../lib/requests/productMembership';
 import { createUser } from '../../../../lib/requests/users';
 import { ROUTES } from '../../../../lib/routes';
@@ -60,6 +68,7 @@ export function NewUserPageClient() {
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [allowDirectoryAddByRSS, setAllowDirectoryAddByRSS] = useState<boolean | null>(null);
   const [maxAddByRSSFeeds, setMaxAddByRSSFeeds] = useState<string>('');
+  const [maxFollows, setMaxFollows] = useState<string>('');
   const [maxManualRefreshesPerHour, setMaxManualRefreshesPerHour] = useState<string>('');
   const [trackStats, setTrackStats] = useState<boolean | null>(null);
   const [allowNotifications, setAllowNotifications] = useState<boolean | null>(null);
@@ -161,11 +170,29 @@ export function NewUserPageClient() {
     membershipExpiresAt: currentMembershipExpiresAt,
   });
 
-  const { rss: rssPlaceholder, refresh: refreshPlaceholder } = tierLimitPlaceholders({
+  const { refresh: refreshPlaceholder } = tierLimitPlaceholders({
     product: productMembershipForDisplay,
     membershipId,
     membershipExpiresAt: currentMembershipExpiresAt,
   });
+
+  const addByRssLimitOptions = useMemo(
+    () =>
+      addByRssFeedLimitSelectOptions({
+        defaultLabel: t('advancedOverrides.addByRssFeedLimitDefault'),
+        unlimitedLabel: t('advancedOverrides.addByRssFeedLimitUnlimited'),
+      }),
+    [t]
+  );
+
+  const followLimitOptions = useMemo(
+    () =>
+      followLimitSelectOptions({
+        defaultLabel: t('advancedOverrides.addByRssFeedLimitDefault'),
+        unlimitedLabel: t('advancedOverrides.addByRssFeedLimitUnlimited'),
+      }),
+    [t]
+  );
 
   const membershipTierOptions = useMemo<FormDropdownOption[]>(
     () => [
@@ -281,8 +308,8 @@ export function NewUserPageClient() {
           ? { premium_billing_cadence: premiumCadence }
           : {}),
         allow_directory_add_by_rss: allowDirectoryAddByRSS,
-        max_add_by_rss_feeds:
-          maxAddByRSSFeeds.trim() === '' ? null : Number.parseInt(maxAddByRSSFeeds, 10),
+        max_add_by_rss_feeds: selectAddByRssFeedLimitToStored(maxAddByRSSFeeds),
+        max_follows: selectFollowLimitToStored(maxFollows),
         max_manual_refreshes_per_hour:
           maxManualRefreshesPerHour.trim() === ''
             ? null
@@ -485,20 +512,25 @@ export function NewUserPageClient() {
                     }}
                   />
                 </FormGroup>
-                <TextInput
+                <FormDropdown
                   id="max-add-by-rss-feeds"
                   eyebrow={t('advancedOverrides.addByRssFeedLimit')}
                   info={t('advancedOverrides.addByRssFeedLimitHelp', {
                     defaultLimit: trialEnt.maxAddByRSSFeeds,
-                    selectedDefault: selectedEnt.maxAddByRSSFeeds,
                   })}
-                  min={0}
-                  placeholder={t('advancedOverrides.placeholderTierDefault', {
-                    count: rssPlaceholder,
-                  })}
-                  type="number"
+                  options={addByRssLimitOptions}
                   value={maxAddByRSSFeeds}
-                  onChange={(e) => setMaxAddByRSSFeeds(e.target.value)}
+                  onChange={setMaxAddByRSSFeeds}
+                />
+                <FormDropdown
+                  id="max-follows"
+                  eyebrow={t('advancedOverrides.followLimit')}
+                  info={t('advancedOverrides.followLimitHelp', {
+                    defaultLimit: DEFAULT_MAX_FOLLOWS,
+                  })}
+                  options={followLimitOptions}
+                  value={maxFollows}
+                  onChange={setMaxFollows}
                 />
                 <TextInput
                   id="max-manual-refreshes"

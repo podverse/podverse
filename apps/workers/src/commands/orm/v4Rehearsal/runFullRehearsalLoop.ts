@@ -54,6 +54,7 @@ export type RehearsalRunContext = {
   runNow: Date;
   wallClock: () => Date;
   flags: { resume: boolean; retryFailed: boolean; limit: number | null };
+  catalogWaitHours: number;
   accounts: PickedAccount[];
   log: RehearsalLog;
   emitProgress: () => Promise<void>;
@@ -316,6 +317,7 @@ async function runPhases(
     runNow: resolved.runNow,
     wallClock: () => deps.clock(),
     flags,
+    catalogWaitHours: parsed.catalogWaitHours,
     accounts,
     log,
     emitProgress,

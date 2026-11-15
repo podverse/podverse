@@ -2,25 +2,31 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 const {
   deleteCredentialsMock,
+  enqueueAddByRSSParseMock,
+  followAddByRSSChannelMock,
   getAddByRSSFeedByUrlMock,
   getAddByRSSParseStatusMock,
   pruneAddByRSSPublisherDataMock,
   removeAddByRSSFeedMock,
+  setCredentialsMock,
   unfollowAddByRSSFeedsBulkMock,
   upsertAddByRSSFeedMock,
 } = vi.hoisted(() => ({
   deleteCredentialsMock: vi.fn(),
+  enqueueAddByRSSParseMock: vi.fn(),
+  followAddByRSSChannelMock: vi.fn(),
   getAddByRSSFeedByUrlMock: vi.fn(),
   getAddByRSSParseStatusMock: vi.fn(),
   pruneAddByRSSPublisherDataMock: vi.fn(),
   removeAddByRSSFeedMock: vi.fn(),
+  setCredentialsMock: vi.fn(),
   unfollowAddByRSSFeedsBulkMock: vi.fn(),
   upsertAddByRSSFeedMock: vi.fn(),
 }));
 
 vi.mock('./api', () => ({
-  enqueueAddByRSSParse: vi.fn(),
-  followAddByRSSChannel: vi.fn(),
+  enqueueAddByRSSParse: enqueueAddByRSSParseMock,
+  followAddByRSSChannel: followAddByRSSChannelMock,
   getAddByRSSParseStatus: getAddByRSSParseStatusMock,
   unfollowAddByRSSChannel: vi.fn(),
   unfollowAddByRSSFeedsBulk: unfollowAddByRSSFeedsBulkMock,
@@ -37,6 +43,7 @@ vi.mock('./credentialStore', async () => {
   return {
     ...actual,
     deleteCredentials: deleteCredentialsMock,
+    setCredentials: setCredentialsMock,
   };
 });
 
@@ -53,6 +60,7 @@ import { FeedType, Phase4LiveStatus, Phase5Blocked } from 'podverse-partytime/co
 import { getBackgroundActivitySnapshot } from '../backgroundActivity/backgroundActivityStore';
 import {
   applyAddByRSSParseStatus,
+  followAddByRSSChannelAndQueue,
   pollAddByRSSParseStatus,
   unfollowAddByRSSArtistAndAlbums,
 } from './actions';
@@ -403,5 +411,40 @@ describe('unfollowAddByRSSArtistAndAlbums', () => {
     expect(removeAddByRSSFeedMock).not.toHaveBeenCalled();
     expect(deleteCredentialsMock).not.toHaveBeenCalled();
     expect(pruneAddByRSSPublisherDataMock).not.toHaveBeenCalled();
+  });
+});
+
+describe('followAddByRSSChannelAndQueue', () => {
+  const account = { id_text: 'acct' };
+  const directoryChannel = {
+    id_text: 'dirChan01',
+    title: 'Directory Show',
+    medium_id: 2,
+  };
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    getAddByRSSFeedByUrlMock.mockResolvedValue(baseRecord);
+    removeAddByRSSFeedMock.mockResolvedValue(undefined);
+    setCredentialsMock.mockResolvedValue(true);
+    followAddByRSSChannelMock.mockResolvedValue({
+      account,
+      directory_channel: directoryChannel,
+    });
+  });
+
+  it('skips parse and storage when the follow is a directory channel', async () => {
+    const result = await followAddByRSSChannelAndQueue({
+      accountId: 'acct',
+      feedUrl: baseRecord.feedUrl,
+      resourceType: 'podcasts',
+      credentials: { username: 'alice', password: 'secret' },
+    });
+
+    expect(result).toEqual({ kind: 'directory', channel: directoryChannel, account });
+    expect(removeAddByRSSFeedMock).toHaveBeenCalledWith(baseRecord.idText);
+    expect(setCredentialsMock).not.toHaveBeenCalled();
+    expect(upsertAddByRSSFeedMock).not.toHaveBeenCalled();
+    expect(enqueueAddByRSSParseMock).not.toHaveBeenCalled();
   });
 });

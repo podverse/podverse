@@ -2,9 +2,11 @@ import { describe, expect, it } from 'vitest';
 
 import {
   ADD_BY_RSS_FEED_LIMIT_REACHED_CODE,
+  FOLLOW_LIMIT_REACHED_CODE,
   MEMBERSHIP_GATE_I18N_KEYS,
   membershipDenialReason,
   parseAddByRssFeedLimitRefusal,
+  parseFollowLimitRefusal,
   parseMembershipGateError,
 } from './parseMembershipGateError.js';
 
@@ -114,6 +116,41 @@ describe('parseAddByRssFeedLimitRefusal', () => {
 
   it('returns null for a 401', () => {
     expect(parseAddByRssFeedLimitRefusal(errorWith(401, feedLimitBody))).toBeNull();
+  });
+});
+
+describe('parseFollowLimitRefusal', () => {
+  const followLimitBody = {
+    code: FOLLOW_LIMIT_REACHED_CODE,
+    i18nKey: 'membership.follow_limit_reached',
+    limit: 500,
+  };
+
+  it('returns the tier for a follow-limit 403', () => {
+    expect(parseFollowLimitRefusal(errorWith(403, followLimitBody))).toEqual({ limit: 500 });
+  });
+
+  it('returns null when the code is the Add by RSS feed limit', () => {
+    expect(
+      parseFollowLimitRefusal(
+        errorWith(403, {
+          code: ADD_BY_RSS_FEED_LIMIT_REACHED_CODE,
+          i18nKey: 'membership.add_by_rss_feed_limit_reached',
+          limit: 100,
+        })
+      )
+    ).toBeNull();
+  });
+
+  it('returns null when the follow-limit 403 has no limit', () => {
+    expect(
+      parseFollowLimitRefusal(
+        errorWith(403, {
+          code: FOLLOW_LIMIT_REACHED_CODE,
+          i18nKey: 'membership.follow_limit_reached',
+        })
+      )
+    ).toBeNull();
   });
 });
 

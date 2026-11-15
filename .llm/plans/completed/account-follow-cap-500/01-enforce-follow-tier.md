@@ -1,11 +1,14 @@
 # Follow limit, default 500
 
-Deferred. To run it, open a chat and say: "Implement
-`.llm/plans/active/account-follow-cap-5000.md`."
+**Cursor model:** Cursor Grok 4.7 · **Reasoning:** extra high
+
+Run it with `./scripts/abcplan/run.sh run account-follow-cap-500` after
+`account-add-by-rss-cap-100`. Order and the operator verification:
+[00-EXECUTION-ORDER.md](00-EXECUTION-ORDER.md).
 
 One account may follow a limited number of directory channels, playlists, and accounts,
 counted together. Add by RSS is not in this total. Its ladder is
-[account-add-by-rss-cap-500.md](account-add-by-rss-cap-500.md).
+[account-add-by-rss-cap-100](../../completed/account-add-by-rss-cap-100/01-enforce-add-by-rss-tier.md).
 
 The default is 500. Management can raise one account to a higher tier.
 
@@ -70,6 +73,15 @@ row locked:
 A follow that already exists does not count. Unsubscribe still works at the cap. An
 account on Unlimited is not refused.
 
+Two callers turn an Add by RSS follow into a channel follow
+(`AccountAddByRSSDirectoryConversionService.convert`, and a matched add in
+`addOrUpdateRSSChannel`, both from the `add-by-rss-directory-match` set). At the tier, a
+conversion keeps the Add by RSS follow, moves nothing, and returns `converted: false` with
+reason `follow_limit` (add that reason to `DTOAddByRSSConvertResponse`); clients treat it like
+`no_match` and show nothing. A matched add at the tier falls back to the Add by RSS add, which
+still has its own limit. The v4 library copy's matched Add by RSS addresses count toward this
+total.
+
 Share the tier list from `@podverse/helpers`. Do not add a SQL check or a trigger. The
 total spans three tables.
 
@@ -91,7 +103,10 @@ per OPML file, and 50 new OPML feeds per hour.
 ## v4 library copy
 
 When `v4CopyAccountLibrary` copies channel, playlist, and account follows after this cap
-ships, it writes the tier first, then copies every follow. A count that fits the default
+ships, it writes the tier first, then copies every follow. Directory follows created from
+matching Add by RSS URLs (the split in `v4-signed-out-carryover` 03) are part of that
+count. That copy does not enforce this cap; this plan adds those addresses to the tier
+write and still copies every follow. A count that fits the default
 copies with an empty tier. Past 10000 the follows group is `needs_operator`; the account's
 other groups still copy. Shipping this cap also writes the same tier for every existing
 account already over 500.
@@ -116,3 +131,26 @@ account already over 500.
 - [ ] Bulk follow and OPML stop at the tier and show the sentence
 - [ ] Tests listed above
 - [ ] v4 library copy writes the grandfather tier and does not write Unlimited
+
+## Release scratchpad
+
+```markdown
+## Follow limit uses shared tiers
+
+- Surfaces: api, web, mobile, management-web, workers
+- Change: An account can follow 500 directory channels, playlists, and accounts, counted
+  together. Management can raise the tier through 10000 or Unlimited. A new follow at the tier
+  returns 403 with no renew path. Converting an Add by RSS follow at the tier keeps that Add by
+  RSS follow and returns `follow_limit`. Migration writes the smallest tier that covers the
+  count, including Add by RSS URLs that became directory follows, and never writes Unlimited.
+- Who notices: people following a podcast, playlist, or account at the limit, and operators
+  raising one account
+- Operator steps: none
+```
+
+## Close
+
+This prompt is last. Append the scratchpad entry, then move
+`.llm/plans/active/account-follow-cap-500/` to
+`.llm/plans/completed/account-follow-cap-500/`. Do not commit. End the final message with the
+cumulative verification in `00-EXECUTION-ORDER.md`. Do not run those commands.

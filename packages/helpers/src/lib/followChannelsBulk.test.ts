@@ -16,6 +16,7 @@ describe('summarizeBulkFollowResults', () => {
       followed: 2,
       already_following: 1,
       not_found: 1,
+      follow_limit: 0,
     });
   });
 
@@ -25,6 +26,7 @@ describe('summarizeBulkFollowResults', () => {
       followed: 0,
       already_following: 0,
       not_found: 0,
+      follow_limit: 0,
     });
   });
 

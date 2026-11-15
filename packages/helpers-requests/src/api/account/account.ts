@@ -240,6 +240,9 @@ export type OpmlImportStatusResponse = {
     failed: number;
     skippedExisting: number;
     rateLimited: number;
+    blocked: number;
+    feedLimitReached: number;
+    followLimitReached: number;
   };
   rateLimited?: {
     limit: number;
@@ -254,8 +257,12 @@ export type OpmlImportStatusResponse = {
       | 'added_by_rss'
       | 'already_subscribed'
       | 'rate_limited'
+      | 'blocked'
+      | 'feed_limit_reached'
+      | 'follow_limit'
       | 'failed';
     error?: string;
+    limit?: number;
   }>;
   error?: string;
   updatedAt: string;

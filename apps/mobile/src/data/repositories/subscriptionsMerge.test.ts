@@ -12,6 +12,7 @@ import {
   mapDirectoryChannelToSubscribed,
   mergeSubscriptions,
   sortSubscriptions,
+  subscribedChannelFromLookup,
 } from './subscriptionsMerge';
 
 /** Narrow a mapper result to non-null without a type assertion (mappers drop untitled entries). */
@@ -146,6 +147,50 @@ describe('mapDirectoryChannelToSubscribed', () => {
   it('drops channels without a usable title', () => {
     expect(mapDirectoryChannelToSubscribed(channel({ title: null }))).toBeNull();
     expect(mapDirectoryChannelToSubscribed(channel({ title: '   ' }))).toBeNull();
+  });
+});
+
+describe('subscribedChannelFromLookup', () => {
+  it('maps a lookup channel to a directory subscription', () => {
+    expect(
+      subscribedChannelFromLookup({
+        id_text: ' chan01 ',
+        image_url: '  https://img.example/show.jpg  ',
+        medium_id: MediumEnum.Podcast,
+        title: ' Seed Show ',
+      })
+    ).toEqual({
+      idText: 'chan01',
+      sourceIdText: 'chan01',
+      title: 'Seed Show',
+      imageUrl: 'https://img.example/show.jpg',
+      source: 'directory',
+      medium: 'podcasts',
+      kind: 'podcasts',
+      latestItemPubDateMs: null,
+      popularityRank: null,
+    });
+  });
+
+  it('maps a music medium to the albums chip and drops a blank title', () => {
+    expect(
+      requireMapped(
+        subscribedChannelFromLookup({
+          id_text: 'album1',
+          image_url: null,
+          medium_id: MediumEnum.Music,
+          title: 'Album',
+        })
+      ).kind
+    ).toBe('albums');
+    expect(
+      subscribedChannelFromLookup({
+        id_text: 'chan01',
+        image_url: null,
+        medium_id: MediumEnum.Podcast,
+        title: '   ',
+      })
+    ).toBeNull();
   });
 });
 

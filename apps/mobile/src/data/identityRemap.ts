@@ -2,7 +2,8 @@
  * Pure rewrite of local identity keys after a show or episode moves.
  *
  * The stored download path is the file playback opens. This module never changes that path.
- * Add-by-RSS keys are not in the move maps and stay where they are.
+ * These move maps are directory id texts. Add-by-RSS feed URLs and episode hashes are not in
+ * them; the Add by RSS promotion remap rewrites those rows.
  */
 
 export const IDENTITY_RESOLVE_CHUNK_SIZE = 500;
@@ -137,6 +138,45 @@ const isRecord = (value: unknown): value is Record<string, unknown> => {
   return value !== null && typeof value === 'object' && !Array.isArray(value);
 };
 
+/** A completed row wins. Otherwise the further playback position wins. */
+export const preferCompletedThenFurther = <
+  T extends { completed: boolean; playbackPosition: number },
+>(
+  group: readonly T[]
+): T => {
+  const completedRows = group.filter((row) => row.completed);
+  const pool = completedRows.length > 0 ? completedRows : group;
+  const first = pool[0];
+  if (first === undefined) {
+    throw new Error('preferCompletedThenFurther requires a row');
+  }
+  return pool.reduce((best, row) => (row.playbackPosition > best.playbackPosition ? row : best));
+};
+
+/** The later timestamp wins. */
+export const preferLaterTimestamp = <T extends { at: number }>(group: readonly T[]): T => {
+  const first = group[0];
+  if (first === undefined) {
+    throw new Error('preferLaterTimestamp requires a row');
+  }
+  return group.reduce((best, row) => (row.at > best.at ? row : best));
+};
+
+/**
+ * The row that already used the target id wins. A group of only moved rows keeps the first.
+ */
+export const preferUnmovedRow = <T>(group: readonly T[], isUnmoved: (row: T) => boolean): T => {
+  const found = group.find(isUnmoved);
+  if (found !== undefined) {
+    return found;
+  }
+  const first = group[0];
+  if (first === undefined) {
+    throw new Error('preferUnmovedRow requires a row');
+  }
+  return first;
+};
+
 const finalTarget = (from: string, direct: ReadonlyMap<string, string>): string => {
   const seen = new Set<string>();
   let current = from;
@@ -254,10 +294,7 @@ const moveDownloads = (
 
   const result: IdentityDownload[] = [];
   for (const [itemIdText, group] of groups) {
-    const preferred = group.find((row) => row.originalItemIdText === itemIdText) ?? group[0];
-    if (preferred === undefined) {
-      continue;
-    }
+    const preferred = preferUnmovedRow(group, (row) => row.originalItemIdText === itemIdText);
     result.push({
       channelIdText: preferred.channelIdText,
       filePath: preferred.filePath,
@@ -293,9 +330,7 @@ const movePlayback = (
   for (const group of groups.values()) {
     const completedRows = group.filter((row) => row.completed);
     const pool = completedRows.length > 0 ? completedRows : group;
-    const preferred = pool.reduce((best, row) =>
-      row.playbackPosition > best.playbackPosition ? row : best
-    );
+    const preferred = preferCompletedThenFurther(pool);
     result.push({
       accountIdText: preferred.accountIdText,
       completed: completedRows.length > 0,
@@ -332,9 +367,7 @@ const moveOutbox = (
   for (const group of groups.values()) {
     const completedRows = group.filter((row) => row.completed);
     const pool = completedRows.length > 0 ? completedRows : group;
-    const preferred = pool.reduce((best, row) =>
-      row.playbackPosition > best.playbackPosition ? row : best
-    );
+    const preferred = preferCompletedThenFurther(pool);
     result.push({
       completed: completedRows.length > 0,
       id: preferred.id,
@@ -361,10 +394,6 @@ const moveSortKeys = (
   );
 };
 
-const laterRow = <T extends { at: number }>(group: readonly T[]): T => {
-  return group.reduce((best, row) => (row.at > best.at ? row : best));
-};
-
 const moveSeen = (
   rows: readonly IdentitySeen[],
   channelMoves: ReadonlyMap<string, string>
@@ -376,7 +405,7 @@ const moveSeen = (
     group.push({ ...row, key });
     groups.set(key, group);
   }
-  return [...groups.values()].map((group) => laterRow(group));
+  return [...groups.values()].map((group) => preferLaterTimestamp(group));
 };
 
 const moveLive = (
@@ -390,7 +419,7 @@ const moveLive = (
     group.push({ ...row, key });
     groups.set(key, group);
   }
-  return [...groups.values()].map((group) => laterRow(group));
+  return [...groups.values()].map((group) => preferLaterTimestamp(group));
 };
 
 const retargetSectionKey = (
@@ -453,10 +482,7 @@ const moveAutoDownloadItems = (
   }
   const result: IdentityAutoDownloadItem[] = [];
   for (const [itemIdText, group] of groups) {
-    const preferred = group.find((row) => row.originalItemIdText === itemIdText) ?? group[0];
-    if (preferred === undefined) {
-      continue;
-    }
+    const preferred = preferUnmovedRow(group, (row) => row.originalItemIdText === itemIdText);
     result.push({
       channelIdText: preferred.channelIdText,
       itemIdText,
@@ -511,6 +537,9 @@ const replaceIdTextsInJson = (json: string, moves: ReadonlyMap<string, string>):
   return JSON.stringify(next);
 };
 
+/** Rewrite `id_text` strings in a JSON payload. Other strings stay as stored. */
+export const rewriteJsonIdTexts = replaceIdTextsInJson;
+
 const combinedMoves = (
   channelMoves: ReadonlyMap<string, string>,
   itemMoves: ReadonlyMap<string, string>
@@ -550,10 +579,7 @@ const movePlayableItems = (
   }
   const result: IdentityPlayableItem[] = [];
   for (const group of groups.values()) {
-    const preferred = group.find((row) => row.originalItemIdText === row.itemIdText) ?? group[0];
-    if (preferred === undefined) {
-      continue;
-    }
+    const preferred = preferUnmovedRow(group, (row) => row.originalItemIdText === row.itemIdText);
     result.push({
       itemIdText: preferred.itemIdText,
       payloadJson: preferred.payloadJson,

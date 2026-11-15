@@ -32,6 +32,7 @@ type FeedUpdateDto = {
   description_truncated_count?: number;
   description_longest_source_length?: number | null;
   description_truncated_at?: Date;
+  max_response_body_bytes_override?: number | null;
 };
 
 /** Mutations applied inside {@link FeedService.applyFeedModerationChanges}. */

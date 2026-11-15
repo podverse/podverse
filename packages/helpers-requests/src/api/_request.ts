@@ -1,5 +1,6 @@
 import type { AccountApiKeyCreateBody, QueueExtraParams } from '@podverse/helpers';
 import type { AddByRSSRemoteItemLookupRef, AddByRSSRemoteItemRef } from '@podverse/helpers';
+import type { DTOAddByRSSMatchFeedRef, DTOAddByRSSMatchResponse } from '@podverse/helpers';
 import type { BetweenParams } from '@podverse/helpers';
 import type { AddByRssSeenMarkEntry, ChannelSeenMarkEntry } from '@podverse/helpers';
 import type { MediaTypePreference } from '@podverse/helpers';
@@ -76,6 +77,7 @@ import {
 } from './account/fcm/fcm.js';
 import { reqAccountFollowAccount, reqAccountUnfollowAccount } from './account/follow/account.js';
 import {
+  reqAccountAddByRSSConvertToChannel,
   reqAccountFollowAddByRSSChannel,
   reqAccountGetFollowedAddByRSSChannels,
   reqAccountUnfollowAddByRSSChannel,
@@ -193,6 +195,7 @@ import {
 } from './billing/billing.js';
 import { reqCategoryGetAll } from './category/category.js';
 import {
+  reqChannelAddByRSSMatch,
   reqChannelGetByIdOrIdText,
   reqChannelGetByPodcastIndexId,
   reqChannelGetDirectoryMatch,
@@ -234,6 +237,7 @@ import {
   reqItemSoundbiteGetManyByItemIdText,
 } from './itemSoundbite/itemSoundbite.js';
 import { reqItemTranscriptGet } from './itemTranscript/itemTranscript.js';
+import { reqLegacyPodcastLookup } from './legacy/legacyPodcastLookup.js';
 import { reqLegalTasteProfileAgreement } from './legal/tasteProfileAgreement.js';
 import { reqLegalTerms } from './legal/terms.js';
 import type { QueryParamsLiveItemUpcoming } from './liveItem/liveItem.js';
@@ -862,6 +866,10 @@ export class ApiRequestService {
     return reqAccountFollowAddByRSSChannel(this, params);
   }
 
+  reqAccountAddByRSSConvertToChannel(params: { feed_url: string; feed_guid?: string | null }) {
+    return reqAccountAddByRSSConvertToChannel(this, params);
+  }
+
   reqAccountUnfollowAddByRSSChannel(params: { feed_url: string }) {
     return reqAccountUnfollowAddByRSSChannel(this, params);
   }
@@ -1159,6 +1167,12 @@ export class ApiRequestService {
     return reqChannelGetDirectoryMatch(this, params);
   }
 
+  reqChannelAddByRSSMatch(body: {
+    feeds: DTOAddByRSSMatchFeedRef[];
+  }): Promise<DTOAddByRSSMatchResponse> {
+    return reqChannelAddByRSSMatch(this, body);
+  }
+
   reqChannelGetMany(params: QueryParamsGetMany) {
     return reqChannelGetMany(this, params);
   }
@@ -1292,6 +1306,12 @@ export class ApiRequestService {
 
   reqItemTranscriptGet(item_transcript_id_text: string) {
     return reqItemTranscriptGet(this, item_transcript_id_text);
+  }
+
+  /* LEGACY */
+
+  reqLegacyPodcastLookup(body: { podcast_ids: string[]; install_id: string | null }) {
+    return reqLegacyPodcastLookup(this, body);
   }
 
   /* LIVE ITEM */

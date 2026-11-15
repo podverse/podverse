@@ -1,12 +1,15 @@
 import { getLogger } from '@workers/factories/logger.js';
 import { Client } from 'pg';
 
+import type { FeedParseFailureReason } from '@podverse/helpers';
+import type { V4MigrationFeedRetrySchedule } from '@podverse/orm';
 import {
   buildV4MigrationFeedRetryDedupeKey,
   getV4MigrationFeedSettledByFeedId,
   isValidNanoIdV2IdText,
 } from '@podverse/orm';
 
+import { countMigrationOversizeFeeds } from '../scheduledJob/v4MigrationFeedOversize.js';
 import type { LocalCatalog, V4PodcastKey } from '../v4Library/copyAccountLibraryLib.js';
 import { PODCAST_SQL } from './seedAccountCatalog.js';
 import type { CatalogSeedCreate } from './seedAccountCatalogLib.js';
@@ -34,8 +37,11 @@ import type {
   StageSettledParseCounts,
 } from './seedStageCatalogLib.js';
 import {
+  catalogWaitIsDone,
   classifyStageCatalog,
+  countFailedParseReasons,
   countSettledParses,
+  parseStoredFeedParseFailureReason,
   refusalForDuplicateCreates,
   stageChannelTakesFirstParse,
   stageShowNeedsFirstParse,
@@ -48,6 +54,12 @@ export type V4SeedStageCatalogInput = {
   /** Pilot and sample: v4 users.id values. Full ignores this array. */
   v4Ids: readonly string[];
   dryRun: boolean;
+  /**
+   * Stop the settle wait after this many milliseconds. Omitted waits until nothing is waiting.
+   */
+  waitDeadlineMs?: number;
+  /** Schedule for the retry jobs this seed creates. Omitted is `standard`. */
+  retrySchedule?: V4MigrationFeedRetrySchedule;
   onProgress?: (progress: V4SeedStageCatalogProgress) => void;
 };
 
@@ -58,6 +70,8 @@ export type V4SeedStageCatalogProgress = {
   failedParse: number;
   waiting: number;
   elapsedMs: number;
+  /** Set on the progress line that ends the wait because the deadline passed. */
+  deadlineReached?: boolean;
 };
 
 export type V4SeedStageCatalogResult = {
@@ -81,6 +95,14 @@ export type V4SeedStageCatalogResult = {
   failedParse: number;
   /** v4 podcast ids whose feed settled with no finished parse. Sorted ascending. */
   failedPodcastIds: string[];
+  /** Feeds still waiting when the wait ended because the deadline passed. Otherwise 0. */
+  waitingAtDeadline: number;
+  /** Reasons for feeds counted in `failedParse`. A null reason is left out. */
+  failedByReason: Partial<Record<FeedParseFailureReason, number>>;
+  /** Feeds at the maximum body limit whose last failure is not `body_too_large`. */
+  oversizeRaised: number;
+  /** Feeds at the maximum body limit whose last failure is `body_too_large`. */
+  oversizeGaveUp: number;
   elapsedMs: number;
 };
 
@@ -101,11 +123,13 @@ FROM users u, unnest(u."subscribedPodcastIds") AS pid
 WHERE btrim(pid) <> ''
 `;
 
+// Highest play_count across timeframes. A show at 1 or 2 is not viewed.
 const VIEWED_SQL = `
-SELECT DISTINCT s.podcast_id AS id
+SELECT s.podcast_id AS id
 FROM stats_podcast s
-WHERE s.play_count > 0
-  AND s.podcast_id IS NOT NULL
+WHERE s.podcast_id IS NOT NULL
+GROUP BY s.podcast_id
+HAVING MAX(s.play_count) >= 3
 `;
 
 const LIBRARY_BRANCHES: readonly { owner: string; sql: string }[] = [
@@ -200,8 +224,10 @@ WHERE n."mediaRefId" IS NOT NULL
 const FEED_PARSE_SQL = `
 SELECT f.id AS feed_id,
        f.is_parsing,
+       f.max_response_body_bytes_override,
        fl.last_finished_parse_time,
-       fl.last_failed_parse_time
+       fl.last_failed_parse_time,
+       fl.last_parse_failure_reason
 FROM feed f
 LEFT JOIN feed_log fl ON fl.feed_id = f.id
 WHERE f.id = ANY($1::int[])
@@ -225,6 +251,10 @@ type ApplyCounts = {
   settled: number;
   failedParse: number;
   failedPodcastIds: string[];
+  waitingAtDeadline: number;
+  failedByReason: Partial<Record<FeedParseFailureReason, number>>;
+  oversizeRaised: number;
+  oversizeGaveUp: number;
 };
 
 type ProgressCounts = {
@@ -233,12 +263,14 @@ type ProgressCounts = {
   settled: number;
   failedParse: number;
   waiting: number;
+  deadlineReached?: boolean;
 };
 
 type WaitFeed = {
   feedId: number;
   settled: boolean;
   lastFinishedParseTime: Date | null;
+  lastParseFailureReason: FeedParseFailureReason | null;
 };
 
 type QueueShow = {
@@ -329,6 +361,7 @@ function emitProgress(
     failedParse: counts.failedParse,
     waiting: counts.waiting,
     elapsedMs: Date.now() - startedAt,
+    ...(counts.deadlineReached === true ? { deadlineReached: true } : {}),
   });
 }
 
@@ -536,6 +569,8 @@ async function readFeedParseStates(
         isParsing: dateOrNull(row.is_parsing),
         lastFinishedParseTime: dateOrNull(row.last_finished_parse_time),
         lastFailedParseTime: dateOrNull(row.last_failed_parse_time),
+        lastParseFailureReason: parseStoredFeedParseFailureReason(row.last_parse_failure_reason),
+        maxResponseBodyBytesOverride: integerOrNull(row.max_response_body_bytes_override),
       });
     }
   }
@@ -624,6 +659,7 @@ function waitFeeds(
       feedId,
       settled: settledByFeedId.get(feedId) === true,
       lastFinishedParseTime: parse === undefined ? null : parse.lastFinishedParseTime,
+      lastParseFailureReason: parse === undefined ? null : parse.lastParseFailureReason,
     };
   });
 }
@@ -646,16 +682,42 @@ function failedPodcastIdsFor(
   return ids;
 }
 
+function oversizeCountsFor(
+  feedIds: readonly number[],
+  parseByFeedId: ReadonlyMap<number, StageFeedParseState>
+): Pick<ApplyCounts, 'oversizeRaised' | 'oversizeGaveUp'> {
+  return countMigrationOversizeFeeds(
+    feedIds.map((feedId) => {
+      const parse = parseByFeedId.get(feedId);
+      return {
+        maxResponseBodyBytesOverride:
+          parse === undefined ? null : parse.maxResponseBodyBytesOverride,
+        lastParseFailureReason: parse === undefined ? null : parse.lastParseFailureReason,
+      };
+    })
+  );
+}
+
 async function readWaitPass(
   feedIds: readonly number[],
   v4IdsByFeedId: ReadonlyMap<number, readonly string[]>
-): Promise<{ counts: StageSettledParseCounts; failedPodcastIds: string[] }> {
+): Promise<{
+  counts: StageSettledParseCounts;
+  failedPodcastIds: string[];
+  failedByReason: ApplyCounts['failedByReason'];
+  oversizeRaised: number;
+  oversizeGaveUp: number;
+}> {
   const settledByFeedId = await readSettledByFeedId(feedIds);
   const parseByFeedId = await readFeedParseStates(feedIds);
   const rows = waitFeeds(feedIds, settledByFeedId, parseByFeedId);
+  const oversize = oversizeCountsFor(feedIds, parseByFeedId);
   return {
     counts: countSettledParses(rows),
     failedPodcastIds: failedPodcastIdsFor(rows, v4IdsByFeedId),
+    failedByReason: countFailedParseReasons(rows),
+    oversizeRaised: oversize.oversizeRaised,
+    oversizeGaveUp: oversize.oversizeGaveUp,
   };
 }
 
@@ -688,7 +750,9 @@ async function mapAlreadyLocalFeeds(
 async function applyStage(
   classification: StageCatalogClassification,
   startedAt: number,
-  onProgress: V4SeedStageCatalogInput['onProgress']
+  onProgress: V4SeedStageCatalogInput['onProgress'],
+  waitDeadlineMs: number | null,
+  retrySchedule: V4MigrationFeedRetrySchedule
 ): Promise<ApplyCounts> {
   const creates = classification.creates;
   throwIfRefusal(refusalForDuplicateCreates(creates));
@@ -736,6 +800,8 @@ async function applyStage(
       isParsing: null,
       lastFinishedParseTime: null,
       lastFailedParseTime: null,
+      lastParseFailureReason: null,
+      maxResponseBodyBytesOverride: null,
     };
     if (!stageShowNeedsFirstParse(parse)) {
       continue;
@@ -759,20 +825,30 @@ async function applyStage(
   const retryFeedIds = feedIdsToQueue.filter(
     (feedId) => !existingKeys.has(buildV4MigrationFeedRetryDedupeKey(feedId))
   );
-  await scheduleRetries(retryFeedIds);
+  await scheduleRetries(retryFeedIds, retrySchedule);
   await queueParses(toQueue);
   const queued = toQueue.length;
 
   let settled: number;
   let failedParse: number;
   let failedPodcastIds: string[];
+  let waitingAtDeadline: number;
+  let failedByReason: ApplyCounts['failedByReason'];
+  let oversizeRaised: number;
+  let oversizeGaveUp: number;
   let firstPass = true;
   while (true) {
     const pass = await readWaitPass(feedIds, v4IdsByFeedId);
     settled = pass.counts.settled;
     failedParse = pass.counts.failedParse;
     failedPodcastIds = pass.failedPodcastIds;
-    const done = pass.counts.waiting === 0;
+    failedByReason = pass.failedByReason;
+    oversizeRaised = pass.oversizeRaised;
+    oversizeGaveUp = pass.oversizeGaveUp;
+    const elapsedMs = Date.now() - startedAt;
+    const done = catalogWaitIsDone(pass.counts.waiting, elapsedMs, waitDeadlineMs);
+    const deadlineReached = done && pass.counts.waiting !== 0;
+    waitingAtDeadline = deadlineReached ? pass.counts.waiting : 0;
     const due = Date.now() - lastProgressAt >= STAGE_CATALOG_POLL_MS;
     if (firstPass || due || done) {
       emitProgress(onProgress, startedAt, {
@@ -781,6 +857,7 @@ async function applyStage(
         settled,
         failedParse,
         waiting: pass.counts.waiting,
+        ...(deadlineReached ? { deadlineReached: true } : {}),
       });
       lastProgressAt = Date.now();
     }
@@ -791,7 +868,17 @@ async function applyStage(
     await sleep(STAGE_CATALOG_POLL_MS);
   }
 
-  return { created, queued, settled, failedParse, failedPodcastIds };
+  return {
+    created,
+    queued,
+    settled,
+    failedParse,
+    failedPodcastIds,
+    waitingAtDeadline,
+    failedByReason,
+    oversizeRaised,
+    oversizeGaveUp,
+  };
 }
 
 function finish(
@@ -819,6 +906,10 @@ function finish(
     settled: apply.settled,
     failedParse: apply.failedParse,
     failedPodcastIds: apply.failedPodcastIds,
+    waitingAtDeadline: apply.waitingAtDeadline,
+    failedByReason: apply.failedByReason,
+    oversizeRaised: apply.oversizeRaised,
+    oversizeGaveUp: apply.oversizeGaveUp,
     elapsedMs: Date.now() - startedAt,
   };
   getLogger().info('v4 stage catalog seed finished', {
@@ -840,6 +931,10 @@ function finish(
     queued: result.queued,
     settled: result.settled,
     failedParse: result.failedParse,
+    waitingAtDeadline: result.waitingAtDeadline,
+    failedByReason: result.failedByReason,
+    oversizeRaised: result.oversizeRaised,
+    oversizeGaveUp: result.oversizeGaveUp,
     elapsedMs: result.elapsedMs,
   });
   return result;
@@ -847,8 +942,9 @@ function finish(
 
 /**
  * Seeds the shows one rehearsal stage needs, queues a first parse where none has started,
- * and waits until every mapped feed is settled. The wait has no deadline. A settled feed
- * with no finished parse is counted and does not throw. The log is the stage and the counts.
+ * and waits until every mapped feed is settled or `waitDeadlineMs` has passed. Feeds still
+ * waiting at the deadline keep their retry jobs. A settled feed with no finished parse is
+ * counted and does not throw. The log is the stage and the counts.
  */
 export async function v4SeedStageCatalog(
   input: V4SeedStageCatalogInput
@@ -894,11 +990,22 @@ export async function v4SeedStageCatalog(
         settled: 0,
         failedParse: 0,
         failedPodcastIds: [],
+        waitingAtDeadline: 0,
+        failedByReason: {},
+        oversizeRaised: 0,
+        oversizeGaveUp: 0,
       },
       startedAt
     );
   }
 
-  const apply = await applyStage(classification, startedAt, input.onProgress);
+  const waitDeadlineMs = input.waitDeadlineMs === undefined ? null : input.waitDeadlineMs;
+  const apply = await applyStage(
+    classification,
+    startedAt,
+    input.onProgress,
+    waitDeadlineMs,
+    input.retrySchedule ?? 'standard'
+  );
   return finish(input, classification, apply, startedAt);
 }

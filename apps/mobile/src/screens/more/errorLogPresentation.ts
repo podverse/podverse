@@ -4,9 +4,12 @@ import { useTranslation } from 'react-i18next';
 import type { BadgeTone } from '../../components/primitives';
 import type { SyncEventLogEntry } from '../../data/repositories';
 import {
+  ADD_BY_RSS_PROMOTED_CODE,
   DIRECTORY_CHANNEL_CONVERTED_CODE,
   DIRECTORY_CHANNEL_GONE_CODE,
+  V4_CARRYOVER_DONE_CODE,
 } from '../../data/repositories';
+import { mobileBrandName } from '../../lib/mobileBrandName';
 import {
   ADD_BY_RSS_ADD_LOG_KIND,
   getSyncLogLabelKey,
@@ -40,8 +43,17 @@ export const errorLogMessage = (t: Translate, entry: SyncEventLogEntry): string 
   if (entry.errorCode === DIRECTORY_CHANNEL_CONVERTED_CODE && entry.message !== null) {
     return t('error_log.directory_channel_converted', { channel: entry.message });
   }
+  if (entry.errorCode === ADD_BY_RSS_PROMOTED_CODE && entry.message !== null) {
+    return t('error_log.add_by_rss_promoted_to_directory', {
+      brand_name: mobileBrandName(),
+      channel: entry.message,
+    });
+  }
   if (entry.errorCode === DIRECTORY_CHANNEL_GONE_CODE && entry.message !== null) {
     return t('error_log.directory_channel_gone', { channel: entry.message });
+  }
+  if (entry.errorCode === V4_CARRYOVER_DONE_CODE) {
+    return t('error_log.v4_carryover_done');
   }
   return entry.message;
 };

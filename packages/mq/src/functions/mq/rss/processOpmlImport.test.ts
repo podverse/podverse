@@ -1,6 +1,9 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
+import { addByRssFeedLimitReachedMessage, followLimitReachedMessage } from '@podverse/helpers';
+
 const {
+  findBlockedFeedMock,
   feedGetByUrlMock,
   hasFollowedChannelMock,
   followChannelMock,
@@ -9,18 +12,48 @@ const {
   addPendingFollowMock,
   mqRSSAddMock,
   mqAddByRSSAddMock,
-} = vi.hoisted(() => ({
-  feedGetByUrlMock: vi.fn(),
-  hasFollowedChannelMock: vi.fn(),
-  followChannelMock: vi.fn(),
-  hasFollowedAddByRSSChannelMock: vi.fn(),
-  addOrUpdateRSSChannelMock: vi.fn(),
-  addPendingFollowMock: vi.fn(),
-  mqRSSAddMock: vi.fn(async () => {}),
-  mqAddByRSSAddMock: vi.fn(async () => {}),
-}));
+  AddByRssFeedLimitReachedError,
+  FollowLimitReachedError,
+} = vi.hoisted(() => {
+  class AddByRssFeedLimitReachedError extends Error {
+    readonly limit: number;
+    readonly code = 'add_by_rss_feed_limit_reached';
+    readonly i18nKey = 'membership.add_by_rss_feed_limit_reached';
+
+    constructor(limit: number) {
+      super('add_by_rss_feed_limit_reached');
+      this.name = 'AddByRssFeedLimitReachedError';
+      this.limit = limit;
+    }
+  }
+
+  return {
+    findBlockedFeedMock: vi.fn(),
+    feedGetByUrlMock: vi.fn(),
+    hasFollowedChannelMock: vi.fn(),
+    followChannelMock: vi.fn(),
+    hasFollowedAddByRSSChannelMock: vi.fn(),
+    addOrUpdateRSSChannelMock: vi.fn(),
+    addPendingFollowMock: vi.fn(),
+    mqRSSAddMock: vi.fn(async () => {}),
+    mqAddByRSSAddMock: vi.fn(async () => {}),
+    AddByRssFeedLimitReachedError,
+    FollowLimitReachedError: class FollowLimitReachedError extends Error {
+      readonly limit: number;
+      readonly code = 'follow_limit_reached';
+      readonly i18nKey = 'membership.follow_limit_reached';
+
+      constructor(limit: number) {
+        super('follow_limit_reached');
+        this.name = 'FollowLimitReachedError';
+        this.limit = limit;
+      }
+    },
+  };
+});
 
 vi.mock('@podverse/orm', () => ({
+  findBlockedFeed: findBlockedFeedMock,
   FeedService: class {
     getByUrl = feedGetByUrlMock;
   },
@@ -35,6 +68,8 @@ vi.mock('@podverse/orm', () => ({
   AccountPendingFollowingChannelService: class {
     addPendingFollow = addPendingFollowMock;
   },
+  AddByRssFeedLimitReachedError,
+  FollowLimitReachedError,
 }));
 
 vi.mock('./add.js', () => ({
@@ -68,6 +103,7 @@ const createMemoryCache = () => {
 
 describe('processOpmlImportJob', () => {
   beforeEach(() => {
+    findBlockedFeedMock.mockReset();
     feedGetByUrlMock.mockReset();
     hasFollowedChannelMock.mockReset();
     followChannelMock.mockReset();
@@ -77,6 +113,7 @@ describe('processOpmlImportJob', () => {
     mqRSSAddMock.mockReset();
     mqAddByRSSAddMock.mockReset();
 
+    findBlockedFeedMock.mockResolvedValue(null);
     feedGetByUrlMock.mockResolvedValue(null);
     hasFollowedChannelMock.mockResolvedValue(false);
     followChannelMock.mockResolvedValue({});
@@ -242,5 +279,161 @@ describe('processOpmlImportJob', () => {
     expect(result.totals.rateLimited).toBe(1);
     expect(result.totals.subscribed).toBe(1);
     expect(result.totals.addedByRss).toBe(1);
+  });
+
+  it('blocks a flagged URL before following or enqueueing, and does not spend rate budget', async () => {
+    const { cacheGetJson, cacheSetJson } = createMemoryCache();
+    findBlockedFeedMock.mockImplementation(async ({ url }: { url?: string }) =>
+      url?.includes('blocked') ? { id: 4 } : null
+    );
+    feedGetByUrlMock.mockImplementation(async ({ url }: { url: string }) => {
+      if (url.includes('blocked')) {
+        return { channel: { id_text: 'ch-blocked' } };
+      }
+      return null;
+    });
+
+    const result = await processOpmlImportJob({
+      accountId: 9,
+      requestId: 'req-blocked',
+      feeds: [
+        { feedUrl: 'https://example.com/blocked.xml', title: 'Blocked' },
+        { feedUrl: 'https://example.com/unknown.xml', title: 'Unknown' },
+      ],
+      maxFeedsPerHour: 1,
+      cacheGetJson,
+      cacheSetJson,
+      activeMQArtemisService: {} as never,
+      podcastGetByFeedUrl: async () => null,
+    });
+
+    expect(result.results.map((row) => row.outcome)).toEqual(['blocked', 'added_by_rss']);
+    expect(result.totals.blocked).toBe(1);
+    expect(result.totals.addedByRss).toBe(1);
+    expect(followChannelMock).not.toHaveBeenCalled();
+    expect(addPendingFollowMock).not.toHaveBeenCalled();
+    expect(mqRSSAddMock).not.toHaveBeenCalled();
+  });
+
+  it('blocks an indexed feed by Podcast Index id before a pending follow or enqueue', async () => {
+    const { cacheGetJson, cacheSetJson } = createMemoryCache();
+    findBlockedFeedMock.mockImplementation(
+      async ({ podcastIndexId }: { podcastIndexId?: number | null }) =>
+        podcastIndexId === 12345 ? { id: 9 } : null
+    );
+
+    const result = await processOpmlImportJob({
+      accountId: 9,
+      requestId: 'req-blocked-index',
+      feeds: [{ feedUrl: 'https://example.com/pi.xml' }],
+      maxFeedsPerHour: 50,
+      cacheGetJson,
+      cacheSetJson,
+      activeMQArtemisService: {} as never,
+      podcastGetByFeedUrl: async () => ({ podcast_index_id: 12345 }),
+    });
+
+    expect(result.results[0]?.outcome).toBe('blocked');
+    expect(result.totals.blocked).toBe(1);
+    expect(addPendingFollowMock).not.toHaveBeenCalled();
+    expect(mqRSSAddMock).not.toHaveBeenCalled();
+    expect(result.totals.enqueuedIndexed).toBe(0);
+  });
+
+  it('stops new Add by RSS feeds at the tier and keeps the limit sentence', async () => {
+    const { cacheGetJson, cacheSetJson } = createMemoryCache();
+    hasFollowedAddByRSSChannelMock.mockImplementation(async (_accountId: number, feedUrl: string) =>
+      feedUrl.includes('already')
+    );
+    feedGetByUrlMock.mockImplementation(async ({ url }: { url: string }) => {
+      if (url.includes('dir-later')) {
+        return { channel: { id_text: 'ch-later' } };
+      }
+      return null;
+    });
+    addOrUpdateRSSChannelMock.mockRejectedValueOnce(new AddByRssFeedLimitReachedError(100));
+
+    const result = await processOpmlImportJob({
+      accountId: 9,
+      requestId: 'req-feed-limit',
+      feeds: [
+        { feedUrl: 'https://example.com/new-a.xml', title: 'New A' },
+        { feedUrl: 'https://example.com/already.xml', title: 'Already' },
+        { feedUrl: 'https://example.com/new-b.xml', title: 'New B' },
+        { feedUrl: 'https://example.com/dir-later.xml', title: 'Directory' },
+      ],
+      maxFeedsPerHour: 50,
+      cacheGetJson,
+      cacheSetJson,
+      activeMQArtemisService: {} as never,
+      podcastGetByFeedUrl: async () => null,
+      contactEmail: 'support@example.com',
+    });
+
+    expect(result.status).toBe('completed');
+    expect(result.results.map((row) => row.outcome)).toEqual([
+      'feed_limit_reached',
+      'already_subscribed',
+      'feed_limit_reached',
+      'subscribed',
+    ]);
+    expect(result.results[0]?.limit).toBe(100);
+    expect(result.results[0]?.error).toBe(
+      addByRssFeedLimitReachedMessage(100, 'support@example.com')
+    );
+    expect(result.results[2]?.error).toBe(
+      addByRssFeedLimitReachedMessage(100, 'support@example.com')
+    );
+    expect(result.totals.feedLimitReached).toBe(2);
+    expect(result.totals.skippedExisting).toBe(1);
+    expect(result.totals.subscribed).toBe(1);
+    expect(result.totals.addedByRss).toBe(0);
+    expect(addOrUpdateRSSChannelMock).toHaveBeenCalledTimes(1);
+    expect(followChannelMock).toHaveBeenCalledWith(9, 'ch-later');
+    expect(mqAddByRSSAddMock).not.toHaveBeenCalled();
+  });
+
+  it('stops new directory follows at the tier and keeps the follow sentence', async () => {
+    const { cacheGetJson, cacheSetJson } = createMemoryCache();
+    hasFollowedChannelMock.mockImplementation(
+      async (_accountId: number, channelIdText: string) => channelIdText === 'ch-already'
+    );
+    feedGetByUrlMock.mockImplementation(async ({ url }: { url: string }) => {
+      if (url.includes('already')) {
+        return { channel: { id_text: 'ch-already' } };
+      }
+      if (url.includes('later')) {
+        return { channel: { id_text: 'ch-later' } };
+      }
+      return { channel: { id_text: 'ch-new' } };
+    });
+    followChannelMock.mockRejectedValueOnce(new FollowLimitReachedError(500));
+
+    const result = await processOpmlImportJob({
+      accountId: 9,
+      requestId: 'req-follow-limit',
+      feeds: [
+        { feedUrl: 'https://example.com/new-a.xml', title: 'New A' },
+        { feedUrl: 'https://example.com/already.xml', title: 'Already' },
+        { feedUrl: 'https://example.com/later.xml', title: 'Later' },
+      ],
+      maxFeedsPerHour: 50,
+      cacheGetJson,
+      cacheSetJson,
+      activeMQArtemisService: {} as never,
+      podcastGetByFeedUrl: async () => null,
+      contactEmail: 'support@example.com',
+    });
+
+    expect(result.results.map((row) => row.outcome)).toEqual([
+      'follow_limit',
+      'already_subscribed',
+      'follow_limit',
+    ]);
+    expect(result.results[0]?.limit).toBe(500);
+    expect(result.results[0]?.error).toBe(followLimitReachedMessage(500));
+    expect(result.totals.followLimitReached).toBe(2);
+    expect(result.totals.skippedExisting).toBe(1);
+    expect(followChannelMock).toHaveBeenCalledTimes(1);
   });
 });

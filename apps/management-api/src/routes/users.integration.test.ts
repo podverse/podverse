@@ -345,6 +345,96 @@ describe('PATCH /users/:id', () => {
     expect(res.status).toBe(409);
   });
 
+  it('rejects an Add by RSS limit outside the tier list', async () => {
+    const res = await request(app)
+      .patch(`${usersBase}/1`)
+      .set(superuserAuthHeaders())
+      .send({ max_add_by_rss_feeds: 17 });
+
+    expect(res.status).toBe(400);
+    expect(res.body.message).toBe(
+      'max_add_by_rss_feeds must be empty, unlimited, or one of 200, 300, 400, 500, 1000, 10000'
+    );
+    expect(readQueryMock).not.toHaveBeenCalled();
+  });
+
+  it('stores unlimited as the Add by RSS limit', async () => {
+    readQueryMock.mockResolvedValueOnce([{ id: 1 }]);
+    readQueryMock.mockResolvedValueOnce([
+      { account_membership_id: 1, membership_expires_at: null },
+    ]);
+    readWriteQueryMock.mockResolvedValueOnce(undefined);
+    readQueryMock.mockResolvedValueOnce([
+      {
+        id: 1,
+        id_text: 'abc123',
+        verified: true,
+        sharable_status_id: 3,
+        created_at: new Date(),
+        email: null,
+        username: 'kept',
+        max_add_by_rss_feeds: -1,
+      },
+    ]);
+
+    const res = await request(app)
+      .patch(`${usersBase}/1`)
+      .set(superuserAuthHeaders())
+      .send({ max_add_by_rss_feeds: -1 });
+
+    expect(res.status).toBe(200);
+    expect(res.body.user.max_add_by_rss_feeds).toBe(-1);
+    expect(readWriteQueryMock).toHaveBeenCalledWith(
+      expect.stringContaining('max_add_by_rss_feeds = $1'),
+      [-1, 1]
+    );
+  });
+
+  it('rejects a follow limit outside the tier list', async () => {
+    const res = await request(app)
+      .patch(`${usersBase}/1`)
+      .set(superuserAuthHeaders())
+      .send({ max_follows: 17 });
+
+    expect(res.status).toBe(400);
+    expect(res.body.message).toBe(
+      'max_follows must be empty, unlimited, or one of 1000, 2000, 3000, 4000, 5000, 10000'
+    );
+    expect(readQueryMock).not.toHaveBeenCalled();
+  });
+
+  it('stores unlimited as the follow limit', async () => {
+    readQueryMock.mockResolvedValueOnce([{ id: 1 }]);
+    readQueryMock.mockResolvedValueOnce([
+      { account_membership_id: 1, membership_expires_at: null },
+    ]);
+    readWriteQueryMock.mockResolvedValueOnce(undefined);
+    readQueryMock.mockResolvedValueOnce([
+      {
+        id: 1,
+        id_text: 'abc123',
+        verified: true,
+        sharable_status_id: 3,
+        created_at: new Date(),
+        email: null,
+        username: 'kept',
+        max_follows: -1,
+      },
+    ]);
+
+    const res = await request(app)
+      .patch(`${usersBase}/1`)
+      .set(superuserAuthHeaders())
+      .send({ max_follows: -1 });
+
+    expect(res.status).toBe(200);
+    expect(res.body.user.max_follows).toBe(-1);
+    expect(readWriteQueryMock).toHaveBeenCalledWith(
+      expect.stringContaining('max_follows = $1'),
+      [-1, 1]
+    );
+  });
+
   it('returns 404 for non-existent user', async () => {
     readQueryMock.mockResolvedValueOnce([]); // existence check
 
@@ -657,6 +747,35 @@ describe('POST /users', () => {
       .send({ password: 'password123' });
     expect(res.status).toBe(400);
     expect(res.body.message).toBe('At least one of username or email is required');
+  });
+
+  it('rejects an Add by RSS limit outside the tier list before creating a user', async () => {
+    const res = await request(app)
+      .post(usersBase)
+      .set(superuserAuthHeaders())
+      .send({ username: 'limit_user', max_add_by_rss_feeds: 17 });
+
+    expect(res.status).toBe(400);
+    expect(res.body.message).toBe(
+      'max_add_by_rss_feeds must be empty, unlimited, or one of 200, 300, 400, 500, 1000, 10000'
+    );
+    expect(readWriteQueryMock).not.toHaveBeenCalled();
+  });
+
+  it('stores unlimited when creating a user', async () => {
+    mockCreateUserSqlSequence({ withSetPassword: true });
+
+    const res = await request(app)
+      .post(usersBase)
+      .set(superuserAuthHeaders())
+      .send({ username: 'unlimited_user', max_add_by_rss_feeds: -1 });
+
+    expect(res.status).toBe(201);
+    const membershipCall = readWriteQueryMock.mock.calls.find((call) =>
+      String(call[0]).includes('INSERT INTO account_membership_status')
+    );
+    const params = membershipCall?.[1];
+    expect(Array.isArray(params) ? params[3] : undefined).toBe(-1);
   });
 
   it('creates a username-only user without password in admin_only_email mode and returns set_password_url', async () => {

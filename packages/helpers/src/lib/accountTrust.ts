@@ -1,4 +1,5 @@
 import { AccountMembershipEnum } from './accountMembership.js';
+import { resolveNumericAddByRssFeedLimit } from './addByRSS/feedLimitTier.js';
 
 export type AccountEntitlementCapability =
   | 'allowDirectoryAddByRSS'
@@ -36,8 +37,11 @@ export type AccountTrustOverrides = {
   allow_notifications?: boolean | null;
 };
 
-/** Trial and Premium share this Add by RSS limit; a per-account override wins over it. */
+/** Shared Add by RSS limit for Trial and Premium when the account stores no tier. */
 export const DEFAULT_MAX_ADD_BY_RSS_FEEDS = 100;
+
+/** Shared directory-follow limit when the account stores no tier. */
+export const DEFAULT_MAX_FOLLOWS = 500;
 
 export const DEFAULT_UNTRUSTED_ACCOUNT_ENTITLEMENTS: AccountTrustEntitlements = {
   allowDirectoryAddByRSS: false,
@@ -75,7 +79,10 @@ export const resolveAccountEntitlements = (
   return {
     allowDirectoryAddByRSS:
       overrides?.allow_directory_add_by_rss ?? defaults.allowDirectoryAddByRSS,
-    maxAddByRSSFeeds: overrides?.max_add_by_rss_feeds ?? defaults.maxAddByRSSFeeds,
+    maxAddByRSSFeeds: resolveNumericAddByRssFeedLimit(
+      overrides?.max_add_by_rss_feeds,
+      defaults.maxAddByRSSFeeds
+    ),
     maxManualRefreshesPerHour:
       overrides?.max_manual_refreshes_per_hour ?? defaults.maxManualRefreshesPerHour,
     trackStats: overrides?.track_stats ?? defaults.trackStats,

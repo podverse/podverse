@@ -49,6 +49,10 @@ type Config = {
     accountAddByRssChaptersTranscript: { windowMs: number; max: number };
     accountAddByRssRemoteItemResolve: { windowMs: number; max: number };
     accountAddByRssRemoteItemResolveAnon: { windowMs: number; max: number };
+    channelAddByRssMatch: { windowMs: number; max: number };
+    channelAddByRssMatchAnon: { windowMs: number; max: number };
+    legacyPodcastLookup: { windowMs: number; max: number };
+    legacyPodcastLookupInstall: { windowMs: number; max: number };
     accountChannelSeenRead: { windowMs: number; max: number };
     statsTrack: { windowMs: number; max: number };
     mqRssOnDemand: { windowMs: number; max: number };
@@ -337,6 +341,26 @@ export const config: Config = {
       envValue: process.env.ACCOUNT_ADD_BY_RSS_REMOTE_ITEM_RESOLVE_ANON_MAX_PER_MINUTE,
       key: 'ACCOUNT_ADD_BY_RSS_REMOTE_ITEM_RESOLVE_ANON_MAX_PER_MINUTE',
       defaultMax: 120,
+    }),
+    channelAddByRssMatch: parseCountPerWindowEnvFromKey({
+      envValue: process.env.CHANNEL_ADD_BY_RSS_MATCH_MAX_PER_MINUTE,
+      key: 'CHANNEL_ADD_BY_RSS_MATCH_MAX_PER_MINUTE',
+      defaultMax: 60,
+    }),
+    channelAddByRssMatchAnon: parseCountPerWindowEnvFromKey({
+      envValue: process.env.CHANNEL_ADD_BY_RSS_MATCH_ANON_MAX_PER_MINUTE,
+      key: 'CHANNEL_ADD_BY_RSS_MATCH_ANON_MAX_PER_MINUTE',
+      defaultMax: 120,
+    }),
+    legacyPodcastLookup: parseCountPerWindowEnvFromKey({
+      envValue: process.env.LEGACY_PODCAST_LOOKUP_MAX_PER_MINUTE,
+      key: 'LEGACY_PODCAST_LOOKUP_MAX_PER_MINUTE',
+      defaultMax: 30,
+    }),
+    legacyPodcastLookupInstall: parseCountPerWindowEnvFromKey({
+      envValue: process.env.LEGACY_PODCAST_LOOKUP_INSTALL_MAX_PER_MINUTE,
+      key: 'LEGACY_PODCAST_LOOKUP_INSTALL_MAX_PER_MINUTE',
+      defaultMax: 10,
     }),
     accountChannelSeenRead: parseCountPerWindowEnvFromKey({
       envValue: process.env.ACCOUNT_CHANNEL_SEEN_READ_MAX_PER_MINUTE,

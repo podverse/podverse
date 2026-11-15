@@ -83,6 +83,7 @@ test.describe('Management-web create user (username-only)', () => {
       account_membership_id: 1,
       allow_directory_add_by_rss: null,
       max_add_by_rss_feeds: null,
+      max_follows: null,
       max_manual_refreshes_per_hour: null,
       track_stats: null,
       allow_notifications: null,
@@ -192,10 +193,8 @@ test.describe('Management-web create user (username-only)', () => {
     await expect(page.locator('#allow-notifications-value')).toHaveText(
       'Default (Allow notifications)'
     );
-    await expect(page.locator('#max-add-by-rss-feeds')).toHaveAttribute(
-      'placeholder',
-      'Default: 7'
-    );
+    await expect(page.locator('#max-add-by-rss-feeds-value')).toHaveText('Default');
+    await expect(page.locator('#max-add-by-rss-feeds-info')).toContainText('7');
     await expect(page.locator('#max-manual-refreshes')).toHaveAttribute(
       'placeholder',
       'Default: 4'

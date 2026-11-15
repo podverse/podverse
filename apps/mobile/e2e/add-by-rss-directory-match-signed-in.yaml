@@ -1,0 +1,40 @@
+appId: com.podverse.app.next
+name: Add By RSS Directory Match Signed In
+---
+# Signed in, an RSS URL Podverse has already parsed opens the directory podcast and follows it
+# on the account. The URL is the e2e directory-match fixture.
+# Needs flow_needs_e2e_api + flow_needs_test_assets.
+
+- runFlow: shared/launch-and-connect.yaml
+- runFlow: shared/login-seeded-user.yaml
+
+- tapOn:
+    id: tab-my-library
+- assertVisible:
+    id: library-hub-screen
+- tapOn:
+    id: library-nav-add-by-rss
+- assertVisible:
+    id: rss-root-screen
+- tapOn:
+    id: rss-add-button
+- assertVisible:
+    id: rss-add-screen
+- tapOn:
+    id: rss-url-input
+- inputText: http://localhost:2111/feeds/directory-match-podcast.rss
+- assertVisible:
+    id: rss-add-submit
+    enabled: true
+- tapOn:
+    id: rss-add-submit
+
+- extendedWaitUntil:
+    visible:
+      id: podcast-detail-screen
+    timeout: ${TIMEOUT_SLOWER}
+- extendedWaitUntil:
+    visible:
+      text: "E2E Directory Match Podcast"
+    timeout: ${TIMEOUT_SLOWER}
+- takeScreenshot: add-by-rss-directory-match-signed-in-detail

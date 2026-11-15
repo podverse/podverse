@@ -13,11 +13,14 @@ import type {
   AddByRssCap,
   ApplyLibraryCopyResult,
   DirectoryFollowCap,
+  Queryable,
 } from './copyAccountLibraryApply.js';
 import {
   applyLibraryCopy,
-  directoryFollowCapFromSnapshot,
+  loadAccountsForLegacyUsers,
   readAddByRssCap,
+  readDirectoryFollowCap,
+  resolveLibraryTarget,
 } from './copyAccountLibraryApply.js';
 import type {
   LibraryCopyReport,
@@ -59,6 +62,15 @@ Flags:
 Requires V4_DATABASE_URL plus the Base and ORM worker env. The v5 account must
 already exist and v4_library_copied_at must be null.
 
+A v4 id the identity seed left out as an email-case twin has no account of its
+own; its legacy_id_map row names the kept account. Its library merges into that
+account, and only after the kept account's own copy set v4_library_copied_at
+(until then the action is skip_merge_waiting). Playlists and clips keep their
+v4 ids with the kept account as owner. Follows and Add by RSS feeds the account
+already has are kept once, playback rows that share an item or clip keep the
+higher-ranked row, and the caps use the combined counts. A merge never sets
+v4_library_copied_at.
+
 The log is the id and counts. No email, url, or title is logged.
   resolved      a local row already matches, or the playlist owner is local
   unresolved    waits on a show the seed parses, or on another account's copy
@@ -78,13 +90,27 @@ including a number above 10000. Past 10000, when no stored number covers the
 count, the copy writes no Add by RSS rows and reports needs_operator. The copy
 never writes a number above 10000.
 
-Directory follows over the default are logged with the tier that would be
-stored. No directory-follow column is written. Past 10000 copies no directory
-follows and reports needs_operator. The account's other groups still copy.
+Directory follows over the default write the smallest tier on max_follows
+before the follow rows when no stored number already covers the count,
+including Add by RSS urls that match a directory channel and are not already
+in the podcast subscriptions. At or under the default, nothing is written.
+A stored number that already covers the count is left unchanged, including
+unlimited. Past 10000 the copy writes no tier, still inserts every follow,
+and reports needs_operator. The account's other groups still copy.
 
 A playlist that would hold more than 10000 resources is not copied and is
 reported needs_operator. Other playlists on that account still copy. The copy
 does not keep the first 10000 members.
+
+A queue over the default of 10000 writes the smallest tier on
+max_queue_resources before the playback rows when no stored number already
+covers the largest per-medium queue. The tiers are 20000, 30000, 40000,
+50000, 60000, and 100000. Each queue is trimmed to that tier: upcoming and
+now playing stay, and the oldest history is dropped. The inserts skip the
+per-row count. At or under the default, nothing is written. A stored number
+that already covers the count is left unchanged. Past 100000 the copy writes
+no tier, keeps 100000 rows, and reports needs_operator. The log counts are
+queueTier, queueNeedsOperator, and historyTrimmed.
 `;
 
 const USER_SQL = `
@@ -134,7 +160,7 @@ SELECT "episodeId" AS episode_id,
        "userPlaybackPosition" AS playback_position,
        "mediaFileDuration" AS media_file_duration,
        completed,
-       "orderChangedDate" AS order_changed_date
+       to_char("orderChangedDate", 'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"') AS order_changed_date
 FROM "userHistoryItems"
 WHERE "ownerId" = $1
 `;
@@ -165,7 +191,7 @@ const MEDIA_REF_BY_ID_SQL = `
 SELECT id,
        "episodeId" AS episode_id,
        ("isOfficialChapter" IS TRUE OR "isOfficialSoundBite" IS TRUE) AS official,
-       ("ownerId" = $1) AS owned,
+       ("ownerId" = ANY($1::varchar[])) AS owned,
        title,
        "startTime" AS start_time,
        "endTime" AS end_time,
@@ -180,7 +206,7 @@ SELECT id,
        guid,
        "mediaUrl" AS media_url,
        title,
-       "pubDate" AS pub_date,
+       to_char("pubDate", 'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"') AS pub_date,
        ("isPublic" IS TRUE) AS is_public
 FROM episodes
 WHERE id = ANY($1::varchar[])
@@ -361,12 +387,12 @@ function podcastKey(row: Record<string, unknown>, id: string): V4PodcastKey {
 
 /**
  * Reads the v4 mediaRefs, episodes, and podcasts behind a set of ids, for rows recorded in
- * `legacy_pending_row`. `owned` is relative to `v4Id`. Episodes include those the mediaRefs
- * point at.
+ * `legacy_pending_row`. `owned` means one of `ownerIds` owns the mediaRef: the account's own v4
+ * id plus any email-case twins merged into it. Episodes include those the mediaRefs point at.
  */
 export async function readV4References(
   connectionString: string,
-  v4Id: string,
+  ownerIds: readonly string[],
   ids: { episodeIds: string[]; mediaRefIds: string[] }
 ): Promise<Pick<V4LibrarySnapshot, 'mediaRefs' | 'clips' | 'episodes' | 'podcasts'>> {
   const client = new Client({ connectionString });
@@ -376,7 +402,7 @@ export async function readV4References(
     const mediaRefRows =
       mediaRefIds.length === 0
         ? []
-        : await queryV4(client, MEDIA_REF_BY_ID_SQL, [v4Id, mediaRefIds]);
+        : await queryV4(client, MEDIA_REF_BY_ID_SQL, [[...ownerIds], mediaRefIds]);
     const episodeIds = uniqueTexts([
       ...ids.episodeIds,
       ...mediaRefRows.map((row) => textOrNull(row.episode_id)),
@@ -738,19 +764,15 @@ export async function readLocalCatalog(snapshot: V4LibrarySnapshot): Promise<Loc
     }
   }
 
-  const accountIdTexts = new Set<string>();
   const followUserIds = uniqueTexts(snapshot.userFollowIds.map((id) => textOrNull(id)));
-  if (followUserIds.length > 0) {
-    const rows = await queryV5('SELECT id_text FROM account WHERE id_text = ANY($1::varchar[])', [
-      followUserIds,
-    ]);
-    for (const row of rows) {
-      const idText = textOrNull(row.id_text);
-      if (idText !== null) {
-        accountIdTexts.add(idText);
-      }
-    }
-  }
+  const accountIdTexts = new Set(
+    (
+      await loadAccountsForLegacyUsers(
+        { query: (sql, parameters) => queryV5(sql, parameters ?? []) },
+        followUserIds
+      )
+    ).keys()
+  );
 
   const attemptedChannelIdTexts = new Set<string>();
   const settledChannelIdTexts = new Set<string>();
@@ -820,6 +842,7 @@ export type V4LibraryCommandResult =
   | { action: 'help' }
   | { action: 'skip_missing_account'; v4Id: string }
   | { action: 'skip_already_copied'; v4Id: string }
+  | { action: 'skip_merge_waiting'; v4Id: string }
   | {
       action: 'dry_run';
       v4Id: string;
@@ -835,6 +858,19 @@ export type V4LibraryCommandResult =
       apply: ApplyLibraryCopyResult;
     };
 
+function loggedAddByRssNotFeedUrl(
+  apply: ApplyLibraryCopyResult | null,
+  addByRssCap: AddByRssCap | null
+): number | null {
+  if (addByRssCap !== null) {
+    return addByRssCap.addByRssNotFeedUrl;
+  }
+  if (apply !== null) {
+    return apply.addByRssCap.addByRssNotFeedUrl;
+  }
+  return null;
+}
+
 function logFinished(
   v4Id: string,
   action: string,
@@ -845,6 +881,7 @@ function logFinished(
   directoryFollowCap: DirectoryFollowCap | null,
   playlistsOverLimit: readonly string[] | null
 ): void {
+  const addByRssNotFeedUrl = loggedAddByRssNotFeedUrl(apply, addByRssCap);
   getLogger().info(dryRun ? 'v4 library dry run finished' : 'v4 library copy finished', {
     dryRun,
     v4Id,
@@ -852,8 +889,16 @@ function logFinished(
     ...(report === null ? {} : report),
     ...(apply === null ? {} : { apply }),
     ...(addByRssCap === null ? {} : { addByRssCap }),
+    ...(addByRssNotFeedUrl === null ? {} : { addByRssNotFeedUrl }),
     ...(directoryFollowCap === null ? {} : { directoryFollowCap }),
     ...(playlistsOverLimit === null ? {} : { playlistsOverLimit }),
+    ...(apply === null
+      ? {}
+      : {
+          queueTier: apply.queueTier,
+          queueNeedsOperator: apply.queueNeedsOperator,
+          historyTrimmed: apply.historyTrimmed,
+        }),
   });
 }
 
@@ -885,18 +930,27 @@ export const v4CopyAccountLibrary = async (
     throw new Error('Missing V4_DATABASE_URL.');
   }
 
-  const account = await getDataSourceReadWrite()
-    .getRepository(Account)
-    .findOne({
-      where: { id_text: v4Id },
-    });
-  if (account === null) {
+  const v5: Queryable = { query: (sql, parameters) => queryV5(sql, parameters ?? []) };
+  const target = await resolveLibraryTarget(v5, v4Id);
+  const account =
+    target === null
+      ? null
+      : await getDataSourceReadWrite()
+          .getRepository(Account)
+          .findOne({ where: { id: target.accountId } });
+  if (target === null || account === null) {
     logFinished(v4Id, 'skip_missing_account', dryRun, null, null, null, null, null);
     return { action: 'skip_missing_account', v4Id };
   }
-  if (account.v4_library_copied_at !== null && account.v4_library_copied_at !== undefined) {
+  const keptCopied =
+    account.v4_library_copied_at !== null && account.v4_library_copied_at !== undefined;
+  if (!target.merge && keptCopied) {
     logFinished(v4Id, 'skip_already_copied', dryRun, null, null, null, null, null);
     return { action: 'skip_already_copied', v4Id };
+  }
+  if (target.merge && !keptCopied) {
+    logFinished(v4Id, 'skip_merge_waiting', dryRun, null, null, null, null, null);
+    return { action: 'skip_merge_waiting', v4Id };
   }
 
   const snapshot = await readV4Snapshot(connectionString, v4Id);
@@ -909,13 +963,12 @@ export const v4CopyAccountLibrary = async (
   const report = classifyLibraryCopy(snapshot, catalog);
   if (dryRun) {
     const addByRssCap = await readAddByRssCap(
-      {
-        query: (sql, parameters) => queryV5(sql, parameters ?? []),
-      },
-      account.id,
-      snapshot.addByRssUrls
+      v5,
+      target.accountId,
+      snapshot.addByRssUrls,
+      target.merge
     );
-    const directoryFollowCap = directoryFollowCapFromSnapshot(snapshot);
+    const directoryFollowCap = await readDirectoryFollowCap(v5, target, snapshot, catalog);
     const playlistsOverLimit = playlistsOverLimitFromSnapshot(snapshot);
     logFinished(
       v4Id,
@@ -936,7 +989,7 @@ export const v4CopyAccountLibrary = async (
       playlistsOverLimit,
     };
   }
-  const applied = await applyLibraryCopy(account.id, account.id_text, snapshot, catalog);
+  const applied = await applyLibraryCopy(target, snapshot, catalog);
   logFinished(v4Id, 'apply', false, report, applied, null, null, null);
   return { action: 'apply', v4Id, report, apply: applied };
 };

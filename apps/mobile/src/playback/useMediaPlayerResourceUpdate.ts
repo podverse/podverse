@@ -1,7 +1,11 @@
 import { useCallback, useEffect, useRef } from 'react';
 
 import { generateQueueResourceAbridgedIndex } from '@podverse/helpers/queue/abridged';
-import type { PlaybackLoadDecision, PlaybackLoadRequest } from '@podverse/playback-core';
+import type {
+  PlaybackLoadDecision,
+  PlaybackLoadRequest,
+  PlaybackTarget,
+} from '@podverse/playback-core';
 import { resolvePlaybackLoadDecision } from '@podverse/playback-core/resolvePlaybackLoadDecision';
 
 import { useAuth } from '../auth/AuthProvider';
@@ -9,17 +13,30 @@ import { nativePlaybackBridge } from '../bridge/nativePlaybackBridge';
 import type { MobileAuthRequestContext } from '../data';
 import { queueRepository } from '../data';
 import { EMPTY_ABRIDGED_INDEX } from '../lib/addByRss/domain';
+import { readDeviceItemPlaybackSeconds } from '../lib/playback/deviceItemPlayback';
 import { resolveEngineAudioProfile } from '../lib/playback/engineAudioProfile';
 import { mediaEngineSourceMetaFromTarget } from '../lib/playback/mediaEngineSourceMeta';
 import { withAddByRssPlaybackAuth } from './addByRssMediaAuth';
 
+const directoryItemIdText = (target: PlaybackTarget): string | null => {
+  switch (target.kind) {
+    case 'item-music':
+    case 'item-podcast':
+    case 'item-video':
+      return target.item.id_text;
+    default:
+      return null;
+  }
+};
+
 /**
  * RN equivalent of web `useMediaPlayerResourceUpdate`: apply a playback-core load decision to the
- * native engine. Resolves the decision from the abridged resume index (authenticated users only),
- * unless a playback-core decision is explicitly provided (for enclosure-switch resume). Loads the
- * URL at the decided seek, applies rate, and auto-plays when the decision says so. Returns the
- * decision so the orchestrator can arm bounded `pauseAt` enforcement (the native bridge has no
- * pause-at). All load policy lives in `@podverse/playback-core`; this is transport wiring only.
+ * native engine. Signed out, a directory item resumes from the position stored for this device.
+ * Signed in, the decision comes from the abridged resume index, unless a playback-core decision is
+ * explicitly provided (for enclosure-switch resume). Loads the URL at the decided seek, applies
+ * rate, and auto-plays when the decision says so. Returns the decision so the orchestrator can arm
+ * bounded `pauseAt` enforcement (the native bridge has no pause-at). All load policy lives in
+ * `@podverse/playback-core`; this is transport wiring only.
  */
 export function useMediaPlayerResourceUpdate() {
   const { accessToken, clearSession, refreshToken, setTokens, status } = useAuth();
@@ -41,6 +58,21 @@ export function useMediaPlayerResourceUpdate() {
     ): Promise<PlaybackLoadDecision> => {
       const { accessToken, clearSession, refreshToken, setTokens, status } = authRef.current;
 
+      let loadRequest = request;
+      if (status !== 'authenticated' && request.explicitPlaybackSeconds === undefined) {
+        const itemIdText = directoryItemIdText(request.target);
+        if (itemIdText !== null) {
+          try {
+            const seconds = await readDeviceItemPlaybackSeconds(itemIdText);
+            if (seconds !== null) {
+              loadRequest = { ...request, explicitPlaybackSeconds: seconds };
+            }
+          } catch {
+            loadRequest = request;
+          }
+        }
+      }
+
       let abridged = EMPTY_ABRIDGED_INDEX;
       if (status === 'authenticated') {
         try {
@@ -58,10 +90,10 @@ export function useMediaPlayerResourceUpdate() {
       }
 
       const decision =
-        playbackDecisionOverride ?? resolvePlaybackLoadDecision(request, { abridged });
+        playbackDecisionOverride ?? resolvePlaybackLoadDecision(loadRequest, { abridged });
       const shouldAutoPlay = autoPlayOverride ?? decision.shouldAutoPlay;
       const meta = mediaEngineSourceMetaFromTarget(request.target, 'js');
-      const source = await withAddByRssPlaybackAuth(request.target, {
+      const source = await withAddByRssPlaybackAuth(loadRequest.target, {
         audioProfile: resolveEngineAudioProfile(request.target),
         initialSeekSeconds: decision.initialSeekSeconds,
         ...(meta !== null ? { meta } : {}),

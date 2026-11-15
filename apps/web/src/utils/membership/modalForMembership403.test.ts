@@ -43,6 +43,30 @@ describe('getMembership403ModalProps', () => {
     expect(modal?.actionHref).toBe('mailto:support@example.com');
   });
 
+  it('turns a follow-limit 403 into a sentence with no action', () => {
+    const modal = getMembership403ModalProps({
+      error: {
+        response: {
+          status: 403,
+          data: {
+            code: 'follow_limit_reached',
+            i18nKey: 'membership.follow_limit_reached',
+            limit: 500,
+          },
+        },
+      },
+      contactEmail: 'support@example.com',
+      featureContext: 'generic',
+      membership,
+      tMembership,
+    });
+
+    expect(modal?.title).toBe('gate.title_limit');
+    expect(modal?.message).toBe(`follow_limit_reached ${JSON.stringify({ limit: 500 })}`);
+    expect(modal?.actionLabel).toBeNull();
+    expect(modal?.actionHref).toBeNull();
+  });
+
   it('returns null for a manual-refresh limit 403', () => {
     const modal = getMembership403ModalProps({
       error: {

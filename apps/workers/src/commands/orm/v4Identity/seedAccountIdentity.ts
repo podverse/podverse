@@ -10,7 +10,6 @@ import {
   AccountNotificationTypeEnum,
   DEFAULT_LOCALE,
   DEFAULT_MEDIA_TYPE_PREFERENCE,
-  SharableStatusEnum,
 } from '@podverse/helpers';
 import {
   Account,
@@ -33,6 +32,7 @@ import {
   isValidNanoIdV2IdText,
 } from '@podverse/orm';
 
+import { EMAIL_CASE_TWIN_RESOLVE_KEY } from '../v4Library/copyAccountLibraryLib.js';
 import type {
   IdentitySeedAction,
   V4IdentityParseFailure,
@@ -46,12 +46,14 @@ import {
   parseV4IdentityRow,
   preferV4Identity,
   readV4Timestamp,
+  v5AccountSharableStatusForV4,
 } from './seedAccountIdentityLib.js';
 
 export const V4_SEED_ACCOUNT_IDENTITY_HELP = `v4SeedAccountIdentity
 
 Copy one v4 account into v5: email, bcrypt hash, name, verified flag, and the
-v4 id as account.id_text. Also writes the settings, membership status, and
+v4 id as account.id_text. A profile with users.isPublic true is public. Any
+other value is private. Also writes the settings, membership status, and
 metaboost rows a signup creates. A future paid v4 expiry sets Premium. A v4
 trial that ends within 90 days becomes a Trial grant ending then; the account
 stays Trial unless the paid expiry is also in the future. No signup trial and
@@ -71,7 +73,9 @@ already belongs to a different account is left unchanged, except when that
 account is the other letter-case of the same v4 address. A row that was used
 (lists, playback, playlists, or clips) beats one that never was. Between used
 rows, the later dated activity wins. Otherwise a verified row, then the later
-account updatedAt, keeps the address. The other v4 id is logged.
+account updatedAt, keeps the address. The other v4 id is logged and gets a
+legacy_id_map row (resolve_key email_case_twin) naming the kept account, so
+v4CopyAccountLibrary merges its library there. --dry-run writes no map row.
 The stored email is lowercase, including a mixed-case address with no twin.
 A copied library, or a grant other than the carried trial, is left unchanged.
 An id that already belongs to a different account is not reused. The log line
@@ -82,12 +86,12 @@ const USAGE_SQL = `
 SELECT u.id AS id_text,
        u.email,
        u."emailVerified" AS verified,
-       u."updatedAt" AS updated_at,
+       to_char(u."updatedAt", 'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"') AS updated_at,
        (cardinality(u."subscribedPodcastIds") > 0
          OR cardinality(u."subscribedPlaylistIds") > 0
          OR cardinality(u."subscribedUserIds") > 0
          OR cardinality(u."addByRSSPodcastFeedUrls") > 0) AS has_lists,
-       (SELECT MAX(activity.at) FROM (
+       to_char((SELECT MAX(activity.at) FROM (
           SELECT MAX("updatedAt") AS at FROM "userHistoryItems" WHERE "ownerId" = u.id
           UNION ALL
           SELECT MAX("updatedAt") FROM "userQueueItems" WHERE "ownerId" = u.id
@@ -100,7 +104,7 @@ SELECT u.id AS id_text,
           WHERE "ownerId" = u.id
             AND "isOfficialChapter" IS NOT TRUE
             AND "isOfficialSoundBite" IS NOT TRUE
-        ) activity) AS activity_at
+        ) activity), 'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"') AS activity_at
 FROM users u
 WHERE u.id = $1
 `;
@@ -111,8 +115,9 @@ SELECT id AS id_text,
        NULLIF(btrim(name), '') AS display_name,
        "emailVerified" AS verified,
        password AS password_hash,
-       "membershipExpiration" AS membership_expires_at,
-       "freeTrialExpiration" AS free_trial_expires_at
+       to_char("membershipExpiration", 'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"') AS membership_expires_at,
+       to_char("freeTrialExpiration", 'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"') AS free_trial_expires_at,
+       "isPublic" AS is_public
 FROM users
 WHERE id = $1
 `;
@@ -141,6 +146,7 @@ type SourceQueryRow = {
   password_hash: string | null;
   membership_expires_at: Date | string | null;
   free_trial_expires_at: Date | string | null;
+  is_public: boolean | null;
 };
 
 async function readV4Identity(connectionString: string, v4Id: string): Promise<SourceQueryRow> {
@@ -354,7 +360,7 @@ async function createIdentity(
       manager.getRepository(Account).create({
         id_text: source.idText,
         verified: source.verified,
-        sharable_status_id: SharableStatusEnum.Private,
+        sharable_status_id: v5AccountSharableStatusForV4(source.isPublic),
         billing_customer_ref: randomUUID(),
         v4_library_copied_at: null,
       })
@@ -437,20 +443,60 @@ async function resolveCaseVariant(input: {
   return { kind: 'replace', otherV4Id: account.id_text };
 }
 
+const EMAIL_CASE_TWIN_MAP_SQL = `
+INSERT INTO legacy_id_map (legacy_kind, legacy_id, v5_kind, v5_id_text, resolve_key, status)
+VALUES ('user', $1, 'account', $2, $3, 'mapped')
+ON CONFLICT (legacy_kind, legacy_id) DO UPDATE
+SET v5_kind = EXCLUDED.v5_kind,
+    v5_id_text = EXCLUDED.v5_id_text,
+    resolve_key = EXCLUDED.resolve_key,
+    status = 'mapped'
+`;
+
+/**
+ * Records that the left-out letter case of an address belongs to the kept account, so its
+ * library merges there and follows of it resolve there.
+ */
+async function writeEmailCaseTwinMap(
+  db: { query: (sql: string, parameters?: unknown[]) => Promise<unknown> },
+  leftOutV4Id: string,
+  keptIdText: string
+): Promise<void> {
+  await db.query(EMAIL_CASE_TWIN_MAP_SQL, [leftOutV4Id, keptIdText, EMAIL_CASE_TWIN_RESOLVE_KEY]);
+}
+
 /**
  * Points an uncopied placeholder at the incoming v4 user. Trial grants on that placeholder
  * belong to the user who lost the address, so they are removed and the incoming trial is written.
+ * The placeholder's v4 id becomes the left-out twin, and twin rows that named it move with it.
  */
 async function replaceCaseVariant(
   accountId: number,
+  replacedV4Id: string,
   source: V4IdentitySource,
   membership: V4MembershipDecision,
   now: Date
 ): Promise<void> {
   await getDataSourceReadWrite().transaction(async (manager) => {
-    await manager
-      .getRepository(Account)
-      .update({ id: accountId }, { id_text: source.idText, verified: source.verified });
+    await manager.query(
+      `DELETE FROM legacy_id_map
+       WHERE legacy_kind = 'user' AND legacy_id = $1 AND resolve_key = $2`,
+      [source.idText, EMAIL_CASE_TWIN_RESOLVE_KEY]
+    );
+    await manager.query(
+      `UPDATE legacy_id_map SET v5_id_text = $2
+       WHERE legacy_kind = 'user' AND v5_kind = 'account' AND v5_id_text = $1 AND resolve_key = $3`,
+      [replacedV4Id, source.idText, EMAIL_CASE_TWIN_RESOLVE_KEY]
+    );
+    await writeEmailCaseTwinMap(manager, replacedV4Id, source.idText);
+    await manager.getRepository(Account).update(
+      { id: accountId },
+      {
+        id_text: source.idText,
+        verified: source.verified,
+        sharable_status_id: v5AccountSharableStatusForV4(source.isPublic),
+      }
+    );
     await manager
       .getRepository(AccountCredentials)
       .update({ account_id: accountId }, { password: source.passwordHash });
@@ -543,6 +589,7 @@ export const v4SeedAccountIdentity = async (
     displayName: sourceRow.display_name,
     verified: sourceRow.verified,
     passwordHash: sourceRow.password_hash,
+    isPublic: sourceRow.is_public,
   });
   if (!parsed.ok) {
     getLogger().info('v4 identity seed finished', { dryRun, v4Id, action: parsed.reason });
@@ -598,6 +645,9 @@ export const v4SeedAccountIdentity = async (
     });
     if (resolution.kind === 'unrelated' || resolution.kind === 'keep_current') {
       const action = resolution.kind === 'keep_current' ? 'skip_case_variant' : decision;
+      if (resolution.kind === 'keep_current' && !dryRun) {
+        await writeEmailCaseTwinMap(getDataSourceReadWrite(), v4Id, resolution.otherV4Id);
+      }
       getLogger().info('v4 identity seed finished', {
         dryRun,
         v4Id,
@@ -631,7 +681,13 @@ export const v4SeedAccountIdentity = async (
       return { action: 'would_replace', v4Id };
     }
     try {
-      await replaceCaseVariant(emailAccountId, parsed.source, membership, now);
+      await replaceCaseVariant(
+        emailAccountId,
+        resolution.otherV4Id,
+        parsed.source,
+        membership,
+        now
+      );
     } catch (error) {
       if (!isPostgresUniqueViolation(error)) {
         throw new Error('Could not write the v5 identity.', { cause: error });

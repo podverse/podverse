@@ -58,61 +58,65 @@ export const compatItemValueWithMethodAndRecipients = (
 };
 
 const buildItemValueTimeSplits = (value: Phase4Value) =>
-  value.valueTimeSplits
-    ? value.valueTimeSplits.map((valueTimeSplit) => {
-        if (valueTimeSplit.type === 'remoteItem') {
-          return {
-            meta: {
-              start_time: DATABASE_CONSTANTS.getMediaPlayerNumeric(valueTimeSplit.startTime),
-              duration: DATABASE_CONSTANTS.getMediaPlayerNumeric(valueTimeSplit.duration),
-              remote_start_time:
-                DATABASE_CONSTANTS.getMediaPlayerNumeric(valueTimeSplit.remoteStartTime ?? 0) ||
-                (0).toFixed(2),
-              remote_percentage:
-                DATABASE_CONSTANTS.getMediaPlayerNumeric(valueTimeSplit.remotePercentage ?? 100) ||
-                (100).toFixed(2),
-            },
-            item_value_time_splits_recipients: [],
-            item_value_time_splits_remote_item: valueTimeSplit.remoteItem
-              ? {
-                  feed_guid: valueTimeSplit.remoteItem.feedGuid.slice(
-                    0,
-                    DATABASE_CONSTANTS.varchar_guid
-                  ),
-                  feed_url:
-                    (isValidHttpUrl(valueTimeSplit.remoteItem.feedUrl) &&
-                      valueTimeSplit.remoteItem.feedUrl?.slice(
-                        0,
-                        DATABASE_CONSTANTS.varchar_uri
-                      )) ||
-                    null,
-                  item_guid:
-                    valueTimeSplit.remoteItem.itemGuid?.slice(
-                      0,
-                      DATABASE_CONSTANTS.varchar_normal
-                    ) ?? null,
-                  title:
-                    valueTimeSplit.remoteItem.title?.slice(0, DATABASE_CONSTANTS.varchar_normal) ??
-                    null,
-                  medium_id: valueTimeSplit.remoteItem.medium
-                    ? getMediumEnumValue(valueTimeSplit.remoteItem.medium)
-                    : null,
-                }
-              : null,
-          };
-        }
-        return {
+  (value.valueTimeSplits ?? []).flatMap((valueTimeSplit) => {
+    const start_time = DATABASE_CONSTANTS.mediaPlayerTimeOrNull(valueTimeSplit.startTime);
+    const duration = DATABASE_CONSTANTS.mediaPlayerTimeOrNull(valueTimeSplit.duration);
+    if (start_time === null || duration === null) {
+      return [];
+    }
+
+    if (valueTimeSplit.type === 'remoteItem') {
+      return [
+        {
           meta: {
-            start_time: DATABASE_CONSTANTS.getMediaPlayerNumeric(valueTimeSplit.startTime),
-            duration: DATABASE_CONSTANTS.getMediaPlayerNumeric(valueTimeSplit.duration),
-            remote_start_time: (0).toFixed(2),
-            remote_percentage: (100).toFixed(2),
+            start_time,
+            duration,
+            remote_start_time:
+              DATABASE_CONSTANTS.mediaPlayerTimeOrNull(valueTimeSplit.remoteStartTime ?? 0) ??
+              (0).toFixed(2),
+            remote_percentage:
+              DATABASE_CONSTANTS.mediaPlayerTimeOrNull(valueTimeSplit.remotePercentage ?? 100) ??
+              (100).toFixed(2),
           },
-          item_value_time_splits_recipients: compatValueRecipients(valueTimeSplit.recipients),
-          item_value_time_splits_remote_item: null,
-        };
-      })
-    : [];
+          item_value_time_splits_recipients: compatValueRecipients([]),
+          item_value_time_splits_remote_item: valueTimeSplit.remoteItem
+            ? {
+                feed_guid: valueTimeSplit.remoteItem.feedGuid.slice(
+                  0,
+                  DATABASE_CONSTANTS.varchar_guid
+                ),
+                feed_url:
+                  (isValidHttpUrl(valueTimeSplit.remoteItem.feedUrl) &&
+                    valueTimeSplit.remoteItem.feedUrl?.slice(0, DATABASE_CONSTANTS.varchar_uri)) ||
+                  null,
+                item_guid:
+                  valueTimeSplit.remoteItem.itemGuid?.slice(0, DATABASE_CONSTANTS.varchar_normal) ??
+                  null,
+                title:
+                  valueTimeSplit.remoteItem.title?.slice(0, DATABASE_CONSTANTS.varchar_normal) ??
+                  null,
+                medium_id: valueTimeSplit.remoteItem.medium
+                  ? getMediumEnumValue(valueTimeSplit.remoteItem.medium)
+                  : null,
+              }
+            : null,
+        },
+      ];
+    }
+
+    return [
+      {
+        meta: {
+          start_time,
+          duration,
+          remote_start_time: (0).toFixed(2),
+          remote_percentage: (100).toFixed(2),
+        },
+        item_value_time_splits_recipients: compatValueRecipients(valueTimeSplit.recipients),
+        item_value_time_splits_remote_item: null,
+      },
+    ];
+  });
 
 const compatValueRecipients = (recipients: Phase4ValueRecipient[]) => {
   return (

@@ -56,6 +56,16 @@ it is not linked from the announcement. It is not drafted yet.
 - On-device files are best-effort ([08](08-mobile-first-launch-migration.md)).
   Review that plan before the backup sentence is final, so the message does
   not promise a local file the app cannot map.
+- A feed-list file before the phone copy is planned in
+  [08](08-mobile-first-launch-migration.md#feed-list-file-before-the-phone-copy)
+  and waits for the field spike. The email does not mention that screen, or
+  Continue Migration, until the field spike has a result. The existing v5
+  Export OPML is not that file.
+- Signed-out v4 users have no email address with us. The store listing and
+  the "What's New" text of the first v5 build are their message. Both ask them
+  to save a backup first with More → Export OPML in the current app (decided
+  2026-11-13). The same sentence goes in the email, because a signed-in
+  person may also follow shows only on the phone.
 - Beta testers: installing beta replaces v4 on that device.
 - Someone who writes in gets the longer reply. There is no public page for it.
 - No secrets, no raw account dumps in any tooling that builds the list.
@@ -88,10 +98,24 @@ Podverse NextGen is the next version of Podverse. You sign in with the same
 email and password. When you sign in, your account is copied over.
 
 Please back up your data. We keep a backup if you do not make your own.
-Files saved only on your device may not all come across.
+Files saved only on your device may not all come across. Before you update
+the app, open More → Export OPML to save your podcast list.
 
 After [announced date], if you have not updated to NextGen, we will migrate
 your account for you.
+```
+
+### Store listing and What's New draft
+
+English first. The store copy is localized later with the rest of the listing.
+The app's own podcast list carries over, so the sentence asks for a backup,
+not for action after the update.
+
+```text
+Podverse NextGen is here. Before you update, open More → Export OPML in the
+current app to save a backup of your podcast list. Your subscriptions carry
+over to NextGen. Shows we have not added yet appear as Add by RSS feeds and
+move to the directory on their own once we have them.
 ```
 
 ## Honest limits and risks
@@ -104,6 +128,10 @@ your account for you.
 
 ## Future plan sets
 
+- Backup sentence review after the doc 08 feed-list field spike. Until then
+  the drafts stay as written.
+- The store listing and What's New text above go into the first v5 store
+  submission ([12](12-production-launch-and-grace-period.md)).
 - Copy deck (email / longer reply / listing).
 - Operator runbook for list export and send (PII outside git).
 - Metrics: migrated vs contacted vs remaining.

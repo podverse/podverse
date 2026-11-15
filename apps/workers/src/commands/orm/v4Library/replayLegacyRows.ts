@@ -14,8 +14,10 @@ import type { LegacyMapping, Queryable } from './copyAccountLibraryApply.js';
 import {
   activeTarget,
   episodeById,
-  insertPlayback,
+  LIST_POSITION_STEP,
+  loadAccountsForLegacyUsers,
   loadIds,
+  mergePlaybackRow,
   oneId,
   PendingRows,
   query,
@@ -35,12 +37,13 @@ import type {
   V4MediaRefKey,
   V4PlaybackKey,
 } from './copyAccountLibraryLib.js';
-import { episodeDecision } from './copyAccountLibraryLib.js';
+import { EMAIL_CASE_TWIN_RESOLVE_KEY, episodeDecision } from './copyAccountLibraryLib.js';
 import type { ReplayCounts, ReplayResult, ReplayRowKind } from './replayLegacyRowsLib.js';
 import {
   contextFlag,
   contextNumber,
   contextText,
+  decideClipSwap,
   decideFollow,
   decidePlayback,
   decidePlaylistClip,
@@ -50,10 +53,8 @@ import {
   isReplayRowKind,
   playbackZoneOf,
   REPLAY_ROW_KINDS,
-  replayedPlaybackWins,
   resultFor,
   tallyReplay,
-  zoneOfListPosition,
 } from './replayLegacyRowsLib.js';
 
 export const V4_REPLAY_LEGACY_ROWS_HELP = `v4ReplayLegacyRows
@@ -63,10 +64,13 @@ rows and snapshot rows, least recently tried first. Each row runs in its own
 transaction and its status and reason are updated in it.
 
   follow_account            follows once the followed account is copied
+  follow_playlist           follows once the playlist's owner is copied
   playlist_clip             adds another user's clip once that user is copied
   history, queue,           written once the item is Active, with one row per
   now_playing               item or clip per queue; dropped once the feed is
-                            settled and the item is still missing or not Active
+                            settled and the item is still missing or not Active.
+                            clip_not_copied waits until that clip exists, then
+                            replaces the episode row or is inserted beside it
   snapshot_clip,            written once the feed parse finished or failed;
   snapshot_playlist_member  a snapshot reattaches once its show is local
   subscription              left as the copy recorded it
@@ -85,17 +89,31 @@ is counts per kind and outcome. No email, url, title, or id is logged.
 
 const DEFAULT_LIMIT = 500;
 
-const LIST_POSITION_STEP = '0.00000001';
-
+/** `--v4-id` of an email-case twin selects the kept account its library merged into. */
 const PENDING_SQL = `
 SELECT p.id, p.account_id, a.id_text AS account_id_text, p.row_kind, p.legacy_id, p.status, p.reason, p.context
 FROM legacy_pending_row p
 INNER JOIN account a ON a.id = p.account_id
 WHERE p.row_kind <> 'subscription'
   AND (p.status = 'unresolved' OR (p.status = 'resolved' AND p.reason = 'snapshot'))
-  AND ($1::varchar IS NULL OR a.id_text = $1)
+  AND (
+    $1::varchar IS NULL
+    OR a.id_text = $1
+    OR a.id_text IN (
+      SELECT m.v5_id_text FROM legacy_id_map m
+      WHERE m.legacy_kind = 'user' AND m.legacy_id = $1 AND m.v5_kind = 'account'
+        AND m.resolve_key = $3 AND m.status = 'mapped'
+    )
+  )
 ORDER BY p.updated_at ASC, p.id ASC
 LIMIT $2
+`;
+
+/** The account's own v4 id and the v4 ids of email-case twins merged into it. */
+const MERGED_OWNER_IDS_SQL = `
+SELECT legacy_id FROM legacy_id_map
+WHERE legacy_kind = 'user' AND v5_kind = 'account' AND v5_id_text = $1
+  AND resolve_key = $2 AND status = 'mapped'
 `;
 
 type PendingRecord = {
@@ -109,7 +127,7 @@ type PendingRecord = {
   context: Record<string, unknown>;
 };
 
-type StatusIds = { archived: number; active: number; public: number; private: number };
+type StatusIds = { archived: number; active: number; public: number; unlisted: number };
 
 type AccountScope = {
   accountId: number;
@@ -195,11 +213,15 @@ async function readStatusIds(db: Queryable): Promise<StatusIds> {
   const archived = await oneId(db, `SELECT id FROM item_flag_status WHERE status = 'archived'`, []);
   const active = await oneId(db, `SELECT id FROM item_flag_status WHERE status = 'active'`, []);
   const publicId = await oneId(db, `SELECT id FROM sharable_status WHERE status = 'public'`, []);
-  const privateId = await oneId(db, `SELECT id FROM sharable_status WHERE status = 'private'`, []);
-  if (archived === null || active === null || publicId === null || privateId === null) {
+  const unlistedId = await oneId(
+    db,
+    `SELECT id FROM sharable_status WHERE status = 'unlisted'`,
+    []
+  );
+  if (archived === null || active === null || publicId === null || unlistedId === null) {
     throw new Error('Missing item status or sharable status rows.');
   }
-  return { archived, active, public: publicId, private: privateId };
+  return { archived, active, public: publicId, unlisted: unlistedId };
 }
 
 function referencedIds(rows: readonly PendingRecord[]): {
@@ -239,8 +261,18 @@ async function readAccountScope(
   if (needsV4 && connectionString === '') {
     throw new Error('Missing V4_DATABASE_URL.');
   }
+  const ownerIds = needsV4
+    ? [
+        first.accountIdText,
+        ...(
+          await query(db, MERGED_OWNER_IDS_SQL, [first.accountIdText, EMAIL_CASE_TWIN_RESOLVE_KEY])
+        )
+          .map((row) => row.legacy_id)
+          .filter((id): id is string => typeof id === 'string'),
+      ]
+    : [];
   const references = needsV4
-    ? await readV4References(connectionString, first.accountIdText, ids)
+    ? await readV4References(connectionString, ownerIds, ids)
     : { mediaRefs: [], clips: [], episodes: [], podcasts: [] };
   const snapshot: V4LibrarySnapshot = {
     podcastIds: [],
@@ -330,22 +362,44 @@ async function playlistHas(
   return rows.length > 0;
 }
 
+/** A follow of an email-case twin lands on the account the twin merged into. */
 async function replayFollow(db: Queryable, row: PendingRecord): Promise<RowWork> {
-  const followedId = await oneId(db, `SELECT id FROM account WHERE id_text = $1`, [row.legacyId]);
+  const followed = (await loadAccountsForLegacyUsers(db, [row.legacyId])).get(row.legacyId.trim());
   const decision = decideFollow({
-    followedExists: followedId !== null,
-    isSelf: followedId === row.accountId,
+    followedExists: followed !== undefined,
+    isSelf: followed?.id === row.accountId,
   });
-  if (decision.action === 'write' && followedId !== null) {
+  if (decision.action === 'write' && followed !== undefined) {
     await db.query(
       `INSERT INTO account_following_account (account_id, following_account_id) VALUES ($1, $2) ON CONFLICT DO NOTHING`,
-      [row.accountId, followedId]
+      [row.accountId, followed.id]
     );
-    return work(resultFor(decision, row.status), undefined, [
-      { legacyKind: 'user', legacyId: row.legacyId, v5Kind: 'account', v5IdText: row.legacyId },
-    ]);
+    const mappings: LegacyMapping[] =
+      followed.idText === row.legacyId
+        ? [
+            {
+              legacyKind: 'user',
+              legacyId: row.legacyId,
+              v5Kind: 'account',
+              v5IdText: row.legacyId,
+            },
+          ]
+        : [];
+    return work(resultFor(decision, row.status), undefined, mappings);
   }
   return work(resultFor(decision, row.status));
+}
+
+async function replayFollowPlaylist(db: Queryable, row: PendingRecord): Promise<RowWork> {
+  const playlistId = await oneId(db, `SELECT id FROM playlist WHERE id_text = $1`, [row.legacyId]);
+  if (playlistId === null) {
+    return work(resultFor({ action: 'keep', reason: 'waiting_playlist' }, row.status));
+  }
+  await db.query(
+    `INSERT INTO account_following_playlist (account_id, playlist_id) VALUES ($1, $2) ON CONFLICT DO NOTHING`,
+    [row.accountId, playlistId]
+  );
+  return work({ status: 'resolved', reason: null, outcome: 'written' });
 }
 
 async function replayPlaylistClip(db: Queryable, row: PendingRecord): Promise<RowWork> {
@@ -393,56 +447,92 @@ function playbackKey(row: PendingRecord): V4PlaybackKey {
   };
 }
 
+function statementRows(result: unknown): Record<string, unknown>[] {
+  if (
+    Array.isArray(result) &&
+    result.length === 2 &&
+    Array.isArray(result[0]) &&
+    typeof result[1] === 'number'
+  ) {
+    return result[0].filter(isRecord);
+  }
+  if (!Array.isArray(result)) {
+    return [];
+  }
+  return result.filter(isRecord);
+}
+
+function timeParameter(value: unknown): number | string {
+  if (typeof value === 'number' && Number.isFinite(value)) {
+    return value;
+  }
+  if (typeof value === 'string' && value.trim() !== '') {
+    return value;
+  }
+  return 0;
+}
+
+function timestampParameter(value: unknown): Date | string | null {
+  if (value instanceof Date) {
+    return value;
+  }
+  if (typeof value === 'string' && value.trim() !== '') {
+    return value;
+  }
+  return null;
+}
+
 /**
- * Upcoming rows go after the last upcoming row; a second now-playing row goes before the first.
- * History is placed by play time between its neighbors, oldest lowest.
+ * Replaces the episode queue row with the clip, keeping that row's list position and
+ * playback fields. The insert follows the delete in this transaction: one command would
+ * still see the episode row's list position, so the clip could not reuse it.
  */
-async function queueSlot(
+async function replaceItemWithClip(
   db: Queryable,
   queueId: number,
-  zone: 'now' | 'upcoming' | 'history',
-  playedAt: string | null
-): Promise<string> {
-  let sql: string;
-  let parameters: unknown[];
-  if (zone === 'now') {
-    sql = `SELECT CASE
-             WHEN NOT EXISTS (SELECT 1 FROM queue_resource WHERE queue_id = $1 AND list_position = 0) THEN 0
-             WHEN min(list_position) IS NULL THEN 1
-             WHEN min(list_position) - $2::numeric > 0 THEN min(list_position) - $2::numeric
-             ELSE min(list_position) / 2
-           END::text AS position
-           FROM queue_resource WHERE queue_id = $1 AND list_position > 0`;
-    parameters = [queueId, LIST_POSITION_STEP];
-  } else if (zone === 'upcoming') {
-    sql = `SELECT COALESCE(max(list_position) + $2::numeric, 1)::text AS position
-           FROM queue_resource WHERE queue_id = $1 AND list_position > 0`;
-    parameters = [queueId, LIST_POSITION_STEP];
-  } else {
-    sql = `WITH older AS (
-             SELECT max(list_position) AS p FROM queue_resource
-             WHERE queue_id = $1 AND list_position < 0
-               AND $2::timestamptz IS NOT NULL AND last_played_at <= $2::timestamptz
-           ), newer AS (
-             SELECT min(q.list_position) AS p FROM queue_resource q, older
-             WHERE q.queue_id = $1 AND q.list_position < 0 AND q.list_position > COALESCE(older.p, -10)
-           )
-           SELECT (CASE
-             WHEN older.p IS NULL AND newer.p IS NULL THEN -1
-             WHEN older.p IS NULL THEN newer.p - $3::numeric
-             WHEN newer.p IS NULL AND older.p + $3::numeric < 0 THEN older.p + $3::numeric
-             WHEN newer.p IS NULL THEN older.p / 2
-             ELSE (older.p + newer.p) / 2
-           END)::text AS position
-           FROM older, newer`;
-    parameters = [queueId, playedAt, LIST_POSITION_STEP];
+  itemId: number,
+  clipId: number
+): Promise<boolean> {
+  const removed = statementRows(
+    await db.query(
+      `DELETE FROM queue_resource
+       WHERE id = (
+         SELECT id FROM queue_resource
+         WHERE queue_id = $1 AND item_id = $2 AND clip_id IS NULL
+         ORDER BY id
+         LIMIT 1
+       )
+       RETURNING list_position::text AS list_position,
+                 playback_position,
+                 media_file_duration,
+                 completed,
+                 last_played_at`,
+      [queueId, itemId]
+    )
+  );
+  const row = removed[0];
+  if (row === undefined) {
+    return false;
   }
-  const rows = await query(db, sql, parameters);
-  const position = rows[0]?.position;
-  if (typeof position !== 'string') {
-    throw new Error('Could not place the queue row.');
+  if (typeof row.list_position !== 'string' || row.list_position.trim() === '') {
+    throw new Error('Could not read the queue row being replaced.');
   }
-  return position;
+  await db.query(
+    `INSERT INTO queue_resource (
+       queue_id, list_position, playback_position, media_file_duration, completed, clip_id, last_played_at
+     ) VALUES ($1, $2::numeric, $3, $4, $5, $6, $7)
+     ON CONFLICT DO NOTHING`,
+    [
+      queueId,
+      row.list_position,
+      timeParameter(row.playback_position),
+      timeParameter(row.media_file_duration),
+      row.completed === true,
+      clipId,
+      timestampParameter(row.last_played_at),
+    ]
+  );
+  return true;
 }
 
 async function replayPlayback(
@@ -457,6 +547,11 @@ async function replayPlayback(
     `SELECT id, id_text FROM clip WHERE id_text = ANY($1::varchar[])`,
     key.mediaRefId === null ? [] : [key.mediaRefId]
   );
+  const clipFound = key.mediaRefId !== null && clipIds.has(key.mediaRefId);
+  const swap = decideClipSwap(row.reason, clipFound, contextFlag(row.context, 'item_stand_in'));
+  if (swap === 'wait') {
+    return work(resultFor({ action: 'keep', reason: 'clip_not_copied' }, row.status));
+  }
   const outcome = await activeTarget(
     db,
     key,
@@ -473,31 +568,15 @@ async function replayPlayback(
   const { target } = outcome;
   const zone = playbackZoneOf(kind);
   const queueId = await queueFor(db, scope.accountId, target.mediumId, new Map<number, number>());
-  const existing = await query(
-    db,
-    `SELECT id, list_position::text AS list_position, last_played_at
-     FROM queue_resource
-     WHERE queue_id = $1
-       AND (($2::int IS NOT NULL AND item_id = $2) OR ($3::int IS NOT NULL AND clip_id = $3))
-     LIMIT 1`,
-    [queueId, target.itemId, target.clipId]
-  );
-  const current = existing[0];
-  if (current !== undefined) {
-    const playedAt =
-      current.last_played_at instanceof Date ? current.last_played_at.toISOString() : null;
-    const position = typeof current.list_position === 'string' ? current.list_position : '0';
-    const wins = replayedPlaybackWins(
-      { zone, playedAt: key.orderChangedDate ?? null },
-      { zone: zoneOfListPosition(position), playedAt }
-    );
-    if (!wins) {
-      return work(resultFor({ action: 'resolve', reason: 'collapsed' }, row.status));
+  if (swap === 'swap' && target.clipId !== null) {
+    const replaced = await replaceItemWithClip(db, queueId, target.episodeItemId, target.clipId);
+    if (replaced) {
+      return work(resultFor(decidePlayback({ active: true }), row.status));
     }
-    await db.query(`DELETE FROM queue_resource WHERE id = $1`, [current.id]);
   }
-  const position = await queueSlot(db, queueId, zone, key.orderChangedDate ?? null);
-  await insertPlayback(db, queueId, position, key, target);
+  if (!(await mergePlaybackRow(db, queueId, zone, key, target))) {
+    return work(resultFor({ action: 'resolve', reason: 'collapsed' }, row.status));
+  }
   return work(resultFor(decidePlayback({ active: true }), row.status));
 }
 
@@ -577,7 +656,7 @@ async function replaySnapshotClip(
     scope.channelIds,
     itemIds,
     scope.statusIds.public,
-    scope.statusIds.private,
+    scope.statusIds.unlisted,
     pending
   );
   const mappings: LegacyMapping[] = clipIds.has(clip.id)
@@ -712,6 +791,8 @@ async function replayRow(db: Queryable, row: PendingRecord, scope: AccountScope)
   switch (row.kind) {
     case 'follow_account':
       return replayFollow(db, row);
+    case 'follow_playlist':
+      return replayFollowPlaylist(db, row);
     case 'playlist_clip':
       return replayPlaylistClip(db, row);
     case 'now_playing':
@@ -772,7 +853,7 @@ export const v4ReplayLegacyRows = async (args: CommandLineArgs) => {
 
   const dataSource = getDataSourceReadWrite();
   const rows = sortForReplay(
-    (await query(dataSource, PENDING_SQL, [v4Id, limit]))
+    (await query(dataSource, PENDING_SQL, [v4Id, limit, EMAIL_CASE_TWIN_RESOLVE_KEY]))
       .map(pendingRecord)
       .filter((row): row is PendingRecord => row !== null)
   );

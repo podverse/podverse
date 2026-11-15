@@ -7,6 +7,7 @@ import type {
   DTOAccountFollowingAddByRSSChannel,
 } from '@podverse/helpers';
 import { primaryChannelListArtworkUrl, resolveCredentialScope } from '@podverse/helpers';
+import { createAddByRSSId, createAddByRSSIdText } from '@podverse/helpers/addByRSS/ids';
 import type { DTOAddByRSSRemoteItemLookupResult } from '@podverse/helpers/dto';
 import { ADD_BY_RSS_REMOTE_ITEM_LOOKUP_MAX_REFS } from '@podverse/helpers/dto';
 import { getErrorMessage, getErrorResponseStatus } from '@podverse/helpers/error';
@@ -1155,6 +1156,47 @@ export const addByRssRepository = {
 
     const row = rows[0];
     return row === undefined ? null : rowToRecord(row);
+  },
+
+  /**
+   * A followed Add by RSS row for an address this device does not have yet.
+   * The parse timestamp stays empty, so the next device refresh fetches it.
+   * Returns false when the address is already stored or is not a usable feed URL.
+   * The row is owned by the signed-out library.
+   */
+  addSignedOutFeedStub: async (input: {
+    feedUrl: string;
+    title: string | null;
+  }): Promise<boolean> => {
+    const feedUrl = canonicalAddByRSSFeedUrl(input.feedUrl);
+    if (feedUrl === null) {
+      return false;
+    }
+    if ((await addByRssRepository.getFeedByUrl(feedUrl)) !== null) {
+      return false;
+    }
+
+    const idText = createAddByRSSIdText();
+    const title = input.title?.trim() ?? '';
+    const nowMs = Date.now();
+    await addByRssRepository.upsertFeed({
+      enclosureUrl: null,
+      feedUrl,
+      followed: true,
+      id: createAddByRSSId(idText),
+      idText,
+      imageUrl: null,
+      latestItemPubDateMs: null,
+      playbackPosition: null,
+      resourceType: 'podcasts',
+      title: title.length > 0 ? title : feedUrl,
+      updatedAt: new Date(nowMs).toISOString(),
+    });
+    await getDb()
+      .update(schema.addByRssFeed)
+      .set({ followed: 1, followedAt: nowMs, signedOutOwned: 1 })
+      .where(eq(schema.addByRssFeed.feedUrl, feedUrl));
+    return true;
   },
 
   getFeedByIdText: async (idText: string): Promise<MobileAddByRSSFeedRecord | null> => {

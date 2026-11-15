@@ -315,6 +315,30 @@ const validateAllEnvironmentVariables = (): ValidationSummary => {
       'Use Default (120)'
     )
   );
+  results.push(
+    validateOptional('CHANNEL_ADD_BY_RSS_MATCH_MAX_PER_MINUTE', 'Add-by-RSS', 'Use Default (60)')
+  );
+  results.push(
+    validateOptional(
+      'CHANNEL_ADD_BY_RSS_MATCH_ANON_MAX_PER_MINUTE',
+      'Add-by-RSS',
+      'Use Default (120)'
+    )
+  );
+  results.push(
+    validateOptional(
+      'LEGACY_PODCAST_LOOKUP_MAX_PER_MINUTE',
+      'Legacy podcast lookup',
+      'Use Default (30)'
+    )
+  );
+  results.push(
+    validateOptional(
+      'LEGACY_PODCAST_LOOKUP_INSTALL_MAX_PER_MINUTE',
+      'Legacy podcast lookup',
+      'Use Default (10)'
+    )
+  );
 
   // OPML import (optional; default 50 new feeds/hour)
   results.push(

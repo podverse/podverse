@@ -216,6 +216,18 @@ export class ChannelMergeRedirectService {
     return moves[0]?.to_channel_id_text ?? null;
   }
 
+  /** Applied absorb redirects for these Podcast Index ids, keyed by the absorbed id. */
+  async survivorIdTextForPodcastIndexIds(
+    podcastIndexIds: readonly number[]
+  ): Promise<Map<number, string>> {
+    const moves = await this.podcastIndexMoves(podcastIndexIds);
+    const byId = new Map<number, string>();
+    for (const move of moves) {
+      byId.set(move.from, move.to_channel_id_text);
+    }
+    return byId;
+  }
+
   async resolve(input: {
     channelIdTexts: readonly string[];
     itemIdTexts: readonly string[];

@@ -1,16 +1,18 @@
 import type { PropsWithChildren } from 'react';
-import { createContext, useCallback, useContext, useMemo, useState } from 'react';
+import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Linking } from 'react-native';
 
 import type { AccessDenialReason } from '@podverse/helpers';
-import { parseAddByRssFeedLimitRefusal } from '@podverse/helpers-requests';
+import { parseAddByRssFeedLimitRefusal, parseFollowLimitRefusal } from '@podverse/helpers-requests';
 
 import { useAuthPrompt } from '../auth/AuthPromptContext';
 import { ConfirmDialog } from '../components/feedback/ConfirmDialog';
 import { getMobileConfig } from '../config';
+import { subscribeFollowLimit } from './followLimitNotice';
 import { mapMembershipDenial } from './membershipDenial';
 import {
+  followLimitDialogCopy,
   membershipGateConfirmDestination,
   membershipGateConfirmLabelKey,
   membershipGateConfirmTestID,
@@ -42,6 +44,8 @@ type GatePresentation = {
  *   never yields `needs_account`.
  * - An Add by RSS feed-limit refusal opens its own dialog with the limit and an Email Support
  *   action instead of the Membership gate.
+ * - A follow-tier refusal opens its own dialog with the sentence and a close action. There is
+ *   no renew path and no email action.
  * - `runGated(action)` — await an API action; a membership 403 opens the gate (returns `undefined`),
  *   any other error rethrows.
  * - `goToMembership()` — navigate to the Membership screen, so gated affordances anywhere in the app
@@ -50,6 +54,7 @@ type GatePresentation = {
 export type MembershipGateContextValue = {
   openGate: (reason: AccessDenialReason) => void;
   handleGateError: (error: unknown) => boolean;
+  openFollowLimit: (limit: number) => void;
   runGated: <T>(action: () => Promise<T>) => Promise<T | undefined>;
   goToMembership: () => void;
 };
@@ -75,6 +80,10 @@ export function MembershipGateProvider({
     limit: 0,
     visible: false,
   });
+  const [followLimitGate, setFollowLimitGate] = useState<{ limit: number; visible: boolean }>({
+    limit: 0,
+    visible: false,
+  });
 
   const openGate = useCallback((next: AccessDenialReason) => {
     setGate({ reason: next, visible: true });
@@ -88,7 +97,23 @@ export function MembershipGateProvider({
     setFeedLimitGate((current) => ({ ...current, visible: false }));
   }, []);
 
+  const closeFollowLimitGate = useCallback(() => {
+    setFollowLimitGate((current) => ({ ...current, visible: false }));
+  }, []);
+
+  const openFollowLimit = useCallback((limit: number) => {
+    setFollowLimitGate({ limit, visible: true });
+  }, []);
+
+  useEffect(() => subscribeFollowLimit(openFollowLimit), [openFollowLimit]);
+
   const handleGateError = useCallback((error: unknown): boolean => {
+    const followLimitRefusal = parseFollowLimitRefusal(error);
+    if (followLimitRefusal !== null) {
+      setFollowLimitGate({ limit: followLimitRefusal.limit, visible: true });
+      return true;
+    }
+
     const feedLimitRefusal = parseAddByRssFeedLimitRefusal(error);
     if (feedLimitRefusal !== null) {
       setFeedLimitGate({ limit: feedLimitRefusal.limit, visible: true });
@@ -136,11 +161,18 @@ export function MembershipGateProvider({
   }, [closeGate, gate.reason, onNavigateToMembership, onRequestLogin]);
 
   const value = useMemo<MembershipGateContextValue>(
-    () => ({ goToMembership: onNavigateToMembership, handleGateError, openGate, runGated }),
-    [handleGateError, onNavigateToMembership, openGate, runGated]
+    () => ({
+      goToMembership: onNavigateToMembership,
+      handleGateError,
+      openFollowLimit,
+      openGate,
+      runGated,
+    }),
+    [handleGateError, onNavigateToMembership, openFollowLimit, openGate, runGated]
   );
 
   const messageKeys = membershipGateMessageKeys(gate.reason, membership.tier);
+  const followLimitCopy = followLimitDialogCopy(followLimitGate.limit);
   const confirmLabel = t(membershipGateConfirmLabelKey(gate.reason, membership));
 
   return (
@@ -173,6 +205,15 @@ export function MembershipGateProvider({
         testID="add-by-rss-feed-limit-modal"
         title={t('membership.gate.title_limit')}
         visible={feedLimitGate.visible}
+      />
+      <ConfirmDialog
+        body={t(followLimitCopy.bodyKey, followLimitCopy.bodyValues)}
+        cancelLabel={t('misc.close')}
+        cancelTestID="follow-limit-close"
+        onCancel={closeFollowLimitGate}
+        testID="follow-limit-modal"
+        title={t(followLimitCopy.titleKey)}
+        visible={followLimitGate.visible}
       />
     </MembershipGateContext.Provider>
   );

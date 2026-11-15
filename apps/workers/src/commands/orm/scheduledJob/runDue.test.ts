@@ -1,5 +1,8 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
+import type { FeedParseFailureReason } from '@podverse/helpers';
+import { PARSER_MAX_FEED_BODY_BYTES_MAX } from '@podverse/helpers';
+
 const {
   campaignGetByIdTextMock,
   campaignMarkSendingMock,
@@ -8,6 +11,9 @@ const {
   dispatchAdminNotificationCampaignMock,
   feedGetMock,
   feedGetByPodcastIndexIdMock,
+  feedLogUpdateMock,
+  feedRefreshPolicyMock,
+  feedUpdateMock,
   getIndexProviderMock,
   listDuePendingBatchMock,
   loggerErrorMock,
@@ -18,8 +24,10 @@ const {
   markFailedMock,
   parseAdminNotificationSendPayloadMock,
   parsePodcastIndexFeedDirectlyMock,
-  readFeedLastFinishedParseTimeMock,
+  podcastGetByIdMock,
+  readFeedLastParseOutcomeMock,
   recheckRemoteChannelStubMock,
+  setConditionMock,
   releaseStaleRunningBeforeMock,
   repointRemoteChannelStubMock,
   requeueWithBackoffMock,
@@ -32,6 +40,9 @@ const {
   dispatchAdminNotificationCampaignMock: vi.fn(),
   feedGetMock: vi.fn(),
   feedGetByPodcastIndexIdMock: vi.fn(),
+  feedLogUpdateMock: vi.fn(),
+  feedRefreshPolicyMock: vi.fn(),
+  feedUpdateMock: vi.fn(),
   getIndexProviderMock: vi.fn(),
   listDuePendingBatchMock: vi.fn(),
   loggerErrorMock: vi.fn(),
@@ -42,8 +53,10 @@ const {
   markFailedMock: vi.fn(),
   parseAdminNotificationSendPayloadMock: vi.fn(),
   parsePodcastIndexFeedDirectlyMock: vi.fn(),
-  readFeedLastFinishedParseTimeMock: vi.fn(),
+  podcastGetByIdMock: vi.fn(),
+  readFeedLastParseOutcomeMock: vi.fn(),
   recheckRemoteChannelStubMock: vi.fn(),
+  setConditionMock: vi.fn(),
   releaseStaleRunningBeforeMock: vi.fn(),
   repointRemoteChannelStubMock: vi.fn(),
   requeueWithBackoffMock: vi.fn(),
@@ -62,6 +75,10 @@ vi.mock('@workers/factories/indexProvider.js', () => ({
   getIndexProvider: getIndexProviderMock,
 }));
 
+vi.mock('@workers/factories/podcastIndexService.js', () => ({
+  getPodcastIndexService: () => ({ podcastGetById: podcastGetByIdMock }),
+}));
+
 vi.mock('@workers/factories/logger.js', () => ({
   getLogger: () => ({
     error: loggerErrorMock,
@@ -75,7 +92,9 @@ vi.mock('@workers/lib/remoteStubs/remoteStubActions.js', () => ({
   repointRemoteChannelStub: repointRemoteChannelStubMock,
 }));
 
-vi.mock('@podverse/orm', () => {
+vi.mock('@podverse/orm', async () => {
+  const { isPermanentFeedParseFailure } = await import('@podverse/helpers');
+
   class MockScheduledJobService {
     claimDueBatch = claimDueBatchMock;
     listDuePendingBatch = listDuePendingBatchMock;
@@ -95,14 +114,48 @@ vi.mock('@podverse/orm', () => {
   class MockFeedService {
     get = feedGetMock;
     getByPodcastIndexId = feedGetByPodcastIndexIdMock;
+    refreshFeedPolicy = feedRefreshPolicyMock;
+    update = feedUpdateMock;
+  }
+
+  class MockFeedPolicyService {
+    setCondition = setConditionMock;
+  }
+
+  class MockFeedLogService {
+    update = feedLogUpdateMock;
+  }
+
+  const permanentMaxAttempts = 2;
+  function decideMigrationFeedRetry(
+    attempts: number,
+    reason: FeedParseFailureReason | null
+  ): { action: 'fail'; reason: string } | { action: 'retry'; message: string } {
+    if (
+      reason !== null &&
+      isPermanentFeedParseFailure(reason) &&
+      attempts >= permanentMaxAttempts
+    ) {
+      return { action: 'fail', reason };
+    }
+    return {
+      action: 'retry',
+      message: `Migration feed parse failed: reason=${reason ?? 'unknown'}`,
+    };
   }
 
   return {
     ADMIN_NOTIFICATION_SEND_JOB_TYPE: 'admin-notification-send',
     AdminNotificationCampaignService: MockAdminNotificationCampaignService,
     FEED_FORCE_REPARSE_JOB_TYPE: 'feed-force-reparse',
+    FeedConditionSourceEnum: { Auto: 'auto' },
+    FeedConditionTypeKeyEnum: { OversizedDetected: 'oversized_detected' },
     FeedLifecycleStateKeyEnum: { Active: 'active' },
+    FeedLogService: MockFeedLogService,
+    FeedPolicyReasonEnum: { OversizedDetected: 'oversized_detected' },
+    FeedPolicyService: MockFeedPolicyService,
     FeedService: MockFeedService,
+    decideMigrationFeedRetry,
     REMOTE_STUB_PROMOTE_JOB_TYPE: 'remote-stub-promote',
     REMOTE_STUB_RECHECK_JOB_TYPE: 'remote-stub-recheck',
     REMOTE_STUB_REPOINT_JOB_TYPE: 'remote-stub-repoint',
@@ -138,11 +191,14 @@ vi.mock('@podverse/orm', () => {
         : null,
     shouldAttemptFeedParseFromLifecycleAndPolicy: shouldAttemptFeedParseMock,
     V4_MIGRATION_FEED_RETRY_JOB_TYPE: 'v4-migration-feed-retry',
-    getV4MigrationFeedRetryBackoffMs: (attempts: number) =>
-      ([1, 6, 24, 72, 168][Math.min(Math.max(attempts, 1), 5) - 1] ?? 0) * 60 * 60 * 1000,
+    getV4MigrationFeedRetryBackoffMs: (attempts: number) => {
+      const hours = [1, 6, 24, 24, 24];
+      const index = Math.max(attempts, 1) - 1;
+      return (hours[index] ?? 24) * 60 * 60 * 1000;
+    },
     parseV4MigrationFeedRetryPayload: (payload: { feedId?: unknown }) =>
-      typeof payload.feedId === 'number' ? { feedId: payload.feedId } : null,
-    readFeedLastFinishedParseTime: readFeedLastFinishedParseTimeMock,
+      typeof payload.feedId === 'number' ? { feedId: payload.feedId, schedule: 'standard' } : null,
+    readFeedLastParseOutcome: readFeedLastParseOutcomeMock,
   };
 });
 
@@ -168,9 +224,18 @@ const migrationRetryJob = {
   payload: { feedId: 56 },
 };
 
-const migrationFeed = {
+const migrationFeed: {
+  id: number;
+  podcast_index_id: number;
+  max_response_body_bytes_override: number | null;
+  feed_lifecycle_state: {
+    feed_lifecycle_state_type: { state_key: string };
+  } | null;
+  feed_policy: { primary_block_reason: string | null } | null;
+} = {
   id: 56,
   podcast_index_id: 9056,
+  max_response_body_bytes_override: null,
   feed_lifecycle_state: null,
   feed_policy: null,
 };
@@ -239,6 +304,12 @@ describe('scheduledJobsRunDue', () => {
     requeueWithBackoffMock.mockReset();
     shouldAttemptFeedParseMock.mockReset();
     parsePodcastIndexFeedDirectlyMock.mockReset();
+    podcastGetByIdMock.mockReset();
+    readFeedLastParseOutcomeMock.mockReset();
+    feedLogUpdateMock.mockReset();
+    feedRefreshPolicyMock.mockReset();
+    feedUpdateMock.mockReset();
+    setConditionMock.mockReset();
 
     releaseStaleRunningBeforeMock.mockResolvedValue(0);
     claimDueBatchMock.mockResolvedValue([]);
@@ -380,26 +451,52 @@ describe('scheduledJobsRunDue', () => {
     const beforeJob = new Date('2026-10-01T11:00:00.000Z');
     const afterJob = new Date('2026-10-01T13:00:00.000Z');
 
+    const openOutcome = {
+      lastFinishedParseTime: null,
+      lastParseFailureReason: null,
+    };
+
     beforeEach(() => {
       feedGetMock.mockReset();
-      readFeedLastFinishedParseTimeMock.mockReset();
+      readFeedLastParseOutcomeMock.mockReset();
+      podcastGetByIdMock.mockReset();
+      feedLogUpdateMock.mockReset();
       claimDueBatchMock.mockResolvedValue([migrationRetryJob]);
       feedGetMock.mockResolvedValue(migrationFeed);
+      readFeedLastParseOutcomeMock.mockResolvedValue(openOutcome);
+      podcastGetByIdMock.mockResolvedValue({ feed: { url: 'https://feeds.example/show.xml' } });
+      feedLogUpdateMock.mockResolvedValue({});
+      feedUpdateMock.mockImplementation(async () => ({
+        ...migrationFeed,
+        max_response_body_bytes_override: PARSER_MAX_FEED_BODY_BYTES_MAX,
+      }));
+      feedRefreshPolicyMock.mockResolvedValue({ primary_block_reason: null });
+      setConditionMock.mockResolvedValue({});
     });
 
     it('completes without parsing when an ordinary parse already finished after the job', async () => {
-      readFeedLastFinishedParseTimeMock.mockResolvedValue(afterJob);
+      readFeedLastParseOutcomeMock.mockResolvedValue({
+        lastFinishedParseTime: afterJob,
+        lastParseFailureReason: null,
+      });
 
       await scheduledJobsRunDue({ _: [] });
 
       expect(parsePodcastIndexFeedDirectlyMock).not.toHaveBeenCalled();
+      expect(podcastGetByIdMock).not.toHaveBeenCalled();
       expect(markCompletedMock).toHaveBeenCalledWith(32);
     });
 
     it('force parses and completes when the parse finishes', async () => {
-      readFeedLastFinishedParseTimeMock
-        .mockResolvedValueOnce(beforeJob)
-        .mockResolvedValueOnce(afterJob);
+      readFeedLastParseOutcomeMock
+        .mockResolvedValueOnce({
+          lastFinishedParseTime: beforeJob,
+          lastParseFailureReason: null,
+        })
+        .mockResolvedValueOnce({
+          lastFinishedParseTime: afterJob,
+          lastParseFailureReason: null,
+        });
 
       await scheduledJobsRunDue({ _: [] });
 
@@ -411,33 +508,75 @@ describe('scheduledJobsRunDue', () => {
     });
 
     it('requeues on the migration ladder when the parse records a failure', async () => {
-      readFeedLastFinishedParseTimeMock.mockResolvedValue(null);
       claimDueBatchMock.mockResolvedValue([{ ...migrationRetryJob, attempts: 2 }]);
+      readFeedLastParseOutcomeMock.mockResolvedValue({
+        lastFinishedParseTime: null,
+        lastParseFailureReason: 'timeout',
+      });
 
       await scheduledJobsRunDue({ _: [] });
 
       expect(parsePodcastIndexFeedDirectlyMock).toHaveBeenCalledTimes(1);
       expect(requeueWithBackoffMock).toHaveBeenCalledWith(
         32,
-        'Migration feed parse did not finish',
+        'Migration feed parse failed: reason=timeout',
         6 * HOUR_MS
       );
       expect(markCompletedMock).not.toHaveBeenCalled();
     });
 
-    it('requeues once with the parse error when the parse itself throws', async () => {
-      readFeedLastFinishedParseTimeMock.mockResolvedValue(null);
-      parsePodcastIndexFeedDirectlyMock.mockRejectedValue(new Error('No feedUrl found'));
+    it('retries a permanent failure on the first attempt and fails it on the second', async () => {
+      readFeedLastParseOutcomeMock.mockResolvedValue({
+        lastFinishedParseTime: null,
+        lastParseFailureReason: 'http_404',
+      });
 
       await scheduledJobsRunDue({ _: [] });
 
-      expect(readFeedLastFinishedParseTimeMock).toHaveBeenCalledTimes(1);
+      expect(requeueWithBackoffMock).toHaveBeenCalledWith(
+        32,
+        'Migration feed parse failed: reason=http_404',
+        HOUR_MS
+      );
+      expect(markFailedMock).not.toHaveBeenCalled();
+
+      requeueWithBackoffMock.mockClear();
+      claimDueBatchMock.mockResolvedValue([{ ...migrationRetryJob, attempts: 2 }]);
+
+      await scheduledJobsRunDue({ _: [] });
+
+      expect(markFailedMock).toHaveBeenCalledWith(32, 'http_404');
+      expect(requeueWithBackoffMock).not.toHaveBeenCalled();
+    });
+
+    it('fails without parsing when the Podcast Index feed has no url', async () => {
+      podcastGetByIdMock.mockResolvedValue(null);
+
+      await scheduledJobsRunDue({ _: [] });
+
+      expect(parsePodcastIndexFeedDirectlyMock).not.toHaveBeenCalled();
+      expect(feedLogUpdateMock).toHaveBeenCalledWith(
+        migrationFeed,
+        expect.objectContaining({
+          last_parse_failure_reason: 'no_feed_url',
+          last_failed_parse_time: expect.any(Date),
+        })
+      );
+      expect(markFailedMock).toHaveBeenCalledWith(32, 'no_feed_url');
+      expect(requeueWithBackoffMock).not.toHaveBeenCalled();
+    });
+
+    it('requeues once with the parse error when the parse itself throws', async () => {
+      parsePodcastIndexFeedDirectlyMock.mockRejectedValue(new Error('parser blew up'));
+
+      await scheduledJobsRunDue({ _: [] });
+
+      expect(readFeedLastParseOutcomeMock).toHaveBeenCalledTimes(1);
       expect(requeueWithBackoffMock).toHaveBeenCalledTimes(1);
-      expect(requeueWithBackoffMock).toHaveBeenCalledWith(32, 'No feedUrl found', HOUR_MS);
+      expect(requeueWithBackoffMock).toHaveBeenCalledWith(32, 'parser blew up', HOUR_MS);
     });
 
     it('keeps the five-minute base backoff for other job types in the same batch', async () => {
-      readFeedLastFinishedParseTimeMock.mockResolvedValue(null);
       claimDueBatchMock.mockResolvedValue([migrationRetryJob, campaignJob]);
       campaignGetByIdTextMock.mockRejectedValue(new Error('database unavailable'));
 
@@ -445,7 +584,7 @@ describe('scheduledJobsRunDue', () => {
 
       expect(requeueWithBackoffMock).toHaveBeenCalledWith(
         32,
-        'Migration feed parse did not finish',
+        'Migration feed parse failed: reason=unknown',
         HOUR_MS
       );
       expect(requeueWithBackoffMock).toHaveBeenCalledWith(
@@ -456,12 +595,14 @@ describe('scheduledJobsRunDue', () => {
     });
 
     it('marks failed after the sixth attempt', async () => {
-      readFeedLastFinishedParseTimeMock.mockResolvedValue(null);
       claimDueBatchMock.mockResolvedValue([{ ...migrationRetryJob, attempts: 6 }]);
 
       await scheduledJobsRunDue({ _: [] });
 
-      expect(markFailedMock).toHaveBeenCalledWith(32, 'Migration feed parse did not finish');
+      expect(markFailedMock).toHaveBeenCalledWith(
+        32,
+        'Migration feed parse failed: reason=unknown'
+      );
       expect(requeueWithBackoffMock).not.toHaveBeenCalled();
     });
 
@@ -483,6 +624,79 @@ describe('scheduledJobsRunDue', () => {
 
       await scheduledJobsRunDue({ _: [] });
 
+      expect(markCancelledMock).toHaveBeenCalledWith(
+        32,
+        'Feed may not be parsed (lifecycle=merged)'
+      );
+      expect(feedUpdateMock).not.toHaveBeenCalled();
+      expect(parsePodcastIndexFeedDirectlyMock).not.toHaveBeenCalled();
+    });
+
+    it('raises the body limit once and parses when the last failure is body_too_large', async () => {
+      readFeedLastParseOutcomeMock
+        .mockResolvedValueOnce({
+          lastFinishedParseTime: beforeJob,
+          lastParseFailureReason: 'body_too_large',
+        })
+        .mockResolvedValueOnce({
+          lastFinishedParseTime: afterJob,
+          lastParseFailureReason: null,
+        });
+
+      await scheduledJobsRunDue({ _: [] });
+
+      expect(feedUpdateMock).toHaveBeenCalledWith(56, {
+        max_response_body_bytes_override: PARSER_MAX_FEED_BODY_BYTES_MAX,
+      });
+      expect(setConditionMock).toHaveBeenCalledWith({
+        feedId: 56,
+        conditionKey: 'oversized_detected',
+        isActive: false,
+        source: 'auto',
+        note: 'v4 migration raised body limit',
+      });
+      expect(feedRefreshPolicyMock).toHaveBeenCalledWith(56);
+      expect(parsePodcastIndexFeedDirectlyMock).toHaveBeenCalledWith(9056, true, {
+        enqueueFollowUpWork: true,
+        suppressNewItemSideEffectsPublishedBeforeMs: migrationRetryJob.created_at.getTime(),
+      });
+      expect(markCompletedMock).toHaveBeenCalledWith(32);
+    });
+
+    it('fails with body_too_large when the override is already at the maximum', async () => {
+      feedGetMock.mockResolvedValue({
+        ...migrationFeed,
+        max_response_body_bytes_override: PARSER_MAX_FEED_BODY_BYTES_MAX,
+        feed_policy: { primary_block_reason: 'oversized_detected' },
+      });
+      readFeedLastParseOutcomeMock.mockResolvedValue({
+        lastFinishedParseTime: null,
+        lastParseFailureReason: null,
+      });
+
+      await scheduledJobsRunDue({ _: [] });
+
+      expect(markFailedMock).toHaveBeenCalledWith(32, 'body_too_large');
+      expect(feedUpdateMock).not.toHaveBeenCalled();
+      expect(parsePodcastIndexFeedDirectlyMock).not.toHaveBeenCalled();
+    });
+
+    it('still cancels a blocked feed after raising the body limit', async () => {
+      feedGetMock.mockResolvedValue({
+        ...migrationFeed,
+        feed_policy: { primary_block_reason: 'oversized_detected' },
+      });
+      feedUpdateMock.mockResolvedValue({
+        ...migrationFeed,
+        max_response_body_bytes_override: PARSER_MAX_FEED_BODY_BYTES_MAX,
+        feed_lifecycle_state: { feed_lifecycle_state_type: { state_key: 'merged' } },
+      });
+      shouldAttemptFeedParseMock.mockReturnValue(false);
+
+      await scheduledJobsRunDue({ _: [] });
+
+      expect(feedUpdateMock).toHaveBeenCalledTimes(1);
+      expect(setConditionMock).toHaveBeenCalledTimes(1);
       expect(markCancelledMock).toHaveBeenCalledWith(
         32,
         'Feed may not be parsed (lifecycle=merged)'

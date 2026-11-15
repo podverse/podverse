@@ -146,7 +146,8 @@ export function AuthProvider({ children }: PropsWithChildren) {
         // Account data goes with the session: the account snapshot, queue data, playlists, the
         // subscribed livestreams page Home paints from, and the subscribed clips snapshot.
         // Subscriptions and add-by-RSS feeds are the device's data; a signed-out user keeps
-        // browsing and playing them.
+        // browsing and playing them. Staged rows from the previous app's signed-out
+        // subscriptions are device data too, and a session end leaves them in place.
         await accountRepository.clearSnapshot();
         await queueRepository.clearAll();
         await playlistRepository.clearAll();

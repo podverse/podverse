@@ -1,6 +1,5 @@
 /**
- * Parser ↔ condition activation coverage; aligns with parity matrix **07b** scenarios involving
- * `spam_detected` / lifecycle-driven parsing (see `packages/orm/src/lib/feedEffectivePolicyComputed.test.ts`).
+ * Parser condition activation: spam detection and the lifecycle/policy parse gate.
  */
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
@@ -12,6 +11,8 @@ const conditionMocks = vi.hoisted(() => ({
   recomputePolicy: vi.fn(() => Promise.resolve({ parse_allowed: true })),
   getActiveConditionKeys: vi.fn(() => Promise.resolve([])),
 }));
+
+const getOrCreateByFeedMock = vi.hoisted(() => vi.fn().mockResolvedValue({ id: 1, id_text: 'c1' }));
 
 const {
   handleAllRemoteItemsFeedParsingMock,
@@ -67,6 +68,7 @@ vi.mock('@parser/factories/loggerService.js', () => ({
   loggerService: {
     info: vi.fn(),
     warn: warnMock,
+    debug: vi.fn(),
     logError: logErrorMock,
   },
 }));
@@ -165,7 +167,7 @@ vi.mock('@podverse/orm', () => ({
     getChannelSeasonIndex = vi.fn().mockResolvedValue({});
   },
   ChannelService: class ChannelService {
-    getOrCreateByFeed = vi.fn().mockResolvedValue({ id: 1, id_text: 'c1' });
+    getOrCreateByFeed = getOrCreateByFeedMock;
   },
   checkIfSpamFeed: vi.fn(() => false),
   DEFAULT_SPAM_FEED_ITEM_THRESHOLDS: {
@@ -252,9 +254,10 @@ describe('parseRSSFeedAndSaveToDatabase condition / policy gate', () => {
     onDemandGetCountMock.mockResolvedValue(0);
     accountGetMock.mockResolvedValue({ id: 1 });
     feedServiceUpdateMock.mockImplementation(async (_id: number, dto: unknown) => dto);
+    getOrCreateByFeedMock.mockResolvedValue({ id: 1, id_text: 'c1' });
   });
 
-  it('does not acquire parsing lock when lifecycle/policy gate denies parse', async () => {
+  it('does not create a channel or acquire the parsing lock when lifecycle/policy denies parse', async () => {
     conditionMocks.shouldAttemptFeedParseFromLifecycleAndPolicy.mockReturnValue(false);
 
     const result = await parseRSSFeedAndSaveToDatabase('https://example.com/feed.xml', 9001, {
@@ -267,9 +270,15 @@ describe('parseRSSFeedAndSaveToDatabase condition / policy gate', () => {
     });
 
     expect(result).toEqual({ remoteItemsToParse: [], imageHints: [] });
+    expect(getOrCreateByFeedMock).not.toHaveBeenCalled();
     expect(conditionMocks.tryStartParsing).not.toHaveBeenCalled();
     expect(handleRequestRSSFeedMock).not.toHaveBeenCalled();
-    expect(logErrorMock).toHaveBeenCalled();
+    expect(warnMock).toHaveBeenCalledWith(
+      expect.stringContaining(
+        'Feed parse failed: feed_id=202 podcast_index_id=9001 reason=parse_error http_status=none'
+      )
+    );
+    expect(logErrorMock).not.toHaveBeenCalled();
   });
 
   it('sets oversized_detected and refreshes policy when HTTP path exceeds max response bytes', async () => {

@@ -13,8 +13,12 @@ import {
 import type { Request, Response } from 'express';
 import Joi from 'joi';
 
-import { SharableStatusEnum } from '@podverse/helpers';
-import { AccountFollowingPlaylistService, AccountService } from '@podverse/orm';
+import { followLimitRefusal, SharableStatusEnum } from '@podverse/helpers';
+import {
+  AccountFollowingPlaylistService,
+  AccountService,
+  FollowLimitReachedError,
+} from '@podverse/orm';
 
 import { handleGenericErrorResponse } from '../helpers/error.js';
 
@@ -87,6 +91,10 @@ class AccountFollowingPlaylistController {
             );
             res.status(201).json({ message: 'Successfully followed playlist' });
           } catch (err) {
+            if (err instanceof FollowLimitReachedError) {
+              res.status(403).json(followLimitRefusal(err.limit));
+              return;
+            }
             handleGenericErrorResponse(res, err);
           }
         });

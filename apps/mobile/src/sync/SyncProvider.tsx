@@ -31,6 +31,15 @@ import { downloadManager } from '../downloads/downloadManager';
 import { useQueueResourcesLoadActive } from '../hooks/useQueueResourcesLoadActive';
 import { homeFeedRefresh } from '../lib/home/homeFeedRefresh';
 import {
+  resetV4ContinueMigrationOffer,
+  tryOfferV4ContinueMigration,
+} from '../migration/v4/offerV4ContinueMigration';
+import {
+  registerV4CarryoverRowsSaved,
+  registerV4ContinueMigrationNeeded,
+  runV4CarryoverReadOnce,
+} from '../migration/v4/readV4LocalState';
+import {
   getConnectivity,
   reportUserNetworkAction,
   subscribeConnectivity,
@@ -59,6 +68,7 @@ import { attachSyncEventLogSink } from './syncEventLogSink';
 import { publishSyncIndicatorQueueState } from './syncIndicatorPresentation';
 import type { SyncTrigger } from './syncJobPlan';
 import { planSyncRun } from './syncJobPlan';
+import type { SyncJobDeps } from './syncJobs';
 import { buildSyncJobs } from './syncJobs';
 import type { SyncQueueState } from './syncQueue';
 import { syncQueue } from './syncQueue';
@@ -148,8 +158,10 @@ export function SyncProvider({ children }: PropsWithChildren) {
   }, [setAccount]);
 
   const isAuthenticatedRef = useRef(status === 'authenticated');
+  const authStatusRef = useRef(status);
   useEffect(() => {
     isAuthenticatedRef.current = status === 'authenticated';
+    authStatusRef.current = status;
   }, [status]);
 
   useEffect(() => {
@@ -185,40 +197,88 @@ export function SyncProvider({ children }: PropsWithChildren) {
     };
   }, []);
 
-  const requestSync = useCallback((trigger: SyncTrigger) => {
-    if (trigger === 'app-foreground' || trigger === 'app-start' || trigger === 'sign-in') {
-      requestAutoDownloadCatchUp();
-      if (syncQueue.getState().status === 'running') {
-        noteAutoDownloadSyncRunning();
+  const syncJobDeps = useCallback(
+    (): SyncJobDeps => ({
+      getAuthContext: () => depsRef.current,
+      loadActiveQueue: async () => {
+        await loadActiveQueueRef.current();
+      },
+      setAccount: (account) => {
+        setAccountRef.current(account);
+      },
+    }),
+    []
+  );
+
+  const presentContinueMigration = useCallback(() => {
+    void tryOfferV4ContinueMigration(
+      () => authStatusRef.current === 'anonymous',
+      async () => {
+        if (authStatusRef.current !== 'anonymous') {
+          return false;
+        }
+        const navigation = await import('../navigation');
+        const open = (): boolean => {
+          if (authStatusRef.current !== 'anonymous') {
+            return false;
+          }
+          return navigation.navigateToV4ContinueMigrationScreen();
+        };
+        if (open()) {
+          return true;
+        }
+        await new Promise<void>((resolve) => {
+          setTimeout(resolve, 0);
+        });
+        return open();
       }
-    }
-
-    const planned = planSyncRun({
-      isAuthenticated: isAuthenticatedRef.current && !termsBlocksAccountSync(),
-      trigger,
+    ).catch((error: unknown) => {
+      if (__DEV__) {
+        console.warn('[v4-carryover] could not open the save screen', error);
+      }
     });
-    if (planned.length === 0) {
-      startAutoDownloadCatchUpIfIdle();
-      return;
-    }
-
-    if (NETWORK_INTENT_TRIGGERS.has(trigger)) {
-      reportUserNetworkAction();
-    }
-
-    syncQueue.enqueue(
-      buildSyncJobs(planned, {
-        getAuthContext: () => depsRef.current,
-        loadActiveQueue: async () => {
-          await loadActiveQueueRef.current();
-        },
-        setAccount: (account) => {
-          setAccountRef.current(account);
-        },
-      })
-    );
-    startAutoDownloadCatchUpIfIdle();
   }, []);
+
+  const requestSync = useCallback(
+    (trigger: SyncTrigger) => {
+      if (trigger === 'app-foreground' || trigger === 'app-start' || trigger === 'sign-in') {
+        requestAutoDownloadCatchUp();
+        if (syncQueue.getState().status === 'running') {
+          noteAutoDownloadSyncRunning();
+        }
+      }
+
+      const planned = planSyncRun({
+        isAuthenticated: isAuthenticatedRef.current && !termsBlocksAccountSync(),
+        trigger,
+      });
+      if (planned.length === 0) {
+        startAutoDownloadCatchUpIfIdle();
+        return;
+      }
+
+      if (NETWORK_INTENT_TRIGGERS.has(trigger)) {
+        reportUserNetworkAction();
+      }
+
+      void buildSyncJobs(planned, syncJobDeps())
+        .then((jobs) => {
+          if (jobs.length === 0) {
+            startAutoDownloadCatchUpIfIdle();
+            return;
+          }
+          syncQueue.enqueue(jobs);
+          startAutoDownloadCatchUpIfIdle();
+        })
+        .catch((error: unknown) => {
+          if (__DEV__) {
+            console.warn('[sync] could not build jobs', error);
+          }
+          startAutoDownloadCatchUpIfIdle();
+        });
+    },
+    [syncJobDeps]
+  );
 
   useEffect(() => {
     registerAddByRssRefreshRequest(() => {
@@ -287,6 +347,36 @@ export function SyncProvider({ children }: PropsWithChildren) {
       status === 'authenticated' && previousStatus === 'anonymous' ? 'sign-in' : 'app-start'
     );
   }, [requestSync, status]);
+
+  useEffect(() => {
+    registerV4CarryoverRowsSaved(() => {
+      void buildSyncJobs([], syncJobDeps())
+        .then((jobs) => {
+          if (jobs.length > 0) {
+            syncQueue.enqueue(jobs);
+          }
+        })
+        .catch(() => undefined);
+    });
+    registerV4ContinueMigrationNeeded(presentContinueMigration);
+    void runV4CarryoverReadOnce().then(() => {
+      presentContinueMigration();
+    });
+    return () => {
+      registerV4CarryoverRowsSaved(null);
+      registerV4ContinueMigrationNeeded(null);
+    };
+  }, [presentContinueMigration, syncJobDeps]);
+
+  useEffect(() => {
+    if (status === 'authenticated') {
+      resetV4ContinueMigrationOffer();
+      return;
+    }
+    if (status === 'anonymous') {
+      presentContinueMigration();
+    }
+  }, [presentContinueMigration, status]);
 
   const [termsBlocked, setTermsBlocked] = useState(() => termsBlocksAccountSync());
   useEffect(() => {

@@ -10,6 +10,7 @@ import { MobileScreenContainer } from '../../components/screen/MobileScreenConta
 import { ListEmpty } from '../../components/state/ListEmpty';
 import { getMobileConfig } from '../../config';
 import { useAddByRssAddFlow } from '../../hooks/useAddByRssAddFlow';
+import { replaceWithDirectoryChannel } from '../../lib/navigation/replaceDirectoryChannel';
 import { OFFLINE_UNAVAILABLE_MESSAGE_KEY } from '../../lib/offlineModeViews';
 import type { LibraryStackParamList } from '../../navigation';
 import { useOfflineMode } from '../../prefs/offlineMode';
@@ -46,6 +47,9 @@ export function AddByRssAddScreen({ navigation }: AddByRssAddScreenProps) {
     inputValue,
     onAfterAdd: async () => {
       navigation.goBack();
+    },
+    onDirectoryChannel: (channel) => {
+      replaceWithDirectoryChannel(navigation, channel);
     },
     onNotice: setNoticeKey,
     setInputValue,

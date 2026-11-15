@@ -143,6 +143,9 @@ const ROUTE_CASES: RouteCase[] = [
   route('post', '/account/follow/channel/bulk', 'subscriptions', 'create', {
     body: CHANNELS_BODY,
   }),
+  route('post', '/account/add-by-rss/convert-to-channel', 'subscriptions', 'create', {
+    body: FEED_BODY,
+  }),
   route('post', '/account/unfollow/channel', 'subscriptions', 'delete', { body: CHANNEL_BODY }),
   route('post', '/account/unfollow/bulk', 'subscriptions', 'delete', { body: CHANNELS_BODY }),
   route('post', '/account/follow/account', 'subscriptions', 'create', { body: ACCOUNT_BODY }),
@@ -351,10 +354,10 @@ describe('API key access for account, subscriptions, and Add by RSS', () => {
   }
 
   it('covers every labeled account, subscription, and Add by RSS route', () => {
-    expect(ROUTE_CASES).toHaveLength(45);
+    expect(ROUTE_CASES).toHaveLength(46);
     expect(ROUTE_CASES.filter((routeCase) => routeCase.resource === 'account')).toHaveLength(6);
     expect(ROUTE_CASES.filter((routeCase) => routeCase.resource === 'subscriptions')).toHaveLength(
-      27
+      28
     );
     expect(ROUTE_CASES.filter((routeCase) => routeCase.resource === 'add_by_rss')).toHaveLength(12);
     expect(distinctRequirements(ROUTE_CASES)).toHaveLength(9);

@@ -51,15 +51,16 @@ const firstMigrationSql = (): string =>
     .toLowerCase();
 
 describe('mobile SQLite migrations', () => {
-  it('holds versions 1 to 3, and version 3 is the latest', () => {
-    expect(MIGRATIONS).toHaveLength(3);
+  it('holds versions 1 to 4, and version 4 is the latest', () => {
+    expect(MIGRATIONS).toHaveLength(4);
     expect(MIGRATIONS[0]?.version).toBe(1);
     expect(MIGRATIONS[1]?.version).toBe(2);
     expect(MIGRATIONS[2]?.version).toBe(3);
-    expect(LATEST_MIGRATION_VERSION).toBe(3);
+    expect(MIGRATIONS[3]?.version).toBe(4);
+    expect(LATEST_MIGRATION_VERSION).toBe(4);
   });
 
-  it('runs every pending statement on a new database and records version 3', async () => {
+  it('runs every pending statement on a new database and records version 4', async () => {
     const { database, executed } = createRecordingDatabase(0);
 
     await runMigrations(database);
@@ -67,6 +68,7 @@ describe('mobile SQLite migrations', () => {
     const version1 = MIGRATIONS[0]?.statements ?? [];
     const version2 = MIGRATIONS[1]?.statements ?? [];
     const version3 = MIGRATIONS[2]?.statements ?? [];
+    const version4 = MIGRATIONS[3]?.statements ?? [];
     expect(executed).toEqual([
       ...version1,
       'PRAGMA user_version = 1;',
@@ -74,6 +76,8 @@ describe('mobile SQLite migrations', () => {
       'PRAGMA user_version = 2;',
       ...version3,
       'PRAGMA user_version = 3;',
+      ...version4,
+      'PRAGMA user_version = 4;',
     ]);
   });
 
@@ -119,28 +123,54 @@ describe('mobile SQLite migrations', () => {
     expect(sql.includes('username')).toBe(false);
   });
 
-  it('runs versions 2 and 3 on a database already at version 1', async () => {
+  it('runs versions 2, 3, and 4 on a database already at version 1', async () => {
     const { database, executed } = createRecordingDatabase(1);
 
     await runMigrations(database);
 
     const version2 = MIGRATIONS[1]?.statements ?? [];
     const version3 = MIGRATIONS[2]?.statements ?? [];
+    const version4 = MIGRATIONS[3]?.statements ?? [];
     expect(executed).toEqual([
       ...version2,
       'PRAGMA user_version = 2;',
       ...version3,
       'PRAGMA user_version = 3;',
+      ...version4,
+      'PRAGMA user_version = 4;',
     ]);
   });
 
-  it('runs only version 3 on a database already at version 2', async () => {
+  it('runs versions 3 and 4 on a database already at version 2', async () => {
     const { database, executed } = createRecordingDatabase(2);
 
     await runMigrations(database);
 
     const version3 = MIGRATIONS[2]?.statements ?? [];
-    expect(executed).toEqual([...version3, 'PRAGMA user_version = 3;']);
+    const version4 = MIGRATIONS[3]?.statements ?? [];
+    expect(executed).toEqual([
+      ...version3,
+      'PRAGMA user_version = 3;',
+      ...version4,
+      'PRAGMA user_version = 4;',
+    ]);
+  });
+
+  it('runs only version 4 on a database already at version 3', async () => {
+    const { database, executed } = createRecordingDatabase(3);
+
+    await runMigrations(database);
+
+    const version4 = MIGRATIONS[3]?.statements ?? [];
+    expect(executed).toEqual([...version4, 'PRAGMA user_version = 4;']);
+  });
+
+  it('does nothing on a database already at version 4', async () => {
+    const { database, executed } = createRecordingDatabase(4);
+
+    await runMigrations(database);
+
+    expect(executed).toEqual([]);
   });
 
   it('adds Add by RSS feed columns in version 3 and none for a feed secret', () => {
@@ -157,11 +187,31 @@ describe('mobile SQLite migrations', () => {
     }
   });
 
+  it('creates the carryover table in version 4 and stores no feed secret', () => {
+    const statements = (MIGRATIONS[3]?.statements ?? []).map((statement) =>
+      statement.toLowerCase()
+    );
+    const sql = statements.join('\n');
+
+    expect(statements.length).toBe(1);
+    expect(sql).toContain('create table if not exists v4_carryover_entry (');
+    expect(sql).toContain('legacy_kind text not null');
+    expect(sql).toContain('legacy_id text not null');
+    expect(sql).toContain('cached_feed_url text');
+    expect(sql).toContain('cached_title text');
+    expect(sql).toContain('status text not null');
+    expect(sql).toContain('attempts integer not null default 0');
+    expect(sql).toContain('updated_at integer not null');
+    expect(sql).toContain('primary key (legacy_kind, legacy_id)');
+    expect(sql.includes('password')).toBe(false);
+    expect(sql.includes('username')).toBe(false);
+  });
+
   it('rejects a database above the latest version without running anything', async () => {
     const { database, executed } = createRecordingDatabase(26);
 
     await expect(runMigrations(database)).rejects.toThrow(
-      "SQLite user_version 26 is newer than this build's latest migration 3"
+      "SQLite user_version 26 is newer than this build's latest migration 4"
     );
     expect(executed).toEqual([]);
   });

@@ -5,6 +5,7 @@ import { Client } from 'pg';
 import { Account, getDataSourceReadWrite, isValidNanoIdV2IdText } from '@podverse/orm';
 
 import type { LocalCatalog, V4PodcastKey } from '../v4Library/copyAccountLibraryLib.js';
+import { catalogWaitHoursFromArgs } from './catalogWaitHours.js';
 import type {
   CatalogSeedCreate,
   CatalogSeedReport,
@@ -31,14 +32,18 @@ Count the shows one v4 account needs in the local v5 catalog. With --dry-run,
 writes nothing and does not queue a parse. Without --dry-run, creates each
 missing local feed and a channel whose id_text is the v4 podcast id, then
 queues a parse on rss-slow. Each new show also gets up to six slow retries
-(scheduledJobsRunDue), the first 1 h after the seed, then 1 h, 6 h, 24 h, 3 d,
-and 7 d apart. They stop once a parse finishes. Episodes that left the feed are
-not copied.
+(scheduledJobsRunDue), the first 15 minutes after the seed, then 1 h, 6 h,
+1 d, 1 d, and 1 d apart. A permanent failure (404, 410, missing host, not a
+feed, or no feed URL) stops after 2 attempts. Other failures stop once a parse
+finishes or the attempts are used. Episodes that left the feed are not copied.
 
 Flags:
-  --v4-id id    v4 users.id (required)
-  --dry-run     Count only. Do not write or queue
-  --help        Show this text
+  --v4-id id              v4 users.id (required)
+  --dry-run               Count only. Do not write or queue
+  --catalog-wait-hours n  Positive number, same rule as v4RunFullRehearsal
+                          (default 24). This command queues parses and returns.
+                          It does not wait for them.
+  --help                  Show this text
 
 Requires V4_DATABASE_URL plus the Base, ORM, and MQ worker env. The v5 account
 must already exist. Apply refuses unless DB_HOST is localhost.
@@ -348,6 +353,8 @@ export const v4SeedAccountCatalog = async (args: CommandLineArgs) => {
     process.stdout.write(V4_SEED_ACCOUNT_CATALOG_HELP);
     return;
   }
+
+  catalogWaitHoursFromArgs(args);
 
   const v4Id = optionValue(args, 'v4-id');
   if (v4Id === null) {
