@@ -7,6 +7,7 @@ import {
   buildRestoreArgs,
   cleanDumpPath,
   dumpRoleFromEnv,
+  DROP_ATTACHED_PARTITIONS_SQL,
   TERMINATE_OTHER_CLIENTS_SQL,
 } from './localDatabaseImage.js';
 
@@ -70,6 +71,7 @@ describe('pg tool arguments', () => {
       '--if-exists',
       '--no-owner',
       '--no-privileges',
+      '--no-comments',
       '--exit-on-error',
       toolTarget.filePath,
     ]);
@@ -86,7 +88,7 @@ describe('pg tool arguments', () => {
     }
   });
 
-  it('dump args include -Fc, --no-owner, and -f, and restore args include --clean, --if-exists, --no-owner, --no-privileges, and --exit-on-error, end with the file path, and omit -f and -Fc', () => {
+  it('dump args include -Fc, --no-owner, and -f, and restore args include --clean, --if-exists, --no-owner, --no-privileges, --no-comments, and --exit-on-error, end with the file path, and omit -f and -Fc', () => {
     const dumpArgs = buildDumpArgs(toolTarget);
     const restoreArgs = buildRestoreArgs(toolTarget);
 
@@ -97,6 +99,7 @@ describe('pg tool arguments', () => {
     expect(restoreArgs).toContain('--if-exists');
     expect(restoreArgs).toContain('--no-owner');
     expect(restoreArgs).toContain('--no-privileges');
+    expect(restoreArgs).toContain('--no-comments');
     expect(restoreArgs).toContain('--exit-on-error');
     expect(restoreArgs.at(-1)).toBe(toolTarget.filePath);
     expect(restoreArgs).not.toContain('-f');
@@ -188,6 +191,18 @@ describe('dumpRoleFromEnv', () => {
         expect(error.message).not.toContain(entry.token);
       }
     }
+  });
+});
+
+describe('DROP_ATTACHED_PARTITIONS_SQL', () => {
+  it('drops leaf partitions in public and listener_identity and does not drop a schema', () => {
+    expect(DROP_ATTACHED_PARTITIONS_SQL).toContain("parent.relkind = 'p'");
+    expect(DROP_ATTACHED_PARTITIONS_SQL).toContain("ns.nspname IN ('public', 'listener_identity')");
+    expect(DROP_ATTACHED_PARTITIONS_SQL).toContain('nested.inhparent = i.inhrelid');
+    expect(DROP_ATTACHED_PARTITIONS_SQL).toContain('EXIT WHEN NOT FOUND');
+    expect(DROP_ATTACHED_PARTITIONS_SQL).toContain("format('DROP TABLE %s', child)");
+    expect(DROP_ATTACHED_PARTITIONS_SQL).not.toContain('DROP SCHEMA');
+    expect(DROP_ATTACHED_PARTITIONS_SQL).not.toContain('DROP DATABASE');
   });
 });
 
