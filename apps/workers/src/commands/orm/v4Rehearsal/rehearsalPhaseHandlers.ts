@@ -413,6 +413,7 @@ async function seedRehearsalCatalog(
       v4Ids: context.stage === 'full' ? [] : ids,
       dryRun: false,
       waitDeadlineMs: context.catalogWaitHours * ONE_HOUR_MS,
+      retrySchedule: 'rehearsal',
       onProgress: (progress) => {
         context.writeLine(catalogProgressLine(progress));
         progressWrites.push(context.emitProgress());

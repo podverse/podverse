@@ -338,7 +338,11 @@ Every verify failure is one of F1, F3, F4, F5, or F6.
    fails after its second attempt. Other reasons retry at 15 minutes, then 1
    hour, 6 hours, 1 day, 1 day, and 1 day. The catalog wait also ends after
    `--catalog-wait-hours` (default 24). What is still waiting stays on the job
-   loop, and replay finishes `waiting_parse` rows later.
+   loop, and replay finishes `waiting_parse` rows later. Retry jobs the local
+   rehearsal creates use a shorter schedule: 15 minutes, then 2, 5, 10, 15,
+   and 30 minutes, so the catalog phase measures parse time and failure
+   classes rather than days of waiting. Go-live seeding keeps the schedule
+   above.
 8. **Large feeds.** A migration feed that fails with `body_too_large` gets a
    body limit of 50,000,000 bytes and one immediate retry. A second
    `body_too_large` is permanent and listed for an operator.

@@ -24,24 +24,38 @@ export const V4_MIGRATION_FEED_PERMANENT_MAX_ATTEMPTS = 2;
 export const V4_MIGRATION_FEED_RETRY_FIRST_DELAY_MS = 15 * ONE_MINUTE_MS;
 
 /**
- * Delay before the next retry, indexed by the attempt that just failed (attempt 1 is index 0).
- * Five entries cover the retries after attempts 1 through 5. A later attempt uses one day.
+ * `standard` is the go-live schedule. `rehearsal` is for the local rehearsal only: a feed
+ * that keeps failing settles about an hour after its first retry instead of days later.
  */
-const V4_MIGRATION_FEED_RETRY_BACKOFF_LADDER_MS: readonly number[] = [
-  ONE_HOUR_MS,
-  6 * ONE_HOUR_MS,
-  ONE_DAY_MS,
-  ONE_DAY_MS,
-  ONE_DAY_MS,
-];
+export type V4MigrationFeedRetrySchedule = 'standard' | 'rehearsal';
+
+/**
+ * Delay before the next retry, indexed by the attempt that just failed (attempt 1 is index 0).
+ * Five entries cover the retries after attempts 1 through 5. A later attempt uses the last entry.
+ */
+const V4_MIGRATION_FEED_RETRY_BACKOFF_LADDER_MS: Record<
+  V4MigrationFeedRetrySchedule,
+  readonly [number, ...number[]]
+> = {
+  standard: [ONE_HOUR_MS, 6 * ONE_HOUR_MS, ONE_DAY_MS, ONE_DAY_MS, ONE_DAY_MS],
+  rehearsal: [
+    2 * ONE_MINUTE_MS,
+    5 * ONE_MINUTE_MS,
+    10 * ONE_MINUTE_MS,
+    15 * ONE_MINUTE_MS,
+    30 * ONE_MINUTE_MS,
+  ],
+};
 
 export type V4MigrationFeedRetryPayload = {
   feedId: number;
+  schedule: V4MigrationFeedRetrySchedule;
 };
 
 export const buildV4MigrationFeedRetryDedupeKey = (feedId: number): string =>
   `${V4_MIGRATION_FEED_RETRY_JOB_TYPE}:${feedId}`;
 
+/** A payload with no `schedule` is `standard`. An unknown schedule is invalid. */
 export const parseV4MigrationFeedRetryPayload = (
   payload: Record<string, unknown> | null | undefined
 ): V4MigrationFeedRetryPayload | null => {
@@ -49,16 +63,26 @@ export const parseV4MigrationFeedRetryPayload = (
   if (typeof feedId !== 'number' || !Number.isInteger(feedId) || feedId <= 0) {
     return null;
   }
-  return { feedId };
+  const schedule = payload?.schedule;
+  if (schedule === undefined || schedule === 'standard') {
+    return { feedId, schedule: 'standard' };
+  }
+  if (schedule === 'rehearsal') {
+    return { feedId, schedule };
+  }
+  return null;
 };
 
 /**
- * Backoff after a failed attempt. An attempt count past the ladder uses one day.
+ * Backoff after a failed attempt. An attempt count past the ladder uses the ladder's last delay.
  */
-export const getV4MigrationFeedRetryBackoffMs = (attempts: number): number => {
-  const ladder = V4_MIGRATION_FEED_RETRY_BACKOFF_LADDER_MS;
+export const getV4MigrationFeedRetryBackoffMs = (
+  attempts: number,
+  schedule: V4MigrationFeedRetrySchedule = 'standard'
+): number => {
+  const ladder = V4_MIGRATION_FEED_RETRY_BACKOFF_LADDER_MS[schedule];
   const index = Math.max(attempts, 1) - 1;
-  return ladder[index] ?? ONE_DAY_MS;
+  return ladder[Math.min(index, ladder.length - 1)] ?? ladder[0];
 };
 
 export type MigrationFeedRetryDecision =
@@ -91,9 +115,11 @@ export const decideMigrationFeedRetry = (
  */
 export const scheduleV4MigrationFeedRetry = async (
   feedId: number,
-  runAfter: Date
+  runAfter: Date,
+  schedule: V4MigrationFeedRetrySchedule = 'standard'
 ): Promise<ScheduledJob> => {
-  const payload: V4MigrationFeedRetryPayload = { feedId };
+  const payload: Record<string, unknown> =
+    schedule === 'standard' ? { feedId } : { feedId, schedule };
   return new ScheduledJobService().upsertByDedupeKey({
     dedupe_key: buildV4MigrationFeedRetryDedupeKey(feedId),
     job_type: V4_MIGRATION_FEED_RETRY_JOB_TYPE,

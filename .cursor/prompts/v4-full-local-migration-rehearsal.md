@@ -116,11 +116,17 @@ database sessions, so a parser or job loop that was already running does not fin
   parsers. If the stage does not print `rehearsal restore=finished`, start the loop when
   the parsers start. It claims at most 100 due jobs per pass, so run it in a loop. In the
   agent's shell:
-  `while true; do npm run scheduled_jobs_run_due -w apps/workers -- -limit 100; sleep 60; done`.
+  `while true; do npm run scheduled_jobs_run_due -w apps/workers -- -limit 100; sleep 15; done`.
   When handing it to the operator, give the fish form:
-  `while true; npm run scheduled_jobs_run_due -w apps/workers -- -limit 100; sleep 60; end`.
+  `while true; npm run scheduled_jobs_run_due -w apps/workers -- -limit 100; sleep 15; end`.
+  Run one loop only. Two loops can claim the same job.
+- Retry jobs the rehearsal creates use the rehearsal schedule, `rehearsal` in the job
+  payload: first retry 15 minutes after seeding, then 2, 5, 10, 15, and 30 minutes. A
+  feed that keeps failing settles about 75 minutes after seeding, and a permanent reason
+  settles on the second attempt. Go-live seeding keeps the standard schedule, which runs
+  for days. Do not change the rehearsal back to the standard schedule to measure it.
 - The catalog wait ends when nothing is waiting or after `--catalog-wait-hours` (default
-  24). Pass a smaller value for pilot when the operator asks. Do not add any other timeout.
+  24). Pass 3 for pilot as a safety net. Do not add any other timeout.
 - After the run, keep the job loop running and rerun `v4_replay_legacy_rows` for the run's
   accounts until no `waiting_parse` rows remain or the retries have all settled.
 - Before `--stage full`, request `http://localhost:3002`. When it does not respond, start
@@ -465,17 +471,18 @@ checkout.
    npm run dev:workers:parsers:catalog
    ```
 
-7. A third **Workers** tab: leave running. Migration feed retries run only here.
+7. A third **Workers** tab: leave running. Migration feed retries run only here. Run one
+   loop only.
 
    ```bash
-   while true; npm run scheduled_jobs_run_due -w apps/workers -- -limit 100; sleep 60; end
+   while true; npm run scheduled_jobs_run_due -w apps/workers -- -limit 100; sleep 15; end
    ```
 
 8. **Root**: the stage. The first line loads the snapshot URL into this shell only.
 
    ```bash
    set -gx V4_DATABASE_URL (grep '^V4_DATABASE_URL=' ~/.config/podverse/v4-database-url | string split -f 2 -m 1 '=')
-   npm run v4_run_full_rehearsal -w apps/workers -- --stage pilot --catalog-wait-hours 6
+   npm run v4_run_full_rehearsal -w apps/workers -- --stage pilot --catalog-wait-hours 3
    ```
 
    For sample and full, restart steps 5–7 after the log prints
@@ -483,5 +490,7 @@ checkout.
 
 How long a pilot takes: identity, replay, membership, and verify take minutes each. The
 library copy took 23 minutes for 100 accounts. The catalog phase ends when no feed is
-waiting, or at `--catalog-wait-hours`, whichever comes first. Stop the Workers tabs with
-Control-C after the stage exits and replay has no `waiting_parse` rows left.
+waiting, or at `--catalog-wait-hours`, whichever comes first. With the rehearsal retry
+schedule that is the time to parse the queue once plus about an hour for the last failing
+feeds, so a pilot is about 2 to 3 hours end to end. Stop the Workers tabs with Control-C
+after the stage exits and replay has no `waiting_parse` rows left.

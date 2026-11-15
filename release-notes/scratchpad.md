@@ -272,3 +272,15 @@
 - Who notices: about 1,381 v4 users with public profiles, and people who follow them or have their
   profile links
 - Operator steps: none
+
+## Local v4 rehearsal retries failing feeds within about an hour
+
+- Surfaces: workers (v4 rehearsal, scheduled job loop)
+- Change: retry jobs created by `v4RunFullRehearsal` carry `schedule: rehearsal` in their payload,
+  and the job loop retries them at 15 minutes, then 2, 5, 10, 15, and 30 minutes instead of 1 hour,
+  6 hours, and then daily. A feed that keeps failing settles about 75 minutes after seeding, so the
+  catalog phase no longer waits a day or more. Go-live catalog seeding keeps the standard schedule;
+  jobs without a schedule are standard.
+- Who notices: operators running the local rehearsal
+- Operator steps: run one job loop beside the parsers with a 15-second sleep; pass
+  `--catalog-wait-hours 3` for a pilot

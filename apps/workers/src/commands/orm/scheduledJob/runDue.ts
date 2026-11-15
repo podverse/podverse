@@ -358,15 +358,23 @@ const jobHandlers: Record<string, JobHandler> = {
   [V4_MIGRATION_FEED_RETRY_JOB_TYPE]: handleV4MigrationFeedRetry,
 };
 
+function v4MigrationFeedRetryBackoffMs(job: ScheduledJob): number {
+  const payload = parseV4MigrationFeedRetryPayload(job.payload);
+  return getV4MigrationFeedRetryBackoffMs(
+    job.attempts,
+    payload === null ? 'standard' : payload.schedule
+  );
+}
+
 /** Job types that retry on their own schedule instead of the shared exponential backoff. */
-const backoffMsByJobType: Record<string, (attempts: number) => number> = {
-  [V4_MIGRATION_FEED_RETRY_JOB_TYPE]: getV4MigrationFeedRetryBackoffMs,
+const backoffMsByJobType: Record<string, (job: ScheduledJob) => number> = {
+  [V4_MIGRATION_FEED_RETRY_JOB_TYPE]: v4MigrationFeedRetryBackoffMs,
 };
 
 function backoffMsFor(job: ScheduledJob): number {
   const backoffForType = backoffMsByJobType[job.job_type];
   if (backoffForType) {
-    return backoffForType(job.attempts);
+    return backoffForType(job);
   }
   return computeExponentialBackoffDelayMs(job.attempts, BASE_BACKOFF_MS, BACKOFF_JITTER_MS);
 }

@@ -35,6 +35,11 @@ The catalog phase waits until feeds are settled or the catalog wait deadline
 is reached, whichever is first. Feeds still waiting keep retrying, and a later
 replay finishes their pending rows. It does not start the parser.
 
+Retry jobs this command creates use the rehearsal schedule: the first retry
+15 minutes after seeding, then 2, 5, 10, 15, and 30 minutes, so a failing
+feed settles about 75 minutes after seeding. Go-live seeding keeps the
+standard schedule, which runs for days.
+
 Apply refuses unless DB_HOST is local.
 `;
 

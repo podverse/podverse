@@ -3,6 +3,7 @@ import type { Client } from 'pg';
 
 import { MediumEnum, MQ_QUEUES } from '@podverse/helpers';
 import { mqRSSAdd } from '@podverse/mq';
+import type { V4MigrationFeedRetrySchedule } from '@podverse/orm';
 import {
   Channel,
   FeedService,
@@ -304,10 +305,13 @@ export async function ensureChannel(show: CatalogSeedCreate): Promise<EnsureChan
  * Written before the first parse is queued, so a first parse that succeeds finishes after the
  * job's `created_at` and the retry completes without parsing.
  */
-export async function scheduleRetries(feedIds: readonly number[]): Promise<void> {
+export async function scheduleRetries(
+  feedIds: readonly number[],
+  schedule: V4MigrationFeedRetrySchedule = 'standard'
+): Promise<void> {
   const runAfter = new Date(Date.now() + V4_MIGRATION_FEED_RETRY_FIRST_DELAY_MS);
   for (const feedId of feedIds) {
-    await scheduleV4MigrationFeedRetry(feedId, runAfter);
+    await scheduleV4MigrationFeedRetry(feedId, runAfter, schedule);
   }
 }
 

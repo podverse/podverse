@@ -2,6 +2,7 @@ import { getLogger } from '@workers/factories/logger.js';
 import { Client } from 'pg';
 
 import type { FeedParseFailureReason } from '@podverse/helpers';
+import type { V4MigrationFeedRetrySchedule } from '@podverse/orm';
 import {
   buildV4MigrationFeedRetryDedupeKey,
   getV4MigrationFeedSettledByFeedId,
@@ -57,6 +58,8 @@ export type V4SeedStageCatalogInput = {
    * Stop the settle wait after this many milliseconds. Omitted waits until nothing is waiting.
    */
   waitDeadlineMs?: number;
+  /** Schedule for the retry jobs this seed creates. Omitted is `standard`. */
+  retrySchedule?: V4MigrationFeedRetrySchedule;
   onProgress?: (progress: V4SeedStageCatalogProgress) => void;
 };
 
@@ -748,7 +751,8 @@ async function applyStage(
   classification: StageCatalogClassification,
   startedAt: number,
   onProgress: V4SeedStageCatalogInput['onProgress'],
-  waitDeadlineMs: number | null
+  waitDeadlineMs: number | null,
+  retrySchedule: V4MigrationFeedRetrySchedule
 ): Promise<ApplyCounts> {
   const creates = classification.creates;
   throwIfRefusal(refusalForDuplicateCreates(creates));
@@ -821,7 +825,7 @@ async function applyStage(
   const retryFeedIds = feedIdsToQueue.filter(
     (feedId) => !existingKeys.has(buildV4MigrationFeedRetryDedupeKey(feedId))
   );
-  await scheduleRetries(retryFeedIds);
+  await scheduleRetries(retryFeedIds, retrySchedule);
   await queueParses(toQueue);
   const queued = toQueue.length;
 
@@ -996,6 +1000,12 @@ export async function v4SeedStageCatalog(
   }
 
   const waitDeadlineMs = input.waitDeadlineMs === undefined ? null : input.waitDeadlineMs;
-  const apply = await applyStage(classification, startedAt, input.onProgress, waitDeadlineMs);
+  const apply = await applyStage(
+    classification,
+    startedAt,
+    input.onProgress,
+    waitDeadlineMs,
+    input.retrySchedule ?? 'standard'
+  );
   return finish(input, classification, apply, startedAt);
 }

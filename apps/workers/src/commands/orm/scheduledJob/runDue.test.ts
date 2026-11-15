@@ -197,7 +197,7 @@ vi.mock('@podverse/orm', async () => {
       return (hours[index] ?? 24) * 60 * 60 * 1000;
     },
     parseV4MigrationFeedRetryPayload: (payload: { feedId?: unknown }) =>
-      typeof payload.feedId === 'number' ? { feedId: payload.feedId } : null,
+      typeof payload.feedId === 'number' ? { feedId: payload.feedId, schedule: 'standard' } : null,
     readFeedLastParseOutcome: readFeedLastParseOutcomeMock,
   };
 });

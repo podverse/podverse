@@ -248,8 +248,8 @@ Every account, on a local v5 database. The design is
       `rehearsal restore=finished`, start it and record its pid. Restart it
       when a restore finishes, on the same rule as the parsers. If the stage
       does not restore, start it when the parsers start. It claims at most
-      100 due jobs per pass:
-      `while true; npm run scheduled_jobs_run_due -w apps/workers -- -limit 100; sleep 60; end`
+      100 due jobs per pass. Run one loop only:
+      `while true; npm run scheduled_jobs_run_due -w apps/workers -- -limit 100; sleep 15; end`
 - [ ] Replay after each stage. Keep that loop running and rerun
       `v4_replay_legacy_rows` for the run's accounts until no `waiting_parse`
       rows remain or the retries have all settled.
