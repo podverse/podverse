@@ -202,7 +202,8 @@ the file the old library wrote. The keys are `SUBSCRIBED_PODCAST_IDS` and
 Asked for on 2026-11-13: signed-out v4 users should be encouraged to save an
 OPML file before the phone copy runs. The screen is planned in
 [`.llm/plans/active/v4-signed-out-carryover/`](/.llm/plans/active/v4-signed-out-carryover/00-SUMMARY.md)
-and is still gated on the [field spike](#field-spike): no outline, no screen.
+and the [field spike](#field-spike) on iOS produced outlines, so the screen is next.
+Android was not run.
 This is not a rehearsal step in [15](15-near-term-rehearsal-checklist.md). The
 account copy still starts at sign-in
 ([07](07-account-and-data-migration-model.md)) and does not wait for it.
@@ -238,8 +239,11 @@ that show through the lookup's feed URL.
 
 ### Field spike
 
-Not run. This answers one question: after an in-place install, can the
-current app read the fields an outline needs.
+iOS 18.2 simulator, signed out, pass. The private build from the storage spike
+was already installed over v4, so this pass did not install again and did not
+uninstall. Counts from the surviving storage file matched `AsyncStorage.getItem`.
+Two outlines, nothing skipped. Android not run. This answers one question:
+after an in-place install, can the current app read the fields an outline needs.
 
 It uses the same private install as the storage spike. Note the v4 counts
 before that install, then read the same keys in the private build. Do not
@@ -306,7 +310,16 @@ stays the automatic pass above.
   `93155963-714B-4A74-9FFD-3BCA726657EC`); the storage file moved with it and
   the keys were still readable. Android not run.
 - Feed-list field spike, per platform: did the outline counts match, how
-  many outlines were produced, and how many objects were skipped? Not run.
+  many outlines were produced, and how many objects were skipped? iOS 18.2
+  simulator, signed out, pass. The private build from the storage spike was
+  already installed, so v4 was not installed again and nothing was uninstalled.
+  Counts from the surviving storage file, then the same keys read with
+  `AsyncStorage.getItem` from `@react-native-async-storage/async-storage` 2.2.0.
+  The storage file stayed 1012 bytes. `SUBSCRIBED_PODCASTS`: 1 object, 1 with a
+  title, 1 with `feedUrls[0].url`. `ADD_BY_RSS_PODCASTS`: 1 object, 1 with a
+  title, 1 with a feed address. `ADD_BY_RSS_PODCAST_FEED_URLS`: 1 address. Each
+  count matched. Outlines: 2. Skipped: 0. The temporary reader was removed.
+  Android not run.
 
 ## Plan sets
 

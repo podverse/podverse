@@ -6,14 +6,12 @@ the cumulative verification: [00-EXECUTION-ORDER.md](00-EXECUTION-ORDER.md).
 ## How to use
 
 Start only after `add-by-rss-directory-match` is complete. Prompts 01–05 are done and archived
-under `.llm/plans/completed/v4-signed-out-carryover/`. Prompt 06 stays blocked: the feed-list
-field spike in doc 08 § Open questions still says "Not run", so the Continue Migration screen
-stays blocked.
+under `.llm/plans/completed/v4-signed-out-carryover/`. The feed-list field spike passed
+on iOS 18.2: 2 outlines, 0 skipped. Android was not run. The next step is prompt 06.
 
 **Run the set unattended (Root tab):** `./scripts/abcplan/run.sh run v4-signed-out-carryover`.
-One prompt per phase. Prompt 06 stops with `RUNNER-STATUS: BLOCKED` until the feed-list field
-spike is written into doc 08 § Open questions; that is expected. After writing
-it, resume with
+One prompt per phase. The feed-list field spike is written in doc 08, so prompt 06 can run.
+Resume a stopped set with
 `./scripts/abcplan/run.sh run v4-signed-out-carryover --resume 'Spike results are in doc 08.'`
 (`/abcresume` gives the ready-made commands).
 

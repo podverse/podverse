@@ -10,8 +10,8 @@ Seven plans, one per phase.
 
 Prompts 01–05 are done. Their files are in `.llm/plans/completed/v4-signed-out-carryover/`.
 The storage spike passed on iOS 18.2; Android was not run, and a missing store reads as empty.
-Prompt 06 stays blocked: the feed-list field spike in doc 08 § Open questions still says
-"Not run", so the Continue Migration screen stays blocked.
+The feed-list field spike passed on iOS 18.2: 2 outlines, 0 skipped. Android was not
+run. The next step is prompt 06.
 
 ## Rules for every prompt
 
