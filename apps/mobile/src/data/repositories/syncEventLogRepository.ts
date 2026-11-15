@@ -14,7 +14,7 @@ import {
 /**
  * The capped store behind the error log.
  *
- * Only failures, skips, and directory reconciles are written. Successes are the overwhelming
+ * Only failures, skips, and reconciles are written. Successes are the overwhelming
  * majority of sync work — a single library pass settles dozens of jobs — so recording them would
  * turn a diagnostic log into a transcript, and the entries worth keeping would be the ones squeezed
  * out. Leaving them out means the cap can only ever be reached by things that went wrong or by a

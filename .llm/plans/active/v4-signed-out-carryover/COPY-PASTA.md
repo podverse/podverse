@@ -5,14 +5,15 @@ the cumulative verification: [00-EXECUTION-ORDER.md](00-EXECUTION-ORDER.md).
 
 ## How to use
 
-Start only after `add-by-rss-directory-match` is complete. Prompts 01–03 are done and archived
-under `.llm/plans/completed/v4-signed-out-carryover/`. The next step is the storage spike in
-doc 08, then prompt 04.
+Start only after `add-by-rss-directory-match` is complete. Prompts 01–05 are done and archived
+under `.llm/plans/completed/v4-signed-out-carryover/`. Prompt 06 stays blocked: the feed-list
+field spike in doc 08 § Open questions still says "Not run", so the Continue Migration screen
+stays blocked.
 
 **Run the set unattended (Root tab):** `./scripts/abcplan/run.sh run v4-signed-out-carryover`.
-One prompt per phase. Prompts 04–06 stop with `RUNNER-STATUS: BLOCKED` until the storage spike and
-the feed-list field spike are written into doc 08 § Open questions; that is expected. After writing
-them, resume with
+One prompt per phase. Prompt 06 stops with `RUNNER-STATUS: BLOCKED` until the feed-list field
+spike is written into doc 08 § Open questions; that is expected. After writing
+it, resume with
 `./scripts/abcplan/run.sh run v4-signed-out-carryover --resume 'Spike results are in doc 08.'`
 (`/abcresume` gives the ready-made commands).
 
@@ -61,12 +62,12 @@ Copy, dry run, and verify must use the same split. Do not run tests. Do not comm
 
 ## Phase 4
 
-- [ ] **04 — Phone reads v4 signed-out state once (gated)**
+- [x] **04 — Phone reads v4 signed-out state once (gated)**
 
 **Cursor model:** Cursor Grok 4.7 · **Reasoning:** extra high
 
 ```
-Read and execute .llm/plans/active/v4-signed-out-carryover/04-mobile-carryover-read.md
+Read and execute .llm/plans/completed/v4-signed-out-carryover/04-mobile-carryover-read.md
 
 Follow .llm/plans/active/v4-signed-out-carryover/00-EXECUTION-ORDER.md § Rules for every prompt.
 Check the gate first. Never read the credentials key, the bearer token, or the Keychain.
@@ -74,12 +75,12 @@ Check the gate first. Never read the credentials key, the bearer token, or the K
 
 ## Phase 5
 
-- [ ] **05 — Phone resolves staged v4 rows (gated)**
+- [x] **05 — Phone resolves staged v4 rows (gated)**
 
 **Cursor model:** Cursor Grok 4.7 · **Reasoning:** extra high
 
 ```
-Read and execute .llm/plans/active/v4-signed-out-carryover/05-mobile-carryover-resolve.md
+Read and execute .llm/plans/completed/v4-signed-out-carryover/05-mobile-carryover-resolve.md
 
 Follow .llm/plans/active/v4-signed-out-carryover/00-EXECUTION-ORDER.md § Rules for every prompt.
 Check the gate first. Blocked ids never become Add by RSS feeds. Do not run tests.

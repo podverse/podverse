@@ -7,6 +7,7 @@ import {
   ADD_BY_RSS_PROMOTED_CODE,
   DIRECTORY_CHANNEL_CONVERTED_CODE,
   DIRECTORY_CHANNEL_GONE_CODE,
+  V4_CARRYOVER_DONE_CODE,
 } from '../../data/repositories';
 import { mobileBrandName } from '../../lib/mobileBrandName';
 import {
@@ -50,6 +51,9 @@ export const errorLogMessage = (t: Translate, entry: SyncEventLogEntry): string 
   }
   if (entry.errorCode === DIRECTORY_CHANNEL_GONE_CODE && entry.message !== null) {
     return t('error_log.directory_channel_gone', { channel: entry.message });
+  }
+  if (entry.errorCode === V4_CARRYOVER_DONE_CODE) {
+    return t('error_log.v4_carryover_done');
   }
   return entry.message;
 };

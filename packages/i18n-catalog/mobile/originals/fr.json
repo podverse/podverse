@@ -214,7 +214,8 @@
       "clips": "Mise à jour de vos extraits",
       "home_feed": "Lecture de l'accueil depuis cet appareil",
       "auto_download": "Téléchargement des nouveaux épisodes",
-      "identity_remap": "Mise à jour de vos émissions"
+      "identity_remap": "Mise à jour de vos émissions",
+      "v4_carryover": "Déplacement de vos podcasts"
     },
     "progress": "{completed} sur {total}"
   },
@@ -280,7 +281,11 @@
         "parse_status": "Statut d'analyse",
         "request_id": "ID de requête",
         "basic_auth": "Identifiant et mot de passe du flux",
-        "moved_items": "Épisodes déplacés"
+        "moved_items": "Épisodes déplacés",
+        "subscribed": "Abonnements",
+        "add_by_rss": "Ajouter par RSS",
+        "blocked": "Laissés de côté",
+        "waiting": "En attente"
       }
     },
     "title": "Journal d'erreurs",
@@ -297,6 +302,7 @@
     "directory_channel_gone": "{channel} a été retiré de cet appareil. Il n'est plus dans le répertoire.",
     "directory_channel_converted": "{channel} a été déplacé vers Ajouter par RSS. Il n'est plus dans le répertoire.",
     "add_by_rss_promoted_to_directory": "{channel} a été déplacé vers le répertoire {brand_name}",
+    "v4_carryover_done": "Podcasts déplacés depuis l'application précédente",
     "row_a11y_hint": "Ouvre les détails complets",
     "saved_footnote": "Les détails complets sont enregistrés dans Plus › Avancé › Journal d'erreurs.",
     "kind": {

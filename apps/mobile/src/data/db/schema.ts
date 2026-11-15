@@ -550,3 +550,28 @@ export const itemDescriptionCache = sqliteTable('item_description_cache', {
 
 export type ItemDescriptionCacheRow = typeof itemDescriptionCache.$inferSelect;
 export type ItemDescriptionCacheInsert = typeof itemDescriptionCache.$inferInsert;
+
+/**
+ * Signed-out subscriptions read once from the previous app's storage.
+ *
+ * Device data: ending a session does not delete these rows. `cached_feed_url` has no userinfo.
+ * A feed password and the sign-in token are not columns here.
+ */
+export const v4CarryoverEntry = sqliteTable(
+  'v4_carryover_entry',
+  {
+    legacyKind: text('legacy_kind').notNull(),
+    legacyId: text('legacy_id').notNull(),
+    cachedFeedUrl: text('cached_feed_url'),
+    cachedTitle: text('cached_title'),
+    status: text('status').notNull(),
+    attempts: integer('attempts').notNull().default(0),
+    updatedAt: integer('updated_at').notNull(),
+  },
+  (table) => ({
+    pk: primaryKey({ columns: [table.legacyKind, table.legacyId] }),
+  })
+);
+
+export type V4CarryoverEntryRow = typeof v4CarryoverEntry.$inferSelect;
+export type V4CarryoverEntryInsert = typeof v4CarryoverEntry.$inferInsert;

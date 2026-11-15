@@ -297,7 +297,14 @@ stays the automatic pass above.
 ## Open questions
 
 - Spike result, per platform: did `SUBSCRIBED_PODCAST_IDS` and
-  `ADD_BY_RSS_PODCAST_FEED_URLS` come back on an in-place install? Not run.
+  `ADD_BY_RSS_PODCAST_FEED_URLS` come back on an in-place install? iOS 18.2
+  simulator, signed out, pass. Read with `AsyncStorage.getItem` from
+  `@react-native-async-storage/async-storage` 2.2.0. `SUBSCRIBED_PODCAST_IDS`
+  present, 15 characters. `ADD_BY_RSS_PODCAST_FEED_URLS` present, 41 characters.
+  Both match the v4 baseline and are longer than an empty array. The data
+  container UUID changed on install (`00E6AF4E-6A21-4F0E-999C-2FF173D13E35` to
+  `93155963-714B-4A74-9FFD-3BCA726657EC`); the storage file moved with it and
+  the keys were still readable. Android not run.
 - Feed-list field spike, per platform: did the outline counts match, how
   many outlines were produced, and how many objects were skipped? Not run.
 

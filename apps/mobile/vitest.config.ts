@@ -157,7 +157,8 @@ import { defineConfig } from 'vitest/config';
  * decision to swap a live remote stream onto a just-finished download of that same enclosure
  * (`src/lib/playback/planDownloadCompletePlaybackHandoff.ts`). The
  * migration ladder (`src/data/db/migrations.ts`) is covered because the statement list is data, not a
- * connection. Scope
+ * connection. The signed-out list parser (`src/migration/v4/parseV4LocalState.ts`) is covered
+ * because it is a pure function of four stored strings. Scope
  * the `include` narrowly so tests never pull in native/Expo modules — the excluded adapter
  * (`src/bridge/nativePlaybackBridge.ts`) imports `expo-modules-core`, and repositories import
  * `expo-sqlite`, so neither is tested here. `apps/mobile` is a standalone install; run with
@@ -191,6 +192,7 @@ export default defineConfig({
       'src/config/publicWebBaseUrl.test.ts',
       'src/config/deepLinkSchemes.test.ts',
       'src/data/db/migrations.test.ts',
+      'src/migration/v4/parseV4LocalState.test.ts',
       'src/data/identityRemap.test.ts',
       'src/data/addByRssPromotionRemap.test.ts',
       'src/data/repositories/addByRssListedFeeds.test.ts',

@@ -214,7 +214,8 @@
       "live_status": "Checking What's Live",
       "clips": "Updating Your Clips",
       "home_feed": "Reading Home from This Device",
-      "identity_remap": "Updating Your Shows"
+      "identity_remap": "Updating Your Shows",
+      "v4_carryover": "Moving Your Podcasts"
     },
     "progress": "{completed} of {total}"
   },
@@ -271,6 +272,7 @@
     "directory_channel_gone": "Removed {channel} from this device. It is no longer in the directory.",
     "directory_channel_converted": "Moved {channel} to Add by RSS. It is no longer in the directory.",
     "add_by_rss_promoted_to_directory": "Moved {channel} to {brand_name} Directory",
+    "v4_carryover_done": "Podcasts Moved from the Previous App",
     "row_a11y_hint": "Opens Full Details",
     "saved_footnote": "Full details are saved in More › Advanced › Error Log.",
     "kind": {
@@ -329,7 +331,11 @@
         "parse_status": "Parse Status",
         "request_id": "Request ID",
         "basic_auth": "Feed Username and Password",
-        "moved_items": "Episodes Moved"
+        "moved_items": "Episodes Moved",
+        "subscribed": "Subscribed",
+        "add_by_rss": "Add by RSS",
+        "blocked": "Left Out",
+        "waiting": "Waiting"
       }
     }
   },

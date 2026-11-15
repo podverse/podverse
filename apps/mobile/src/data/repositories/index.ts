@@ -121,3 +121,5 @@ export type {
 export { syncEventLogRepository } from './syncEventLogRepository';
 export type { SyncEventLogAppend } from './syncEventLogRepository';
 export type { MobileAuthRequestContext, SubscriptionKind } from './types';
+export { V4_CARRYOVER_DONE_CODE, v4CarryoverRepository } from './v4CarryoverRepository';
+export type { V4CarryoverCounts, V4CarryoverRow, V4CarryoverStatus } from './v4CarryoverRepository';

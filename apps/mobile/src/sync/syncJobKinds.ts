@@ -32,6 +32,7 @@ export const SYNC_JOB_KINDS = [
   'popularity-ranks',
   'home-clips',
   'home-livestreams',
+  'v4-carryover',
 ] as const;
 
 export type SyncJobKind = (typeof SYNC_JOB_KINDS)[number];
@@ -67,6 +68,7 @@ export const SYNC_JOB_LABEL_KEYS: Record<SyncJobKind, string> = {
   'popularity-ranks': 'sync.job.subscriptions',
   'home-clips': 'sync.job.clips',
   'home-livestreams': 'sync.job.live_status',
+  'v4-carryover': 'sync.job.v4_carryover',
 };
 
 /**

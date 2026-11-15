@@ -227,6 +227,7 @@ npm run mobile:e2e:test -- taste-profile-consent
 npm run mobile:e2e:test -- terms-account-access
 npm run mobile:e2e:test -- terms-taste-profile-consent
 npm run mobile:e2e:test -- track
+npm run mobile:e2e:test -- v4-carryover-anonymous
 npm run mobile:e2e:test -- v4v
 npm run mobile:e2e:test -- video-transition
 ```

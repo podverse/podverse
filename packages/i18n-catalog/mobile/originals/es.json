@@ -214,7 +214,8 @@
       "clips": "Actualizando tus clips",
       "home_feed": "Lectura de Inicio en este dispositivo",
       "auto_download": "Descargando episodios nuevos",
-      "identity_remap": "Actualizando tus programas"
+      "identity_remap": "Actualizando tus programas",
+      "v4_carryover": "Moviendo tus podcasts"
     },
     "progress": "{completed} de {total}"
   },
@@ -280,7 +281,11 @@
         "parse_status": "Estado del análisis",
         "request_id": "ID de solicitud",
         "basic_auth": "Usuario y contraseña del feed",
-        "moved_items": "Episodios movidos"
+        "moved_items": "Episodios movidos",
+        "subscribed": "Suscritos",
+        "add_by_rss": "Añadir por RSS",
+        "blocked": "Dejados fuera",
+        "waiting": "En espera"
       }
     },
     "title": "Registro de errores",
@@ -297,6 +302,7 @@
     "directory_channel_gone": "Se eliminó {channel} de este dispositivo. Ya no está en el directorio.",
     "directory_channel_converted": "Se movió {channel} a Añadir por RSS. Ya no está en el directorio.",
     "add_by_rss_promoted_to_directory": "Se movió {channel} al directorio de {brand_name}",
+    "v4_carryover_done": "Podcasts movidos desde la aplicación anterior",
     "row_a11y_hint": "Abre los detalles completos",
     "saved_footnote": "Los detalles completos se guardan en Más › Avanzado › Registro de errores.",
     "kind": {

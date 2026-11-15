@@ -214,7 +214,8 @@
       "clips": "",
       "home_feed": "",
       "auto_download": "",
-      "identity_remap": ""
+      "identity_remap": "",
+      "v4_carryover": ""
     },
     "progress": ""
   },
@@ -280,7 +281,11 @@
         "parse_status": "",
         "request_id": "",
         "basic_auth": "",
-        "moved_items": ""
+        "moved_items": "",
+        "subscribed": "",
+        "add_by_rss": "",
+        "blocked": "",
+        "waiting": ""
       }
     },
     "title": "",
@@ -297,6 +302,7 @@
     "directory_channel_gone": "",
     "directory_channel_converted": "",
     "add_by_rss_promoted_to_directory": "",
+    "v4_carryover_done": "",
     "row_a11y_hint": "",
     "saved_footnote": "",
     "kind": {

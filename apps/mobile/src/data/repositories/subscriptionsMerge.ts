@@ -5,6 +5,7 @@ import {
   isArtistMediumId,
   primaryChannelListArtworkUrl,
 } from '@podverse/helpers';
+import type { DTOLegacyPodcastLookupChannel } from '@podverse/helpers/dto';
 
 import type { MobileAddByRSSFeedRecord } from '../../prefs/addByRSSFeeds';
 
@@ -137,6 +138,34 @@ export const mapDirectoryChannelToSubscribed = (channel: DTOChannel): Subscribed
     kind,
     // A directory channel's recency comes from the items stored for it, which this mapping does not
     // see. The repository fills it in from `channelItemsRepository`.
+    latestItemPubDateMs: null,
+    popularityRank: null,
+  };
+};
+
+/**
+ * Map a lookup channel to a subscribed entry. Same row shape as `mapDirectoryChannelToSubscribed`.
+ * The list artwork is the URL the lookup already chose. Returns null when the channel has no
+ * usable id or title.
+ */
+export const subscribedChannelFromLookup = (
+  channel: DTOLegacyPodcastLookupChannel
+): SubscribedChannel | null => {
+  const idText = trimToNull(channel.id_text);
+  const title = trimToNull(channel.title);
+  if (idText === null || title === null) {
+    return null;
+  }
+
+  const kind = subscriptionChannelKindFromMediumId(channel.medium_id);
+  return {
+    idText,
+    sourceIdText: idText,
+    title,
+    imageUrl: trimToNull(channel.image_url),
+    source: 'directory',
+    medium: mediumFromSubscriptionChannelKind(kind),
+    kind,
     latestItemPubDateMs: null,
     popularityRank: null,
   };

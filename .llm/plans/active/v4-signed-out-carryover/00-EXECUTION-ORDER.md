@@ -8,9 +8,10 @@ Seven plans, one per phase.
 
 ## Where this set is
 
-Prompts 01–03 are done. Their files are in `.llm/plans/completed/v4-signed-out-carryover/`.
-The next step is the storage spike in doc 08. After that result is written into the first open
-question, resume this set at prompt 04. Do not resume while that bullet still says "Not run".
+Prompts 01–05 are done. Their files are in `.llm/plans/completed/v4-signed-out-carryover/`.
+The storage spike passed on iOS 18.2; Android was not run, and a missing store reads as empty.
+Prompt 06 stays blocked: the feed-list field spike in doc 08 § Open questions still says
+"Not run", so the Continue Migration screen stays blocked.
 
 ## Rules for every prompt
 
@@ -52,7 +53,7 @@ npm run build:packages
 npm run test -w apps/workers -- src/commands/orm/v4Catalog/writeLegacyPodcastMapLib.test.ts src/commands/orm/v4Library/copyAccountLibraryLib.test.ts src/commands/orm/v4Rehearsal/verifyAccount.test.ts
 npm run test -w packages/orm -- src/services/legacy/legacyPodcastLookup.test.ts
 npm run test -w apps/api -- src/test/legacy-podcast-lookup.integration.test.ts
-npm --prefix apps/mobile run test -- src/migration/v4 src/data/db/migrations.test.ts
+npm --prefix apps/mobile run test -- src/migration/v4 src/data/repositories/subscriptionsMerge.test.ts src/sync/syncJobKinds.test.ts src/data/db/migrations.test.ts
 npm run type-check:mobile
 npm run lint
 ```

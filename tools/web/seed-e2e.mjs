@@ -1465,6 +1465,24 @@ async function seedMediaPlayerAndEmbedFixtures(client, accountId) {
   const podcastChannelId = podcastChannelResult.rows[0].id;
 
   await client.query(`INSERT INTO channel_about (channel_id) VALUES ($1)`, [podcastChannelId]);
+
+  // Ids match apps/mobile/src/migration/v4/e2eFixture.ts. v4E2eUnkn01 is removed and not
+  // inserted, so the lookup answers that it is not here and the phone keeps the cached address.
+  await client.query(
+    `DELETE FROM legacy_id_map
+     WHERE legacy_kind = 'podcast'
+       AND legacy_id IN ('v4E2eChan01', 'v4E2eFeed01', 'v4E2eBlkd01', 'v4E2eUnkn01')`
+  );
+  await client.query(
+    `INSERT INTO legacy_id_map (
+       legacy_kind, legacy_id, v5_kind, v5_id_text, resolve_key, v4_feed_url, status
+     )
+     VALUES
+       ('podcast', 'v4E2eChan01', 'channel', $1, NULL, NULL, 'mapped'),
+       ('podcast', 'v4E2eFeed01', 'channel', NULL, NULL, $2, 'unresolved'),
+       ('podcast', 'v4E2eBlkd01', 'channel', NULL, NULL, NULL, 'dropped')`,
+    [E2E_PODCAST_CHANNEL_ID_TEXT, E2E_ADD_BY_RSS_TEST_ASSETS_FEED_URL]
+  );
   await insertSeedChannelPopularity(client, podcastChannelId);
   await insertSeedChannelDescription(
     client,

@@ -46,7 +46,7 @@ flow_needs_e2e_api() {
   playback-cross-device | playback-ended-livestream-restore | playback-multi-device-handoff | playback-offline-reconciliation | playback-resume-on-relaunch | \
   player-screen | podcast-episode | removed-content | removed-content-log | show-notes | track | \
   push | queue-add | queue-screen | search | search-unparsed | settings-developer | settings-downloads | \
-  subscriptions-anonymous | tab-switch-playback | tablet | taste-profile | taste-profile-consent | terms-account-access | terms-taste-profile-consent | v4v | \
+  subscriptions-anonymous | tab-switch-playback | tablet | taste-profile | taste-profile-consent | terms-account-access | terms-taste-profile-consent | v4-carryover-anonymous | v4v | \
   video-transition)
     return 0
     ;;

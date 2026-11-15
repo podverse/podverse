@@ -31,6 +31,10 @@ import { downloadManager } from '../downloads/downloadManager';
 import { useQueueResourcesLoadActive } from '../hooks/useQueueResourcesLoadActive';
 import { homeFeedRefresh } from '../lib/home/homeFeedRefresh';
 import {
+  registerV4CarryoverRowsSaved,
+  runV4CarryoverReadOnce,
+} from '../migration/v4/readV4LocalState';
+import {
   getConnectivity,
   reportUserNetworkAction,
   subscribeConnectivity,
@@ -59,6 +63,7 @@ import { attachSyncEventLogSink } from './syncEventLogSink';
 import { publishSyncIndicatorQueueState } from './syncIndicatorPresentation';
 import type { SyncTrigger } from './syncJobPlan';
 import { planSyncRun } from './syncJobPlan';
+import type { SyncJobDeps } from './syncJobs';
 import { buildSyncJobs } from './syncJobs';
 import type { SyncQueueState } from './syncQueue';
 import { syncQueue } from './syncQueue';
@@ -185,40 +190,59 @@ export function SyncProvider({ children }: PropsWithChildren) {
     };
   }, []);
 
-  const requestSync = useCallback((trigger: SyncTrigger) => {
-    if (trigger === 'app-foreground' || trigger === 'app-start' || trigger === 'sign-in') {
-      requestAutoDownloadCatchUp();
-      if (syncQueue.getState().status === 'running') {
-        noteAutoDownloadSyncRunning();
+  const syncJobDeps = useCallback(
+    (): SyncJobDeps => ({
+      getAuthContext: () => depsRef.current,
+      loadActiveQueue: async () => {
+        await loadActiveQueueRef.current();
+      },
+      setAccount: (account) => {
+        setAccountRef.current(account);
+      },
+    }),
+    []
+  );
+
+  const requestSync = useCallback(
+    (trigger: SyncTrigger) => {
+      if (trigger === 'app-foreground' || trigger === 'app-start' || trigger === 'sign-in') {
+        requestAutoDownloadCatchUp();
+        if (syncQueue.getState().status === 'running') {
+          noteAutoDownloadSyncRunning();
+        }
       }
-    }
 
-    const planned = planSyncRun({
-      isAuthenticated: isAuthenticatedRef.current && !termsBlocksAccountSync(),
-      trigger,
-    });
-    if (planned.length === 0) {
-      startAutoDownloadCatchUpIfIdle();
-      return;
-    }
+      const planned = planSyncRun({
+        isAuthenticated: isAuthenticatedRef.current && !termsBlocksAccountSync(),
+        trigger,
+      });
+      if (planned.length === 0) {
+        startAutoDownloadCatchUpIfIdle();
+        return;
+      }
 
-    if (NETWORK_INTENT_TRIGGERS.has(trigger)) {
-      reportUserNetworkAction();
-    }
+      if (NETWORK_INTENT_TRIGGERS.has(trigger)) {
+        reportUserNetworkAction();
+      }
 
-    syncQueue.enqueue(
-      buildSyncJobs(planned, {
-        getAuthContext: () => depsRef.current,
-        loadActiveQueue: async () => {
-          await loadActiveQueueRef.current();
-        },
-        setAccount: (account) => {
-          setAccountRef.current(account);
-        },
-      })
-    );
-    startAutoDownloadCatchUpIfIdle();
-  }, []);
+      void buildSyncJobs(planned, syncJobDeps())
+        .then((jobs) => {
+          if (jobs.length === 0) {
+            startAutoDownloadCatchUpIfIdle();
+            return;
+          }
+          syncQueue.enqueue(jobs);
+          startAutoDownloadCatchUpIfIdle();
+        })
+        .catch((error: unknown) => {
+          if (__DEV__) {
+            console.warn('[sync] could not build jobs', error);
+          }
+          startAutoDownloadCatchUpIfIdle();
+        });
+    },
+    [syncJobDeps]
+  );
 
   useEffect(() => {
     registerAddByRssRefreshRequest(() => {
@@ -287,6 +311,22 @@ export function SyncProvider({ children }: PropsWithChildren) {
       status === 'authenticated' && previousStatus === 'anonymous' ? 'sign-in' : 'app-start'
     );
   }, [requestSync, status]);
+
+  useEffect(() => {
+    registerV4CarryoverRowsSaved(() => {
+      void buildSyncJobs([], syncJobDeps())
+        .then((jobs) => {
+          if (jobs.length > 0) {
+            syncQueue.enqueue(jobs);
+          }
+        })
+        .catch(() => undefined);
+    });
+    void runV4CarryoverReadOnce();
+    return () => {
+      registerV4CarryoverRowsSaved(null);
+    };
+  }, [syncJobDeps]);
 
   const [termsBlocked, setTermsBlocked] = useState(() => termsBlocksAccountSync());
   useEffect(() => {

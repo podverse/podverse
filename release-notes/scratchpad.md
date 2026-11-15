@@ -284,3 +284,23 @@
 - Who notices: operators running the local rehearsal
 - Operator steps: run one job loop beside the parsers with a 15-second sleep; pass
   `--catalog-wait-hours 3` for a pilot
+
+## Mobile reads v4 signed-out subscriptions once
+
+- Surfaces: mobile
+- Change: on the first launch after updating from v4, the app reads the v4 subscription ids, the
+  cached podcast list, and Add by RSS addresses from the old storage once, after the first screen
+  shows, and keeps them on the phone for the carryover. It never reads saved passwords or the old
+  sign-in token.
+- Who notices: no one yet; the next change uses these rows
+- Operator steps: none
+
+## Mobile carries signed-out v4 subscriptions over
+
+- Surfaces: mobile
+- Change: after updating from v4, a signed-out phone resolves its old subscriptions in the
+  background ("Moving Your Podcasts"). Shows Podverse has become regular subscriptions. Shows it
+  has not become Add by RSS feeds on the phone and move to the directory once Podverse has them.
+  Shows v4 flagged as spam or takedown are left out. Results are counted in the error log.
+- Who notices: signed-out v4 users after the update
+- Operator steps: run `v4WriteLegacyPodcastMap` before this build ships
