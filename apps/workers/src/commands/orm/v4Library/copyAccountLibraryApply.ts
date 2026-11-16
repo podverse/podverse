@@ -1692,7 +1692,7 @@ export async function resolveItemId(
        AND (
          i.id_text = $2
          OR ($3::varchar IS NOT NULL AND i.guid = $3)
-         OR ($4::varchar IS NOT NULL AND i.guid_enclosure_url = $4)
+         OR ($4::varchar IS NOT NULL AND i.guid_enclosure_url_digest = decode(md5($4), 'hex'))
          OR (
            $5::varchar IS NOT NULL
            AND $6::timestamptz IS NOT NULL

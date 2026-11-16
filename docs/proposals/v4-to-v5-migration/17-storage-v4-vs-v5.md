@@ -15,12 +15,37 @@
   in v5, about 150 in v4), a stored plain-text preview (351 bytes), the
   enclosure address stored twice (155 bytes), and one row per episode in
   each of about eight side tables.
-- Changes that keep every feature would save about **22%** (about 1.7 GiB on
-  the pilot, about 10 GiB on the full database). Deriving the preview when it
-  is read would bring that to about 31%.
+- The paper list below added to about 22% (about 1.7 GiB on the pilot).
+  Measured plans kept one of those cuts. See [Status](#status).
 
 All numbers are counts and byte sizes measured on 2026-11-15. No titles,
 addresses, or account data are recorded here.
+
+## Status
+
+`0017_item_enclosure_url_digest.sql` keeps `item.guid_enclosure_url` and
+replaces `idx_item_guid_enclosure_url` with a btree on a 16-byte md5 of that
+URL. The migration fills the digest for rows already stored. Playback still
+reads the URL column.
+
+On the sample rehearsal that is about 400 MiB, about 7% of the 6.12 GiB
+database. The same share of the full catalog is about 3 GiB of the 48 GiB
+estimate. The new index is estimated at about 100 MiB here and about 0.7 GiB
+full. The 16-byte column is about 40 MiB here.
+
+These rows from the paper list are not being done:
+
+- Hash indexes on `guid` and `guid_enclosure_url`. Lookups use `IN` and
+  `= ANY`, which a hash index cannot serve.
+- Compressing descriptions between 200 and 2,000 bytes. A packed probe saved
+  about 1%.
+- Dropping `idx_item_channel_id`. Channel episode lists use it.
+- Dropping `idx_item_pub_date`. Global recent lists order by `pub_date`.
+- Leaving `preview` empty, show footers, slimming old episodes, and folding
+  side tables onto `item`.
+
+`0016_drop_duplicate_indexes.sql` drops indexes that repeat a unique
+constraint. A parse skips an episode image whose URL is the show image.
 
 ## Measured
 
@@ -189,6 +214,7 @@ The cost is the per-row overhead, not the split itself.
 
 ## Opportunities that keep every feature
 
+This table is the first estimate. [Status](#status) is what was kept.
 Savings are measured on the pilot database and scaled to the full estimate.
 
 | Change | Pilot saving | Full saving | Notes |

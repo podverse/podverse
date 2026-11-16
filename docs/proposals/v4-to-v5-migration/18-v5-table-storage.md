@@ -85,6 +85,10 @@ the index is larger than the column.
 | `idx_item_channel_id`         |    26 | `channel_id` alone. The composite index above starts with the same column. |
 | **Indexes**                   | **1,050** |                                                        |
 
+`0017_item_enclosure_url_digest.sql` replaces `idx_item_guid_enclosure_url`
+with a btree on a 16-byte md5 of the address. The URL column stays. The sizes
+above were measured before that migration.
+
 ## `item_enclosure_source`
 
 2,011,631 rows, one media address per enclosure. The address is 284 MiB of the

@@ -348,3 +348,20 @@
 - Who notices: a deploy waits until this migration is applied. Episode rows that used the
   show artwork no longer store a second copy.
 - Operator steps: none beyond the usual migration apply
+
+## Episode enclosure lookups use a 16-byte digest
+
+- Surfaces: api, workers, k8s
+- Change: app migration `0017_item_enclosure_url_digest.sql` adds
+  `item.guid_enclosure_url_digest`, a 16-byte md5 of `guid_enclosure_url`,
+  fills it for rows already stored, and drops `idx_item_guid_enclosure_url`.
+  A trigger keeps the digest in step when the URL is inserted or updated.
+  Parser, Add by RSS, notification, and v4 library matching look up the
+  digest. The URL column stays, and playback still reads it.
+  `API_EXPECTED_MIGRATION_FILENAME` advances to this file. The management
+  marker stays.
+- Who notices: a deploy waits until this migration is applied. The first
+  apply rewrites `item` rows that have an enclosure URL, so startup is slower
+  on a database that already has episodes.
+- Operator steps: none beyond the usual migration apply. Existing databases
+  are updated in place. No wipe.

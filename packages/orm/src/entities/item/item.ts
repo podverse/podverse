@@ -74,6 +74,15 @@ export class Item {
   @Column({ type: 'varchar', name: 'guid_enclosure_url', length: DATABASE_CONSTANTS.varchar_url })
   guid_enclosure_url?: string | null;
 
+  /** 16-byte md5 of guid_enclosure_url. Enclosure equality lookups use this. */
+  @Column({
+    type: 'bytea',
+    name: 'guid_enclosure_url_digest',
+    nullable: true,
+    select: false,
+  })
+  guid_enclosure_url_digest?: Buffer | null;
+
   @Column({ type: 'timestamptz', name: 'pub_date', nullable: true })
   pub_date?: Date | null;
 

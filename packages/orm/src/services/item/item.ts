@@ -10,6 +10,7 @@ import {
 } from '@orm/entities/liveItem/liveItemStatus.js';
 import type { StatsPopularityItem } from '@orm/entities/stats/statsPopularityItem.js';
 import { applyProperties } from '@orm/lib/applyProperties.js';
+import { enclosureUrlDigest } from '@orm/lib/enclosureUrlDigest.js';
 import { getChannelCategoryWhere } from '@orm/lib/categoryFilterWhere.js';
 import {
   findOptionsRelationsFromPaths,
@@ -444,7 +445,7 @@ export class ItemService {
     return this.repositoryRead.findOne({
       where: {
         channel: findWhereChannelId(channel),
-        guid_enclosure_url,
+        guid_enclosure_url_digest: enclosureUrlDigest(guid_enclosure_url),
       },
     });
   }
@@ -474,7 +475,7 @@ export class ItemService {
     return this.repositoryRead.find({
       where: {
         channel: findWhereChannelId(channel),
-        guid_enclosure_url: In(guidEnclosureUrls),
+        guid_enclosure_url_digest: In(guidEnclosureUrls.map((url) => enclosureUrlDigest(url))),
         item_flag_status: {
           id: ItemFlagStatusStatusEnum.Active,
         },
