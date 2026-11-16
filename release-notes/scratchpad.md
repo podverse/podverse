@@ -365,3 +365,10 @@
   on a database that already has episodes.
 - Operator steps: none beyond the usual migration apply. Existing databases
   are updated in place. No wipe.
+
+## Custom API switch erases this phone's copy of the previous server
+
+- Surfaces: mobile
+- Change: Saving a different custom API address opens a screen that lists the local library, login, and push registration that will be erased. Accepting removes them. Cancel leaves the address and the library. An account on the previous server is left as it is. Theme, language, download limits, and feed-host passwords stay.
+- Who notices: people who point the app at another server
+- Operator steps: none

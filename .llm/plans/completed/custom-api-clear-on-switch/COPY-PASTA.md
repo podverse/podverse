@@ -24,7 +24,7 @@ If the step stops with a question, answer it in a chat of this window, then resu
 
 ## Phase 1
 
-- [ ] **01 — Clear on API switch**
+- [x] **01 — Clear on API switch**
 
 **Cursor model:** Cursor Grok 4.7 · **Reasoning:** extra high
 

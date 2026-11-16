@@ -592,6 +592,8 @@ export type PlaybackContextValue = {
   previewWindow: (params: { fromSeconds: number; pauseAtSeconds?: number | null }) => Promise<void>;
   loadItemPausedAt: (item: DTOItem, channel: DTOChannel, seconds: number) => Promise<void>;
   pause: () => void;
+  /** Pause, drop the current item, and clear the last-playback snapshot. */
+  clearNowPlaying: () => void;
   resume: () => Promise<void>;
   /** Reload the current source after an engine error. */
   retryPlayback: () => Promise<void>;
@@ -4722,6 +4724,7 @@ export function PlaybackProvider({ children }: PropsWithChildren) {
       enclosureSelectedParams,
       itemLabeledEnclosures,
       pause: routedPause,
+      clearNowPlaying,
       playChapter: routedPlayChapter,
       playAddByRssResourceData: routedPlayAddByRssResourceData,
       playClip: routedPlayClip,
@@ -4778,6 +4781,7 @@ export function PlaybackProvider({ children }: PropsWithChildren) {
       lastPlaybackError,
       routedGoToLive,
       routedJumpBy,
+      clearNowPlaying,
       routedPause,
       routedPlayAddByRssResourceData,
       routedPlayChapter,

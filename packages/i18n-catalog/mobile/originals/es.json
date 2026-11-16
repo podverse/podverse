@@ -373,7 +373,7 @@
   "custom_api": {
     "title": "API personalizada",
     "menu_subtitle": "Apuntar esta app a otro servidor",
-    "intro": "Sustituye el servidor con el que habla esta app. Guardar comprueba que el servidor responda con el estado 200 antes de conservar el cambio. Restablecer vuelve al servidor original. Cierra la sesión antes de cambiarlo para que este teléfono no envíe tu acceso a otro servidor.",
+    "intro": "Sustituye el servidor con el que habla esta app. Guardar comprueba que el servidor responda con el estado 200 y luego abre una pantalla que lista lo que este teléfono borrará. Restablecer hace lo mismo cuando ya hay una dirección guardada. Cierra la sesión antes de cambiarlo para que este teléfono no envíe tu acceso a otro servidor.",
     "url_label": "URL de la API",
     "url_placeholder": "https://example.com/api/v2",
     "original_label": "API original",
@@ -390,6 +390,110 @@
     "logout_title": "Cierra la sesión primero",
     "logout_body": "Cierra la sesión antes de cambiar la API. Este teléfono no enviará tu acceso a otro servidor.",
     "notice_label": "API personalizada",
-    "notice_body": "El inicio de sesión, el registro, las contraseñas de feeds y las compras en la tienda dentro de esta app van a este servidor. Una página abierta en el navegador usa el sitio público, que no lo hace."
+    "notice_body": "El inicio de sesión, el registro, las contraseñas de feeds y las compras en la tienda dentro de esta app van a este servidor. Una página abierta en el navegador usa el sitio público, que no lo hace.",
+    "clear": {
+      "title": "Borrar datos locales",
+      "intro": "Se borrará la copia de este teléfono del servidor anterior. Una cuenta en ese servidor se deja como está.",
+      "removed_heading": "Se borrará",
+      "kept_heading": "Permanece en este teléfono",
+      "confirm": "Borrar y cambiar",
+      "failed": "No se pudieron borrar los datos de este teléfono. No se cambió la dirección de la API.",
+      "removed": {
+        "subscriptions": {
+          "title": "Suscripciones",
+          "body": "Programas que sigues en este teléfono, guardados con los ID del servidor anterior."
+        },
+        "saved_episodes": {
+          "title": "Episodios guardados",
+          "body": "Listas de episodios guardadas para esos programas."
+        },
+        "downloads": {
+          "title": "Descargas",
+          "body": "Episodios descargados y sus archivos en este teléfono."
+        },
+        "add_by_rss_feeds": {
+          "title": "Feeds de Añadir por RSS",
+          "body": "Feeds guardados en este teléfono, incluidos los que se analizan aquí."
+        },
+        "queue_history_playlists": {
+          "title": "Cola, historial y listas de reproducción",
+          "body": "Cola, historial y listas de reproducción guardados en este teléfono."
+        },
+        "listening_position": {
+          "title": "Posición de escucha",
+          "body": "Dónde se detuvo la reproducción, lo último que sonaba y los informes de escucha que aún no se han enviado."
+        },
+        "seen_marks": {
+          "title": "Marcas de visto y chips de sección",
+          "body": "Marcas de visto por programa, indicadores en vivo y qué secciones tiene un programa."
+        },
+        "per_show_auto_download": {
+          "title": "Descarga automática por programa",
+          "body": "Qué programas descargan episodios nuevos en este teléfono."
+        },
+        "sort_choices": {
+          "title": "Opciones de orden de un programa",
+          "body": "Opciones de orden y filtro guardadas para un programa, episodio o lista de reproducción concretos."
+        },
+        "previous_app_carryover": {
+          "title": "Traspaso de la app anterior",
+          "body": "Podcasts traídos de la app anterior que siguen en espera en este teléfono."
+        },
+        "saved_login": {
+          "title": "Sesión guardada",
+          "body": "El token de acceso y el token de actualización del servidor anterior."
+        },
+        "push_registration": {
+          "title": "Registro de push",
+          "body": "El registro de este teléfono con el push del servidor anterior."
+        },
+        "error_log": {
+          "title": "Registro de errores",
+          "body": "El registro de errores del dispositivo, que nombra los ID del servidor anterior."
+        },
+        "notification_prompts": {
+          "title": "Avisos de notificación",
+          "body": "Avisos de notificación ya respondidos para la cuenta anterior."
+        },
+        "membership_reminder": {
+          "title": "Recordatorio de membresía y traspaso",
+          "body": "Un recordatorio de membresía descartado y un traspaso de reproducción rechazado para un episodio del servidor anterior."
+        }
+      },
+      "kept": {
+        "theme_language_tabs": {
+          "title": "Tema, idioma y barra de pestañas",
+          "body": "Tema, idioma y qué pestañas están en la barra."
+        },
+        "offline_mode": {
+          "title": "Modo sin conexión",
+          "body": "El interruptor de Modo sin conexión."
+        },
+        "download_limits": {
+          "title": "Límites de descarga",
+          "body": "Límites de tamaño de descarga y valores predeterminados que no están ligados a un programa."
+        },
+        "shuffle_repeat_media": {
+          "title": "Aleatorio, repetición y tipo de medio",
+          "body": "Aleatorio, repetición y qué tipo de medio se abre primero."
+        },
+        "notification_banners": {
+          "title": "Banners de notificación",
+          "body": "Qué banners de notificación mostrar."
+        },
+        "add_by_rss_passwords": {
+          "title": "Contraseñas de Añadir por RSS",
+          "body": "Nombres de usuario y contraseñas de un servidor de feeds."
+        },
+        "unified_push": {
+          "title": "Unified Push y esta instalación",
+          "body": "Una dirección de Unified Push o una clave de autenticación del distribuidor que escribiste, y el ID de esta instalación."
+        },
+        "api_address": {
+          "title": "Dirección de la API",
+          "body": "La dirección de la API que estás guardando."
+        }
+      }
+    }
   }
 }

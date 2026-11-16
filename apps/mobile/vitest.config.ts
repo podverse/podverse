@@ -21,7 +21,10 @@ import { defineConfig } from 'vitest/config';
  * local stores against the subscription list (`src/screens/home/homeRowMetadata.ts` — pure; the
  * repository reads stay in `homeFeedData.ts`), the env-driven deep-link scheme / prefix helpers
  * (`src/config/deepLinkSchemes.js`), the custom API address and health verdict
- * (`src/config/customApiUrl.ts`), deep-link path mapping (`src/navigation/deepLinking.ts`), pure notification
+ * (`src/config/customApiUrl.ts`), the clear-screen row copy and the AsyncStorage / sqlite keep-or-drop
+ * rules (`src/config/customApiClearLists.ts`, `src/data/customApiLocalClearPlan.ts` — the erase module
+ * talks to SQLite and SecureStore and stays out of this suite), deep-link path mapping
+ * (`src/navigation/deepLinking.ts`), pure notification
  * payload target extraction (`src/push/notificationTarget.ts`), the path an inbox row and a banner
  * open (`src/push/accountNotificationLink.ts`), which notifications may show a
  * banner and the device-local kind switches (`src/notifications/bannerNotificationPolicy.ts`,
@@ -189,6 +192,8 @@ export default defineConfig({
       'src/components/screen/headerBackChoice.test.ts',
       'src/components/player/fullPlayerRows.test.ts',
       'src/config/customApiUrl.test.ts',
+      'src/config/customApiClearLists.test.ts',
+      'src/data/customApiLocalClearPlan.test.ts',
       'src/config/publicWebBaseUrl.test.ts',
       'src/config/deepLinkSchemes.test.ts',
       'src/data/db/migrations.test.ts',
