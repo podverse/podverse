@@ -123,7 +123,9 @@ const renderNodes = (
 };
 
 /**
- * Channel About and item Summary body: rich text when the markup is balanced, otherwise plain text.
+ * Channel About and item Summary body.
+ * Markdown is rendered when the string matches the stored form. Balanced HTML is rendered
+ * when the string is markup instead.
  */
 export const DescriptionRenderer: FC<DescriptionRendererProps> = ({
   description,

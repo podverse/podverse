@@ -18,4 +18,10 @@ describe('toSeoPlainText', () => {
   it('decodes common html entities', () => {
     expect(toSeoPlainText('Rock &amp; Roll &quot;Forever&quot;')).toBe('Rock & Roll "Forever"');
   });
+
+  it('drops markdown markers from a stored description', () => {
+    expect(toSeoPlainText('Visit [the index](https://podcastindex.org) for **more**.')).toBe(
+      'Visit the index for more.'
+    );
+  });
 });

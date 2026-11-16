@@ -367,3 +367,19 @@ Every verify failure is one of F1, F3, F4, F5, or F6.
     `resolve_key` `email_case_twin`, pointing at the kept account. Its
     library is copied after the kept row's copy, with caps from the combined
     counts. Its membership, password, and email are not used.
+
+## Pilot `20261115T001006Z`
+
+Counts only.
+
+| Phase      | Done | Failed | Skipped | Total |
+| ---------- | ---- | ------ | ------- | ----- |
+| preflight  | 1    | 0      | 0       | 1     |
+| identity   | 100  | 0      | 0       | 100   |
+| catalog    | 100  | 0      | 0       | 100   |
+| library    | 100  | 0      | 0       | 100   |
+| replay     | 100  | 0      | 0       | 100   |
+| membership | 95   | 0      | 5       | 100   |
+| verify     | 100  | 0      | 0       | 100   |
+
+Catalog feeds settled: 7,977. Waiting: 0. `parse_failed`: 222.

@@ -313,3 +313,38 @@
   ticking the checkbox) starts the carryover. Sign In stays available.
 - Who notices: signed-out v4 users after the update
 - Operator steps: none
+
+## Local rehearsal restore drops attached partitions first
+
+- Surfaces: workers
+- Change: a sample or full local rehearsal drops attached partitions in `public` and
+  `listener_identity` before `pg_restore --clean`, and skips comments. A stats partition
+  left by an earlier stage no longer blocks the restore, and the restore does not need the
+  restoring role to own `public`.
+- Who notices: operator running a sample or full local migration rehearsal
+- Operator steps: none. Do not drop the app schemas by hand before the stage.
+
+## Show and episode descriptions are stored as markdown
+
+- Surfaces: api, workers, web, mobile
+- Change: channel and item descriptions are saved as markdown. RSS HTML is converted on the
+  way in, and a second save of that markdown writes the same text. About and Summary render
+  that markdown. A description that is still HTML, such as a phone cache from before this
+  version, still renders. Clip text and playlist text are unchanged. The database is wiped
+  before this version, so existing rows are not converted in place.
+- Who notices: show notes and About text keep their paragraphs, links, and lists, in a
+  smaller column
+- Operator steps: none
+
+## Catalog indexes and duplicate episode artwork
+
+- Surfaces: k8s, workers
+- Change: app migration `0016_drop_duplicate_indexes.sql` drops btree indexes that repeat a
+  unique constraint on the same column. `idx_item_channel_id` stays, because episode lists
+  also use `idx_item_channel_id_pub_date` and the narrower index is the one a channel-only
+  lookup can prefer. `guid` and `guid_enclosure_url` stay btree. A parse skips an episode
+  image whose URL is the show image. A different episode image is still stored.
+  `API_EXPECTED_MIGRATION_FILENAME` advances to this file. The management marker stays.
+- Who notices: a deploy waits until this migration is applied. Episode rows that used the
+  show artwork no longer store a second copy.
+- Operator steps: none beyond the usual migration apply

@@ -1,3 +1,4 @@
+import { parseDescriptionMarkdown } from './descriptionMarkdown.js';
 import { decodeHtmlEntities, htmlToPlainText } from './html.js';
 
 /**
@@ -689,21 +690,30 @@ export function descriptionNodesToPlainText(
   return plainBlocks.join(blockSeparator);
 }
 
+const collapseDescriptionPlain = (value: string): string => value.replace(/\s+/g, ' ').trim();
+
 /**
  * Read a feed description into plain text plus an optional rich tree.
  *
- * The rich tree is present only when every tag is balanced and the markup fits the About /
- * Summary allowlist (or well-formed tags that unwrap). Unbalanced or truncated markup yields
+ * Markdown that matches the stored form is read first. Balanced HTML that fits the About /
+ * Summary allowlist is read when the string is markup instead. Unbalanced markup yields
  * `rich: null` so callers show the plain string only.
  */
 export function readDescriptionDocument(input?: string | null): DescriptionDocument {
   const source = input ?? '';
-  const plain = htmlToPlainText(source);
-
   if (source.trim().length === 0) {
     return { plain: '', rich: null };
   }
 
+  const markdown = parseDescriptionMarkdown(source);
+  if (markdown !== null) {
+    return {
+      plain: collapseDescriptionPlain(descriptionNodesToPlainText(markdown, ' ')),
+      rich: markdown,
+    };
+  }
+
+  const plain = htmlToPlainText(source);
   try {
     const rich = buildDescriptionTree(source, 'strict');
     if (rich.length === 0) {

@@ -157,6 +157,9 @@ flowchart LR
 | [14](14-fdroid.md)                             | F-Droid placeholder                                       |
 | [15](15-near-term-rehearsal-checklist.md)      | Ordered rehearsal steps before migration code             |
 | [16](16-full-local-migration-rehearsal.md)     | Copy every account locally and check each one             |
+| [17](17-storage-v4-vs-v5.md)                   | Storage per episode, full-database estimate, savings      |
+| [18](18-v5-table-storage.md)                   | Where the v5 catalog bytes sit, table by table            |
+| [19](19-unused-large-indexes.md)               | One unused index; keep the global `pub_date` index        |
 
 ## Can and cannot (honest summary)
 

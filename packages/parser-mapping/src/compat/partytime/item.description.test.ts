@@ -33,7 +33,7 @@ describe('compatItemDescriptionDto', () => {
       DescriptionLengthTierEnum.Standard
     );
 
-    expect(dto?.value).toContain('<strong>content</strong>');
+    expect(dto?.value).toContain('**content**');
     expect(dto?.is_truncated).toBe(false);
   });
 
@@ -47,7 +47,7 @@ describe('compatItemDescriptionDto', () => {
       DescriptionLengthTierEnum.Standard
     );
 
-    expect(dto?.value).toBe('<p>First paragraph.</p><p>Second paragraph.</p>');
+    expect(dto?.value).toBe('First paragraph.\n\nSecond paragraph.');
   });
 
   it('cuts at a block boundary within the feed tier', () => {
@@ -57,7 +57,8 @@ describe('compatItemDescriptionDto', () => {
     const extended = compatItemDescriptionDto(source, DescriptionLengthTierEnum.Extended);
 
     expect(standard?.is_truncated).toBe(true);
-    expect(standard?.value.endsWith('</p>')).toBe(true);
+    expect(standard?.value.endsWith('x')).toBe(true);
+    expect(standard?.value.includes('<p>')).toBe(false);
     expect(standard?.source_length).toBeGreaterThan(10_000);
     expect(extended?.is_truncated).toBe(false);
     expect(extended?.value.length).toBeGreaterThan(standard?.value.length ?? 0);

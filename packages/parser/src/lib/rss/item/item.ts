@@ -76,6 +76,7 @@ type HandleParsedItemBatch = {
   transactionalEntityManager?: EntityManager;
   updatedItemIds: number[];
   timerAccumulator: ItemTimerAccumulator;
+  channelImageUrls: ReadonlySet<string>;
 };
 
 type HandleParsedItem = {
@@ -86,6 +87,7 @@ type HandleParsedItem = {
   transactionalEntityManager?: EntityManager;
   timerAccumulator: ItemTimerAccumulator;
   isLiveItem?: boolean;
+  channelImageUrls?: ReadonlySet<string>;
 };
 
 export const createItemTimerAccumulator = (): ItemTimerAccumulator => {
@@ -125,7 +127,8 @@ export const handleParsedItems = async (
   parsedItems: Episode[],
   channel: Channel,
   channelSeasonIndex: ChannelSeasonIndex,
-  descriptionContext: DescriptionIngestContext
+  descriptionContext: DescriptionIngestContext,
+  channelImageUrls: ReadonlySet<string> = new Set()
 ): Promise<HandleParsedItemsResult> => {
   const itemService = new ItemService();
 
@@ -169,6 +172,7 @@ export const handleParsedItems = async (
         newItemGuidEnclosureUrls,
         existingItemGuids,
         existingItemGuidEnclosureUrls,
+        channelImageUrls,
       });
     } else {
       await AppDataSourceReadWrite.manager.transaction(async (transactionalEntityManager) => {
@@ -184,6 +188,7 @@ export const handleParsedItems = async (
           newItemGuidEnclosureUrls,
           existingItemGuids,
           existingItemGuidEnclosureUrls,
+          channelImageUrls,
         });
       });
     }
@@ -220,6 +225,7 @@ const handleParsedItemBatch = async ({
   newItemGuidEnclosureUrls,
   existingItemGuids,
   existingItemGuidEnclosureUrls,
+  channelImageUrls,
 }: HandleParsedItemBatch & {
   newItemGuids: string[];
   newItemGuidEnclosureUrls: string[];
@@ -234,6 +240,7 @@ const handleParsedItemBatch = async ({
       descriptionContext,
       transactionalEntityManager,
       timerAccumulator,
+      channelImageUrls,
     });
     updatedItemIds.push(item.id);
 
@@ -256,6 +263,7 @@ export const handleParsedItem = async ({
   transactionalEntityManager,
   timerAccumulator,
   isLiveItem,
+  channelImageUrls,
 }: HandleParsedItem) => {
   const itemService = new ItemService();
   const itemDto = compatItemDto(parsedItem, { isLiveItem: isLiveItem ?? false });
@@ -314,7 +322,7 @@ export const handleParsedItem = async ({
     timerAccumulator.handleParsedItemEnclosure;
 
   timerManager.start('handleParsedItemImage');
-  await handleParsedItemImage(parsedItem, item, transactionalEntityManager);
+  await handleParsedItemImage(parsedItem, item, transactionalEntityManager, channelImageUrls);
   timerAccumulator.handleParsedItemImage =
     timerManager.end('handleParsedItemImage', preventTimerLog) +
     timerAccumulator.handleParsedItemImage;

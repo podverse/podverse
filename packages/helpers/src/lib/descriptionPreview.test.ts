@@ -12,7 +12,7 @@ describe('buildArchivedDescriptionValue', () => {
     const preview = `Tom & Jerry <3 "quotes" and 'apostrophes'`;
     const value = buildArchivedDescriptionValue(preview);
 
-    expect(value).toBe('<p>Tom &amp; Jerry &lt;3 &quot;quotes&quot; and &#39;apostrophes&#39;</p>');
+    expect(value).toBe('Tom & Jerry \\<3 "quotes" and \'apostrophes\'');
     expect(readDescriptionDocument(value).rich).toEqual([
       { kind: 'p', children: [{ kind: 'text', text: preview }] },
     ]);

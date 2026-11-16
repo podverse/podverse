@@ -56,7 +56,11 @@ import {
   resolveSpamFeedItemThresholds,
   shouldAttemptFeedParseFromLifecycleAndPolicy,
 } from '@podverse/orm';
-import { compatChannelImageDtos, compatItemImageDtos } from '@podverse/parser-mapping';
+import {
+  compatChannelImageDtos,
+  compatItemImageDtos,
+  itemImagesNotOnChannel,
+} from '@podverse/parser-mapping';
 
 // import { firebaseAccessTokenServiceFactory } from '@parser/factories/firebaseAccessTokenService.js';
 // import { NotificationsServiceFactory } from '@parser/factories/notificationsService.js';
@@ -428,6 +432,9 @@ export const parseRSSFeedAndSaveToDatabase = async (
 
     const hintCreatedAt = new Date().toISOString();
     const channelImageDtos = compatChannelImageDtos(parsedFeed);
+    const channelImageUrls = new Set(
+      channelImageDtos.map((image) => image.url).filter((url) => url.length > 0)
+    );
     for (const image of channelImageDtos) {
       if (image.url) {
         imageHints.push({
@@ -446,10 +453,11 @@ export const parseRSSFeedAndSaveToDatabase = async (
       parsedFeed.items,
       channel,
       channelSeasonIndex,
-      descriptionContext
+      descriptionContext,
+      channelImageUrls
     );
     for (const item of parsedFeed.items) {
-      const itemImageDtos = compatItemImageDtos(item);
+      const itemImageDtos = itemImagesNotOnChannel(compatItemImageDtos(item), channelImageUrls);
       for (const image of itemImageDtos) {
         if (image.url) {
           imageHints.push({
@@ -474,7 +482,8 @@ export const parseRSSFeedAndSaveToDatabase = async (
         channelSeasonIndex,
         descriptionContext,
         parsedItemStableKeys,
-        newItemIdentifiers.updatedItemIds
+        newItemIdentifiers.updatedItemIds,
+        channelImageUrls
       );
     }
 

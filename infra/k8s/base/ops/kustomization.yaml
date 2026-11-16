@@ -25,7 +25,7 @@ configMapGenerator:
   - name: podverse-ops-migration-scripts
     literals:
       - MIGRATION_BUNDLE_SHA=linear-migrations-v1
-      - API_EXPECTED_MIGRATION_FILENAME=0015_account_max_queue_resources.sql
+      - API_EXPECTED_MIGRATION_FILENAME=0016_drop_duplicate_indexes.sql
       - MANAGEMENT_API_EXPECTED_MIGRATION_FILENAME=0002_nano_id_v2_min_7.sql
     files:
       - source/database/runner/run-linear-migrations.sh
@@ -55,6 +55,7 @@ configMapGenerator:
       - source/database/linear-migrations/app/0013_feed_log_parse_failure_reason.sql
       - source/database/linear-migrations/app/0014_legacy_pending_row_follow_playlist.sql
       - source/database/linear-migrations/app/0015_account_max_queue_resources.sql
+      - source/database/linear-migrations/app/0016_drop_duplicate_indexes.sql
   - name: podverse-ops-management-linear-migrations
     options:
       annotations:

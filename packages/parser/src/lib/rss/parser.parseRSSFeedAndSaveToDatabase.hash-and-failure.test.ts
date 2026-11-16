@@ -592,7 +592,8 @@ describe('parseRSSFeedAndSaveToDatabase failure timestamp and hash-on-success', 
       {},
       expect.anything(),
       expect.any(Set),
-      updatedItemIds
+      updatedItemIds,
+      expect.any(Set)
     );
   });
 

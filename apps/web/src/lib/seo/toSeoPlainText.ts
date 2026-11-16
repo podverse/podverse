@@ -1,9 +1,9 @@
-import { stripAndDecodeHtml } from '@podverse/helpers';
+import { decodeHtmlEntities, readDescriptionDocument } from '@podverse/helpers';
 
 export const toSeoPlainText = (input?: string | null): string => {
   if (!input) {
     return '';
   }
 
-  return stripAndDecodeHtml(input).replace(/\s+/g, ' ').trim();
+  return decodeHtmlEntities(readDescriptionDocument(input).plain).replace(/\s+/g, ' ').trim();
 };

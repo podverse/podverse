@@ -8,10 +8,32 @@ afterEach(() => {
 });
 
 describe('DescriptionRenderer', () => {
-  it('renders plain text in a paragraph when markup does not parse', () => {
+  it('renders a plain sentence in a paragraph', () => {
     render(<DescriptionRenderer description="Plain copy." />);
     const text = screen.getByText('Plain copy.');
     expect(text.closest('p')).not.toBeNull();
+  });
+
+  it('renders stored markdown as a heading, a link, and a list', () => {
+    render(
+      <DescriptionRenderer
+        description={[
+          '## Show Notes',
+          '',
+          'Visit [the index](https://podcastindex.org).',
+          '',
+          '- Chapters',
+          '- Transcripts',
+        ].join('\n')}
+      />
+    );
+
+    expect(screen.getByRole('heading', { name: 'Show Notes' }).tagName).toBe('H2');
+    expect(screen.getByRole('link', { name: 'the index' }).getAttribute('href')).toBe(
+      'https://podcastindex.org'
+    );
+    expect(screen.getByRole('listitem', { name: 'Chapters' })).toBeTruthy();
+    expect(screen.getByRole('listitem', { name: 'Transcripts' })).toBeTruthy();
   });
 
   it('renders a rich link when the markup is balanced', () => {

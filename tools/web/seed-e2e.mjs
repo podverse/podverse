@@ -25,6 +25,7 @@ import {
   E2E_FIXTURE_CHANNEL_IMAGE_URL,
   E2E_FIXTURE_ITEM_IMAGE_URL,
 } from './embed-fixture-constants.mjs';
+import { seedDescriptionForStorage } from './seed-description.mjs';
 import { seedEmbedFixtures, syncE2eFixtureImageUrls } from './seed-embed-fixtures.mjs';
 
 const DB_HOST = process.env.DB_HOST ?? 'localhost';
@@ -197,7 +198,7 @@ const E2E_ARCHIVED_CLIP_TITLE = 'E2E Archived Clip';
 const E2E_ARCHIVED_CLIP_PREVIEW = 'This archived episode keeps a short preview.';
 const E2E_ARCHIVED_CLIP_LINK_URL = 'https://example.com/e2e-archived-clip-episode';
 const E2E_ARCHIVED_CLIP_SOURCE_LENGTH = 9000;
-const E2E_ARCHIVED_CLIP_DESCRIPTION_VALUE = `<p>${E2E_ARCHIVED_CLIP_PREVIEW}</p>`;
+const E2E_ARCHIVED_CLIP_DESCRIPTION_VALUE = E2E_ARCHIVED_CLIP_PREVIEW;
 const E2E_SOUNDBITE_ID_TEXT = 'e2eSoundbite001';
 
 const E2E_MUSIC_ALBUM_ID_TEXT = 'e2eMusicAlbm01';
@@ -416,45 +417,22 @@ const E2E_USER_EMAIL = 'e2e-user@example.com';
 
 const OPML_IMPORT_KEY_PREFIX = 'opml:import:';
 const OPML_IMPORT_HOURLY_KEY_PREFIX = 'opml:import:hourly:';
-const SEED_DESCRIPTION_PREVIEW_MAX_LENGTH = 400;
-
-function decodeSeedHtmlEntities(value) {
-  return value
-    .replace(/&nbsp;/gi, ' ')
-    .replace(/&amp;/gi, '&')
-    .replace(/&lt;/gi, '<')
-    .replace(/&gt;/gi, '>');
-}
-
-function toSeedDescriptionPreview(value) {
-  const plain = decodeSeedHtmlEntities(value.replace(/<[^>]+>/g, ' '))
-    .replace(/\s+/g, ' ')
-    .trim();
-  if (plain.length <= SEED_DESCRIPTION_PREVIEW_MAX_LENGTH) {
-    return plain;
-  }
-
-  const bounded = plain.slice(0, SEED_DESCRIPTION_PREVIEW_MAX_LENGTH);
-  const lastWhitespace = bounded.search(/\s+\S*$/);
-  if (lastWhitespace === -1) {
-    return bounded;
-  }
-  return bounded.slice(0, lastWhitespace);
-}
 
 async function insertSeedChannelDescription(client, channelId, value) {
+  const prepared = seedDescriptionForStorage(value);
   await client.query(
     `INSERT INTO channel_description (channel_id, value, preview)
      VALUES ($1, $2, $3)`,
-    [channelId, value, toSeedDescriptionPreview(value)]
+    [channelId, prepared.value, prepared.preview]
   );
 }
 
 async function insertSeedItemDescription(client, itemId, value) {
+  const prepared = seedDescriptionForStorage(value);
   await client.query(
     `INSERT INTO item_description (item_id, value, preview)
      VALUES ($1, $2, $3)`,
-    [itemId, value, toSeedDescriptionPreview(value)]
+    [itemId, prepared.value, prepared.preview]
   );
 }
 
@@ -1633,13 +1611,17 @@ async function seedMediaPlayerAndEmbedFixtures(client, accountId) {
     enclosureUrl: E2E_PODCAST_RESUME_ENCLOSURE_URL,
     pubDateOffsetSeconds: 14400,
   });
+  const longNotes = seedDescriptionForStorage(E2E_PODCAST_ITEM_LONG_NOTES_VALUE);
+  if (longNotes.preview !== E2E_PODCAST_ITEM_LONG_NOTES_PREVIEW) {
+    throw new Error('Long show notes preview does not match the stored markdown');
+  }
   await client.query(
     `UPDATE item_description
      SET value = $2, preview = $3, is_truncated = true, source_length = $4
      WHERE item_id = $1`,
     [
       longNotesItemId,
-      E2E_PODCAST_ITEM_LONG_NOTES_VALUE,
+      longNotes.value,
       E2E_PODCAST_ITEM_LONG_NOTES_PREVIEW,
       E2E_PODCAST_ITEM_LONG_NOTES_SOURCE_LENGTH,
     ]
@@ -3192,8 +3174,11 @@ const E2E_PERF_ITEM_DESCRIPTION_UNIT =
   '<p>E2E perf item summary. Hosts &amp; guests discuss &lt;markup&gt;, entities, and a long feed body.</p>';
 
 function buildPerfItemDescriptionHtml() {
-  const repeats = Math.ceil(2000 / E2E_PERF_ITEM_DESCRIPTION_UNIT.length);
-  return E2E_PERF_ITEM_DESCRIPTION_UNIT.repeat(repeats);
+  let html = '';
+  while (html.length < 2400) {
+    html += E2E_PERF_ITEM_DESCRIPTION_UNIT;
+  }
+  return html;
 }
 
 const PERF_REMOTE_IMAGE_URLS_PATH = join(
@@ -3291,8 +3276,15 @@ async function seedPerfVolumeFixtures(client) {
   }
 
   const descriptionHtml = buildPerfItemDescriptionHtml();
-  if (descriptionHtml.length < 2000 || descriptionHtml.length > 10000) {
-    throw new Error(`Perf item description length ${descriptionHtml.length} is outside 2000–10000`);
+  const perfDescription = seedDescriptionForStorage(descriptionHtml);
+  if (
+    descriptionHtml.length < 2000 ||
+    descriptionHtml.length > 10000 ||
+    perfDescription.value.length < 2000
+  ) {
+    throw new Error(
+      `Perf item description length html=${descriptionHtml.length} markdown=${perfDescription.value.length} is outside 2000–10000`
+    );
   }
 
   await client.query(
@@ -3419,13 +3411,12 @@ async function seedPerfVolumeFixtures(client) {
     [E2E_PODCAST_SHORT_ENCLOSURE_URL]
   );
 
-  const descriptionPreview = toSeedDescriptionPreview(descriptionHtml);
   await client.query(
     `INSERT INTO item_description (item_id, value, preview)
      SELECT i.id, $1, $2
      FROM item i
      WHERE i.id_text LIKE 'e2ePerfIt%'`,
-    [descriptionHtml, descriptionPreview]
+    [perfDescription.value, perfDescription.preview]
   );
 
   const counts = await client.query(

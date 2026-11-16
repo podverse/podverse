@@ -94,6 +94,11 @@ import {
   EMBED_SAMPLE_VIDEO_CHANNEL_IMAGE_URL,
   EMBED_SAMPLE_VIDEO_CHANNEL_TITLE,
 } from './embed-fixture-constants.mjs';
+import { seedDescriptionForStorage } from './seed-description.mjs';
+
+function storedSeedDescription(value) {
+  return seedDescriptionForStorage(value).value;
+}
 
 const EMBED_SAMPLE_PODCAST_FEED_PI_ID = 876543220;
 const EMBED_SAMPLE_PODCAST_FEED_URL = 'https://e2e-seed-embed-sample-podcast.example/podcast.xml';
@@ -472,7 +477,10 @@ async function seedEmbedSampleDemoFixtures(client, { embedDemoAccountId }) {
   await client.query(
     `INSERT INTO channel_description (channel_id, value)
      VALUES ($1, $2)`,
-    [podcastChannelId, 'Deterministic embed demo podcast list with color-coded artwork.']
+    [
+      podcastChannelId,
+      storedSeedDescription('Deterministic embed demo podcast list with color-coded artwork.'),
+    ]
   );
   await client.query(
     `INSERT INTO channel_image (channel_id, url, image_width_size)
@@ -519,7 +527,7 @@ async function seedEmbedSampleDemoFixtures(client, { embedDemoAccountId }) {
     await client.query(
       `INSERT INTO item_description (item_id, value)
        VALUES ($1, $2)`,
-      [itemId, `${title} embed demo sample.`]
+      [itemId, storedSeedDescription(`${title} embed demo sample.`)]
     );
     await client.query(
       `INSERT INTO item_image (item_id, url, image_width_size)
@@ -709,7 +717,10 @@ async function seedEmbedSampleDemoFixtures(client, { embedDemoAccountId }) {
   await client.query(
     `INSERT INTO channel_description (channel_id, value)
      VALUES ($1, $2)`,
-    [albumChannelId, 'Deterministic embed demo album list with color-coded artwork.']
+    [
+      albumChannelId,
+      storedSeedDescription('Deterministic embed demo album list with color-coded artwork.'),
+    ]
   );
   await client.query(
     `INSERT INTO channel_image (channel_id, url, image_width_size)
@@ -747,7 +758,7 @@ async function seedEmbedSampleDemoFixtures(client, { embedDemoAccountId }) {
     await client.query(
       `INSERT INTO item_description (item_id, value)
        VALUES ($1, $2)`,
-      [itemId, `${title} embed demo sample.`]
+      [itemId, storedSeedDescription(`${title} embed demo sample.`)]
     );
     await client.query(
       `INSERT INTO item_image (item_id, url, image_width_size)
@@ -887,7 +898,7 @@ export async function seedEmbedFixtures(client, options) {
   await client.query(
     `INSERT INTO channel_description (channel_id, value)
      VALUES ($1, $2)`,
-    [videoChannelId, 'Embed demo video channel with color-coded artwork.']
+    [videoChannelId, storedSeedDescription('Embed demo video channel with color-coded artwork.')]
   );
   await client.query(
     `INSERT INTO channel_image (channel_id, url, image_width_size)
@@ -931,7 +942,7 @@ export async function seedEmbedFixtures(client, options) {
     await client.query(
       `INSERT INTO item_description (item_id, value)
        VALUES ($1, $2)`,
-      [itemId, `${title} deterministic E2E embed video fixture.`]
+      [itemId, storedSeedDescription(`${title} deterministic E2E embed video fixture.`)]
     );
     await client.query(
       `INSERT INTO item_image (item_id, url, image_width_size)
@@ -1061,7 +1072,10 @@ export async function seedEmbedFixtures(client, options) {
   await client.query(
     `INSERT INTO channel_description (channel_id, value)
      VALUES ($1, $2)`,
-    [videoAlbumChannelId, 'Deterministic embed demo album list with video tracks.']
+    [
+      videoAlbumChannelId,
+      storedSeedDescription('Deterministic embed demo album list with video tracks.'),
+    ]
   );
   await client.query(
     `INSERT INTO channel_image (channel_id, url, image_width_size)
@@ -1099,7 +1113,9 @@ export async function seedEmbedFixtures(client, options) {
      VALUES ($1, $2)`,
     [
       videoAlbumTrackId,
-      `${EMBED_SAMPLE_TRACK_VIDEO_TITLE} deterministic E2E embed video album fixture.`,
+      storedSeedDescription(
+        `${EMBED_SAMPLE_TRACK_VIDEO_TITLE} deterministic E2E embed video album fixture.`
+      ),
     ]
   );
   await client.query(
@@ -1251,7 +1267,10 @@ export async function seedEmbedFixtures(client, options) {
   await client.query(
     `INSERT INTO channel_description (channel_id, value)
      VALUES ($1, $2)`,
-    [scrollChannelId, 'Embed demo podcast list with many rows for scroll tests.']
+    [
+      scrollChannelId,
+      storedSeedDescription('Embed demo podcast list with many rows for scroll tests.'),
+    ]
   );
   await client.query(
     `INSERT INTO channel_image (channel_id, url, image_width_size)
@@ -1289,7 +1308,7 @@ export async function seedEmbedFixtures(client, options) {
     await client.query(
       `INSERT INTO item_description (item_id, value)
        VALUES ($1, $2)`,
-      [itemId, `${title} embed demo scroll sample.`]
+      [itemId, storedSeedDescription(`${title} embed demo scroll sample.`)]
     );
     await client.query(
       `INSERT INTO item_image (item_id, url, image_width_size)
@@ -1360,7 +1379,7 @@ export async function seedEmbedFixtures(client, options) {
   await client.query(
     `INSERT INTO channel_description (channel_id, value)
      VALUES ($1, $2)`,
-    [privateChannelId, 'Non-public channel for embed not-available tests.']
+    [privateChannelId, storedSeedDescription('Non-public channel for embed not-available tests.')]
   );
   await client.query(
     `INSERT INTO channel_image (channel_id, url, image_width_size)
