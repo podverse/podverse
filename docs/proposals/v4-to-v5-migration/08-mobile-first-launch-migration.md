@@ -39,8 +39,8 @@ users who have no server graph.
 ## Proposed approach
 
 1. **Spike early** on a private build that uses the v4 application id. The
-   steps are in [Storage spike](#storage-spike). This pass writes the steps
-   and does not run them.
+   steps are in [Storage spike](#storage-spike). iOS and Android both passed;
+   the counts are in [Open questions](#open-questions).
 2. If readable, run a **one-shot migrator** on first v5 launch:
    - Read subscription ids and add-by-RSS URLs. Save those raw ids on the
      device first. Resolve them through the legacy map when the network is
@@ -206,8 +206,8 @@ the file the old library wrote. The keys are `SUBSCRIBED_PODCAST_IDS` and
 
 Asked for on 2026-11-13: signed-out v4 users save an OPML file before the
 phone copy runs when the staged rows include an outline. The
-[field spike](#field-spike) on iOS produced outlines, and the screen is in
-the app. Android was not run.
+[field spike](#field-spike) on iOS and Android produced outlines, and the
+screen is in the app.
 This is not a rehearsal step in [15](15-near-term-rehearsal-checklist.md). The
 account copy still starts at sign-in
 ([07](07-account-and-data-migration-model.md)) and does not wait for it.
@@ -243,11 +243,13 @@ that show through the lookup's feed URL.
 
 ### Field spike
 
-iOS 18.2 simulator, signed out, pass. The private build from the storage spike
-was already installed over v4, so this pass did not install again and did not
-uninstall. Counts from the surviving storage file matched `AsyncStorage.getItem`.
-Two outlines, nothing skipped. Android not run. This answers one question:
-after an in-place install, can the current app read the fields an outline needs.
+iOS 18.2 simulator, signed out, pass. Android 13 emulator (`Pixel_6_Pro_API_33`,
+`sdk_gphone64_arm64`), signed out, pass. On each platform the private build
+from the storage spike was already installed over v4, so that pass did not
+install again and did not uninstall. Counts from the surviving storage file
+matched `AsyncStorage.getItem`. Two outlines, nothing skipped. This answers
+one question: after an in-place install, can the current app read the fields
+an outline needs.
 
 It uses the same private install as the storage spike. Note the v4 counts
 before that install, then read the same keys in the private build. Do not
@@ -283,9 +285,9 @@ device export.
 
 ### Screen
 
-The iOS field spike produced outlines, so the phone has this screen. Android
-was not run. If a phone's stored rows have no outline, there is no screen,
-and the phone copy stays the automatic pass above.
+The iOS and Android field spikes produced outlines, so the phone has this
+screen. If a phone's stored rows have no outline, there is no screen, and the
+phone copy stays the automatic pass above.
 
 - The screen paints from the local read. A network call does not sit in
   front of it.
@@ -312,7 +314,15 @@ and the phone copy stays the automatic pass above.
   Both match the v4 baseline and are longer than an empty array. The data
   container UUID changed on install (`00E6AF4E-6A21-4F0E-999C-2FF173D13E35` to
   `93155963-714B-4A74-9FFD-3BCA726657EC`); the storage file moved with it and
-  the keys were still readable. Android not run.
+  the keys were still readable. Android 13 emulator (`Pixel_6_Pro_API_33`),
+  signed out, pass. Same reader. `SUBSCRIBED_PODCAST_IDS` present, 11
+  characters. `ADD_BY_RSS_PODCAST_FEED_URLS` present, 45 characters. Both match
+  the v4 baseline and are longer than an empty array. Android keeps those keys
+  in SQLite `RKStorage` (`catalystLocalStorage`). The private build must use
+  the same debug key as the installed v4 app (`~/.android/debug.keystore`);
+  Expo's generated `debug.keystore` is a different key and Android rejects the
+  update with `INSTALL_FAILED_UPDATE_INCOMPATIBLE`. Working notes:
+  [`.llm/plans/completed/android-v4-storage-spike/FINDINGS.md`](/.llm/plans/completed/android-v4-storage-spike/FINDINGS.md).
 - Feed-list field spike, per platform: did the outline counts match, how
   many outlines were produced, and how many objects were skipped? iOS 18.2
   simulator, signed out, pass. The private build from the storage spike was
@@ -323,7 +333,10 @@ and the phone copy stays the automatic pass above.
   title, 1 with `feedUrls[0].url`. `ADD_BY_RSS_PODCASTS`: 1 object, 1 with a
   title, 1 with a feed address. `ADD_BY_RSS_PODCAST_FEED_URLS`: 1 address. Each
   count matched. Outlines: 2. Skipped: 0. The temporary reader was removed.
-  Android not run.
+  Android 13 emulator, signed out, pass on the same private install. Same
+  field counts (1 / 1 / 1 for each list, 1 address), outlines 2, skipped 0.
+  Zero fatal crashes. The temporary reader was removed and
+  `android.package` restored to `com.podverse.app.next`.
 
 ## Plan sets
 
@@ -339,7 +352,7 @@ and the phone copy stays the automatic pass above.
   Podcast List opens first: Export OPML shares the shows on the phone, and
   Continue Migration starts the copy. Sign In stays available. A read with no
   outline starts the copy without that screen. The spike bullets above stay
-  the record of what the private install could read. Android was not run.
-- Storage compatibility spike report and feed-list field spike report. Counts
-  only. Operator-run on a private install. Not a step in
+  the record of what the private install could read on iOS and Android.
+- Storage compatibility spike and feed-list field spike: both platforms
+  passed. Counts only, in [Open questions](#open-questions). Not a step in
   [15](15-near-term-rehearsal-checklist.md).

@@ -224,8 +224,9 @@ One plan set, after this doc is accepted:
   checked by hash, not by signing in.
 - A refreshed copy can show classes the old one did not. That is why the full
   stage reruns before go-live.
-- The phone-storage spike in [08](08-mobile-first-launch-migration.md) is not
-  part of this. This rehearsal covers the server copy only.
+- The phone-storage spike in [08](08-mobile-first-launch-migration.md) passed
+  on iOS and Android and is not part of this. This rehearsal covers the
+  server copy only.
 
 ## Pilot `20261114T034901Z`
 

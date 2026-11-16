@@ -38,7 +38,10 @@ use `com.podverse` for this measurement only and then put the committed id back.
    titles, addresses, or file text.
 8. **Leave Firebase out of the private build** with `EXPO_PUBLIC_MOBILE_PUSH_PROVIDER=none` on
    that command only. Do not write that into a committed env file. The spike does not need push.
-9. **Same debug signature.** Do not set a release keystore. If install reports
-   `INSTALL_FAILED_UPDATE_INCOMPATIBLE`, stop. Do not uninstall to force the install.
+9. **Same debug signature.** Do not set a release keystore. The installed v4 debug app uses the
+   home debug key (`~/.android/debug.keystore`). The private v5 build must use that same key
+   (copy it over the Expo-generated `apps/mobile/android/app/debug.keystore` after prebuild).
+   If install still reports `INSTALL_FAILED_UPDATE_INCOMPATIBLE`, stop. Do not uninstall to
+   force the install.
 10. **versionCode** of the private build is the installed v4 `versionCode` plus 1. v4's arm64
     split is `5280 * 1000 + 3`. Read the installed value from the device anyway.

@@ -145,8 +145,9 @@ rejection from the earlier decision happens at copy, not at seed.
    sit in front of the first screen. The person can use the app while the
    copy runs, and the list stays visible until `v4_library_copied_at` is set.
    A phone screen for a feed-list file is specified in
-   [08](08-mobile-first-launch-migration.md#feed-list-file-before-the-phone-copy)
-   and waits for the field spike. It does not start or block this copy.
+   [08](08-mobile-first-launch-migration.md#feed-list-file-before-the-phone-copy);
+   the field spike passed on iOS and Android. That screen does not start or
+   block this copy.
 6. After success, v5 is the source of truth for that user. Record the copy on
    the v4 account. The v4 API then rejects that account. The legacy app and
    website may not show the reason. Support guides those people to v5. This

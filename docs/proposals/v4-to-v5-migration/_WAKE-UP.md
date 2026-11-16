@@ -143,13 +143,10 @@ the running process before the identity seed. Extra v4 worktrees wait until
 someone starts the migration code. The questions in 01 are decided. An
 episode in a v4 playlist becomes a playlist row that points at the episode.
 The clip stays empty. Do not invent a clip for that episode. The
-phone-storage spike is written in
-[08](08-mobile-first-launch-migration.md#storage-spike) and has not been run.
-It reads two keys on a private in-place install and leaves the app code
-alone. A feed-list file before the phone copy is specified in
-[08](08-mobile-first-launch-migration.md#feed-list-file-before-the-phone-copy)
-and is deferred. Do not run that spike, and do not build Continue Migration,
-until the operator asks. It is not the next item in
+phone-storage spike and the feed-list field spike both passed on iOS and
+Android. Counts are in
+[08](08-mobile-first-launch-migration.md#open-questions). Save Your Podcast
+List is in the app. Neither spike is a rehearsal step in
 [15](15-near-term-rehearsal-checklist.md). Doc 12 does not freeze or promote
 a beta database. Beta and production already share the production database.
 
@@ -174,6 +171,8 @@ a beta database. Beta and production already share the production database.
   42 subscribed podcast ids have no podcast row. Every remaining subscribed
   podcast has a numeric Podcast Index id. 2,707 history rows have a blank
   episode guid.
+- Phone-storage and feed-list field spikes passed on iOS and Android. Counts
+  are in [08](08-mobile-first-launch-migration.md#open-questions).
 
 ## Counts
 
