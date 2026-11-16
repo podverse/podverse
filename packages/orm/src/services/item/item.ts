@@ -10,8 +10,8 @@ import {
 } from '@orm/entities/liveItem/liveItemStatus.js';
 import type { StatsPopularityItem } from '@orm/entities/stats/statsPopularityItem.js';
 import { applyProperties } from '@orm/lib/applyProperties.js';
-import { enclosureUrlDigest } from '@orm/lib/enclosureUrlDigest.js';
 import { getChannelCategoryWhere } from '@orm/lib/categoryFilterWhere.js';
+import { enclosureUrlDigest } from '@orm/lib/enclosureUrlDigest.js';
 import {
   findOptionsRelationsFromPaths,
   mergeFindOptionsRelations,

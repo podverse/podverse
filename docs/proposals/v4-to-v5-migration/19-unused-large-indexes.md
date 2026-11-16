@@ -12,10 +12,10 @@ address, the guid, `id_text`, the primary key, `channel_id`,
 `(channel_id, pub_date)`, and `item_flag_status_id` (for the archived status,
 which is 2,526 rows).
 
-| Index | Table | Size | Scans | Action |
-| --- | --- | ---: | ---: | --- |
-| `idx_item_pub_date` | `item` | 47 MiB | 0 | Keep |
-| `idx_item_about_item_itunes_episode_type_id` | `item_about` | 22 MiB | 0 | Unused by application queries |
+| Index                                        | Table        |   Size | Scans | Action                        |
+| -------------------------------------------- | ------------ | -----: | ----: | ----------------------------- |
+| `idx_item_pub_date`                          | `item`       | 47 MiB |     0 | Keep                          |
+| `idx_item_about_item_itunes_episode_type_id` | `item_about` | 22 MiB |     0 | Unused by application queries |
 
 ## `idx_item_pub_date` — keep
 

@@ -51,13 +51,13 @@ constraint. A parse skips an episode image whose URL is the show image.
 
 ### Whole databases
 
-| Database                                | Size                 | Contents                                         |
-| --------------------------------------- | -------------------- | ------------------------------------------------ |
-| v4 snapshot                             | 302,394,219,543 B    | 7,709,610 podcasts, 195,634,496 episodes, 22,510 users |
-| v4 `episodes` table                     | 282,965,532,672 B    | Heap 205.8 GB, TOAST 48.1 GB, indexes 29.0 GB    |
-| v5 `podverse_app` after the pilot       | 8,057,624,255 B      | 7,977 feeds, 2,425,515 items, 104 accounts       |
-| v5 `podverse_management`                | 8,787,647 B          |                                                  |
-| Pilot run folder (eight phase dumps)    | 4.7 GiB              | Compressed copies of the database above          |
+| Database                             | Size              | Contents                                               |
+| ------------------------------------ | ----------------- | ------------------------------------------------------ |
+| v4 snapshot                          | 302,394,219,543 B | 7,709,610 podcasts, 195,634,496 episodes, 22,510 users |
+| v4 `episodes` table                  | 282,965,532,672 B | Heap 205.8 GB, TOAST 48.1 GB, indexes 29.0 GB          |
+| v5 `podverse_app` after the pilot    | 8,057,624,255 B   | 7,977 feeds, 2,425,515 items, 104 accounts             |
+| v5 `podverse_management`             | 8,787,647 B       |                                                        |
+| Pilot run folder (eight phase dumps) | 4.7 GiB           | Compressed copies of the database above                |
 
 ### The same shows in both databases
 
@@ -75,34 +75,34 @@ v5 stores **8.06 GB (7.50 GiB), 3,322 bytes per item**.
 
 #### v4 bytes per episode, same shows
 
-| Column          | Bytes |
-| --------------- | ----- |
-| `description`   | 943   |
-| `mediaUrl`      | 159   |
-| `subtitle`      | 143   |
-| `imageUrl`      | 108   |
-| `linkUrl`       | 61    |
-| `transcript`    | 59    |
-| `title`         | 54    |
-| `guid`          | 40    |
-| Everything else | 148   |
-| Row total       | 1,715 |
+| Column                        | Bytes     |
+| ----------------------------- | --------- |
+| `description`                 | 943       |
+| `mediaUrl`                    | 159       |
+| `subtitle`                    | 143       |
+| `imageUrl`                    | 108       |
+| `linkUrl`                     | 61        |
+| `transcript`                  | 59        |
+| `title`                       | 54        |
+| `guid`                        | 40        |
+| Everything else               | 148       |
+| Row total                     | 1,715     |
 | Pages and indexes (estimated) | about 325 |
 
 #### v5 bytes per item, same shows
 
-| Table                   | Total bytes   | Per item | Heap and TOAST | Indexes |
-| ----------------------- | ------------- | -------- | -------------- | ------- |
-| `item_description`      | 3,677,421,568 | 1,516    | 3,514,269,696  | 162,422,784 |
-| `item`                  | 2,181,070,848 | 899      | 820,494,336    | 1,360,330,752 |
-| `item_enclosure_source` | 591,659,008   | 244      | 482,295,808    | 109,207,552 |
-| `item_about`            | 456,581,120   | 188      | 265,879,552    | 190,611,456 |
-| `item_image`            | 396,722,176   | 164      | 319,234,048    | 77,373,440 |
-| `item_enclosure`        | 285,040,640   | 118      | 175,808,512    | 109,158,400 |
-| `item_transcript`       | 194,191,360   | 80       | 162,004,992    | 32,120,832 |
-| `item_season_episode`   | 99,016,704    | 41       | 39,280,640     | 59,695,104 |
-| `item_season`           | 36,798,464    | 15       | 16,384,000     | 20,381,696 |
-| Everything else         | 139,122,367   | 57       |                |         |
+| Table                   | Total bytes   | Per item | Heap and TOAST | Indexes                      |
+| ----------------------- | ------------- | -------- | -------------- | ---------------------------- |
+| `item_description`      | 3,677,421,568 | 1,516    | 3,514,269,696  | 162,422,784                  |
+| `item`                  | 2,181,070,848 | 899      | 820,494,336    | 1,360,330,752                |
+| `item_enclosure_source` | 591,659,008   | 244      | 482,295,808    | 109,207,552                  |
+| `item_about`            | 456,581,120   | 188      | 265,879,552    | 190,611,456                  |
+| `item_image`            | 396,722,176   | 164      | 319,234,048    | 77,373,440                   |
+| `item_enclosure`        | 285,040,640   | 118      | 175,808,512    | 109,158,400                  |
+| `item_transcript`       | 194,191,360   | 80       | 162,004,992    | 32,120,832                   |
+| `item_season_episode`   | 99,016,704    | 41       | 39,280,640     | 59,695,104                   |
+| `item_season`           | 36,798,464    | 15       | 16,384,000     | 20,381,696                   |
+| Everything else         | 139,122,367   | 57       |                |                              |
 | **Total**               | 8,057,624,255 | 3,322    |                | about 2.12 GB (874 per item) |
 
 Account data is small next to the catalog. After the pilot, `queue_resource`
@@ -169,14 +169,14 @@ A random 4,000 of the subscribed shows average 240 v4 episodes (median 99).
 The pilot's shows average 315 (median 122). At 240 episodes per show and
 96.4% kept, the catalog is about 14.5 million items.
 
-| Part                         | Estimate      | Basis |
-| ---------------------------- | ------------- | ----- |
-| Catalog                      | about 45 GiB  | 14.5 million items at the pilot's 3,322 bytes per item |
-| Queue and history            | about 0.8 GiB | 2.81 million v4 history and queue rows at the pilot's 298 bytes per `queue_resource` row |
-| Episode legacy map           | about 0.5 GiB | Pilot ratio of episode map rows to history rows |
-| Podcast legacy map           | 1.5–2.5 GiB   | 7.7 million v4 podcasts, each with a feed address. Not measured yet |
-| Clips, playlists, accounts   | under 0.1 GiB | 12,381 user clips, 11,840 playlist members, 22,510 accounts |
-| **Total**                    | **about 48 GiB** | Range 40–56, mostly from how many episodes an average show has |
+| Part                       | Estimate         | Basis                                                                                    |
+| -------------------------- | ---------------- | ---------------------------------------------------------------------------------------- |
+| Catalog                    | about 45 GiB     | 14.5 million items at the pilot's 3,322 bytes per item                                   |
+| Queue and history          | about 0.8 GiB    | 2.81 million v4 history and queue rows at the pilot's 298 bytes per `queue_resource` row |
+| Episode legacy map         | about 0.5 GiB    | Pilot ratio of episode map rows to history rows                                          |
+| Podcast legacy map         | 1.5–2.5 GiB      | 7.7 million v4 podcasts, each with a feed address. Not measured yet                      |
+| Clips, playlists, accounts | under 0.1 GiB    | 12,381 user clips, 11,840 playlist members, 22,510 accounts                              |
+| **Total**                  | **about 48 GiB** | Range 40–56, mostly from how many episodes an average show has                           |
 
 The pilot's per-item size may be high for the full set: pilot shows have
 larger v4 rows (1,715 bytes) than the average v4 episode (1,216). The range
@@ -217,16 +217,16 @@ The cost is the per-row overhead, not the split itself.
 This table is the first estimate. [Status](#status) is what was kept.
 Savings are measured on the pilot database and scaled to the full estimate.
 
-| Change | Pilot saving | Full saving | Notes |
-| ------ | ------------ | ----------- | ----- |
-| Hash index on `guid_enclosure_url` instead of the B-tree | about 630 MB | about 3.6 GiB | Every lookup is equality inside one channel. A hash index stores a 4-byte hash per row. |
-| Hash index on `guid` | about 140 MB | about 0.8 GiB | Same reason. `guid` is not unique, so no unique constraint is lost. |
-| Drop the four duplicate indexes | 160 MB | about 0.9 GiB | The unique keys already serve those lookups. |
-| Compress descriptions between about 200 and 2,000 bytes | about 500 MB | about 2.9 GiB | Lower `toast_tuple_target` on `item_description` and set lz4. Measured 56% with deflate; lz4 is expected near 65%. |
-| Leave `item_image` empty when it is the show image | about 135 MB | about 0.8 GiB | Readers already fall back to the show image. |
-| Store no preview when the description is short | about 100 MB | about 0.6 GiB | `getDescriptionPreviewText` already derives one from the description when the preview is null. |
-| Fillfactor and autovacuum on `item` | about 100 MB | about 0.6 GiB | Fewer dead rows from parse updates. |
-| **Total** | **about 1.7 GiB (22%)** | **about 10 GiB** | Full database about 38 GiB |
+| Change                                                   | Pilot saving            | Full saving      | Notes                                                                                                              |
+| -------------------------------------------------------- | ----------------------- | ---------------- | ------------------------------------------------------------------------------------------------------------------ |
+| Hash index on `guid_enclosure_url` instead of the B-tree | about 630 MB            | about 3.6 GiB    | Every lookup is equality inside one channel. A hash index stores a 4-byte hash per row.                            |
+| Hash index on `guid`                                     | about 140 MB            | about 0.8 GiB    | Same reason. `guid` is not unique, so no unique constraint is lost.                                                |
+| Drop the four duplicate indexes                          | 160 MB                  | about 0.9 GiB    | The unique keys already serve those lookups.                                                                       |
+| Compress descriptions between about 200 and 2,000 bytes  | about 500 MB            | about 2.9 GiB    | Lower `toast_tuple_target` on `item_description` and set lz4. Measured 56% with deflate; lz4 is expected near 65%. |
+| Leave `item_image` empty when it is the show image       | about 135 MB            | about 0.8 GiB    | Readers already fall back to the show image.                                                                       |
+| Store no preview when the description is short           | about 100 MB            | about 0.6 GiB    | `getDescriptionPreviewText` already derives one from the description when the preview is null.                     |
+| Fillfactor and autovacuum on `item`                      | about 100 MB            | about 0.6 GiB    | Fewer dead rows from parse updates.                                                                                |
+| **Total**                                                | **about 1.7 GiB (22%)** | **about 10 GiB** | Full database about 38 GiB                                                                                         |
 
 Each change needs a linear migration and the regenerated baseline. The
 index changes also need a check that each query plan still uses an index.
@@ -263,4 +263,4 @@ These trade some behavior for space. None is decided.
   ids, most of which v5 never parses. A narrow table keyed by integer, or
   a static file served by the API, is smaller than general `legacy_id_map`
   rows with text ids. Measure the map after `v4WriteLegacyPodcastMap
-  -dryRun` before deciding.
+-dryRun` before deciding.

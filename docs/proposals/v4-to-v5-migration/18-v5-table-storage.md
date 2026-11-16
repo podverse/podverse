@@ -39,11 +39,11 @@ One row per episode that has show notes (1,991,542 rows). The heap is the note.
 The two indexes are the primary key and the unique `item_id`, 43 MiB each.
 Episode lists do not read `value`. They read `preview`.
 
-| Piece                          |    MiB | What it is                                                                 |
-| ------------------------------ | -----: | -------------------------------------------------------------------------- |
-| `value`                        |  2,547 | The note, raw. Long notes are compressed in the heap, so the table is smaller than `value` plus `preview`. |
-| `preview`                      |    673 | The first 400 characters of that note, stored again as plain text.        |
-| Primary key and `item_id` key  |     85 | Two indexes of integer ids.                                                |
+| Piece                         |   MiB | What it is                                                                                                 |
+| ----------------------------- | ----: | ---------------------------------------------------------------------------------------------------------- |
+| `value`                       | 2,547 | The note, raw. Long notes are compressed in the heap, so the table is smaller than `value` plus `preview`. |
+| `preview`                     |   673 | The first 400 characters of that note, stored again as plain text.                                         |
+| Primary key and `item_id` key |    85 | Two indexes of integer ids.                                                                                |
 
 ## `item`
 
@@ -56,34 +56,34 @@ the index is larger than the column.
 
 ### Columns
 
-| Column                | MiB | Typical width | Why it is here                                      |
-| --------------------- | --: | ------------: | --------------------------------------------------- |
-| `guid_enclosure_url`  | 283 |      146 bytes | The media file address. Also the match key for an episode. |
-| `title`               | 104 |       53 bytes | The episode title.                                  |
-| `guid`                |  78 |       40 bytes | The RSS guid, when the feed has one.                |
-| `id_text`             |  21 |       10 bytes | The public id.                                      |
-| `pub_date`            |  15 |        8 bytes | The publish time.                                   |
-| `id`                  |   8 |        4 bytes | The integer primary key.                            |
-| `channel_id`          |   8 |        4 bytes | The show this episode belongs to.                   |
-| `item_flag_status_id` |   8 |        4 bytes | Active, archived, and the other status flags.       |
-| Row headers and pages |  98 |               | 24-byte row header, alignment, and unused page space. |
-| **Heap**              | **631** |             |                                                     |
+| Column                |     MiB | Typical width | Why it is here                                             |
+| --------------------- | ------: | ------------: | ---------------------------------------------------------- |
+| `guid_enclosure_url`  |     283 |     146 bytes | The media file address. Also the match key for an episode. |
+| `title`               |     104 |      53 bytes | The episode title.                                         |
+| `guid`                |      78 |      40 bytes | The RSS guid, when the feed has one.                       |
+| `id_text`             |      21 |      10 bytes | The public id.                                             |
+| `pub_date`            |      15 |       8 bytes | The publish time.                                          |
+| `id`                  |       8 |       4 bytes | The integer primary key.                                   |
+| `channel_id`          |       8 |       4 bytes | The show this episode belongs to.                          |
+| `item_flag_status_id` |       8 |       4 bytes | Active, archived, and the other status flags.              |
+| Row headers and pages |      98 |               | 24-byte row header, alignment, and unused page space.      |
+| **Heap**              | **631** |               |                                                            |
 
 `slug` and `archived_slimmed_at` are empty on this catalog.
 
 ### Indexes
 
-| Index                         |   MiB | What it stores                                              |
-| ----------------------------- | ----: | ----------------------------------------------------------- |
-| `idx_item_guid_enclosure_url` |   544 | The whole 146-byte address, once per episode.              |
-| `idx_item_guid`               |   171 | The guid.                                                   |
-| `idx_item_channel_id_pub_date`|   102 | `channel_id`, then `pub_date` descending. Episode lists use this. |
-| `item_id_text_key`            |    85 | Unique `id_text`.                                           |
-| `idx_item_pub_date`           |    47 | `pub_date` alone, for the global recent list.               |
-| `item_pkey`                   |    43 | The integer `id`.                                           |
-| `idx_item_item_flag_status_id`|    32 | The status integer, once per episode.                       |
-| `idx_item_channel_id`         |    26 | `channel_id` alone. The composite index above starts with the same column. |
-| **Indexes**                   | **1,050** |                                                        |
+| Index                          |       MiB | What it stores                                                             |
+| ------------------------------ | --------: | -------------------------------------------------------------------------- |
+| `idx_item_guid_enclosure_url`  |       544 | The whole 146-byte address, once per episode.                              |
+| `idx_item_guid`                |       171 | The guid.                                                                  |
+| `idx_item_channel_id_pub_date` |       102 | `channel_id`, then `pub_date` descending. Episode lists use this.          |
+| `item_id_text_key`             |        85 | Unique `id_text`.                                                          |
+| `idx_item_pub_date`            |        47 | `pub_date` alone, for the global recent list.                              |
+| `item_pkey`                    |        43 | The integer `id`.                                                          |
+| `idx_item_item_flag_status_id` |        32 | The status integer, once per episode.                                      |
+| `idx_item_channel_id`          |        26 | `channel_id` alone. The composite index above starts with the same column. |
+| **Indexes**                    | **1,050** |                                                                            |
 
 `0017_item_enclosure_url_digest.sql` replaces `idx_item_guid_enclosure_url`
 with a btree on a 16-byte md5 of the address. The URL column stays. The sizes
@@ -96,36 +96,36 @@ above were measured before that migration.
 The other columns are the integer ids and a content type that is almost always
 empty.
 
-| Piece                         | MiB | What it is                                |
-| ----------------------------- | --: | ----------------------------------------- |
-| `uri`                         | 284 | The media file address.                   |
-| Other columns and page space  |  78 | Ids, content type, row header, pages.     |
-| Primary key                   |  43 | Integer `id`.                             |
-| `item_enclosure_id` index     |  43 | Finds the address for one enclosure.      |
+| Piece                        | MiB | What it is                            |
+| ---------------------------- | --: | ------------------------------------- |
+| `uri`                        | 284 | The media file address.               |
+| Other columns and page space |  78 | Ids, content type, row header, pages. |
+| Primary key                  |  43 | Integer `id`.                         |
+| `item_enclosure_id` index    |  43 | Finds the address for one enclosure.  |
 
 ## `item_about`
 
 2,004,352 rows, one per episode. This is duration, explicit, the episode type,
 and the episode's website link. The link is the only wide column.
 
-| Piece                         | MiB | What it is                                      |
-| ----------------------------- | --: | ----------------------------------------------- |
-| `website_link_url`            | 126 | The episode link.                               |
-| Duration, flags, and ids      |  42 | `duration`, `explicit`, and the integer keys.   |
-| Row headers and pages         |  55 |                                                 |
-| Unique `item_id` and primary key | 86 | One index each.                              |
-| Episode-type index            |  22 | `item_itunes_episode_type_id`.                  |
+| Piece                            | MiB | What it is                                    |
+| -------------------------------- | --: | --------------------------------------------- |
+| `website_link_url`               | 126 | The episode link.                             |
+| Duration, flags, and ids         |  42 | `duration`, `explicit`, and the integer keys. |
+| Row headers and pages            |  55 |                                               |
+| Unique `item_id` and primary key |  86 | One index each.                               |
+| Episode-type index               |  22 | `item_itunes_episode_type_id`.                |
 
 ## `item_image`
 
 1,397,426 rows. An episode can have more than one image. Most of the heap is
 the URL.
 
-| Piece                    | MiB | What it is                                              |
-| ------------------------ | --: | ------------------------------------------------------- |
-| `url`                    | 185 | The image address, 136 bytes on average.                |
-| Other columns and pages  |  55 | Width, the resized flag, ids, row header, pages.        |
-| Primary key and `item_id` index | 60 | 30 MiB each.                                     |
+| Piece                           | MiB | What it is                                       |
+| ------------------------------- | --: | ------------------------------------------------ |
+| `url`                           | 185 | The image address, 136 bytes on average.         |
+| Other columns and pages         |  55 | Width, the resized flag, ids, row header, pages. |
+| Primary key and `item_id` index |  60 | 30 MiB each.                                     |
 
 425,417 of these URLs are the same as a show image. Readers already fall back
 to the show image. Those rows are about 88 MiB of this table.

@@ -8,10 +8,7 @@ import { ConfirmDialog } from '../../components/feedback/ConfirmDialog';
 import { FormActions, TextField } from '../../components/form';
 import { MobileScreenContainer } from '../../components/screen/MobileScreenContainer';
 import { getBuiltInMobileApiBaseUrl } from '../../config';
-import {
-  readCustomApiBaseUrlOverride,
-  useCustomApiBaseUrl,
-} from '../../config/customApiEndpoint';
+import { readCustomApiBaseUrlOverride, useCustomApiBaseUrl } from '../../config/customApiEndpoint';
 import type { CustomApiProbeFailure } from '../../config/customApiProbe';
 import { probeCustomApiBaseUrl } from '../../config/customApiProbe';
 import {

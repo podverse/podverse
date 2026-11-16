@@ -116,11 +116,11 @@ describe('splitSignedOutCredentialIndexRows', () => {
       updatedAt: 3,
     };
 
-    expect(
-      splitSignedOutCredentialIndexRows([signedOutFeed, accountFeed, signedOutOther])
-    ).toEqual({
-      kept: [signedOutFeed, signedOutOther],
-      removed: [accountFeed],
-    });
+    expect(splitSignedOutCredentialIndexRows([signedOutFeed, accountFeed, signedOutOther])).toEqual(
+      {
+        kept: [signedOutFeed, signedOutOther],
+        removed: [accountFeed],
+      }
+    );
   });
 });

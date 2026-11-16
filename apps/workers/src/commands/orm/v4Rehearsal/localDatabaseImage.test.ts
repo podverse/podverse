@@ -6,8 +6,8 @@ import {
   buildDumpArgs,
   buildRestoreArgs,
   cleanDumpPath,
-  dumpRoleFromEnv,
   DROP_ATTACHED_PARTITIONS_SQL,
+  dumpRoleFromEnv,
   TERMINATE_OTHER_CLIENTS_SQL,
 } from './localDatabaseImage.js';
 
