@@ -16,6 +16,7 @@ import {
   nextChannelItemPage,
   reconcileChannelItems,
   selectChannelsToDropFromItemStore,
+  selectKeptDownloadItemIds,
   selectStaleChannelWindows,
   toChannelItemRecord,
 } from './channelItemWindow';
@@ -284,6 +285,143 @@ describe('reconcileChannelItems', () => {
     expect(refreshed.removeIdTexts).toEqual(
       Array.from({ length: 10 }, (_value, index) => `old${40 + index}`)
     );
+  });
+});
+
+describe('selectKeptDownloadItemIds', () => {
+  const dated = (itemIdText: string, pubDateMs: number | null) => ({ itemIdText, pubDateMs });
+  const keep = [dated('new', 300), dated('mid', 200), dated('old', 100)];
+
+  it('keeps a complete download missing from an exhausted feed', () => {
+    expect(
+      selectKeptDownloadItemIds({
+        alreadyKeptIds: new Set(),
+        completeDownloadIds: new Set(['gone']),
+        isFeedExhausted: true,
+        keep,
+        stored: [...keep, dated('gone', 50)],
+      })
+    ).toEqual(['gone']);
+  });
+
+  it('does not keep an episode with no complete download when the feed is exhausted', () => {
+    expect(
+      selectKeptDownloadItemIds({
+        alreadyKeptIds: new Set(),
+        completeDownloadIds: new Set(),
+        isFeedExhausted: true,
+        keep,
+        stored: [...keep, dated('gone', 50)],
+      })
+    ).toEqual([]);
+  });
+
+  it('keeps a complete download newer than the oldest date still in the window', () => {
+    expect(
+      selectKeptDownloadItemIds({
+        alreadyKeptIds: new Set(),
+        completeDownloadIds: new Set(['gone']),
+        isFeedExhausted: false,
+        keep,
+        stored: [...keep, dated('gone', 150)],
+      })
+    ).toEqual(['gone']);
+  });
+
+  it('does not keep a complete download older than the window', () => {
+    expect(
+      selectKeptDownloadItemIds({
+        alreadyKeptIds: new Set(),
+        completeDownloadIds: new Set(['gone']),
+        isFeedExhausted: false,
+        keep,
+        stored: [...keep, dated('gone', 50)],
+      })
+    ).toEqual([]);
+  });
+
+  it('does not keep a complete download tied with the oldest keep date', () => {
+    expect(
+      selectKeptDownloadItemIds({
+        alreadyKeptIds: new Set(),
+        completeDownloadIds: new Set(['gone']),
+        isFeedExhausted: false,
+        keep,
+        stored: [...keep, dated('gone', 100)],
+      })
+    ).toEqual([]);
+  });
+
+  it('does not keep a null publish date when the feed is not exhausted', () => {
+    expect(
+      selectKeptDownloadItemIds({
+        alreadyKeptIds: new Set(),
+        completeDownloadIds: new Set(['gone']),
+        isFeedExhausted: false,
+        keep,
+        stored: [...keep, dated('gone', null)],
+      })
+    ).toEqual([]);
+  });
+
+  it('keeps a null publish date when the feed is exhausted', () => {
+    expect(
+      selectKeptDownloadItemIds({
+        alreadyKeptIds: new Set(),
+        completeDownloadIds: new Set(['gone']),
+        isFeedExhausted: true,
+        keep,
+        stored: [...keep, dated('gone', null)],
+      })
+    ).toEqual(['gone']);
+  });
+
+  it('does not return an id that is in keep', () => {
+    expect(
+      selectKeptDownloadItemIds({
+        alreadyKeptIds: new Set(['old']),
+        completeDownloadIds: new Set(['old']),
+        isFeedExhausted: true,
+        keep,
+        stored: keep,
+      })
+    ).toEqual([]);
+  });
+
+  it('returns an already kept complete download that is older than the window', () => {
+    expect(
+      selectKeptDownloadItemIds({
+        alreadyKeptIds: new Set(['gone']),
+        completeDownloadIds: new Set(['gone']),
+        isFeedExhausted: false,
+        keep,
+        stored: [...keep, dated('gone', 1)],
+      })
+    ).toEqual(['gone']);
+  });
+
+  it('does not return an already kept id without a complete download', () => {
+    expect(
+      selectKeptDownloadItemIds({
+        alreadyKeptIds: new Set(['gone']),
+        completeDownloadIds: new Set(),
+        isFeedExhausted: true,
+        keep,
+        stored: [...keep, dated('gone', 1)],
+      })
+    ).toEqual([]);
+  });
+
+  it('returns nothing when keep is empty and the feed is not exhausted', () => {
+    expect(
+      selectKeptDownloadItemIds({
+        alreadyKeptIds: new Set(),
+        completeDownloadIds: new Set(['gone']),
+        isFeedExhausted: false,
+        keep: [],
+        stored: [dated('gone', 999)],
+      })
+    ).toEqual([]);
   });
 });
 

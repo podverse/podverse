@@ -484,6 +484,35 @@ export class ItemService {
     });
   }
 
+  /**
+   * Active items for these id_texts, with the relations the caller names. Missing ids are omitted.
+   */
+  async getManyActiveByIdText(
+    idTexts: readonly string[],
+    relations: FindOptionsRelations<Item> = {}
+  ): Promise<Item[]> {
+    const usable: string[] = [];
+    const seen = new Set<string>();
+    for (const idText of idTexts) {
+      if (idText === '' || seen.has(idText)) {
+        continue;
+      }
+      seen.add(idText);
+      usable.push(idText);
+    }
+    if (usable.length === 0) {
+      return [];
+    }
+
+    return this.repositoryRead.find({
+      where: {
+        id_text: In(usable),
+        item_flag_status: { id: ItemFlagStatusStatusEnum.Active },
+      },
+      relations,
+    });
+  }
+
   async getManyByChannel(
     channel: Channel,
     options?: FindManyOptions<Item>,

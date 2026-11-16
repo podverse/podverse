@@ -36,6 +36,8 @@ const SCHEMA_TABLE_NAMES = [
   'identity_remap_applied',
   'item_description_cache',
   'v4_carryover_entry',
+  'v4_download_carryover_entry',
+  'add_by_rss_local_episode',
 ] as const;
 
 describe('customApiSqliteTableNames', () => {

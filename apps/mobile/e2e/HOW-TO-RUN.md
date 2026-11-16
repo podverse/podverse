@@ -290,6 +290,7 @@ npm run mobile:e2e:test -- --platform ios terms-account-access
 npm run mobile:e2e:test -- --platform ios terms-taste-profile-consent
 npm run mobile:e2e:test -- --platform ios track
 npm run mobile:e2e:test -- --platform ios v4-carryover-anonymous
+npm run mobile:e2e:test -- --platform ios v4-download-carryover
 npm run mobile:e2e:test -- --platform ios v4v
 npm run mobile:e2e:test -- --platform ios video-transition
 ```
@@ -366,6 +367,7 @@ npm run mobile:e2e:test -- --platform android terms-account-access
 npm run mobile:e2e:test -- --platform android terms-taste-profile-consent
 npm run mobile:e2e:test -- --platform android track
 npm run mobile:e2e:test -- --platform android v4-carryover-anonymous
+npm run mobile:e2e:test -- --platform android v4-download-carryover
 npm run mobile:e2e:test -- --platform android v4v
 npm run mobile:e2e:test -- --platform android video-transition
 ```
@@ -497,6 +499,7 @@ npm run mobile:e2e:test -- settings-developer
 npm run mobile:e2e:test -- settings-downloads
 npm run mobile:e2e:test -- subscriptions-anonymous
 npm run mobile:e2e:test -- v4-carryover-anonymous
+npm run mobile:e2e:test -- v4-download-carryover
 npm run mobile:e2e:test -- taste-profile
 npm run mobile:e2e:test -- taste-profile-consent
 npm run mobile:e2e:test -- terms-account-access

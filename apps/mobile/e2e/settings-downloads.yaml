@@ -22,6 +22,9 @@ name: Settings Downloads Storage
     id: more-settings-downloads
 - assertVisible:
     id: more-settings-downloads-screen
+# This device has no saved download folder, so the chosen-folder card is not on the screen.
+- assertNotVisible:
+    id: more-settings-downloads-chosen-folder
 - assertVisible:
     id: settings-downloads-device
 - assertVisible:

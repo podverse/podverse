@@ -129,6 +129,9 @@
       "delete_all": "Tout supprimer",
       "delete_all_confirm_title": "Supprimer tous les téléchargements ?",
       "delete_all_confirm_body": "Cela supprime tous les fichiers de téléchargement locaux et les retire de la liste Téléchargements. Les épisodes devront être téléchargés à nouveau pour une écoute hors ligne.",
+      "chosen_folder": "Dossier de téléchargement choisi",
+      "chosen_folder_description": "Si l'option est activée, les nouveaux téléchargements vont dans le dossier enregistré par l'application précédente. Si elle est désactivée, les nouveaux téléchargements vont dans le dossier privé de cette application. Les fichiers déjà dans ce dossier y restent, et vous pouvez toujours les lire et les supprimer.",
+      "chosen_folder_save_failed": "Impossible d'enregistrer ce réglage. Réessayez.",
       "auto_download_heading": "Téléchargement automatique",
       "auto_download_default": "Téléchargement auto pour les nouveaux abonnements",
       "auto_download_default_description": "Si l'option est activée, les podcasts auxquels vous vous abonnez démarrent avec le téléchargement auto. Vous pouvez encore le changer dans les réglages de chaque podcast.",
@@ -215,7 +218,8 @@
       "home_feed": "Lecture de l'accueil depuis cet appareil",
       "auto_download": "Téléchargement des nouveaux épisodes",
       "identity_remap": "Mise à jour de vos émissions",
-      "v4_carryover": "Déplacement de vos podcasts"
+      "v4_carryover": "Déplacement de vos podcasts",
+      "v4_download_carryover": "Déplacement de vos téléchargements"
     },
     "progress": "{completed} sur {total}"
   },
@@ -285,7 +289,15 @@
         "subscribed": "Abonnements",
         "add_by_rss": "Ajouter par RSS",
         "blocked": "Laissés de côté",
-        "waiting": "En attente"
+        "waiting": "En attente",
+        "directory_episodes": "Épisodes du répertoire",
+        "add_by_rss_episodes": "Épisodes Ajouter par RSS",
+        "already_downloaded": "Déjà téléchargés",
+        "deleted_files": "Fichiers supprimés",
+        "missing_files": "Fichiers introuvables",
+        "unreadable_files": "Fichiers dans un dossier illisible",
+        "undeletable_files": "Fichiers non supprimés",
+        "waiting_files": "Fichiers en attente"
       }
     },
     "title": "Journal d'erreurs",
@@ -303,6 +315,7 @@
     "directory_channel_converted": "{channel} a été déplacé vers Ajouter par RSS. Il n'est plus dans le répertoire.",
     "add_by_rss_promoted_to_directory": "{channel} a été déplacé vers le répertoire {brand_name}",
     "v4_carryover_done": "Podcasts déplacés depuis l'application précédente",
+    "v4_download_carryover_done": "Téléchargements déplacés depuis l'application précédente",
     "row_a11y_hint": "Ouvre les détails complets",
     "saved_footnote": "Les détails complets sont enregistrés dans Plus › Avancé › Journal d'erreurs.",
     "kind": {

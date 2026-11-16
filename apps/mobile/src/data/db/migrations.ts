@@ -362,6 +362,60 @@ export const MIGRATIONS: Migration[] = [
       );`,
     ],
   },
+  {
+    version: 5,
+    statements: [
+      `CREATE TABLE IF NOT EXISTS add_by_rss_local_episode (
+        download_id_text TEXT PRIMARY KEY NOT NULL,
+        feed_url TEXT NOT NULL,
+        item_bundle_json TEXT NOT NULL,
+        created_at INTEGER NOT NULL
+      );`,
+      `CREATE INDEX IF NOT EXISTS idx_add_by_rss_local_episode_feed_url
+        ON add_by_rss_local_episode (feed_url);`,
+    ],
+  },
+  {
+    version: 6,
+    statements: [
+      `CREATE TABLE IF NOT EXISTS v4_download_carryover_entry (
+        file_key TEXT PRIMARY KEY NOT NULL,
+        source TEXT NOT NULL,
+        orphan_root TEXT,
+        legacy_episode_id TEXT,
+        legacy_extension TEXT NOT NULL,
+        is_add_by_rss INTEGER NOT NULL DEFAULT 0,
+        legacy_podcast_id TEXT,
+        add_by_rss_feed_url TEXT,
+        podcast_feed_url TEXT,
+        podcast_index_id TEXT,
+        podcast_guid TEXT,
+        podcast_title TEXT,
+        podcast_image_url TEXT,
+        episode_guid TEXT,
+        media_url TEXT,
+        episode_title TEXT,
+        episode_pub_date_ms INTEGER,
+        episode_duration_seconds INTEGER,
+        episode_media_type TEXT,
+        episode_image_url TEXT,
+        status TEXT NOT NULL,
+        attempts INTEGER NOT NULL DEFAULT 0,
+        adopted_file_name TEXT,
+        updated_at INTEGER NOT NULL,
+        CHECK (source IN ('downloaded', 'downloading', 'orphan')),
+        CHECK (orphan_root IS NULL OR orphan_root IN ('app_external_files', 'app_documents'))
+      );`,
+      `CREATE INDEX IF NOT EXISTS idx_v4_download_carryover_status
+        ON v4_download_carryover_entry (status);`,
+    ],
+  },
+  {
+    version: 7,
+    statements: [
+      `ALTER TABLE channel_item ADD COLUMN kept_for_download INTEGER NOT NULL DEFAULT 0;`,
+    ],
+  },
 ];
 
 export const LATEST_MIGRATION_VERSION: number = MIGRATIONS.reduce(

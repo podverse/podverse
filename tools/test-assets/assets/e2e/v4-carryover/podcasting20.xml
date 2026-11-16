@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Trimmed copy of the Podcasting 2.0 feed (Podcast Index 920666) for the mobile v4 download carryover flow. Episodes 276, 275, and 274 match the directory channel tools/web/seed-e2e.mjs seeds; 273 is left out so a carried file of it stays a local episode. -->
+<rss xmlns:itunes="http://www.itunes.com/dtds/podcast-1.0.dtd" xmlns:podcast="https://github.com/Podcastindex-org/podcast-namespace/blob/main/docs/1.0.md" version="2.0">
+  <channel>
+    <title>Podcasting 2.0</title>
+    <description>The Podcast Index presents Podcasting 2.0 - Upgrading Podcasting</description>
+    <link>http://podcastindex.org</link>
+    <language>en</language>
+    <itunes:author>Podcast Index LLC</itunes:author>
+    <itunes:image href="http://localhost:2111/e2e/images/e2e-embed-channel-art-1400.png"/>
+    <itunes:explicit>no</itunes:explicit>
+    <podcast:guid>917393e3-1b1e-5cef-ace4-edaa54e1f810</podcast:guid>
+    <podcast:medium>podcast</podcast:medium>
+    <item>
+      <title>Episode 276: "Jackleg leechers"</title>
+      <description>Podcasting 2.0 episode 276.</description>
+      <guid isPermaLink="false">PC20-276</guid>
+      <pubDate>Fri, 23 Oct 2026 19:17:46 +0000</pubDate>
+      <itunes:duration>5335</itunes:duration>
+      <enclosure url="https://op3.dev/e/mp3s.nashownotes.com/PC20-276-2026-10-23-Final.mp3" type="audio/mpeg" length="64037934"/>
+    </item>
+    <item>
+      <title>Episode 275: "Off The Rails"</title>
+      <description>Podcasting 2.0 episode 275.</description>
+      <guid isPermaLink="false">PC20-275</guid>
+      <pubDate>Fri, 16 Oct 2026 19:31:29 +0000</pubDate>
+      <itunes:duration>5995</itunes:duration>
+      <enclosure url="https://op3.dev/e/mp3s.nashownotes.com/PC20-275-2026-10-16-Final.mp3" type="audio/mpeg" length="71957106"/>
+    </item>
+    <item>
+      <title>Episode 274: "Vibe Cloning"</title>
+      <description>Podcasting 2.0 episode 274.</description>
+      <guid isPermaLink="false">PC20-274</guid>
+      <pubDate>Fri, 09 Oct 2026 19:37:54 +0000</pubDate>
+      <itunes:duration>6065</itunes:duration>
+      <enclosure url="https://op3.dev/e/mp3s.nashownotes.com/PC20-274-2026-10-09-Final.mp3" type="audio/mpeg" length="72798142"/>
+    </item>
+  </channel>
+</rss>

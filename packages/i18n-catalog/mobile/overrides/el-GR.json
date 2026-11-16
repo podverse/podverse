@@ -129,6 +129,9 @@
       "delete_all": "",
       "delete_all_confirm_title": "",
       "delete_all_confirm_body": "",
+      "chosen_folder": "",
+      "chosen_folder_description": "",
+      "chosen_folder_save_failed": "",
       "auto_download_heading": "",
       "auto_download_default": "",
       "auto_download_default_description": "",
@@ -215,7 +218,8 @@
       "home_feed": "",
       "auto_download": "",
       "identity_remap": "",
-      "v4_carryover": ""
+      "v4_carryover": "",
+      "v4_download_carryover": ""
     },
     "progress": ""
   },
@@ -285,7 +289,15 @@
         "subscribed": "",
         "add_by_rss": "",
         "blocked": "",
-        "waiting": ""
+        "waiting": "",
+        "directory_episodes": "",
+        "add_by_rss_episodes": "",
+        "already_downloaded": "",
+        "deleted_files": "",
+        "missing_files": "",
+        "unreadable_files": "",
+        "undeletable_files": "",
+        "waiting_files": ""
       }
     },
     "title": "",
@@ -303,6 +315,7 @@
     "directory_channel_converted": "",
     "add_by_rss_promoted_to_directory": "",
     "v4_carryover_done": "",
+    "v4_download_carryover_done": "",
     "row_a11y_hint": "",
     "saved_footnote": "",
     "kind": {

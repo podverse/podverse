@@ -1,6 +1,5 @@
 import type { DTOLegacyPodcastLookupAnswer } from '@podverse/helpers/dto';
 import { LEGACY_PODCAST_LOOKUP_MAX_IDS } from '@podverse/helpers/dto';
-import { getErrorResponseStatus } from '@podverse/helpers/error';
 
 import { requestWithoutMobileAuth } from '../../auth/authRequestWithRefresh';
 import { addByRssRepository } from '../../data/repositories/addByRssRepository';
@@ -12,10 +11,11 @@ import {
   V4_CARRYOVER_DONE_CODE,
   v4CarryoverRepository,
 } from '../../data/repositories/v4CarryoverRepository';
+import { v4DownloadCarryoverRepository } from '../../data/repositories/v4DownloadCarryoverRepository';
 import { homeFeedRefresh } from '../../lib/home/homeFeedRefresh';
-import { getRateLimitRetryAfterMs } from '../../lib/rateLimit/handleRateLimitMessage';
 import { getOrCreateInstallationId } from '../../push/installationId';
 import { requestAddByRssRefresh } from '../../sync/requestAddByRssRefresh';
+import { requestLegacyLookup } from './legacyLookupRequest';
 import { countV4CarryoverRows, planV4Carryover } from './planV4Carryover';
 
 export type V4CarryoverRunDeps = {
@@ -34,11 +34,6 @@ const LOOKUP_WAIT_BUDGET_MS = 15000;
 let waitingRetriedThisSession = false;
 
 let inFlight: Promise<void> | null = null;
-
-const wait = (ms: number): Promise<void> =>
-  new Promise((resolve) => {
-    setTimeout(resolve, ms);
-  });
 
 /**
  * True when a signed-out phone still has staged rows to resolve.
@@ -67,29 +62,20 @@ const requestLookupChunk = async (
   installId: string,
   remainingMs: () => number
 ): Promise<DTOLegacyPodcastLookupAnswer[] | null> => {
-  let waited = false;
-  while (true) {
-    try {
-      const response = await requestWithoutMobileAuth((api) =>
+  const result = await requestLegacyLookup(
+    () =>
+      requestWithoutMobileAuth((api) =>
         api.reqLegacyPodcastLookup({
           install_id: installId,
           podcast_ids: [...podcastIds],
         })
-      );
-      return Array.isArray(response.answers) ? response.answers : null;
-    } catch (error) {
-      const waitMs = getRateLimitRetryAfterMs(error);
-      if (waitMs !== null && waitMs >= 0 && !waited && waitMs <= remainingMs()) {
-        waited = true;
-        await wait(waitMs);
-        continue;
-      }
-      if (waitMs !== null || getErrorResponseStatus(error) !== undefined) {
-        return null;
-      }
-      throw error;
-    }
+      ),
+    remainingMs
+  );
+  if (result.kind === 'http') {
+    return null;
   }
+  return Array.isArray(result.value.answers) ? result.value.answers : null;
 };
 
 const loadPodcastAnswers = async (
@@ -155,7 +141,9 @@ const applyPlan = async (
 
   if (wroteStub) {
     deps.clearDirectoryMatchPacing();
-    requestAddByRssRefresh();
+    if ((await v4DownloadCarryoverRepository.listByStatus(['pending'])).length === 0) {
+      requestAddByRssRefresh();
+    }
   }
 
   if (lookupComplete) {

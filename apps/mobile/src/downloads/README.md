@@ -81,6 +81,9 @@ bar are derived from statuses alone.
 with progress callbacks, writing to app-private `documentDirectory`. Path layout:
 `documentDirectory + downloads/<id_text>.<ext>` — see `downloadStorage.ts`.
 
+The transfer still writes that private file first. On Android, a finished download may then be
+copied into the saved document tree, and the row stores that document URI.
+
 ## Playback from download
 
 `resolvePlaybackUrl(item, selectedParams)` (in `src/lib/playback/resolvePlaybackUrl.ts`) prefers a
@@ -88,6 +91,20 @@ with progress callbacks, writing to app-private `documentDirectory`. Path layout
 selected from the session's labeled-enclosure params. Only progressive files ever have a download
 row. If a `complete` row's file is missing on disk, the row is flipped to `failed` and playback
 falls back to remote for that attempt.
+
+An Add by RSS episode that is not in the stored feed bundle can still live on this phone when a
+complete download backs it. `addByRssRepository.adoptDownloadedEpisode` is the entry point. A later
+bundle that lists the same episode absorbs it into a normal feed episode. Deleting one file removes
+that episode. Removing the feed deletes every downloaded file for that feed, including an episode
+the feed no longer lists.
+
+Files the previous app (v4) downloaded are moved into `downloads/` by the v4 download carryover
+(`src/migration/v4/runV4DownloadCarryover.ts`) under `v4-…` names. Directory episodes, including
+one kept on a directory show the feed does not list, go through `downloadManager.adoptCompletedFile`.
+Add by RSS episodes go through `addByRssRepository.adoptDownloadedEpisode` when the phone has
+that feed. A signed-in file whose account cannot follow the show is only the
+`adoptCompletedFile` row. Names do not follow `buildDownloadFileName(itemIdText)`; readers rely
+on the stored `filePath`, as for every row.
 
 ## Storage quota + auto-free
 
@@ -128,6 +145,9 @@ Run: `npm run mobile:e2e:test -- library-downloads,settings-downloads` (see
 - `downloadTypes.ts` — `DownloadStatus`, `DownloadRecord`, `DownloadPatch` + guards.
 - `downloadStore.ts` — in-memory mirror, split status / progress channels (pure, unit-tested).
 - `downloadStorage.ts` — on-disk naming/paths + URI hash (pure, unit-tested).
+- `chosenDownloadFolder.ts` — Android chosen-folder switch rules, document MIME type, and the
+  byte sum of completed files in that folder (pure, unit-tested).
+- `chosenDownloadFolderWrite.ts` — copy a finished private file into the saved document tree.
 - `downloadStorageStats.ts` — device / downloads / app data / cache byte breakdown for Settings.
 - `downloadTransferValidation.ts` — status, size, and non-media content-type checks before a
   transfer is stored as `complete` (pure, unit-tested).

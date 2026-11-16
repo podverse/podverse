@@ -129,6 +129,9 @@
       "delete_all": "Eliminar todo",
       "delete_all_confirm_title": "¿Eliminar todas las descargas?",
       "delete_all_confirm_body": "Esto elimina todos los archivos de descarga locales y los quita de la lista Descargas. Habrá que volver a descargar los episodios para reproducirlos sin conexión.",
+      "chosen_folder": "Carpeta de descarga elegida",
+      "chosen_folder_description": "Si está activada, las descargas nuevas van a la carpeta guardada de la aplicación anterior. Si está desactivada, las descargas nuevas van a la carpeta privada de esta aplicación. Los archivos que ya están en esa carpeta se quedan ahí, y puedes reproducirlos y eliminarlos.",
+      "chosen_folder_save_failed": "No se pudo guardar ese ajuste. Inténtalo de nuevo.",
       "auto_download_heading": "Descarga automática",
       "auto_download_default": "Descarga automática en suscripciones nuevas",
       "auto_download_default_description": "Si está activada, los podcasts a los que te suscribes empiezan con descarga automática. Puedes cambiarlo en los ajustes de cada podcast.",
@@ -215,7 +218,8 @@
       "home_feed": "Lectura de Inicio en este dispositivo",
       "auto_download": "Descargando episodios nuevos",
       "identity_remap": "Actualizando tus programas",
-      "v4_carryover": "Moviendo tus podcasts"
+      "v4_carryover": "Moviendo tus podcasts",
+      "v4_download_carryover": "Moviendo tus descargas"
     },
     "progress": "{completed} de {total}"
   },
@@ -285,7 +289,15 @@
         "subscribed": "Suscritos",
         "add_by_rss": "Añadir por RSS",
         "blocked": "Dejados fuera",
-        "waiting": "En espera"
+        "waiting": "En espera",
+        "directory_episodes": "Episodios del directorio",
+        "add_by_rss_episodes": "Episodios de Añadir por RSS",
+        "already_downloaded": "Ya descargados",
+        "deleted_files": "Archivos eliminados",
+        "missing_files": "Archivos no encontrados",
+        "unreadable_files": "Archivos en una carpeta ilegible",
+        "undeletable_files": "Archivos no eliminados",
+        "waiting_files": "Archivos en espera"
       }
     },
     "title": "Registro de errores",
@@ -303,6 +315,7 @@
     "directory_channel_converted": "Se movió {channel} a Añadir por RSS. Ya no está en el directorio.",
     "add_by_rss_promoted_to_directory": "Se movió {channel} al directorio de {brand_name}",
     "v4_carryover_done": "Podcasts movidos desde la aplicación anterior",
+    "v4_download_carryover_done": "Descargas movidas desde la aplicación anterior",
     "row_a11y_hint": "Abre los detalles completos",
     "saved_footnote": "Los detalles completos se guardan en Más › Avanzado › Registro de errores.",
     "kind": {

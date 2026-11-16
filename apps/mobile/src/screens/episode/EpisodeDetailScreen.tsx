@@ -38,6 +38,7 @@ import { LoadingSection } from '../../components/state/LoadingSection';
 import { channelItemsRepository } from '../../data/repositories/channelItemsRepository';
 import { getItemPrimaryImageUrl } from '../../data/repositories/channelItemWindow';
 import { downloadsRepository } from '../../data/repositories/downloadsRepository';
+import { playableItemRepository } from '../../data/repositories/playableItemRepository';
 import { playbackContentRepository } from '../../data/repositories/playbackContentRepository';
 import { sectionChromeFlagsRepository } from '../../data/repositories/sectionChromeFlagsRepository';
 import { useItemDescription } from '../../hooks/useItemDescription';
@@ -266,13 +267,15 @@ export function EpisodeDetailScreen({ navigation, route }: EpisodeDetailScreenPr
   /**
    * Paint the stored item immediately when this device already has it, then correct it from the
    * server without a second render when the payloads match. Search / unfollowed episodes have
-   * nothing stored and wait on the fetch. Offline Mode stays on the stored DTO (and download
-   * chrome for the channel title).
+   * nothing stored and wait on the fetch. A download with no channel row paints from the stored
+   * playable item. Offline Mode stays on the stored item (and download chrome for the channel
+   * title).
    */
   const loadEpisode = useCallback(async () => {
     setIsLoading(true);
     setErrorKey(null);
     const stored = await channelItemsRepository.getByIdText(episodeId);
+    let paintedFromPlayable = false;
 
     if (stored !== null) {
       applyEpisode(stored, stored.channel ?? null, stored.channel?.title ?? null);
@@ -283,10 +286,18 @@ export function EpisodeDetailScreen({ navigation, route }: EpisodeDetailScreenPr
         }
       }
       setIsLoading(false);
+    } else {
+      const playable = await playableItemRepository.getByIdText(episodeId);
+      if (playable !== null) {
+        const download = await downloadsRepository.getByItemIdText(episodeId);
+        applyEpisode(playable, null, download?.channelTitle ?? null);
+        paintedFromPlayable = true;
+        setIsLoading(false);
+      }
     }
 
     if (offlineModeEnabled) {
-      if (stored === null) {
+      if (stored === null && !paintedFromPlayable) {
         const download = await downloadsRepository.getByItemIdText(episodeId);
         setEpisode(null);
         setChannel(null);
@@ -357,7 +368,7 @@ export function EpisodeDetailScreen({ navigation, route }: EpisodeDetailScreenPr
       if (replaced) {
         return;
       }
-      if (stored === null) {
+      if (stored === null && !paintedFromPlayable) {
         setErrorKey('errors.generic');
         setEpisode(null);
         setChannel(null);

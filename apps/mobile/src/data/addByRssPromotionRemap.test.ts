@@ -5,7 +5,10 @@ import {
   DEVICE_PLAYBACK_QUEUE_ID,
 } from '../lib/playback/devicePlaybackKey';
 import type { AddByRssPromotionMove, AddByRssPromotionSnapshot } from './addByRssPromotionRemap';
-import { addByRssPromotionRemap } from './addByRssPromotionRemap';
+import {
+  addByRssPromotionRemap,
+  promotionMovesForUnmatchedLocalEpisodes,
+} from './addByRssPromotionRemap';
 import type { IdentityPlayback } from './identityRemap';
 
 const FEED = 'https://example.com/show.xml';
@@ -31,6 +34,7 @@ const emptySnapshot = (): AddByRssPromotionSnapshot => ({
   downloads: [],
   feedPlaybackPosition: null,
   listedFeeds: [],
+  localEpisodes: [],
   playableItems: [],
   playback: [],
   playbackOutbox: [],
@@ -330,5 +334,65 @@ describe('addByRssPromotionRemap', () => {
         source: 'directory',
       },
     ]);
+  });
+
+  it('keeps an unmatched local episode on the directory channel under its download id', () => {
+    const localDownload = `${FEED}::local-ep`;
+    const localHash = 'hash-local';
+    const stayDownload = `${FEED}::stay-ep`;
+    const otherFeed = 'https://example.com/other.xml';
+    const otherDownload = `${otherFeed}::other-ep`;
+    const localMove: AddByRssPromotionMove = {
+      ...move,
+      items: [
+        { downloadIdText: DOWNLOAD, hashId: HASH, itemIdText: ITEM },
+        { downloadIdText: localDownload, hashId: localHash, itemIdText: localDownload },
+        { downloadIdText: otherDownload, hashId: 'hash-other', itemIdText: 'item-other' },
+      ],
+    };
+
+    const result = addByRssPromotionRemap(
+      {
+        ...emptySnapshot(),
+        downloads: [
+          { channelIdText: FEED, filePath: '/matched.mp3', itemIdText: DOWNLOAD },
+          { channelIdText: FEED, filePath: '/local.mp3', itemIdText: localDownload },
+        ],
+        localEpisodes: [
+          { downloadIdText: localDownload, feedUrl: `${FEED}/` },
+          { downloadIdText: stayDownload, feedUrl: FEED },
+          { downloadIdText: otherDownload, feedUrl: otherFeed },
+        ],
+        playback: [playback('add_by_rss', localHash, 12)],
+      },
+      localMove
+    );
+
+    expect(result.snapshot.downloads).toEqual([
+      { channelIdText: CHANNEL, filePath: '/matched.mp3', itemIdText: ITEM },
+      { channelIdText: CHANNEL, filePath: '/local.mp3', itemIdText: localDownload },
+    ]);
+    expect(result.movedDownloadItemIds).toEqual([{ fromItemIdText: DOWNLOAD, toItemIdText: ITEM }]);
+    expect(result.snapshot.localEpisodes).toEqual([
+      { downloadIdText: stayDownload, feedUrl: FEED },
+      { downloadIdText: otherDownload, feedUrl: otherFeed },
+    ]);
+    expect(result.snapshot.playback).toEqual([playback('item', localDownload, 12)]);
+  });
+});
+
+describe('promotionMovesForUnmatchedLocalEpisodes', () => {
+  it('returns an unmatched download id as the item id and drops a matched or empty id', () => {
+    expect(
+      promotionMovesForUnmatchedLocalEpisodes(
+        [
+          { downloadIdText: 'matched-id', hashId: 'hash-matched' },
+          { downloadIdText: 'local-id', hashId: 'hash-local' },
+          { downloadIdText: '', hashId: 'hash-empty' },
+        ],
+        new Set(['matched-id'])
+      )
+    ).toEqual([{ downloadIdText: 'local-id', hashId: 'hash-local', itemIdText: 'local-id' }]);
+    expect(promotionMovesForUnmatchedLocalEpisodes([], new Set(['matched-id']))).toEqual([]);
   });
 });

@@ -76,3 +76,67 @@ Checked in this checkout. Planners start here.
 - Verification may use the remote Podcasting 2.0 feed and may add it to the local database
   when it is not already there. Planning does not run tests. The plan's Tests section names
   what the operator runs.
+
+### Review of the first planning pass
+
+Recorded 2026-11-15. These settle D1–D27. Quotes are the operator's choices. A choice that
+matches the planner is confirmed. A choice that differs is the one the second pass must apply.
+Do not reopen a confirmed choice.
+
+- **D1 confirmed.** "A small native module asks Android for the real folder."
+- **D2 confirmed.** Unnamed files are scanned only in v4's own app folders. Do not scan the
+  cache or the listener-chosen folder for unnamed files. Files the list does name are still
+  handled from the list.
+- **D3 confirmed.** "Cancel v4's unfinished download jobs so they cannot finish later and leave
+  a new file."
+- **D4 reversed.** "Retry on later launches. A thrown read is not an empty list, and it must
+  not lead to deleting those files." Do not treat three thrown reads as an empty list, and do
+  not stage those files as orphans because the read threw.
+- **D5 reversed, with a setting.** "Keep that setting" and "we need it in the ui so users can
+  enable or disable it if they want too (only on android if ios cannot support it)." Off sends
+  new downloads to the app's private folder. "Files already in the chosen folder stay there,
+  and still play and delete." On uses the v4 folder when one is already saved. iOS has no
+  control.
+- **D6 reversed.** "Delete the files when the feed is removed."
+- **D7 confirmed.** "Delete the carried file and keep the existing download."
+- **D8 reversed.** "Promote the show to the directory, and keep that file playable on the
+  show's episode list until the listener deletes it."
+- **D9 reversed.** "Run the account's promotion, and keep that file playable on the directory
+  show's episode list until the listener deletes it."
+- **D10 confirmed, and widened by D11.** "On that feed's episode list and in Downloads until
+  the listener deletes the file. Play is the local file only."
+- **D11 reversed.** The show stays a directory subscription. A downloaded episode that leaves
+  the feed stays on that show's episode list and in Downloads until the listener deletes the
+  file. This is every download, not only a v4 file, and it is not a real Add by RSS follow.
+  "if the user deletes the media file, that content reference should be removed from locally
+  because we can't assume it can even download again so we need to align it with server data."
+  Play uses the local file. Deleting the file removes that local row. What remains is whatever
+  the server still lists.
+- **D12 confirmed.** "A followed feed, including that auto-download default." This is the
+  signed-out phone feed. The signed-in path is D14.
+- **D13 confirmed.** "Delete it. Do not start a new download."
+- **D14 reversed.** The pass runs signed in or signed out. "Use the account follow when the
+  membership can accept it, within that account's cap. If the server refuses, keep the file
+  playable in Downloads and do not create a hidden signed-out feed. Signed out, the phone
+  keeps the feed itself."
+- **D15 confirmed.** "No. Match or delete the files without waiting."
+- **D16 confirmed.** "Only after the directory says it is not there with no feed URL, or the
+  same copy fails 5 times. Network errors and offline do not delete it."
+- **D17 confirmed.** "Ask the directory match during this pass, and attach the file to the
+  directory episode when it matches."
+- **D18 confirmed.** "Its own label, so the bar can say this pass is the downloads."
+- **D19 confirmed only after a successful read.** "Delete it. It cannot be attached to an
+  episode." A thrown read is D4 and does not delete.
+- **D20 confirmed.** "Redo a half-finished copy. Treat a row as already done only when this
+  pass wrote it."
+- **D21 confirmed.** "Use the committed copy of four episodes for the test."
+- **D22 confirmed.** "Use 276 through 274, with 273 as the local-only episode."
+- **D23 confirmed.** "Two files, so a pass shows which path matched."
+- **D24 confirmed.** "Leave the podcast guid off the seeded channel so the Add by RSS copy
+  stays Add by RSS for the test."
+- **D25 reversed.** "Check the planted files are gone, and check the log counts."
+- **D26 confirmed.** "Cover those paths in unit and integration tests. Maestro keeps the main
+  path."
+- **D27 confirmed.** "Leave the note. Rewrite it after the job ships."
+- **Models.** "Yes. Remaining planning and the implementation run use Cursor Grok 4.7."
+  Destructive download plans and the Android folder setting stay at extra high reasoning.

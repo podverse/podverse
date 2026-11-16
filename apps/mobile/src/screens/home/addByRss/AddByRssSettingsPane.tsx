@@ -81,7 +81,7 @@ export function AddByRssSettingsPane({
 
   const statusLines = useFeedParseStatusLines({
     lastFailedParseTime: null,
-    lastFinishedParseTime: detail.mappedFeed !== null ? detail.feed.updatedAt : null,
+    lastFinishedParseTime: detail.hasParsedBundle ? detail.feed.updatedAt : null,
   });
 
   const feedNotice =

@@ -55,9 +55,10 @@ export const buildDownloadFilePath = (baseDirectory: string, fileName: string): 
 };
 
 /**
- * Persist only the file name under `downloads/`. Absolute `file://` paths embed the iOS container
- * UUID, which changes on update/reinstall; readers always rejoin against the current
- * `documentDirectory`.
+ * Persist only the file name under `downloads/` for a private file. Absolute `file://` paths
+ * embed the iOS container UUID, which changes on update/reinstall; readers always rejoin
+ * against the current `documentDirectory`. Callers store a `content://` document URI as the
+ * full URI and do not pass it through this function.
  */
 export const toStoredDownloadFileName = (absoluteOrRelativePath: string): string => {
   const trimmed = absoluteOrRelativePath.trim();
@@ -75,9 +76,10 @@ export const toStoredDownloadFileName = (absoluteOrRelativePath: string): string
 };
 
 /**
- * Resolve a stored download path (a file name or `downloads/<name>`) against the current document
- * directory. An empty value stays empty. A `downloads/` prefix is dropped, then the file name
- * joins through `buildDownloadFilePath`.
+ * Resolve a stored download path against the current document directory. An empty value stays
+ * empty. A `content://` document URI is returned trimmed and is not joined under
+ * `documentDirectory`. Every other value drops a leading `downloads/` prefix, then joins
+ * through `buildDownloadFilePath`.
  */
 export const resolveStoredDownloadFilePath = (
   storedPath: string,
@@ -87,7 +89,15 @@ export const resolveStoredDownloadFilePath = (
   if (trimmed === '') {
     return trimmed;
   }
+  if (trimmed.startsWith('content://')) {
+    return trimmed;
+  }
   const prefix = `${DOWNLOADS_SUBDIRECTORY}/`;
   const fileName = trimmed.startsWith(prefix) ? trimmed.slice(prefix.length) : trimmed;
   return buildDownloadFilePath(documentDirectory, fileName);
+};
+
+/** A private file (`file://`) or a chosen-folder document (`content://`). A bare path is not. */
+export const isLocalDownloadUrl = (url: string): boolean => {
+  return url.startsWith('file://') || url.startsWith('content://');
 };

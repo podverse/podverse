@@ -39,6 +39,10 @@ import { buildAddByRssMatchRefs, shouldRunDirectoryMatch } from '../lib/addByRss
 import type { AddByRssParsePath } from '../lib/addByRss/parsePath';
 import { resolveAddByRssParsePath } from '../lib/addByRss/parsePath';
 import { runV4Carryover, shouldScheduleV4Carryover } from '../migration/v4/runV4Carryover';
+import {
+  runV4DownloadCarryover,
+  shouldScheduleV4DownloadCarryover,
+} from '../migration/v4/runV4DownloadCarryover';
 import { readIsPlayingLocallyForSync } from '../playback/playbackSyncState';
 import {
   DEFAULT_HOME_RANGE,
@@ -775,6 +779,28 @@ const createV4CarryoverJob = (deps: SyncJobDeps, priority: SyncJobPriority): Syn
   );
 };
 
+/** One Android copy of a long video may outlast the pass budget; the job waits for it. */
+const V4_DOWNLOAD_CARRYOVER_TIMEOUT_MS = 120000;
+
+const createV4DownloadCarryoverJob = (deps: SyncJobDeps, priority: SyncJobPriority): SyncJob => {
+  return buildJob(
+    'v4-download-carryover',
+    priority,
+    'v4-download-carryover',
+    async (context) => {
+      await runV4DownloadCarryover({
+        clearDirectoryMatchPacing: clearAddByRssDirectoryMatchPacing,
+        enqueueContinuation: () => {
+          context.enqueue(createV4DownloadCarryoverJob(deps, 'background'));
+        },
+        getAuthContext: () => deps.getAuthContext(),
+        signal: context.abortController.signal,
+      });
+    },
+    V4_DOWNLOAD_CARRYOVER_TIMEOUT_MS
+  );
+};
+
 const createIdentityRemapJob = (deps: SyncJobDeps, priority: SyncJobPriority): SyncJob => {
   return buildJob('identity-remap', priority, 'identity-remap', async (context) => {
     const result = await identityRemapRepository.runScheduled({
@@ -789,7 +815,8 @@ const createIdentityRemapJob = (deps: SyncJobDeps, priority: SyncJobPriority): S
 /**
  * Turn the planned roots into runnable jobs. Discovered work is queued by the job that finds it.
  * A signed-out phone with staged rows from the previous app also resolves those rows first, so a
- * library scan in the same batch sees the follows this pass just created.
+ * library scan in the same batch sees the follows this pass just created. A phone with staged
+ * files from the previous app resolves them right after that subscription pass, signed in or out.
  */
 export const buildSyncJobs = async (
   planned: PlannedSyncJob[],
@@ -828,8 +855,11 @@ export const buildSyncJobs = async (
     }
   });
 
+  const priority = planned[0]?.priority ?? 'background';
+  if (await shouldScheduleV4DownloadCarryover()) {
+    jobs.unshift(createV4DownloadCarryoverJob(deps, priority));
+  }
   if (await shouldScheduleV4Carryover(deps.getAuthContext().accessToken === null)) {
-    const priority = planned[0]?.priority ?? 'background';
     jobs.unshift(createV4CarryoverJob(deps, priority));
   }
 

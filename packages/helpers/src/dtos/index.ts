@@ -71,6 +71,7 @@ export * from './channel/channelRemoteItem.js';
 export * from './channel/channelDirectoryMatch.js';
 export * from './channel/channelAddByRSSMatch.js';
 export * from './legacy/legacyPodcastLookup.js';
+export * from './legacy/legacyEpisodeLookup.js';
 export * from './channel/verifiedPublisher.js';
 export * from './channel/channelSeason.js';
 export * from './channel/channelSocialInteract.js';

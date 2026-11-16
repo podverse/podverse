@@ -77,4 +77,10 @@ describe('resolveStoredDownloadFilePath', () => {
       resolveStoredDownloadFilePath('itemABC.mp3', 'file:///docs/')
     );
   });
+
+  it('returns a content:// URI trimmed, not joined under the document directory', () => {
+    const uri =
+      'content://com.android.externalstorage.documents/document/primary%3APodcasts%2FitemABC.mp3';
+    expect(resolveStoredDownloadFilePath(`  ${uri}  `, 'file:///docs/')).toBe(uri);
+  });
 });

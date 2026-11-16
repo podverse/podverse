@@ -25,6 +25,10 @@ import {
 // accountRepository (AuthProvider → accountRepository → auth barrel → AuthProvider).
 import { requestWithMobileAuthRefresh } from '../../auth/authRequestWithRefresh';
 import { isAddByRssInsecureCredentialsAllowedFromEnv } from '../../config/env';
+import { isItemDownloadable } from '../../downloads/downloadEligibility';
+import { hashEnclosureUri } from '../../downloads/downloadStorage';
+import { downloadStore } from '../../downloads/downloadStore';
+import type { DownloadMediaType, DownloadRecord } from '../../downloads/downloadTypes';
 import { buildAddByRssParseFailureLog } from '../../lib/addByRss/addByRssErrorLog';
 import type {
   AddByRssCredentials,
@@ -53,6 +57,17 @@ import {
   localFeedForServerFollow,
   pollAddByRssParseStatus,
 } from '../../lib/addByRss/domain';
+import { addByRssDownloadItem } from '../../lib/addByRss/downloadItem';
+import type {
+  AddByRssCarriedEpisode,
+  AddByRssLocalEpisodeAbsorbAction,
+} from '../../lib/addByRss/localEpisode';
+import {
+  mergeAddByRssLocalEpisodes,
+  planAddByRssDownloadAdoption,
+  planKeptLocalEpisodes,
+  planLocalEpisodeAbsorb,
+} from '../../lib/addByRss/localEpisode';
 import type { AddByRssParsePath } from '../../lib/addByRss/parsePath';
 import type { AddByRssDirectoryPublisherMatch } from '../../lib/addByRss/publisherRefs';
 import {
@@ -62,6 +77,7 @@ import {
   publisherRefColumnsFromMappedFeed,
 } from '../../lib/addByRss/publisherRefs';
 import { createUuid } from '../../lib/createUuid';
+import { homeFeedRefresh } from '../../lib/home/homeFeedRefresh';
 import { getRateLimitRetryAfterMs } from '../../lib/rateLimit/handleRateLimitMessage';
 import type { MobileAddByRSSFeedRecord } from '../../prefs/addByRSSFeeds';
 import { requestAddByRssListedFeedsSync } from '../../sync/requestAddByRssRefresh';
@@ -107,9 +123,12 @@ import {
   rowToListedFeedRecord,
   toListedFeedInserts,
 } from './addByRssListedFeeds';
+import { addByRssLocalEpisodeRepository } from './addByRssLocalEpisodeRepository';
 import { autoDownloadRepository } from './autoDownloadRepository';
 import { channelLiveStatusRepository } from './channelLiveStatusRepository';
 import { channelSeenRepository } from './channelSeenRepository';
+import { downloadsRepository } from './downloadsRepository';
+import { playableItemRepository } from './playableItemRepository';
 import { playbackContentRepository } from './playbackContentRepository';
 import { syncEventLogRepository } from './syncEventLogRepository';
 import type { MobileAuthRequestContext } from './types';
@@ -209,6 +228,27 @@ const deleteStoredFeed = async (feedUrl: string): Promise<void> => {
   await autoDownloadRepository.removeChannel(feedUrl);
 };
 
+/**
+ * Deletes every download for one stored feed URL, including an episode the feed no longer lists.
+ * An in-flight transfer is cancelled. A file that cannot be deleted still drops its row.
+ */
+const deleteDownloadsForFeed = async (storedFeedUrl: string): Promise<void> => {
+  const { downloadManager } = await import('../../downloads/downloadManager');
+  await downloadManager.removeAllForChannel(storedFeedUrl);
+  const remaining = await getDb()
+    .select({ downloadIdText: schema.addByRssLocalEpisode.downloadIdText })
+    .from(schema.addByRssLocalEpisode)
+    .where(eq(schema.addByRssLocalEpisode.feedUrl, storedFeedUrl))
+    .limit(1);
+  if (remaining.length === 0) {
+    return;
+  }
+  await getDb()
+    .delete(schema.addByRssLocalEpisode)
+    .where(eq(schema.addByRssLocalEpisode.feedUrl, storedFeedUrl));
+  homeFeedRefresh.notify();
+};
+
 const readAllListedFeeds = async (): Promise<AddByRssListedFeedRecord[]> => {
   const rows = await getDb().select().from(schema.addByRssListedFeed);
   return rows.map(rowToListedFeedRecord);
@@ -234,6 +274,7 @@ const pruneListedOnlyFeeds = async (): Promise<void> => {
     listings
   );
   for (const feedUrl of feedUrls) {
+    await deleteDownloadsForFeed(feedUrl);
     await deleteStoredFeed(feedUrl);
   }
 };
@@ -1086,6 +1127,306 @@ export type AddByRssFeedsByCredentials = {
  * a followed feed current is background reconciliation rather than a user action, so it lives here
  * where the sync queue can reach it (see mobile-data-layer skill).
  */
+type LocalItemBundle = AddByRSSMappedFeed['items'][number];
+
+type LocalEpisodeMoveOutcome =
+  { filePath: string | null; kind: 'duplicate' } | { kind: 'missing' } | { kind: 'moved' };
+
+const DOWNLOAD_ID_QUERY_CHUNK = 200;
+
+const isMappedFeed = (value: unknown): value is AddByRSSMappedFeed => {
+  if (typeof value !== 'object' || value === null) {
+    return false;
+  }
+  if (!('items' in value) || !Array.isArray(value.items)) {
+    return false;
+  }
+  if (!('liveItems' in value) || !Array.isArray(value.liveItems)) {
+    return false;
+  }
+  return 'channel' in value && typeof value.channel === 'object' && value.channel !== null;
+};
+
+const nonEmptyText = (value: string | null | undefined): string | null => {
+  if (value === null || value === undefined) {
+    return null;
+  }
+  const trimmed = value.trim();
+  return trimmed.length === 0 ? null : trimmed;
+};
+
+const extensionFromFileName = (fileName: string): string | null => {
+  const slash = Math.max(fileName.lastIndexOf('/'), fileName.lastIndexOf('\\'));
+  const base = fileName.slice(slash + 1);
+  const dot = base.lastIndexOf('.');
+  if (dot <= 0) {
+    return null;
+  }
+  const extension = base.slice(dot + 1).toLowerCase();
+  return extension.length === 0 ? null : extension;
+};
+
+const mediaTypeFromMime = (mime: string | null): DownloadMediaType =>
+  mime !== null && mime.trim().toLowerCase().startsWith('video/') ? 'video' : 'audio';
+
+const resolveStoredFeed = async (feedUrl: string): Promise<MobileAddByRSSFeedRecord | null> => {
+  const exact = await addByRssRepository.getFeedByUrl(feedUrl);
+  if (exact !== null) {
+    return exact;
+  }
+  const canonical = canonicalAddByRSSFeedUrl(feedUrl);
+  if (canonical === null || canonical === feedUrl) {
+    return null;
+  }
+  return addByRssRepository.getFeedByUrl(canonical);
+};
+
+const readStoredMappedFeed = async (feedUrl: string): Promise<AddByRSSMappedFeed | null> => {
+  const rows = await getDb()
+    .select({ mappedFeedJson: schema.addByRssFeed.mappedFeedJson })
+    .from(schema.addByRssFeed)
+    .where(eq(schema.addByRssFeed.feedUrl, feedUrl))
+    .limit(1);
+  const raw = rows[0]?.mappedFeedJson ?? null;
+  if (raw === null) {
+    return null;
+  }
+  const parsed = safeJsonParse<unknown>(raw);
+  return isMappedFeed(parsed) ? parsed : null;
+};
+
+const downloadIdsPresent = async (itemIdTexts: readonly string[]): Promise<Set<string>> => {
+  const present = new Set<string>();
+  for (let start = 0; start < itemIdTexts.length; start += DOWNLOAD_ID_QUERY_CHUNK) {
+    const chunk = itemIdTexts.slice(start, start + DOWNLOAD_ID_QUERY_CHUNK);
+    const rows = await getDb()
+      .select({ itemIdText: schema.download.itemIdText })
+      .from(schema.download)
+      .where(inArray(schema.download.itemIdText, chunk));
+    for (const row of rows) {
+      present.add(row.itemIdText);
+    }
+  }
+  return present;
+};
+
+const listDownloadIdsForChannel = async (channelIdText: string): Promise<Set<string>> => {
+  const rows = await getDb()
+    .select({ itemIdText: schema.download.itemIdText })
+    .from(schema.download)
+    .where(eq(schema.download.channelIdText, channelIdText));
+  return new Set(rows.map((row) => row.itemIdText));
+};
+
+const listLocalItemsWithDownloads = async (feedUrl: string): Promise<LocalItemBundle[]> => {
+  const localRows = await addByRssLocalEpisodeRepository.listByFeedUrl(feedUrl);
+  if (localRows.length === 0) {
+    return [];
+  }
+  const present = await downloadIdsPresent(localRows.map((row) => row.downloadIdText));
+  return localRows.filter((row) => present.has(row.downloadIdText)).map((row) => row.itemBundle);
+};
+
+const channelTitleForAdoption = (
+  feed: MobileAddByRSSFeedRecord,
+  stored: AddByRSSMappedFeed | null
+): string =>
+  nonEmptyText(feed.title) ?? nonEmptyText(stored?.channel.channel.title) ?? feed.feedUrl;
+
+const writeAdoptedDownload = async (input: {
+  downloadIdText: string;
+  episode: AddByRssCarriedEpisode;
+  feed: MobileAddByRSSFeedRecord;
+  fileName: string;
+  fileSizeBytes: number | null;
+  itemBundle: LocalItemBundle;
+  itemIndex: number;
+  stored: AddByRSSMappedFeed | null;
+}): Promise<void> => {
+  const item = addByRssDownloadItem(input.feed.feedUrl, input.itemBundle, input.itemIndex);
+  const eligibility = item === null ? null : isItemDownloadable(item);
+  const source = eligibility !== null && eligibility.ok ? eligibility.source : null;
+  const bytes = input.fileSizeBytes ?? 0;
+  const now = Date.now();
+  const record: DownloadRecord = {
+    artworkUrl: nonEmptyText(input.itemBundle.images[0]?.url ?? null),
+    byteSize: bytes,
+    bytesDownloaded: bytes,
+    channelIdText: input.feed.feedUrl,
+    channelTitle: channelTitleForAdoption(input.feed, input.stored),
+    createdAt: now,
+    dismissedFromList: false,
+    enclosureMime: source === null ? input.episode.mimeType : source.mime,
+    enclosureUri: input.episode.mediaUrl,
+    enclosureUrlHash: hashEnclosureUri(input.episode.mediaUrl),
+    errorReason: null,
+    fileExtension: source === null ? extensionFromFileName(input.fileName) : source.fileExtension,
+    filePath: input.fileName,
+    itemIdText: input.downloadIdText,
+    mediaType: source === null ? mediaTypeFromMime(input.episode.mimeType) : source.mediaType,
+    status: 'complete',
+    title: input.itemBundle.item.title,
+    updatedAt: now,
+  };
+  await downloadsRepository.upsert(record);
+  if (item !== null) {
+    await playableItemRepository.put('download', item);
+  }
+};
+
+const dropDuplicateLocalDownload = async (downloadIdText: string): Promise<void> => {
+  const record = await downloadsRepository.getByItemIdText(downloadIdText);
+  if (record !== null && record.filePath !== null && record.filePath !== '') {
+    await downloadsRepository.deleteStoredFile(record.filePath);
+  }
+  await downloadsRepository.remove(downloadIdText);
+  await addByRssLocalEpisodeRepository.remove(downloadIdText);
+};
+
+const moveLocalEpisodeDownload = async (
+  feedUrl: string,
+  action: Extract<AddByRssLocalEpisodeAbsorbAction, { kind: 'move_download' }>
+): Promise<LocalEpisodeMoveOutcome> => {
+  const outcome = await getDb().transaction(
+    async (transaction): Promise<LocalEpisodeMoveOutcome> => {
+      const sources = await transaction
+        .select()
+        .from(schema.download)
+        .where(eq(schema.download.itemIdText, action.fromDownloadIdText))
+        .limit(1);
+      const source = sources[0];
+      if (source === undefined) {
+        await transaction
+          .delete(schema.addByRssLocalEpisode)
+          .where(eq(schema.addByRssLocalEpisode.downloadIdText, action.fromDownloadIdText));
+        return { kind: 'missing' };
+      }
+      const targets = await transaction
+        .select({ itemIdText: schema.download.itemIdText })
+        .from(schema.download)
+        .where(eq(schema.download.itemIdText, action.toDownloadIdText))
+        .limit(1);
+      if (targets.length > 0) {
+        await transaction
+          .delete(schema.download)
+          .where(eq(schema.download.itemIdText, action.fromDownloadIdText));
+        await transaction
+          .delete(schema.addByRssLocalEpisode)
+          .where(eq(schema.addByRssLocalEpisode.downloadIdText, action.fromDownloadIdText));
+        return { filePath: source.filePath, kind: 'duplicate' };
+      }
+      await transaction.insert(schema.download).values({
+        ...source,
+        itemIdText: action.toDownloadIdText,
+      });
+      await transaction
+        .delete(schema.download)
+        .where(eq(schema.download.itemIdText, action.fromDownloadIdText));
+      await transaction
+        .delete(schema.addByRssLocalEpisode)
+        .where(eq(schema.addByRssLocalEpisode.downloadIdText, action.fromDownloadIdText));
+      return { kind: 'moved' };
+    }
+  );
+
+  if (outcome.kind === 'duplicate') {
+    if (outcome.filePath !== null && outcome.filePath !== '') {
+      await downloadsRepository.deleteStoredFile(outcome.filePath);
+    }
+    await downloadsRepository.remove(action.fromDownloadIdText);
+    return outcome;
+  }
+  if (outcome.kind === 'moved') {
+    await playableItemRepository.remove('download', action.fromDownloadIdText);
+    const item = addByRssDownloadItem(feedUrl, action.itemBundle, action.itemIndex);
+    if (item !== null) {
+      await playableItemRepository.put('download', item);
+    }
+  }
+  return outcome;
+};
+
+/**
+ * Keep a finished download whose episode the next bundle no longer lists.
+ * The previous bundle is still the stored one. An empty download list skips the bundle read.
+ */
+const keepFinishedDownloadsMissingFromBundle = async (
+  feedUrl: string,
+  next: AddByRSSMappedFeed
+): Promise<void> => {
+  const completeRows = await getDb()
+    .select({ itemIdText: schema.download.itemIdText })
+    .from(schema.download)
+    .where(and(eq(schema.download.status, 'complete'), eq(schema.download.channelIdText, feedUrl)));
+  if (completeRows.length === 0) {
+    return;
+  }
+  const previous = await readStoredMappedFeed(feedUrl);
+  if (previous === null) {
+    return;
+  }
+  const local = await addByRssLocalEpisodeRepository.listByFeedUrl(feedUrl);
+  const kept = planKeptLocalEpisodes({
+    completeDownloadIds: new Set(completeRows.map((row) => row.itemIdText)),
+    existingLocalIds: new Set(local.map((entry) => entry.downloadIdText)),
+    feedUrl,
+    next,
+    previous,
+  });
+  for (const episode of kept) {
+    await addByRssLocalEpisodeRepository.upsert({
+      downloadIdText: episode.downloadIdText,
+      feedUrl,
+      itemBundle: episode.itemBundle,
+    });
+  }
+};
+
+/**
+ * Turns local episodes the new bundle lists into ordinary feed episodes.
+ * An episode the bundle does not list is left in place.
+ */
+const absorbLocalEpisodesIntoBundle = async (
+  feedUrl: string,
+  mappedFeed: AddByRSSMappedFeed
+): Promise<void> => {
+  const local = await addByRssLocalEpisodeRepository.listByFeedUrl(feedUrl);
+  if (local.length === 0) {
+    return;
+  }
+  const actions = planLocalEpisodeAbsorb({
+    existingDownloadIds: await listDownloadIdsForChannel(feedUrl),
+    feedUrl,
+    items: mappedFeed.items,
+    local,
+  });
+  if (actions.length === 0) {
+    return;
+  }
+  let refreshStore = false;
+  for (const action of actions) {
+    if (action.kind === 'drop_local_row') {
+      await addByRssLocalEpisodeRepository.remove(action.downloadIdText);
+      continue;
+    }
+    if (action.kind === 'drop_duplicate') {
+      await dropDuplicateLocalDownload(action.downloadIdText);
+      refreshStore = true;
+      continue;
+    }
+    const outcome = await moveLocalEpisodeDownload(feedUrl, action);
+    if (outcome.kind !== 'missing') {
+      refreshStore = true;
+    }
+  }
+  if (!refreshStore) {
+    return;
+  }
+  downloadStore.hydrate(await downloadsRepository.list());
+  await downloadsRepository.reprojectNativeCache();
+  homeFeedRefresh.notify();
+};
+
 export const addByRssRepository = {
   /**
    * The followed Add by RSS feeds this session shows, most-recently-updated first
@@ -1211,17 +1552,91 @@ export const addByRssRepository = {
     return row === undefined ? null : rowToRecord(row);
   },
 
-  /** Read the last-parsed compat bundle for a feed (for full-resource-data playback). */
-  getMappedFeedByUrl: async (feedUrl: string): Promise<AddByRSSMappedFeed | null> => {
+  /**
+   * Stored bundle plus this phone's local episodes that still have a download row.
+   * `hasParsedBundle` is false when that feed has no readable stored bundle.
+   */
+  getMappedFeedDetailByUrl: async (
+    feedUrl: string
+  ): Promise<{ hasParsedBundle: boolean; mappedFeed: AddByRSSMappedFeed | null }> => {
     await initializeDatabase();
-    const rows = await getDb()
-      .select({ mappedFeedJson: schema.addByRssFeed.mappedFeedJson })
-      .from(schema.addByRssFeed)
-      .where(eq(schema.addByRssFeed.feedUrl, feedUrl))
-      .limit(1);
+    const feed = await addByRssRepository.getFeedByUrl(feedUrl);
+    if (feed === null) {
+      return { hasParsedBundle: false, mappedFeed: null };
+    }
+    const stored = await readStoredMappedFeed(feed.feedUrl);
+    const localItems = await listLocalItemsWithDownloads(feed.feedUrl);
+    return {
+      hasParsedBundle: stored !== null,
+      mappedFeed: mergeAddByRssLocalEpisodes({ feed, localItems, stored }),
+    };
+  },
 
-    const raw = rows[0]?.mappedFeedJson ?? null;
-    return raw === null ? null : safeJsonParse<AddByRSSMappedFeed>(raw);
+  /**
+   * Stored bundle plus this phone's local episodes.
+   * Null when the feed is missing, or when it has neither a stored bundle nor a local episode
+   * with a download row.
+   */
+  getMappedFeedByUrl: async (feedUrl: string): Promise<AddByRSSMappedFeed | null> => {
+    const detail = await addByRssRepository.getMappedFeedDetailByUrl(feedUrl);
+    return detail.mappedFeed;
+  },
+
+  /**
+   * Records a file that is already on this phone as a complete download of one Add by RSS episode.
+   * A stored item wins. Otherwise the episode is local until a later bundle lists it.
+   * Does not rename or delete the file, and does not update the in-memory download list.
+   */
+  adoptDownloadedEpisode: async (input: {
+    episode: AddByRssCarriedEpisode;
+    feedUrl: string;
+    /** File name already inside documentDirectory/downloads/, stored on the row as given. */
+    fileName: string;
+    fileSizeBytes: number | null;
+  }): Promise<
+    | { downloadIdText: string; kind: 'already_downloaded' }
+    | { downloadIdText: string; kind: 'feed_episode' }
+    | { downloadIdText: string; kind: 'local_episode' }
+    | { kind: 'no_feed' }
+  > => {
+    await initializeDatabase();
+    const feed = await resolveStoredFeed(input.feedUrl);
+    if (feed === null) {
+      return { kind: 'no_feed' };
+    }
+    const stored = await readStoredMappedFeed(feed.feedUrl);
+    const plan = planAddByRssDownloadAdoption({
+      episode: input.episode,
+      existingDownloadIds: await listDownloadIdsForChannel(feed.feedUrl),
+      feedUrl: feed.feedUrl,
+      stored,
+    });
+    if (plan.kind === 'already_downloaded') {
+      return plan;
+    }
+    if (plan.kind === 'local_episode') {
+      await addByRssLocalEpisodeRepository.upsert({
+        downloadIdText: plan.downloadIdText,
+        feedUrl: feed.feedUrl,
+        itemBundle: plan.itemBundle,
+      });
+    }
+    const itemIndex = plan.kind === 'feed_episode' ? plan.itemIndex : (stored?.items.length ?? 0);
+    await writeAdoptedDownload({
+      downloadIdText: plan.downloadIdText,
+      episode: input.episode,
+      feed,
+      fileName: input.fileName,
+      fileSizeBytes: input.fileSizeBytes,
+      itemBundle: plan.itemBundle,
+      itemIndex,
+      stored,
+    });
+    homeFeedRefresh.notify();
+    if (plan.kind === 'local_episode') {
+      return { downloadIdText: plan.downloadIdText, kind: 'local_episode' };
+    }
+    return { downloadIdText: plan.downloadIdText, kind: 'feed_episode' };
   },
 
   /**
@@ -1261,7 +1676,9 @@ export const addByRssRepository = {
    * `followed` is written only when the record sets it: an update without it keeps the stored
    * value, and an insert without it is a follow. A listed-only feed gets no auto-download rule.
    * A write that follows the feed also records who follows it, the signed-out user or the
-   * signed-in account, and when the follow started.
+   * signed-in account, and when the follow started. A non-null bundle keeps a finished download
+   * whose episode the new items no longer list, as a local episode, then absorbs local episodes
+   * that the new items list. Those steps are logged and do not fail the bundle write.
    */
   upsertFeed: async (
     record: MobileAddByRSSFeedRecord,
@@ -1321,6 +1738,16 @@ export const addByRssRepository = {
           : 0,
         ...(mappedFeed !== null ? publisherRefColumnsFromMappedFeed(mappedFeed) : {}),
       };
+      if (mappedFeed !== null) {
+        try {
+          await keepFinishedDownloadsMissingFromBundle(record.feedUrl, mappedFeed);
+        } catch (error) {
+          console.warn(
+            '[add-by-rss] keep downloaded episodes failed',
+            classifySyncError(error).code
+          );
+        }
+      }
       await getDb()
         .insert(schema.addByRssFeed)
         .values({ ...baseValues, ...parsedValues })
@@ -1334,6 +1761,13 @@ export const addByRssRepository = {
       }
       if (mappedFeed !== null || record.followed !== undefined) {
         await afterArtistRelationsChanged();
+      }
+      if (mappedFeed !== null) {
+        try {
+          await absorbLocalEpisodesIntoBundle(record.feedUrl, mappedFeed);
+        } catch (error) {
+          console.warn('[add-by-rss] local episode absorb failed', classifySyncError(error).code);
+        }
       }
       return;
     }
@@ -2219,7 +2653,7 @@ export const addByRssRepository = {
       await autoDownloadRepository.removeChannel(feedUrl);
       return 'listed';
     }
-    await addByRssRepository.removeFeed(feedUrl);
+    await addByRssRepository.removeFeedAndDownloads(feedUrl);
     return 'removed';
   },
 
@@ -2235,6 +2669,17 @@ export const addByRssRepository = {
       .where(eq(schema.addByRssListedFeed.publisherFeedUrl, feedUrl));
     await pruneListedOnlyFeeds();
     await afterArtistRelationsChanged();
+  },
+
+  /**
+   * Deletes every download for the feed, then removes the feed.
+   * Listings, credentials, and album prune stay on the URL the caller passed.
+   */
+  removeFeedAndDownloads: async (feedUrl: string): Promise<void> => {
+    await initializeDatabase();
+    const feed = await resolveStoredFeed(feedUrl);
+    await deleteDownloadsForFeed(feed?.feedUrl ?? feedUrl);
+    await addByRssRepository.removeFeed(feedUrl);
   },
 
   /** Clear all feeds and listings (session reset / logout). */

@@ -161,8 +161,14 @@ import { defineConfig } from 'vitest/config';
  * (`src/lib/playback/planDownloadCompletePlaybackHandoff.ts`). The
  * migration ladder (`src/data/db/migrations.ts`) is covered because the statement list is data, not a
  * connection. The signed-out list parser (`src/migration/v4/parseV4LocalState.ts`) is covered
- * because it is a pure function of four stored strings. Scope
- * the `include` narrowly so tests never pull in native/Expo modules — the excluded adapter
+ * because it is a pure function of four stored strings. The v4 download carryover
+ * decisions (`src/migration/v4/planV4DownloadCarryover.ts`) are covered because they
+ * are a pure function of staged rows and server answers. The v4 download name rules
+ * (`src/migration/v4/v4DownloadNames.ts`) are covered the same way. The download-list
+ * parser (`src/migration/v4/parseV4DownloadState.ts`) is a pure function of three stored
+ * strings. The download read (`src/migration/v4/readV4DownloadState.ts`) runs with storage
+ * and folders mocked. Scope the `include` narrowly so tests never pull in native/Expo
+ * modules — the excluded adapter
  * (`src/bridge/nativePlaybackBridge.ts`) imports `expo-modules-core`, and repositories import
  * `expo-sqlite`, so neither is tested here. `apps/mobile` is a standalone install; run with
  * `npm --prefix apps/mobile run test`.
@@ -199,7 +205,12 @@ export default defineConfig({
       'src/data/db/migrations.test.ts',
       'src/migration/v4/carryoverOutlines.test.ts',
       'src/migration/v4/parseV4LocalState.test.ts',
+      'src/migration/v4/v4DownloadNames.test.ts',
+      'src/migration/v4/parseV4DownloadState.test.ts',
+      'src/migration/v4/readV4DownloadState.test.ts',
       'src/migration/v4/planV4Carryover.test.ts',
+      'src/migration/v4/planV4DownloadCarryover.test.ts',
+      'src/migration/v4/legacyLookupRequest.test.ts',
       'src/data/identityRemap.test.ts',
       'src/data/addByRssPromotionRemap.test.ts',
       'src/data/repositories/addByRssListedFeeds.test.ts',

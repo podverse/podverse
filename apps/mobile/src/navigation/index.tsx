@@ -46,6 +46,7 @@ import { useInProgressDownloadCount } from '../downloads/useDownloads';
 import { isMobileE2eHarnessEnabled } from '../lib/e2e/e2eHarness';
 import { PerfE2eReport } from '../lib/perf/PerfE2eReport';
 import { useMembership } from '../membership/useMembership';
+import { V4DownloadFixtureFilesMarker } from '../migration/v4/V4DownloadFixtureFilesMarker';
 import {
   isBannerNotificationVisible,
   subscribeBannerNotificationQueue,
@@ -2563,6 +2564,7 @@ export function MobileTabNavigator({
         </RootStack.Navigator>
         <PlaybackE2eStatus />
         <NotificationStreamE2eStatus />
+        <V4DownloadFixtureFilesMarker />
         <PerfE2eReport />
       </View>
     </NavigationContainer>

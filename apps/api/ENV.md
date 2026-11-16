@@ -133,6 +133,11 @@ When unset/invalid, each uses its code default listed below.
 - **`LEGACY_PODCAST_LOOKUP_INSTALL_MAX_PER_MINUTE`** (default `10`) — legacy podcast lookup
   calls per `X-Podverse-Install-Id` per minute, when that header is 16–64 characters of letters,
   digits, underscore, or hyphen. A missing or other header is not counted here
+- **`LEGACY_EPISODE_LOOKUP_MAX_PER_MINUTE`** (default `30`) — legacy episode lookup calls per
+  IP address per minute
+- **`LEGACY_EPISODE_LOOKUP_INSTALL_MAX_PER_MINUTE`** (default `10`) — legacy episode lookup
+  calls per `X-Podverse-Install-Id` per minute, when that header is 16–64 characters of letters,
+  digits, underscore, or hyphen. A missing or other header is not counted here
 - **`ACCOUNT_CHANNEL_SEEN_READ_MAX_PER_MINUTE`** (default `60`) — per account, covers both
   `/account/channel-seen` reads
 - **`STATS_TRACK_MAX_PER_MINUTE`** (default `60`) — per account, one budget shared by

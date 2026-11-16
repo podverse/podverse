@@ -123,6 +123,43 @@ const E2E_DIRECTORY_MATCH_ITEM_1_ENCLOSURE_URL =
   'http://localhost:2111/audio/directory-match-episode-1.mp3';
 const E2E_DIRECTORY_MATCH_ITEM_2_ENCLOSURE_URL =
   'http://localhost:2111/audio/directory-match-episode-2.mp3';
+// Podcasting 2.0 (Podcast Index 920666) for the mobile v4 download carryover flow. Ids match
+// apps/mobile/src/migration/v4/e2eFixture.ts. Episodes are real items of the live feed; the
+// test-assets copy is tools/test-assets/assets/e2e/v4-carryover/podcasting20.xml.
+const E2E_PC20_FEED_PI_ID = 920666;
+const E2E_PC20_FEED_URL = 'https://mp3s.nashownotes.com/pc20rss.xml';
+const E2E_PC20_CHANNEL_ID_TEXT = 'e2ePc20Chan01';
+const E2E_PC20_V4_PODCAST_ID = 'v4Pc20Pod01';
+const E2E_PC20_V4_MAPPED_EPISODE_ID = 'v4Pc20Ep275';
+const E2E_PC20_ITEMS = [
+  {
+    idText: 'e2ePc20Ep276',
+    guid: 'PC20-276',
+    title: 'Episode 276: "Jackleg leechers"',
+    pubDate: '2026-10-23T19:17:46Z',
+    durationSeconds: 5335,
+    enclosureUrl: 'https://op3.dev/e/mp3s.nashownotes.com/PC20-276-2026-10-23-Final.mp3',
+    enclosureLength: 64037934,
+  },
+  {
+    idText: 'e2ePc20Ep275',
+    guid: 'PC20-275',
+    title: 'Episode 275: "Off The Rails"',
+    pubDate: '2026-10-16T19:31:29Z',
+    durationSeconds: 5995,
+    enclosureUrl: 'https://op3.dev/e/mp3s.nashownotes.com/PC20-275-2026-10-16-Final.mp3',
+    enclosureLength: 71957106,
+  },
+  {
+    idText: 'e2ePc20Ep274',
+    guid: 'PC20-274',
+    title: 'Episode 274: "Vibe Cloning"',
+    pubDate: '2026-10-09T19:37:54Z',
+    durationSeconds: 6065,
+    enclosureUrl: 'https://op3.dev/e/mp3s.nashownotes.com/PC20-274-2026-10-09-Final.mp3',
+    enclosureLength: 72798142,
+  },
+];
 const E2E_MUSIC_FEED_PI_ID = 876543212;
 const E2E_MUSIC_FEED_URL = 'https://e2e-seed-music.example/album.xml';
 
@@ -4136,6 +4173,109 @@ async function seedDirectoryMatchChannel(client) {
   );
 }
 
+async function seedPodcasting20CarryoverChannel(client) {
+  await client.query(`DELETE FROM feed WHERE podcast_index_id = $1 OR url = $2`, [
+    E2E_PC20_FEED_PI_ID,
+    E2E_PC20_FEED_URL,
+  ]);
+
+  const feedResult = await client.query(
+    `INSERT INTO feed (url, podcast_index_id)
+     VALUES ($1, $2)
+     RETURNING id`,
+    [E2E_PC20_FEED_URL, E2E_PC20_FEED_PI_ID]
+  );
+  const feedId = feedResult.rows[0].id;
+
+  await client.query(
+    `INSERT INTO feed_policy (feed_id, parse_allowed, public_visible, add_allowed)
+     VALUES ($1, true, true, true)`,
+    [feedId]
+  );
+
+  const channelResult = await client.query(
+    `INSERT INTO channel (id_text, feed_id, medium_id, title)
+     VALUES (
+       $1,
+       $2,
+       (SELECT id FROM medium WHERE value = 'podcast' LIMIT 1),
+       'Podcasting 2.0'
+     )
+     RETURNING id`,
+    [E2E_PC20_CHANNEL_ID_TEXT, feedId]
+  );
+  const channelId = channelResult.rows[0].id;
+  await client.query(`INSERT INTO channel_about (channel_id) VALUES ($1)`, [channelId]);
+  await insertSeedChannelDescription(
+    client,
+    channelId,
+    'The Podcast Index presents Podcasting 2.0 - Upgrading Podcasting'
+  );
+
+  for (const item of E2E_PC20_ITEMS) {
+    const itemResult = await client.query(
+      `INSERT INTO item (
+         id_text,
+         channel_id,
+         guid,
+         guid_enclosure_url,
+         pub_date,
+         title,
+         item_flag_status_id
+       )
+       VALUES ($1, $2, $3, $4, $5::timestamptz, $6, 1)
+       RETURNING id`,
+      [item.idText, channelId, item.guid, item.enclosureUrl, item.pubDate, item.title]
+    );
+    const itemId = itemResult.rows[0].id;
+
+    await client.query(
+      `INSERT INTO item_about (item_id, duration)
+       VALUES ($1, $2)`,
+      [itemId, item.durationSeconds]
+    );
+    await insertSeedItemDescription(client, itemId, `Podcasting 2.0 ${item.title}.`);
+
+    const enclosureResult = await client.query(
+      `INSERT INTO item_enclosure (item_id, type, length, bitrate, item_enclosure_default)
+       VALUES ($1, 'audio/mpeg', $2, 96, true)
+       RETURNING id`,
+      [itemId, item.enclosureLength]
+    );
+    await client.query(
+      `INSERT INTO item_enclosure_source (item_enclosure_id, uri, content_type)
+       VALUES ($1, $2, 'audio/mpeg')`,
+      [enclosureResult.rows[0].id, item.enclosureUrl]
+    );
+  }
+
+  await client.query(
+    `DELETE FROM legacy_id_map
+     WHERE (legacy_kind = 'podcast' AND legacy_id = $1)
+        OR (legacy_kind = 'episode' AND legacy_id = $2)`,
+    [E2E_PC20_V4_PODCAST_ID, E2E_PC20_V4_MAPPED_EPISODE_ID]
+  );
+  await client.query(
+    `INSERT INTO legacy_id_map (
+       legacy_kind, legacy_id, v5_kind, v5_id_text, resolve_key, v4_feed_url, status
+     )
+     VALUES
+       ('podcast', $1, 'channel', $2, NULL, $3, 'mapped'),
+       ('episode', $4, 'item', $5, NULL, NULL, 'mapped')`,
+    [
+      E2E_PC20_V4_PODCAST_ID,
+      E2E_PC20_CHANNEL_ID_TEXT,
+      E2E_PC20_FEED_URL,
+      E2E_PC20_V4_MAPPED_EPISODE_ID,
+      'e2ePc20Ep275',
+    ]
+  );
+
+  console.log(
+    `Seeded Podcasting 2.0 channel ${E2E_PC20_CHANNEL_ID_TEXT} (Podcast Index ${E2E_PC20_FEED_PI_ID}) with v4 ids ${E2E_PC20_V4_PODCAST_ID}, ${E2E_PC20_V4_MAPPED_EPISODE_ID}`
+  );
+}
+
 async function main() {
   const passwordHash = await bcrypt.hash(TEST_PASSWORD, 10);
   const invitePlaceholderPasswordHash = await bcrypt.hash(crypto.randomUUID(), 10);
@@ -4157,6 +4297,7 @@ async function main() {
   await clearPlaybackKeyvalState(accountId);
   await seedMediaPlayerAndEmbedFixtures(client, accountId);
   await seedDirectoryMatchChannel(client);
+  await seedPodcasting20CarryoverChannel(client);
   await seedRemoteStubListFixtures(client);
   await seedMergedChannelRedirect(client);
   await seedRemovedContentFixtures(client, accountId);

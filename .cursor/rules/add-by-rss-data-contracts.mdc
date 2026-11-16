@@ -48,7 +48,11 @@ When changing Add-by-RSS data, trace this complete path:
    and a restart clears it. `resolve_no_match` is a reason on the existing listing row, not a
    new column.
 4. **Playback:** `getMappedFeedByUrl`, `safeJsonParse`, and `toAddByRssItemPlaybackResourceData`
-   reconstruct playback data from the bundle and per-account playback position.
+   reconstruct playback data from the bundle and per-account playback position. A phone can also
+   keep episodes that are not in that bundle. `add_by_rss_local_episode` holds device-only item
+   bundles backed by a download. `getMappedFeedByUrl` appends those episodes. Removing the feed
+   deletes those rows and their files. The table has no server counterpart, so the server
+   conversion is unchanged for it.
 
 Check identifiers, URLs, titles, images/enclosures, resource types, date units, nullability, and
 stale-row behavior at every boundary. Update row mapping and upsert paths together. Cover fresh

@@ -139,7 +139,10 @@
       "delete_all_description": "Permanently deletes the local media files and download index entries on this device. This cannot be undone.",
       "delete_all": "Delete All",
       "delete_all_confirm_title": "Delete All Downloads?",
-      "delete_all_confirm_body": "This deletes every local download file and removes them from the Downloads list. Episodes will need to be downloaded again for offline play."
+      "delete_all_confirm_body": "This deletes every local download file and removes them from the Downloads list. Episodes will need to be downloaded again for offline play.",
+      "chosen_folder": "Chosen Download Folder",
+      "chosen_folder_description": "When on, new downloads go to the folder saved from the previous app. When off, new downloads go to this app's private folder. Files already in that folder stay there, and you can still play and delete them.",
+      "chosen_folder_save_failed": "Couldn't save that setting. Try again."
     },
     "notifications": {
       "login_required_title": "Login Required",
@@ -215,7 +218,8 @@
       "clips": "Updating Your Clips",
       "home_feed": "Reading Home from This Device",
       "identity_remap": "Updating Your Shows",
-      "v4_carryover": "Moving Your Podcasts"
+      "v4_carryover": "Moving Your Podcasts",
+      "v4_download_carryover": "Moving Your Downloads"
     },
     "progress": "{completed} of {total}"
   },
@@ -377,6 +381,7 @@
     "directory_channel_converted": "Moved {channel} to Add by RSS. It is no longer in the directory.",
     "add_by_rss_promoted_to_directory": "Moved {channel} to {brand_name} Directory",
     "v4_carryover_done": "Podcasts Moved from the Previous App",
+    "v4_download_carryover_done": "Downloads Moved from the Previous App",
     "row_a11y_hint": "Opens Full Details",
     "saved_footnote": "Full details are saved in More › Advanced › Error Log.",
     "kind": {
@@ -439,7 +444,15 @@
         "subscribed": "Subscribed",
         "add_by_rss": "Add by RSS",
         "blocked": "Left Out",
-        "waiting": "Waiting"
+        "waiting": "Waiting",
+        "directory_episodes": "Directory Episodes",
+        "add_by_rss_episodes": "Add by RSS Episodes",
+        "already_downloaded": "Already Downloaded",
+        "deleted_files": "Files Deleted",
+        "missing_files": "Files Not Found",
+        "unreadable_files": "Files in an Unreadable Folder",
+        "undeletable_files": "Files Not Deleted",
+        "waiting_files": "Files Waiting"
       }
     }
   },
