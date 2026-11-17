@@ -542,3 +542,14 @@
   Unplayed on the phone hides it for the rest of the session.
 - Who notices: listeners looking at a list that includes something they finished
 - Operator steps: none
+
+## Security pins for parser, redirects, and glob
+
+- Surfaces: api, web, workers, management-api, management-web
+- Change: `fast-xml-parser` is `5.12.1`, including the root override that forces every copy.
+  `follow-redirects` is `1.16.3`, `glob` is `14.0.6`, and `minimatch` is `11.0.8`. Workspace
+  `dotenv` ranges are `^18.0.10`; the installed copy was already `18.0.10`. `@dotenvx/dotenvx`
+  still uses `dotenv` `17.4.2`.
+- Who notices: operators of the publish audit gate. Feed parsing, redirects, and env loading
+  keep the same behavior.
+- Operator steps: none
