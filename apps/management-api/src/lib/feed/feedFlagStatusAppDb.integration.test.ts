@@ -30,6 +30,11 @@ describe('feed lookup after the channel row is gone', () => {
     if (!AppDbDataSourceReadWrite.isInitialized) {
       await AppDbDataSourceReadWrite.initialize();
     }
+    await AppDbDataSourceReadWrite.query(
+      `DELETE FROM channel_merge
+       WHERE from_podcast_index_id = $1 OR to_podcast_index_id = $1`,
+      [PODCAST_INDEX_ID]
+    );
     await AppDbDataSourceReadWrite.query(`DELETE FROM feed WHERE podcast_index_id = $1`, [
       PODCAST_INDEX_ID,
     ]);

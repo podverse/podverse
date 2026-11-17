@@ -1,8 +1,70 @@
+import { execFile } from 'node:child_process';
+import { promisify } from 'node:util';
+
 import type { Browser, BrowserContext, Locator, Page } from '@playwright/test';
 
 import { WEB_E2E_PLAYBACK_PRESENCE_LEAVE_GRACE_MS } from '@podverse/helpers-config';
 
+import { withAppDb } from './accountSessions';
 import { loginSeedUser } from './addByRSSCredentials';
+
+const execFileAsync = promisify(execFile);
+const E2E_USER_EMAIL = 'e2e-user@example.com';
+
+/**
+ * A closed browser keeps its playback check-in until that time passes. The device menu counts
+ * every check-in still in the future, so a later spec can see browsers from earlier specs.
+ * Drop the shared e2e account's playback keys before counting devices.
+ */
+export async function clearSharedE2ePlaybackPresence(): Promise<void> {
+  const accountId = await withAppDb(async (client) => {
+    const result = await client.query<{ account_id: number }>(
+      `SELECT account_id FROM account_credentials WHERE email = $1`,
+      [E2E_USER_EMAIL]
+    );
+    const id = result.rows[0]?.account_id;
+    if (id === undefined) {
+      throw new Error(`Expected an account id for ${E2E_USER_EMAIL}`);
+    }
+    return id;
+  });
+
+  const password = process.env.KEYVALDB_PASSWORD ?? 'test';
+  const pattern = `podverse:playback:${accountId}:*`;
+  const { stdout } = await execFileAsync(
+    'docker',
+    [
+      'exec',
+      'podverse_test_valkey',
+      'valkey-cli',
+      '-a',
+      password,
+      '--no-auth-warning',
+      '--scan',
+      '--pattern',
+      pattern,
+    ],
+    { maxBuffer: 10 * 1024 * 1024 }
+  );
+  const keys = stdout
+    .split('\n')
+    .map((line) => line.trim())
+    .filter((line) => line.startsWith(`podverse:playback:${accountId}:`));
+  const batchSize = 100;
+  for (let index = 0; index < keys.length; index += batchSize) {
+    const batch = keys.slice(index, index + batchSize);
+    await execFileAsync('docker', [
+      'exec',
+      'podverse_test_valkey',
+      'valkey-cli',
+      '-a',
+      password,
+      '--no-auth-warning',
+      'DEL',
+      ...batch,
+    ]);
+  }
+}
 
 export const CROSS_DEVICE_DESKTOP_VIEWPORT = { width: 1280, height: 900 };
 export const CROSS_DEVICE_MOBILE_VIEWPORT = { width: 390, height: 844 };

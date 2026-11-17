@@ -6,6 +6,7 @@ import type { AccountFCMDevicePlatformValues } from '@podverse/helpers/dto';
 import { AccountFCMDevicePlatformEnum } from '@podverse/helpers/dto';
 
 import { getMobileConfig } from '../config';
+import { readFirebaseAppModule, readFirebaseMessagingModule } from './firebaseNativeModules';
 
 export type PushPermissionRequestResult = {
   canAskAgain: boolean;
@@ -51,10 +52,8 @@ const loadFirebaseModules = (): FirebaseModules | null => {
     return null;
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-require-imports -- loaded only after the native module is registered
-  const app: unknown = require('@react-native-firebase/app');
-  // eslint-disable-next-line @typescript-eslint/no-require-imports -- loaded only after the native module is registered
-  const messaging: unknown = require('@react-native-firebase/messaging');
+  const app: unknown = readFirebaseAppModule();
+  const messaging: unknown = readFirebaseMessagingModule();
   if (!isRecord(app) || !isRecord(messaging)) {
     return null;
   }

@@ -20,6 +20,7 @@ import {
   getAddByRSSParseCacheEntry,
   setAddByRSSParseCacheEntry,
 } from '@api/lib/addByRSSParseCache.js';
+import type { AddByRSSParseDedupeEntry } from '@api/lib/addByRSSParseDedupeCache.js';
 import {
   getAddByRSSParseDedupeEntry,
   setAddByRSSParseDedupeEntry,
@@ -381,6 +382,25 @@ const buildE2eParsedFeedPayload = (
   return fixture as unknown as NonNullable<AddByRSSParseCacheEntry['payload']>;
 };
 
+/**
+ * The request id of a parse already stored for this account and feed. A duplicate public parse
+ * polls that result. Missing or not-yet-stored entries return null so the caller can start one.
+ */
+const inFlightAddByRSSParseRequestId = async (
+  accountId: number,
+  feedUrl: string,
+  existing: AddByRSSParseDedupeEntry
+): Promise<string | null> => {
+  if (existing.requestId === undefined || existing.requestId === '') {
+    return null;
+  }
+  const cached = await getAddByRSSParseCacheEntry(existing.requestId);
+  if (cached === null || cached.accountId !== accountId || cached.feedUrl !== feedUrl) {
+    return null;
+  }
+  return existing.requestId;
+};
+
 export const addByRssParseEnqueueRateLimit = rateLimitAuthEndpoint({
   windowMs: config.rateLimits.accountAddByRssParseEnqueue.windowMs,
   max: config.rateLimits.accountAddByRssParseEnqueue.max,
@@ -435,17 +455,21 @@ class AccountAddByRSSParseController {
 
               if (dedupeTTLSeconds) {
                 const existing = await getAddByRSSParseDedupeEntry(account.id, feedUrl);
-                // A body that carries credentials is an explicit check of a protected feed.
-                // The duplicate window must not drop it, or save-and-check fails right after add.
+                // A body that carries credentials is a new check of a protected feed and always
+                // starts its own parse. A public parse that is already stored is the one to poll.
                 if (existing !== null && resolved.credentials === null) {
-                  res.status(429).json({
-                    message: 'Duplicate request. Please wait before retrying.',
-                    retry_after_seconds: dedupeTTLSeconds,
-                  });
-                  return;
+                  const inFlightRequestId = await inFlightAddByRSSParseRequestId(
+                    account.id,
+                    feedUrl,
+                    existing
+                  );
+                  if (inFlightRequestId !== null) {
+                    res.status(201).json({ request_id: inFlightRequestId });
+                    return;
+                  }
                 }
 
-                await setAddByRSSParseDedupeEntry(account.id, feedUrl, dedupeTTLSeconds);
+                await setAddByRSSParseDedupeEntry(account.id, feedUrl, dedupeTTLSeconds, requestId);
               }
 
               if (process.env.MQ_DEBUG === 'true') {
@@ -607,7 +631,12 @@ class AccountAddByRSSParseController {
                     dedupedFeedUrls.push(feedUrl);
                     continue;
                   }
-                  await setAddByRSSParseDedupeEntry(account.id, feedUrl, dedupeTTLSeconds);
+                  await setAddByRSSParseDedupeEntry(
+                    account.id,
+                    feedUrl,
+                    dedupeTTLSeconds,
+                    requestId
+                  );
                 }
 
                 requestIds.push({ request_id: requestId, feed_url: feedUrl });

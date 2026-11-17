@@ -15,8 +15,14 @@ function makeBridge(seek: MediaElementBridge['seek']): MediaElementBridge {
   return { ...noopMediaElementBridge, seek };
 }
 
-function Registrar({ bridge }: { bridge: MediaElementBridge }): null {
-  useRegisterMediaPlayerControlsBridge(bridge);
+function Registrar({
+  bridge,
+  claim = false,
+}: {
+  bridge: MediaElementBridge;
+  claim?: boolean;
+}): null {
+  useRegisterMediaPlayerControlsBridge(bridge, claim);
   return null;
 }
 
@@ -83,6 +89,39 @@ describe('MediaPlayerControlsProvider', () => {
     expect(captured.current?.seek).not.toBe(noopMediaElementBridge.seek);
     captured.current?.seek(7);
     expect(seekA).toHaveBeenCalledWith(7);
+  });
+
+  it('moves a claimed bridge above a later registrant', () => {
+    const seekA = vi.fn();
+    const seekB = vi.fn();
+    const bridgeA = makeBridge(seekA);
+    const bridgeB = makeBridge(seekB);
+    const captured = createControlsCapture();
+
+    function Consumer(): null {
+      captured.current = useMediaPlayerControls();
+      return null;
+    }
+
+    function Tree({ claimA }: { claimA: boolean }): ReactElement {
+      return (
+        <MediaPlayerControlsProvider>
+          <Registrar bridge={bridgeA} claim={claimA} />
+          <Registrar bridge={bridgeB} />
+          <Consumer />
+        </MediaPlayerControlsProvider>
+      );
+    }
+
+    const { rerender } = render(<Tree claimA={false} />);
+    captured.current?.seek(1);
+    expect(seekB).toHaveBeenCalledWith(1);
+    expect(seekA).not.toHaveBeenCalled();
+
+    rerender(<Tree claimA={true} />);
+    captured.current?.seek(4);
+    expect(seekA).toHaveBeenCalledWith(4);
+    expect(seekB).toHaveBeenCalledTimes(1);
   });
 
   it('detaches once every registrant unmounts', () => {

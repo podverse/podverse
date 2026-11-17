@@ -456,3 +456,79 @@
 - Change: On Android, More → Settings → Downloads shows Chosen Download Folder when the previous app saved a folder this app can still write. On sends new downloads there. Off sends new downloads to the app's private folder. Turning the switch does not move or delete files already in the chosen folder; those still play and delete. iOS has no control. There is no folder picker and no new storage permission.
 - Who notices: Android listeners who chose a download folder in the previous app
 - Operator steps: none
+
+## Numeric chapter times
+
+- Surfaces: parser-mapping, api, mobile
+- Change: chapter files may send start and end times as numbers. Mapping those chapters stores the
+  times and no longer fails when the value is not a string.
+- Who notices: listeners opening chapters on an episode whose chapter file uses numeric times
+- Operator steps: none
+
+## OPML directory lookup stops after an unreachable answer
+
+- Surfaces: mobile
+- Change: while an OPML import looks up feed URLs in the directory, an unreachable answer finishes
+  the lookups already started and does not start another batch.
+- Who notices: listeners importing an OPML file when directory lookup cannot be reached
+- Operator steps: none
+
+## Rejected Add by RSS password stays explained
+
+- Surfaces: web
+- Change: a background refresh no longer replaces the result of a feed parse this page already
+  started. Adding a protected feed with a username and password the feed rejects still opens the
+  credentials page and says the feed rejected them.
+- Who notices: members adding a password-protected feed while Add by RSS is refreshing
+- Operator steps: none
+
+## Podcast and album section chips update the address
+
+- Surfaces: web
+- Change: choosing Remote Items, Podroll, or another non-default section on a podcast or album
+  page puts `type` in the address. Choosing the default section removes it.
+- Who notices: listeners who open those sections, then share or use the back button
+- Operator steps: none
+
+## Add Feed joins a refresh already parsing that feed
+
+- Surfaces: api, web
+- Change: adding a public feed while a background refresh is already parsing it opens the parsed
+  page. The add uses that parse instead of failing with a one-minute duplicate error.
+- Who notices: members who add a feed while Add by RSS is refreshing
+- Operator steps: none
+
+## Subscribed episode grid titles are headings
+
+- Surfaces: web
+- Change: an Add by RSS episode in the grid layout uses a heading for the episode title, with the
+  feed title above that heading. The title stays the same size as the other grid titles.
+- Who notices: screen reader users on Subscribed Episodes
+- Operator steps: none
+
+## Progress bar seeks the file that is loaded
+
+- Surfaces: web
+- Change: after playback switches items, a click on the progress bar seeks the loaded file. The
+  click uses that file's duration when the bar still shows the previous item's length.
+- Who notices: listeners who scrub just after the player changes episodes or tracks
+- Operator steps: none
+
+## Unlimited Add by RSS feed cap
+
+- Surfaces: api, k8s
+- Change: `account_membership_status.max_add_by_rss_feeds` may be `-1`, which means unlimited.
+  Null stays the shared default, and `0` stays a cap of zero. App migration
+  `0018_account_max_add_by_rss_feeds_unlimited.sql`.
+- Who notices: operators who set an account to unlimited Add by RSS; those listeners can add feeds
+  past the numbered tiers
+- Operator steps: apply the app migration before saving an unlimited cap
+
+## Identity resolve skips local download keys
+
+- Surfaces: mobile
+- Change: a scheduled identity check sends only directory ids. An Add by RSS download key
+  (`feed address::episode`) is left out, so one long local key no longer fails the whole check
+  and covers the app with the request error.
+- Who notices: listeners whose phone holds both directory downloads and Add by RSS downloads
+- Operator steps: none

@@ -845,7 +845,7 @@ describe('POST /users', () => {
     const membershipInsertCall = readWriteQueryMock.mock.calls[6];
     expect(membershipInsertCall?.[0]).toContain('INSERT INTO account_membership_status');
     expect(membershipInsertCall?.[0]).toContain('VALUES ($1, $2, NULL,');
-    expect(membershipInsertCall?.[1]).toEqual([42, 1, null, null, null, null, null]);
+    expect(membershipInsertCall?.[1]).toEqual([42, 1, null, null, null, null, null, null]);
     expect(ledger.startTrial).toHaveBeenCalledTimes(1);
     expect(ledger.startTrial).toHaveBeenCalledWith(
       expect.objectContaining({ accountId: 42, trialSeconds: 120 })

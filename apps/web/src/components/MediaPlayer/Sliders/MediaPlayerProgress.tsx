@@ -51,8 +51,9 @@ export const LocalMediaPlayerProgress: React.FC<MediaPlayerProgressProps> = ({
   showChapterMarkers = true,
   showChapterHoverTooltip,
 }) => {
-  const { mpClip, mpItemSoundbite, mpItemChapter, mpItemChapters, mpDuration } = useMediaPlayer();
-  const { seek } = useMediaPlayerControls();
+  const { mpClip, mpItemSoundbite, mpItemChapter, mpItemChapters, mpDuration, setMPDuration } =
+    useMediaPlayer();
+  const { seek, readDurationSeconds } = useMediaPlayerControls();
   const { mpCurrentTime, setMPCurrentTime } = useMediaPlayerCurrentTime();
   const barRef = useRef<HTMLDivElement>(null);
   const [dragSeconds, setDragSeconds] = useState<number | null>(null);
@@ -91,6 +92,28 @@ export const LocalMediaPlayerProgress: React.FC<MediaPlayerProgressProps> = ({
 
   const durationRef = useRef(mpDuration);
   durationRef.current = mpDuration;
+  const readDurationSecondsRef = useRef(readDurationSeconds);
+  readDurationSecondsRef.current = readDurationSeconds;
+
+  // The loaded file can already know its duration while player state still holds the previous item.
+  const scrubDurationSeconds = (): number => {
+    const fromElement = readDurationSecondsRef.current();
+    if (typeof fromElement === 'number' && Number.isFinite(fromElement) && fromElement > 0) {
+      return fromElement;
+    }
+    return durationRef.current;
+  };
+
+  useEffect(() => {
+    const fromElement = readDurationSeconds();
+    if (typeof fromElement !== 'number' || !Number.isFinite(fromElement) || fromElement <= 0) {
+      return;
+    }
+    if (fromElement === mpDuration) {
+      return;
+    }
+    setMPDuration(fromElement);
+  }, [mpDuration, readDurationSeconds, setMPDuration]);
 
   const clearHold = useCallback(() => {
     if (holdClearTimerRef.current !== null) {
@@ -160,7 +183,7 @@ export const LocalMediaPlayerProgress: React.FC<MediaPlayerProgressProps> = ({
   );
 
   const secondsFromClientX = useCallback((clientX: number): number | null => {
-    const currentDuration = durationRef.current;
+    const currentDuration = scrubDurationSeconds();
     if (barRef.current === null || currentDuration === 0) {
       return null;
     }
@@ -210,7 +233,7 @@ export const LocalMediaPlayerProgress: React.FC<MediaPlayerProgressProps> = ({
       window.removeEventListener('mouseup', handleMouseUp);
       removeWindowListenersRef.current = null;
       const released = dragSecondsRef.current;
-      if (typeof released === 'number' && durationRef.current > 0) {
+      if (typeof released === 'number' && scrubDurationSeconds() > 0) {
         seek(released);
         setMPCurrentTime(released);
         armSeekHold(released);

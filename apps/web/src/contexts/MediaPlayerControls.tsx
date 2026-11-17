@@ -1,7 +1,7 @@
 'use client';
 
 import type { ReactNode } from 'react';
-import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
+import { createContext, useCallback, useContext, useLayoutEffect, useMemo, useState } from 'react';
 
 import type { MediaElementBridge } from '../hooks/useMediaElementBridge';
 
@@ -35,6 +35,8 @@ const MediaPlayerControlsContext = createContext<MediaPlayerControlsContextValue
 type RegistrarContextType = {
   register: (bridge: MediaElementBridge) => void;
   unregister: (bridge: MediaElementBridge) => void;
+  /** Moves an already-registered bridge to the top. No-op when it is absent or already on top. */
+  promote: (bridge: MediaElementBridge) => void;
 };
 
 const MediaPlayerControlsRegistrarContext = createContext<RegistrarContextType | null>(null);
@@ -52,7 +54,21 @@ export function MediaPlayerControlsProvider({ children }: { children: ReactNode 
   const unregister = useCallback((bridge: MediaElementBridge) => {
     setStack((prev) => prev.filter((registered) => registered !== bridge));
   }, []);
-  const registrarValue = useMemo(() => ({ register, unregister }), [register, unregister]);
+  const promote = useCallback((bridge: MediaElementBridge) => {
+    setStack((prev) => {
+      const index = prev.indexOf(bridge);
+      if (index === -1 || index === prev.length - 1) {
+        return prev;
+      }
+      const next = prev.filter((registered) => registered !== bridge);
+      next.push(bridge);
+      return next;
+    });
+  }, []);
+  const registrarValue = useMemo(
+    () => ({ register, unregister, promote }),
+    [register, unregister, promote]
+  );
   const value = useMemo((): MediaPlayerControlsContextValue => {
     const attached = stack[stack.length - 1] ?? null;
     if (attached === null) {
@@ -69,9 +85,12 @@ export function MediaPlayerControlsProvider({ children }: { children: ReactNode 
   );
 }
 
-export function useRegisterMediaPlayerControlsBridge(bridge: MediaElementBridge): void {
+export function useRegisterMediaPlayerControlsBridge(
+  bridge: MediaElementBridge,
+  claim = false
+): void {
   const ctx = useContext(MediaPlayerControlsRegistrarContext);
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (!ctx) {
       return;
     }
@@ -80,6 +99,12 @@ export function useRegisterMediaPlayerControlsBridge(bridge: MediaElementBridge)
       ctx.unregister(bridge);
     };
   }, [bridge, ctx]);
+  useLayoutEffect(() => {
+    if (!ctx || !claim) {
+      return;
+    }
+    ctx.promote(bridge);
+  }, [bridge, claim, ctx]);
 }
 
 export function useMediaPlayerControls(): MediaPlayerControlsContextValue {

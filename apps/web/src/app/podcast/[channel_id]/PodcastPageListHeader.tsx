@@ -1,5 +1,6 @@
 'use client';
 
+import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import React from 'react';
 
@@ -9,6 +10,7 @@ import type { ChipRowItem } from '@podverse/ui';
 import { CommonDetailListHeader } from '../../../components/Common/List/CommonDetailListHeader';
 import { ListSortChip } from '../../../components/ListSortChip/ListSortChip';
 import { useAccount } from '../../../contexts/Account';
+import { detailSectionPath } from '../../../utils/detailSectionPath';
 import { usePodcastPageContext } from './PodcastPageContext';
 
 type PodcastPageListHeaderProps = {
@@ -27,6 +29,7 @@ export const PodcastPageListHeader: React.FC<PodcastPageListHeaderProps> = ({
   ssrCanShowBoosts,
 }) => {
   const { filterParams, setFilterParams } = usePodcastPageContext();
+  const router = useRouter();
   const { type, sort, range } = filterParams;
   const tFilters = useTranslations('filters');
   const tMedia = useTranslations('media');
@@ -104,6 +107,10 @@ export const PodcastPageListHeader: React.FC<PodcastPageListHeaderProps> = ({
       items={items}
       onSelect={(nextType) => {
         setFilterParams({ ...filterParams, type: nextType, page: 1 });
+        router.replace(
+          detailSectionPath(window.location.pathname, window.location.search, nextType, 'episodes'),
+          { scroll: false }
+        );
       }}
       selectedKey={type}
       testId="podcast-detail-chips"

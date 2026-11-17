@@ -25,6 +25,7 @@ import {
   ADD_BY_RSS_BACKGROUND_REFRESH_INTERVAL_MS,
   runAddByRSSBackgroundRefresh,
 } from './backgroundRefresh';
+import { markAddByRSSParseInFlight, releaseAddByRSSParseInFlight } from './parseInFlight';
 import type { AddByRSSFeedRecord } from './types';
 
 const NOW_MS = Date.parse('2026-01-01T12:00:00.000Z');
@@ -103,6 +104,41 @@ describe('runAddByRSSBackgroundRefresh', () => {
         accountId: 'account-c',
         feeds: [expect.objectContaining({ feedUrl: 'https://example.com/old.xml' })],
       })
+    );
+  });
+
+  it('leaves a feed this page is already parsing out of the refresh result', async () => {
+    const addingUrl = 'https://example.com/adding.xml';
+    markAddByRSSParseInFlight(addingUrl);
+    getAllAddByRSSFeedsMock.mockResolvedValue([
+      feed(addingUrl),
+      feed('https://example.com/old.xml'),
+    ]);
+
+    try {
+      await runAddByRSSBackgroundRefresh(member('account-f'), NOW_MS);
+      const call = runAddByRSSParseAllMock.mock.calls[0];
+      expect(call).toBeDefined();
+      const params: {
+        onQueued: (feedUrl: string) => Promise<void>;
+        onStatusUpdate: (feedUrl: string, statusResponse: { status: string }) => Promise<void>;
+      } = call?.[0];
+      await params.onQueued(addingUrl);
+      await params.onQueued('https://example.com/old.xml');
+      await params.onStatusUpdate(addingUrl, { status: 'failed' });
+      await params.onStatusUpdate('https://example.com/old.xml', { status: 'parsed' });
+    } finally {
+      releaseAddByRSSParseInFlight(addingUrl);
+    }
+
+    expect(applyAddByRSSParseStatusMock).not.toHaveBeenCalledWith(
+      expect.objectContaining({ feedUrl: addingUrl })
+    );
+    expect(applyAddByRSSParseStatusMock).toHaveBeenCalledWith(
+      expect.objectContaining({ feedUrl: 'https://example.com/old.xml', status: 'queued' })
+    );
+    expect(applyAddByRSSParseStatusMock).toHaveBeenCalledWith(
+      expect.objectContaining({ feedUrl: 'https://example.com/old.xml', status: 'parsed' })
     );
   });
 

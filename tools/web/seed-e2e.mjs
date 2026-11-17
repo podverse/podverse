@@ -107,7 +107,9 @@ const E2E_REMOVED_PLAYLIST_ID_TEXT = 'e2eRemPlay01';
 const E2E_REMOVED_PLAYLIST_TITLE = 'E2E Removed Playlist';
 const E2E_ARCHIVED_SHOW_ID_TEXT = 'e2eArchShow01';
 const E2E_ARCHIVED_SHOW_TITLE = 'E2E Archived Show';
-const E2E_ARCHIVED_SHOW_FEED_PI_ID = 876543240;
+// 876543240–243 belong to the management merge-review fixtures. Reusing one deletes this show
+// when that seed runs after the web seed.
+const E2E_ARCHIVED_SHOW_FEED_PI_ID = 876543233;
 const E2E_ARCHIVED_SHOW_FEED_URL = 'https://e2e-seed-archived-show.example/podcast.xml';
 const E2E_REMOVED_SOURCE_AT = '2020-01-15T00:00:00.000Z';
 const E2E_PODCAST_FEED_URL = 'https://e2e-seed-podcast.example/podcast.xml';

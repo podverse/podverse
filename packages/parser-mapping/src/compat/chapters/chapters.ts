@@ -22,12 +22,19 @@ function mapChapterLocation(location: PIChapter['location']): DTOItemChapterCrea
   };
 }
 
-/** A chapter time string that fits `media_player_time`, or null when it does not. */
-const storedChapterTime = (raw: string | null | undefined): string | null => {
-  if (raw === null || raw === undefined || raw.trim() === '') {
+/** A chapter time that fits `media_player_time`, or null when it does not. */
+const storedChapterTime = (raw: string | number | null | undefined): string | null => {
+  if (typeof raw === 'number') {
+    return DATABASE_CONSTANTS.mediaPlayerTimeOrNull(raw);
+  }
+  if (typeof raw !== 'string') {
     return null;
   }
-  return DATABASE_CONSTANTS.mediaPlayerTimeOrNull(Number(raw));
+  const trimmed = raw.trim();
+  if (trimmed === '') {
+    return null;
+  }
+  return DATABASE_CONSTANTS.mediaPlayerTimeOrNull(Number(trimmed));
 };
 
 export const compatParsedChapters = (chapters: PIChapter[]): DTOItemChapterCreate[] => {
