@@ -28,7 +28,12 @@ import { initializeI18n } from './src/i18n';
 import { E2eQuickLogin } from './src/lib/e2e/E2eQuickLogin';
 import { startPerfUiMonitor } from './src/lib/perf/perfFrames';
 import { MembershipGateProvider } from './src/membership/MembershipGateProvider';
-import { isV4E2eFixtureUrl, runV4E2eFixture } from './src/migration/v4/e2eFixture';
+import {
+  isV4DownloadE2eFixtureUrl,
+  isV4E2eFixtureUrl,
+  runV4DownloadE2eFixture,
+  runV4E2eFixture,
+} from './src/migration/v4/e2eFixture';
 import { MobileTabNavigator, navigateToMembershipScreen } from './src/navigation';
 import { isAuthGatedDeepLink } from './src/navigation/deepLinking';
 import { setPendingDeepLinkHandler } from './src/navigation/pendingDeepLink';
@@ -123,6 +128,9 @@ export default function App() {
     const rememberDeepLink = (url: string) => {
       if (isV4E2eFixtureUrl(url)) {
         void runV4E2eFixture();
+      }
+      if (isV4DownloadE2eFixtureUrl(url)) {
+        void runV4DownloadE2eFixture();
       }
       // Multiple inbound links while booting resolve with last-wins semantics.
       setPendingDeepLinkUrl(url);

@@ -23,10 +23,12 @@ import { useAutoQueue } from '../../../contexts/AutoQueue';
 import { useMediaPlayer } from '../../../contexts/MediaPlayer';
 import { useModals } from '../../../contexts/Modals';
 import { useQueues } from '../../../contexts/Queue';
+import { useQueueResourcesAbridgedIndex } from '../../../contexts/QueueResourcesAbridgedIndex';
 import { getApiRequestService } from '../../../factories/apiRequestService';
 import { useMediaPlayerResourceUpdate } from '../../../hooks/useMediaPlayerResourceUpdate';
 import { useQueueAddWithGate } from '../../../hooks/useQueueAddWithGate';
 import { playbackTargetFromStandardLoad } from '../../../lib/playback';
+import { isQueueResourcePlayed } from '../../../lib/queue/queueResourcePlayed';
 import { ItemRowMoreActions } from '../../Media/ItemRowMoreActions';
 import { PlayButtonRow } from '../../MediaPlayer/Buttons/PlayButtonRow';
 import { ReadableDate } from '../../Time/ReadableDate';
@@ -93,6 +95,7 @@ export const ListItemSoundbiteRow: React.FC<ListItemSoundbiteProps> = ({
   const { loggedInAccount } = useAccount();
   const { queues } = useQueues();
   const { autoQueueConfig } = useAutoQueue();
+  const { queueResourcesAbridgedIndex } = useQueueResourcesAbridgedIndex();
 
   const itemSoundbiteTitle = item_soundbite.title || tMisc('untitled');
   const channelTitle = channel?.title || tMisc('untitled');
@@ -339,6 +342,10 @@ export const ListItemSoundbiteRow: React.FC<ListItemSoundbiteProps> = ({
         <div className={styles.bottomSection}>
           <div className={styles.bottomSectionStart}>
             <PlayButtonRow
+              completed={isQueueResourcePlayed(queueResourcesAbridgedIndex, {
+                id: item_soundbite.id,
+                kind: 'soundbite',
+              })}
               item_soundbite={item_soundbite}
               item={item || item_soundbite.item || null}
               onClick={onPlayAndRemove ?? playButtonOnClick}

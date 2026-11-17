@@ -15,6 +15,35 @@ WHERE datname = current_database()
   AND pid <> pg_backend_pid()
   AND backend_type = 'client backend'`;
 
+// pg_restore --clean drops a partition primary key with ALTER TABLE ONLY. Postgres
+// rejects that drop while the partition is attached. These child tables are dropped
+// first, so those statements match nothing. %s is the regclass text, already quoted.
+export const DROP_ATTACHED_PARTITIONS_SQL = `DO $$
+DECLARE
+  child regclass;
+BEGIN
+  LOOP
+    SELECT i.inhrelid::regclass
+    INTO child
+    FROM pg_inherits AS i
+    JOIN pg_class AS parent ON parent.oid = i.inhparent
+    JOIN pg_namespace AS ns ON ns.oid = parent.relnamespace
+    WHERE parent.relkind = 'p'
+      AND ns.nspname IN ('public', 'listener_identity')
+      AND NOT EXISTS (
+        SELECT 1
+        FROM pg_inherits AS nested
+        WHERE nested.inhparent = i.inhrelid
+      )
+    LIMIT 1;
+
+    EXIT WHEN NOT FOUND;
+
+    EXECUTE format('DROP TABLE %s', child);
+  END LOOP;
+END
+$$`;
+
 export type DumpRole = {
   host: string;
   port: string;
@@ -85,6 +114,7 @@ export function buildRestoreArgs(input: PgToolArgs): string[] {
     '--if-exists',
     '--no-owner',
     '--no-privileges',
+    '--no-comments',
     '--exit-on-error',
     input.filePath,
   ];
@@ -122,8 +152,9 @@ export async function dumpPhaseFile(filePath: string): Promise<number> {
 export async function restoreCleanDump(filePath: string): Promise<void> {
   assertLocalDatabase();
   const role = roleForRestore();
-  requirePort(role.port, RESTORE_ERROR);
+  const port = requirePort(role.port, RESTORE_ERROR);
   try {
+    await dropAttachedPartitions(role, port);
     await spawnPgTool(
       'pg_restore',
       buildRestoreArgs(toolArgs(role, filePath)),
@@ -259,6 +290,29 @@ function spawnPgTool(
       finish(false);
     }
   });
+}
+
+async function dropAttachedPartitions(role: DumpRole, port: number): Promise<void> {
+  const client = openClient(role, port);
+  let failed = false;
+  try {
+    await client.connect();
+    // A lock held after the other clients were disconnected fails the restore
+    // instead of waiting.
+    await client.query("SET lock_timeout = '5s'");
+    await client.query(DROP_ATTACHED_PARTITIONS_SQL);
+  } catch {
+    failed = true;
+  } finally {
+    try {
+      await client.end();
+    } catch {
+      failed = true;
+    }
+  }
+  if (failed) {
+    throw new Error(RESTORE_ERROR);
+  }
 }
 
 function openClient(role: DumpRole, port: number): Client {

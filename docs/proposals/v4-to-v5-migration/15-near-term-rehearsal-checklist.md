@@ -267,7 +267,7 @@ Every account, on a local v5 database. The design is
 - The legacy apps do not have to be running. A visual pass against the step 2
   counts is optional.
 - The phone-storage spike in
-  [08](08-mobile-first-launch-migration.md#storage-spike) can run in parallel.
-  It needs a private build installed over the v4 store ids.
+  [08](08-mobile-first-launch-migration.md#storage-spike) passed on iOS and
+  Android. It is not a step on this checklist.
 - The v4 API change that rejects an account after its library is copied is
   needed before the grace period, not before this rehearsal.

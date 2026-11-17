@@ -1,4 +1,4 @@
-import { desc, eq, inArray, isNotNull, max, sql } from 'drizzle-orm';
+import { and, desc, eq, inArray, isNotNull, max, sql } from 'drizzle-orm';
 
 import { articleStrippedTitle } from '@podverse/helpers';
 import type { DTOItem } from '@podverse/helpers/dto';
@@ -7,6 +7,7 @@ import type { QueryParamsStatsRange } from '@podverse/helpers-requests';
 // Import directly from the request module (not the auth barrel) to avoid a cycle, mirroring
 // subscriptionsRepository (AuthProvider → accountRepository → auth barrel → AuthProvider).
 import { requestWithMobileAuthRefresh } from '../../auth/authRequestWithRefresh';
+import { classifySyncError } from '../../sync/syncErrorClassification';
 import { getDb, initializeDatabase, safeJsonParse, schema } from '../db';
 import type { ChannelItemRow, ChannelItemWindowRow } from '../db/schema';
 import type { ChannelItemRecord, ChannelItemWindow } from './channelItemWindow';
@@ -19,6 +20,7 @@ import {
   nextChannelItemPage,
   reconcileChannelItems,
   selectChannelsToDropFromItemStore,
+  selectKeptDownloadItemIds,
   selectStaleChannelWindows,
   toChannelItemRecord,
 } from './channelItemWindow';
@@ -133,6 +135,27 @@ const chunked = <T>(values: readonly T[], size: number): T[][] => {
   return chunks;
 };
 
+const completeDownloadIdsForItems = async (
+  itemIdTexts: readonly string[]
+): Promise<Set<string>> => {
+  const complete = new Set<string>();
+  for (const chunk of chunked(itemIdTexts, DELETE_CHUNK_SIZE)) {
+    if (chunk.length === 0) {
+      continue;
+    }
+    const rows = await getDb()
+      .select({ itemIdText: schema.download.itemIdText })
+      .from(schema.download)
+      .where(
+        and(eq(schema.download.status, 'complete'), inArray(schema.download.itemIdText, chunk))
+      );
+    for (const row of rows) {
+      complete.add(row.itemIdText);
+    }
+  }
+  return complete;
+};
+
 const rowToItem = (row: Pick<ChannelItemRow, 'payloadJson'>): DTOItem | null => {
   return safeJsonParse<DTOItem>(row.payloadJson);
 };
@@ -236,6 +259,7 @@ const commitChannelWindow = async (
   channelIdText: string,
   items: readonly DTOItem[],
   depth: number,
+  isFeedExhausted: boolean,
   channelTitle: string | null = null
 ): Promise<number> => {
   const records: ChannelItemRecord[] = [];
@@ -247,13 +271,63 @@ const commitChannelWindow = async (
   }
 
   const stored = await getDb()
-    .select({ itemIdText: schema.channelItem.itemIdText })
+    .select({
+      itemIdText: schema.channelItem.itemIdText,
+      keptForDownload: schema.channelItem.keptForDownload,
+      pubDateMs: schema.channelItem.pubDateMs,
+    })
     .from(schema.channelItem)
     .where(eq(schema.channelItem.channelIdText, channelIdText));
 
   const { keep, removeIdTexts } = reconcileChannelItems({ depth, fetched: records, stored });
 
-  for (const chunk of chunked(removeIdTexts, DELETE_CHUNK_SIZE)) {
+  // A finished download whose episode left this walk stays on the show. The classification is
+  // best-effort. When it fails, episodes with a complete download stay and the other remove ids
+  // are deleted. When those download ids cannot be read, nothing from this walk is removed.
+  let deleteIdTexts = removeIdTexts;
+  if (removeIdTexts.length > 0) {
+    let completeDownloadIds: Set<string> | null = null;
+    try {
+      const alreadyKeptIds = new Set(
+        stored.filter((row) => row.keptForDownload === 1).map((row) => row.itemIdText)
+      );
+      completeDownloadIds = await completeDownloadIdsForItems(removeIdTexts);
+      const retained = selectKeptDownloadItemIds({
+        alreadyKeptIds,
+        completeDownloadIds,
+        isFeedExhausted,
+        keep: keep.map((record) => ({
+          itemIdText: record.itemIdText,
+          pubDateMs: record.pubDateMs,
+        })),
+        stored,
+      });
+      const retainedIds = new Set(retained);
+      deleteIdTexts = removeIdTexts.filter((itemIdText) => !retainedIds.has(itemIdText));
+      for (const chunk of chunked(retained, DELETE_CHUNK_SIZE)) {
+        if (chunk.length === 0) {
+          continue;
+        }
+        await getDb()
+          .update(schema.channelItem)
+          .set({ keptForDownload: 1 })
+          .where(inArray(schema.channelItem.itemIdText, chunk));
+      }
+    } catch (error) {
+      console.warn(
+        '[channel-items] keep downloaded episodes failed',
+        classifySyncError(error).code
+      );
+      const knownComplete =
+        completeDownloadIds ?? (await completeDownloadIdsForItems(removeIdTexts).catch(() => null));
+      deleteIdTexts =
+        knownComplete === null
+          ? []
+          : removeIdTexts.filter((itemIdText) => !knownComplete.has(itemIdText));
+    }
+  }
+
+  for (const chunk of chunked(deleteIdTexts, DELETE_CHUNK_SIZE)) {
     await getDb().delete(schema.channelItem).where(inArray(schema.channelItem.itemIdText, chunk));
   }
 
@@ -269,19 +343,22 @@ const commitChannelWindow = async (
           imageUrl: record.imageUrl,
           pubDateMs: record.pubDateMs,
           payloadJson: JSON.stringify(record.payload),
+          keptForDownload: 0,
           updatedAt,
         }))
       )
       .onConflictDoUpdate({
         target: schema.channelItem.itemIdText,
         // Every row in the batch carries its own values, so the update has to read the row being
-        // inserted rather than a single literal shared by all of them.
+        // inserted rather than a single literal shared by all of them. kept_for_download is 0 for
+        // every server row in the batch, including one that had been kept for a download.
         set: {
           channelIdText: sql`excluded.channel_id_text`,
           title: sql`excluded.title`,
           imageUrl: sql`excluded.image_url`,
           pubDateMs: sql`excluded.pub_date_ms`,
           payloadJson: sql`excluded.payload_json`,
+          keptForDownload: 0,
           updatedAt: sql`excluded.updated_at`,
         },
       });
@@ -493,7 +570,9 @@ export const channelItemsRepository = {
    *
    * Browse and search items are not inserted here — this store is for followed channels. A
    * cache-first episode screen calls this after a server copy arrives so the next open is current.
-   * A single-item copy has no channel-wide publishers, so the stored ones are kept.
+   * A single-item copy has no channel-wide publishers, so the stored ones are kept. Writing the
+   * payload clears `kept_for_download`, because the server lists the episode again. The download
+   * row stays.
    */
   updateStoredItem: async (item: DTOItem): Promise<void> => {
     const itemIdText = item.id_text.trim();
@@ -532,9 +611,66 @@ export const channelItemsRepository = {
         imageUrl: record.imageUrl,
         pubDateMs: record.pubDateMs,
         payloadJson: JSON.stringify(record.payload),
+        keptForDownload: 0,
         updatedAt: Date.now(),
       })
       .where(eq(schema.channelItem.itemIdText, itemIdText));
+  },
+
+  /**
+   * Store an episode the server did not return in this channel's window, so a finished download
+   * can stay on the show and play. A row the server already lists is left as that server row.
+   * This does not subscribe the channel, create an Add by RSS feed, or write a download.
+   */
+  keepDownloadedItem: async (params: {
+    channelIdText: string;
+    item: DTOItem;
+  }): Promise<'kept' | 'server_listed' | 'skipped'> => {
+    const itemIdText = params.item.id_text.trim();
+    if (itemIdText.length === 0) {
+      return 'skipped';
+    }
+    const record = toChannelItemRecord(params.channelIdText, params.item);
+    if (record === null) {
+      return 'skipped';
+    }
+
+    await initializeDatabase();
+    const existing = await getDb()
+      .select({ keptForDownload: schema.channelItem.keptForDownload })
+      .from(schema.channelItem)
+      .where(eq(schema.channelItem.itemIdText, record.itemIdText))
+      .limit(1);
+    const current = existing[0];
+    if (current !== undefined && current.keptForDownload === 0) {
+      return 'server_listed';
+    }
+
+    const updatedAt = Date.now();
+    await getDb()
+      .insert(schema.channelItem)
+      .values({
+        itemIdText: record.itemIdText,
+        channelIdText: record.channelIdText,
+        title: record.title,
+        imageUrl: record.imageUrl,
+        pubDateMs: record.pubDateMs,
+        payloadJson: JSON.stringify(record.payload),
+        keptForDownload: 1,
+        updatedAt,
+      })
+      .onConflictDoUpdate({
+        target: schema.channelItem.itemIdText,
+        set: {
+          title: record.title,
+          imageUrl: record.imageUrl,
+          pubDateMs: record.pubDateMs,
+          payloadJson: JSON.stringify(record.payload),
+          keptForDownload: 1,
+          updatedAt,
+        },
+      });
+    return 'kept';
   },
 
   /**
@@ -604,9 +740,10 @@ export const channelItemsRepository = {
   /**
    * Reconcile one channel against its feed at the depth it already stores.
    *
-   * Idempotent: what the walk fetched replaces what was stored, so running it twice changes
-   * nothing, an item pulled from the feed disappears, and new episodes push old ones out rather
-   * than piling on top of them.
+   * What the walk fetched replaces the stored server rows, so running it twice changes nothing
+   * and new episodes push old ones past the window. A finished download whose episode left the
+   * feed stays on the show. An episode pushed past the window leaves the list; its download
+   * row stays.
    */
   syncChannel: async (
     context: MobileAuthRequestContext,
@@ -620,6 +757,7 @@ export const channelItemsRepository = {
       channelIdText,
       items,
       depth,
+      isFeedExhausted,
       options.channelTitle ?? null
     );
 
@@ -643,6 +781,7 @@ export const channelItemsRepository = {
       channelIdText,
       items,
       depth,
+      isFeedExhausted,
       options.channelTitle ?? null
     );
 

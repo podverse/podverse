@@ -14,9 +14,11 @@ import { useModals } from '../../../contexts/Modals';
 import { useQueues } from '../../../contexts/Queue';
 import { getApiRequestService } from '../../../factories/apiRequestService';
 import { useLikesClipBatch } from '../../../hooks/useLikesClipBatch';
+import { useMarkQueueResourcePlayed } from '../../../hooks/useMarkQueueResourcePlayed';
 import { useMediaPlayerResourceUpdate } from '../../../hooks/useMediaPlayerResourceUpdate';
 import { useQueueAddWithGate } from '../../../hooks/useQueueAddWithGate';
 import { playbackTargetFromStandardLoad } from '../../../lib/playback';
+import { markPlayedAfterWrite } from '../../../lib/queue/queueResourcePlayed';
 import { downloadEpisodeWithModal } from '../../../utils/downloadModal/downloadEpisodeWithModal';
 import { downloadAndSaveFile } from '../../../utils/fileDownloader';
 import { PlayButtonLarge } from '../../MediaPlayer/Buttons/PlayButtonLarge';
@@ -47,6 +49,7 @@ export const ClipHeaderPlaySection: React.FC<ClipHeaderPlaySectionProps> = ({
   const { queues } = useQueues();
   const { setModalPlaylistAddTo, setModalSourceSelector, setModalLoginRequired } = useModals();
   const { loggedInAccount } = useAccount();
+  const markQueueResourcePlayed = useMarkQueueResourcePlayed();
   const { mpClip, mpIsPlaying, setMPIsPlaying } = useMediaPlayer();
   const mediaPlayerResourceUpdate = useMediaPlayerResourceUpdate();
   const { autoQueueConfig } = useAutoQueue();
@@ -173,9 +176,18 @@ export const ClipHeaderPlaySection: React.FC<ClipHeaderPlaySectionProps> = ({
     const queue = getQueueForMedium(queues, channel.medium_id);
     if (queue) {
       showToastPromise(
-        apiRequestService.reqQueueResourceClipAddHistory(queue.id_text, clip.id_text, {
-          completed: true,
-        }),
+        markPlayedAfterWrite(
+          apiRequestService.reqQueueResourceClipAddHistory(queue.id_text, clip.id_text, {
+            completed: true,
+          }),
+          () => {
+            markQueueResourcePlayed({
+              duration: null,
+              id: clip.id,
+              kind: 'clip',
+            });
+          }
+        ),
         {
           success: tFeatures('history.marked_as_played'),
           error: tFeatures('history.mark_as_played_error'),

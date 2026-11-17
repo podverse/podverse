@@ -46,6 +46,7 @@ import { useInProgressDownloadCount } from '../downloads/useDownloads';
 import { isMobileE2eHarnessEnabled } from '../lib/e2e/e2eHarness';
 import { PerfE2eReport } from '../lib/perf/PerfE2eReport';
 import { useMembership } from '../membership/useMembership';
+import { V4DownloadFixtureFilesMarker } from '../migration/v4/V4DownloadFixtureFilesMarker';
 import {
   isBannerNotificationVisible,
   subscribeBannerNotificationQueue,
@@ -80,6 +81,7 @@ import { V4ContinueMigrationScreen } from '../screens/migration/V4ContinueMigrat
 import type { ApiKeyExpirationChoice } from '../screens/more/accountApiKeyRows';
 import { MoreAboutScreen } from '../screens/more/MoreAboutScreen';
 import { MoreAdvancedScreen } from '../screens/more/MoreAdvancedScreen';
+import { MoreCustomApiClearScreen } from '../screens/more/MoreCustomApiClearScreen';
 import { MoreCustomApiScreen } from '../screens/more/MoreCustomApiScreen';
 import { MoreE2ePlaybackScreen } from '../screens/more/MoreE2ePlaybackScreen';
 import { MoreErrorLogDetailScreen } from '../screens/more/MoreErrorLogDetailScreen';
@@ -296,6 +298,7 @@ export const MORE_STACK_ROUTES = {
   MoreSmoke: 'MoreSmoke',
   MoreAdvanced: 'MoreAdvanced',
   MoreCustomApi: 'MoreCustomApi',
+  MoreCustomApiClear: 'MoreCustomApiClear',
   MoreErrorLog: 'MoreErrorLog',
   MoreErrorLogDetail: 'MoreErrorLogDetail',
   MoreRemovedContent: 'MoreRemovedContent',
@@ -638,6 +641,7 @@ export type MoreStackParamList = {
   MoreSmoke: undefined;
   MoreAdvanced: undefined;
   MoreCustomApi: undefined;
+  MoreCustomApiClear: { baseUrl: string | null };
   MoreErrorLog: undefined;
   MoreErrorLogDetail: { entryId: number };
   MoreRemovedContent: undefined;
@@ -1848,6 +1852,11 @@ function MoreStackNavigator({
         options={{ title: t('custom_api.title') }}
       />
       <MoreStack.Screen
+        component={MoreCustomApiClearScreen}
+        name={MORE_STACK_ROUTES.MoreCustomApiClear}
+        options={{ title: t('custom_api.clear.title') }}
+      />
+      <MoreStack.Screen
         component={MoreErrorLogScreen}
         name={MORE_STACK_ROUTES.MoreErrorLog}
         options={{ title: t('error_log.title') }}
@@ -2555,6 +2564,7 @@ export function MobileTabNavigator({
         </RootStack.Navigator>
         <PlaybackE2eStatus />
         <NotificationStreamE2eStatus />
+        <V4DownloadFixtureFilesMarker />
         <PerfE2eReport />
       </View>
     </NavigationContainer>

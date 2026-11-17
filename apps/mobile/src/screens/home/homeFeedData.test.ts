@@ -402,6 +402,7 @@ describe('mapItemToHomeFeedRow', () => {
     );
 
     expect(row).toEqual({
+      completion: { idText: 'ep-9', kind: 'item', numericId: 1 },
       description: 'A weekly look at the news.',
       duration: '3600',
       id: 'ep-9',

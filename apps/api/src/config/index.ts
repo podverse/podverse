@@ -53,6 +53,8 @@ type Config = {
     channelAddByRssMatchAnon: { windowMs: number; max: number };
     legacyPodcastLookup: { windowMs: number; max: number };
     legacyPodcastLookupInstall: { windowMs: number; max: number };
+    legacyEpisodeLookup: { windowMs: number; max: number };
+    legacyEpisodeLookupInstall: { windowMs: number; max: number };
     accountChannelSeenRead: { windowMs: number; max: number };
     statsTrack: { windowMs: number; max: number };
     mqRssOnDemand: { windowMs: number; max: number };
@@ -360,6 +362,16 @@ export const config: Config = {
     legacyPodcastLookupInstall: parseCountPerWindowEnvFromKey({
       envValue: process.env.LEGACY_PODCAST_LOOKUP_INSTALL_MAX_PER_MINUTE,
       key: 'LEGACY_PODCAST_LOOKUP_INSTALL_MAX_PER_MINUTE',
+      defaultMax: 10,
+    }),
+    legacyEpisodeLookup: parseCountPerWindowEnvFromKey({
+      envValue: process.env.LEGACY_EPISODE_LOOKUP_MAX_PER_MINUTE,
+      key: 'LEGACY_EPISODE_LOOKUP_MAX_PER_MINUTE',
+      defaultMax: 30,
+    }),
+    legacyEpisodeLookupInstall: parseCountPerWindowEnvFromKey({
+      envValue: process.env.LEGACY_EPISODE_LOOKUP_INSTALL_MAX_PER_MINUTE,
+      key: 'LEGACY_EPISODE_LOOKUP_INSTALL_MAX_PER_MINUTE',
       defaultMax: 10,
     }),
     accountChannelSeenRead: parseCountPerWindowEnvFromKey({

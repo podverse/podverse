@@ -113,7 +113,7 @@ const carrySignedOutFeedsIntoNewAccount = async (
       savedFeedUrls: [],
     });
     for (const feedUrl of remove) {
-      await addByRssRepository.removeFeed(feedUrl);
+      await addByRssRepository.removeFeedAndDownloads(feedUrl);
     }
   }
 

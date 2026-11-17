@@ -1,11 +1,8 @@
 import type { DescriptionNode } from './descriptionDocument.js';
-import {
-  buildDescriptionTree,
-  descriptionNodesToPlainText,
-  serializeDescriptionNodes,
-} from './descriptionDocument.js';
+import { buildDescriptionTree, descriptionNodesToPlainText } from './descriptionDocument.js';
 import type { DescriptionLengthTierEnum } from './descriptionLimits.js';
 import { DESCRIPTION_LENGTH_TIERS, DESCRIPTION_PREVIEW_MAX_LENGTH } from './descriptionLimits.js';
+import { parseDescriptionMarkdown, serializeDescriptionMarkdown } from './descriptionMarkdown.js';
 import { htmlToPlainText } from './html.js';
 
 export type PreparedDescription = {
@@ -235,6 +232,15 @@ const dropLastBlock = (nodes: DescriptionNode[]): DescriptionNode[] => {
   return [];
 };
 
+const descriptionTreeForStorage = (input: string): DescriptionNode[] => {
+  const canonical = parseDescriptionMarkdown(input);
+  if (canonical !== null) {
+    return canonical;
+  }
+  const source = TAG_LIKE_PATTERN.test(input) ? input : asParagraphHtml(input);
+  return buildDescriptionTree(source, 'lenient');
+};
+
 const buildPreview = (nodes: DescriptionNode[]): string => {
   const plain = collapseWhitespace(descriptionNodesToPlainText(nodes, ' '));
   if (plain.length <= DESCRIPTION_PREVIEW_MAX_LENGTH) {
@@ -262,8 +268,7 @@ export function prepareDescriptionForStorage(
     return null;
   }
 
-  const source = TAG_LIKE_PATTERN.test(input) ? input : asParagraphHtml(input);
-  const tree = buildDescriptionTree(source, 'lenient');
+  const tree = descriptionTreeForStorage(input);
   if (tree.length === 0) {
     return null;
   }
@@ -274,10 +279,10 @@ export function prepareDescriptionForStorage(
   let keptTree = visibleTruncation.nodes;
   let isTruncated = visibleTruncation.isTruncated;
 
-  let value = serializeDescriptionNodes(keptTree);
+  let value = serializeDescriptionMarkdown(keptTree);
   while (value.length > limits.storedMax && keptTree.length > 0) {
     keptTree = dropLastBlock(keptTree);
-    value = serializeDescriptionNodes(keptTree);
+    value = serializeDescriptionMarkdown(keptTree);
     isTruncated = true;
   }
 

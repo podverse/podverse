@@ -123,7 +123,7 @@ export function AddByRssCredentialsScreen({ navigation, route }: AddByRssCredent
           // The device copy goes regardless; the next follow-list sync settles the account.
         }
       }
-      await addByRssRepository.removeFeed(feed.feedUrl);
+      await addByRssRepository.removeFeedAndDownloads(feed.feedUrl);
       homeFeedRefresh.notify();
       navigation.goBack();
     } finally {

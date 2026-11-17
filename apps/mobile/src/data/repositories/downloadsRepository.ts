@@ -15,6 +15,7 @@ import {
   groupUnsubscribedDownloadChannels,
   type UnsubscribedDownloadChannel,
 } from '../../downloads/unsubscribedDownloadChannels';
+import { homeFeedRefresh } from '../../lib/home/homeFeedRefresh';
 import { getDb, initializeDatabase, safeJsonParse, schema } from '../db';
 import type { DownloadRow } from '../db/schema';
 import { projectDownloadsIndexToNativeCache } from '../nativeCache';
@@ -614,15 +615,74 @@ export const downloadsRepository = {
   },
 
   /**
-   * Remove a download row (delete-from-library). The file removal is handled by the runner. The
-   * item's cached show notes lose their pin and become evictable.
+   * Whether play must use the finished file and must not fall back to the remote enclosure.
+   * True for a directory episode kept because its download left the feed, and for an Add by RSS
+   * local episode.
+   */
+  isLocalFileOnlyPlayback: async (itemIdText: string): Promise<boolean> => {
+    await initializeDatabase();
+    const keptRows = await getDb()
+      .select({ itemIdText: schema.channelItem.itemIdText })
+      .from(schema.channelItem)
+      .where(
+        and(
+          eq(schema.channelItem.itemIdText, itemIdText),
+          eq(schema.channelItem.keptForDownload, 1)
+        )
+      )
+      .limit(1);
+    if (keptRows.length > 0) {
+      return true;
+    }
+    const localRows = await getDb()
+      .select({ downloadIdText: schema.addByRssLocalEpisode.downloadIdText })
+      .from(schema.addByRssLocalEpisode)
+      .where(eq(schema.addByRssLocalEpisode.downloadIdText, itemIdText))
+      .limit(1);
+    return localRows.length > 0;
+  },
+
+  /**
+   * Remove a download row. The file removal is handled by the runner. The item's cached show
+   * notes lose their pin and become evictable. A local episode with this id is removed too, and
+   * a directory episode kept only for this download is removed. A server row stays. Home
+   * refreshes when a local episode or a kept directory row was present.
    */
   remove: async (itemIdText: string): Promise<void> => {
     await initializeDatabase();
+    const localRows = await getDb()
+      .select({ downloadIdText: schema.addByRssLocalEpisode.downloadIdText })
+      .from(schema.addByRssLocalEpisode)
+      .where(eq(schema.addByRssLocalEpisode.downloadIdText, itemIdText))
+      .limit(1);
+    const keptChannelRows = await getDb()
+      .select({ itemIdText: schema.channelItem.itemIdText })
+      .from(schema.channelItem)
+      .where(
+        and(
+          eq(schema.channelItem.itemIdText, itemIdText),
+          eq(schema.channelItem.keptForDownload, 1)
+        )
+      )
+      .limit(1);
     await getDb().delete(schema.download).where(eq(schema.download.itemIdText, itemIdText));
+    await getDb()
+      .delete(schema.addByRssLocalEpisode)
+      .where(eq(schema.addByRssLocalEpisode.downloadIdText, itemIdText));
+    await getDb()
+      .delete(schema.channelItem)
+      .where(
+        and(
+          eq(schema.channelItem.itemIdText, itemIdText),
+          eq(schema.channelItem.keptForDownload, 1)
+        )
+      );
     await playableItemRepository.remove('download', itemIdText);
     await itemDescriptionCacheRepository.unpin(itemIdText);
     await refreshNativeCacheProjection();
+    if (localRows.length > 0 || keptChannelRows.length > 0) {
+      homeFeedRefresh.notify();
+    }
   },
 
   /**
@@ -651,12 +711,19 @@ export const downloadsRepository = {
     await refreshNativeCacheProjection();
   },
 
-  /** Clear all downloads (session reset / logout). Projects an empty set. */
+  /**
+   * Clear every download, every local episode, and every directory episode kept only for a
+   * download. Server directory rows stay. The file removal is handled by the caller.
+   * Projects an empty download set and refreshes Home.
+   */
   clear: async (): Promise<void> => {
     await initializeDatabase();
     await getDb().delete(schema.download);
+    await getDb().delete(schema.addByRssLocalEpisode);
+    await getDb().delete(schema.channelItem).where(eq(schema.channelItem.keptForDownload, 1));
     await playableItemRepository.clearSource('download');
     await itemDescriptionCacheRepository.unpinAll();
     await refreshNativeCacheProjection();
+    homeFeedRefresh.notify();
   },
 };

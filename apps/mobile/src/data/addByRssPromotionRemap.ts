@@ -77,6 +77,8 @@ export type AddByRssPromotionSnapshot = {
    */
   feedPlaybackPosition: string | null;
   listedFeeds: PromotionListedFeed[];
+  /** Device-only episodes, by download id and feed URL. The item bundle stays in its table. */
+  localEpisodes: { downloadIdText: string; feedUrl: string }[];
   playableItems: IdentityPlayableItem[];
   playback: IdentityPlayback[];
   playbackOutbox: PromotionOutbox[];
@@ -96,6 +98,30 @@ export type AddByRssPromotionRemapResult = {
   downloadFilesToDelete: string[];
   movedDownloadItemIds: { fromItemIdText: string; toItemIdText: string }[];
   snapshot: AddByRssPromotionSnapshot;
+};
+
+/**
+ * Local episodes the directory match did not name.
+ *
+ * The item id is the download id. The download's channel can move to the directory show
+ * without a new item id, so playback refresh does not fetch or delete that row.
+ */
+export const promotionMovesForUnmatchedLocalEpisodes = (
+  localEpisodes: readonly { downloadIdText: string; hashId: string }[],
+  matchedDownloadIds: ReadonlySet<string>
+): AddByRssPromotionMove['items'] => {
+  const items: AddByRssPromotionMove['items'] = [];
+  for (const episode of localEpisodes) {
+    if (episode.downloadIdText.trim() === '' || matchedDownloadIds.has(episode.downloadIdText)) {
+      continue;
+    }
+    items.push({
+      downloadIdText: episode.downloadIdText,
+      hashId: episode.hashId,
+      itemIdText: episode.downloadIdText,
+    });
+  }
+  return items;
 };
 
 const comparableFeedUrl = (feedUrl: string): string => {
@@ -435,6 +461,20 @@ const nextPlayable = (
   return next;
 };
 
+const nextLocalEpisodes = (
+  rows: AddByRssPromotionSnapshot['localEpisodes'],
+  move: AddByRssPromotionMove
+): AddByRssPromotionSnapshot['localEpisodes'] => {
+  const feedUrl = comparableFeedUrl(move.feedUrl);
+  const named = new Set(move.items.map((item) => item.downloadIdText));
+  return rows.filter((row) => {
+    if (comparableFeedUrl(row.feedUrl) !== feedUrl) {
+      return true;
+    }
+    return !named.has(row.downloadIdText);
+  });
+};
+
 const nextListedFeeds = (
   rows: readonly PromotionListedFeed[],
   move: AddByRssPromotionMove
@@ -470,8 +510,9 @@ const nextListedFeeds = (
 /**
  * Rewrite one Add by RSS feed onto a directory channel.
  *
- * Rows for an episode the move does not name stay as they are. Running the result again, with
- * the feed position cleared, changes nothing.
+ * A local-episode row for this feed is removed when the move names its download. Rows for an
+ * episode the move does not name stay as they are. Running the result again, with the feed
+ * position cleared, changes nothing.
  */
 export const addByRssPromotionRemap = (
   snapshot: AddByRssPromotionSnapshot,
@@ -504,6 +545,7 @@ export const addByRssPromotionRemap = (
       downloads: downloads.rows,
       feedPlaybackPosition: null,
       listedFeeds: nextListedFeeds(snapshot.listedFeeds, move),
+      localEpisodes: nextLocalEpisodes(snapshot.localEpisodes, move),
       playableItems: nextPlayable(snapshot.playableItems, hashToItem, downloadToItem),
       playback: nextPlayback(
         snapshot.playback,

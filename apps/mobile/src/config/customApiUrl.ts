@@ -108,6 +108,13 @@ export const planCustomApiCommit = (
   return { action: 'probe', baseUrl: accepted };
 };
 
+/** True when committing this plan replaces the saved address and must erase local data first. */
+export const customApiCommitOpensClearScreen = (
+  plan: CustomApiCommitPlan
+): plan is { action: 'clear' } | { action: 'probe'; baseUrl: string } => {
+  return plan.action === 'clear' || plan.action === 'probe';
+};
+
 export const isUnknownRecord = (value: unknown): value is Record<string, unknown> => {
   return typeof value === 'object' && value !== null;
 };

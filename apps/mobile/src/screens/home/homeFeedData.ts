@@ -2,6 +2,7 @@ import { getDescriptionPreviewText, primaryListArtworkUrl } from '@podverse/help
 import type { DTOItem, LiveItemStatusEnum } from '@podverse/helpers/dto';
 import { getNonEmptyTrimmedStringProperty, isObjectLike } from '@podverse/helpers/guards';
 
+import type { QueueCompletionKey } from '../../data/queueCompletionStore';
 import type {
   MobileAuthRequestContext,
   SubscribedChannel,
@@ -75,6 +76,10 @@ export type HomeFeedRowData = {
    * Clip rows leave this unset and use `clipStartTime` / `clipEndTime` instead.
    */
   duration?: string | null;
+  /**
+   * Queue resource this row uses for the Played check. Livestream rows omit it.
+   */
+  completion?: QueueCompletionKey;
   /**
    * Preformatted label beside Play. Wins over `duration` and over a clip start–end range, so a
    * range string is never passed through `Number()`.
@@ -447,6 +452,7 @@ export const mapItemToHomeFeedRow = (
 
   const plainDescription = getDescriptionPreviewText(item.item_description);
   const duration = item.item_about?.duration?.trim() ?? '';
+  const isLive = item.live_item !== null && item.live_item !== undefined;
 
   return {
     description: plainDescription.length > 0 ? plainDescription : null,
@@ -456,6 +462,15 @@ export const mapItemToHomeFeedRow = (
     subtitle: item.channel?.title ?? null,
     title: item.title ?? item.id_text,
     updatedAt: item.pub_date ?? null,
+    ...(isLive
+      ? {}
+      : {
+          completion: {
+            idText: item.id_text,
+            kind: 'item' as const,
+            numericId: item.id,
+          },
+        }),
   };
 };
 

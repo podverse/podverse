@@ -99,6 +99,8 @@ export type MediaRowActionsProps = {
    * edge.
    */
   showPlayButton?: boolean;
+  /** Queue completed flag. Draws the Played check left of the in-row progress track. */
+  completed?: boolean;
 };
 
 /** Minimal translate signature so the pure builder is unit-testable without i18next. */
@@ -317,6 +319,7 @@ export const MediaRowActions = memo(function MediaRowActions({
   playbackMediaId = null,
   showActiveProgress = true,
   showPlayButton = true,
+  completed = false,
 }: MediaRowActionsProps) {
   const { t } = useTranslation();
   const { tokens } = useTheme();
@@ -423,6 +426,8 @@ export const MediaRowActions = memo(function MediaRowActions({
       useIcons ? (
         playbackMediaId !== null && playbackMediaId.length > 0 ? (
           <MediaRowIconsLeading
+            completed={completed}
+            completedColor={tokens.text.link}
             durationLabel={durationLabel}
             durationStyle={styles.duration}
             durationTestID={durationTestID}
@@ -600,6 +605,8 @@ type MediaRowIconsLeadingProps = {
   durationStyle: StyleProp<TextStyle>;
   showActiveProgress: boolean;
   statusBadge: ReactNode;
+  completed: boolean;
+  completedColor: string;
 };
 
 /**
@@ -621,6 +628,8 @@ function MediaRowIconsLeading({
   durationStyle,
   showActiveProgress,
   statusBadge,
+  completed,
+  completedColor,
 }: MediaRowIconsLeadingProps) {
   const { activeMediaId, isPlaying, isRemote } = usePlaybackRowDisplay();
   const resolvedPlaybackMediaId = normalizeHomeFeedPlaybackMediaId(playbackMediaId);
@@ -645,6 +654,15 @@ function MediaRowIconsLeading({
             {durationLabel}
           </Text>
         ) : null)}
+      {completed && statusBadge === null ? (
+        <View
+          accessibilityElementsHidden
+          importantForAccessibility="no-hide-descendants"
+          testID={`media-row-completed${idSuffix}`}
+        >
+          <Ionicons color={completedColor} name="checkmark" size={LIST_ROW_PLAY_ICON_SIZE} />
+        </View>
+      ) : null}
       {isActiveRow && !isRemote && showActiveProgress && hasDuration ? (
         <MediaRowActiveProgress
           testID={durationTestID !== undefined ? `${durationTestID}-progress` : undefined}

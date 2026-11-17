@@ -143,6 +143,11 @@ export const setCachedItemSectionFlags = (idText: string, flags: ItemSectionChro
   memory.set(sectionChromeCacheKey('item', idText), flags);
 };
 
-export const resetSectionChromeFlagsMemoryForTests = (): void => {
+/** Drops every cached section chip. The next detail open learns the flags again. */
+export const clearSectionChromeFlagsMemory = (): void => {
   memory.clear();
+};
+
+export const resetSectionChromeFlagsMemoryForTests = (): void => {
+  clearSectionChromeFlagsMemory();
 };

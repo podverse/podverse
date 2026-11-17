@@ -8,15 +8,16 @@ import { ConfirmDialog } from '../../components/feedback/ConfirmDialog';
 import { FormActions, TextField } from '../../components/form';
 import { MobileScreenContainer } from '../../components/screen/MobileScreenContainer';
 import { getBuiltInMobileApiBaseUrl } from '../../config';
-import {
-  readCustomApiBaseUrlOverride,
-  useCustomApiBaseUrl,
-  writeCustomApiBaseUrl,
-} from '../../config/customApiEndpoint';
+import { readCustomApiBaseUrlOverride, useCustomApiBaseUrl } from '../../config/customApiEndpoint';
 import type { CustomApiProbeFailure } from '../../config/customApiProbe';
 import { probeCustomApiBaseUrl } from '../../config/customApiProbe';
-import { normalizeCustomApiBaseUrl, planCustomApiCommit } from '../../config/customApiUrl';
+import {
+  customApiCommitOpensClearScreen,
+  normalizeCustomApiBaseUrl,
+  planCustomApiCommit,
+} from '../../config/customApiUrl';
 import type { MoreStackParamList } from '../../navigation';
+import { MORE_STACK_ROUTES } from '../../navigation';
 import { formActionsGap, formActionsTopGap } from '../../theme/screenLayout';
 import { typography } from '../../theme/typography';
 import { useTheme } from '../../theme/useTheme';
@@ -141,18 +142,15 @@ export function MoreCustomApiScreen({ navigation }: Props) {
       setFeedback({ kind: 'invalid_url' });
       return;
     }
+    if (!customApiCommitOpensClearScreen(plan)) {
+      return;
+    }
     if (statusRef.current !== 'anonymous') {
       setLogoutVisible(true);
       return;
     }
     if (plan.action === 'clear') {
-      busyRef.current = true;
-      try {
-        await writeCustomApiBaseUrl(null);
-        setFeedback({ kind: 'reset_done' });
-      } finally {
-        busyRef.current = false;
-      }
+      navigation.navigate(MORE_STACK_ROUTES.MoreCustomApiClear, { baseUrl: null });
       return;
     }
 
@@ -169,8 +167,7 @@ export function MoreCustomApiScreen({ navigation }: Props) {
         setFeedback(result.failure);
         return;
       }
-      await writeCustomApiBaseUrl(result.baseUrl);
-      setFeedback({ kind: 'saved' });
+      navigation.navigate(MORE_STACK_ROUTES.MoreCustomApiClear, { baseUrl: result.baseUrl });
     } catch {
       setFeedback({ kind: 'unreachable' });
     } finally {
@@ -179,27 +176,27 @@ export function MoreCustomApiScreen({ navigation }: Props) {
     }
   };
 
-  const handleReset = async () => {
+  const handleReset = () => {
     if (busyRef.current) {
       return;
     }
-    if (readCustomApiBaseUrlOverride() !== null && statusRef.current !== 'anonymous') {
+    if (readCustomApiBaseUrlOverride() === null) {
+      setFeedback(null);
+      setUrlBlurred(false);
+      busyRef.current = true;
+      try {
+        setDraft('');
+        setFeedback({ kind: 'reset_done' });
+      } finally {
+        busyRef.current = false;
+      }
+      return;
+    }
+    if (statusRef.current !== 'anonymous') {
       setLogoutVisible(true);
       return;
     }
-    setFeedback(null);
-    setUrlBlurred(false);
-    busyRef.current = true;
-    try {
-      if (readCustomApiBaseUrlOverride() !== null) {
-        await writeCustomApiBaseUrl(null);
-      } else {
-        setDraft('');
-      }
-      setFeedback({ kind: 'reset_done' });
-    } finally {
-      busyRef.current = false;
-    }
+    navigation.navigate(MORE_STACK_ROUTES.MoreCustomApiClear, { baseUrl: null });
   };
 
   const handleLogout = async () => {

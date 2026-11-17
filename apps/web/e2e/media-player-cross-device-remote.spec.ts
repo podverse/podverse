@@ -6,6 +6,7 @@ import { MEDIA_JUMP_BACK_SECONDS, MEDIA_JUMP_FORWARD_SECONDS } from '@podverse/h
 import {
   allowAutoplay,
   audioState,
+  clearSharedE2ePlaybackPresence,
   closeSignedInDevices,
   CROSS_DEVICE_MOBILE_VIEWPORT,
   openSignedInDevice,
@@ -47,6 +48,10 @@ test.use({
   launchOptions: {
     args: ['--autoplay-policy=no-user-gesture-required'],
   },
+});
+
+test.beforeEach(async () => {
+  await clearSharedE2ePlaybackPresence();
 });
 
 const expectHomeLoaded = async (page: Page): Promise<void> => {

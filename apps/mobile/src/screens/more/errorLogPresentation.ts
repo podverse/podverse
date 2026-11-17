@@ -9,6 +9,7 @@ import {
   DIRECTORY_CHANNEL_GONE_CODE,
   V4_CARRYOVER_DONE_CODE,
 } from '../../data/repositories';
+import { V4_DOWNLOAD_CARRYOVER_DONE_CODE } from '../../data/repositories/v4DownloadCarryoverRepository';
 import { mobileBrandName } from '../../lib/mobileBrandName';
 import {
   ADD_BY_RSS_ADD_LOG_KIND,
@@ -54,6 +55,9 @@ export const errorLogMessage = (t: Translate, entry: SyncEventLogEntry): string 
   }
   if (entry.errorCode === V4_CARRYOVER_DONE_CODE) {
     return t('error_log.v4_carryover_done');
+  }
+  if (entry.errorCode === V4_DOWNLOAD_CARRYOVER_DONE_CODE) {
+    return t('error_log.v4_download_carryover_done');
   }
   return entry.message;
 };

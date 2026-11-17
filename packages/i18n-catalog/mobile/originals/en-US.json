@@ -139,7 +139,10 @@
       "delete_all_description": "Permanently deletes the local media files and download index entries on this device. This cannot be undone.",
       "delete_all": "Delete All",
       "delete_all_confirm_title": "Delete All Downloads?",
-      "delete_all_confirm_body": "This deletes every local download file and removes them from the Downloads list. Episodes will need to be downloaded again for offline play."
+      "delete_all_confirm_body": "This deletes every local download file and removes them from the Downloads list. Episodes will need to be downloaded again for offline play.",
+      "chosen_folder": "Chosen Download Folder",
+      "chosen_folder_description": "When on, new downloads go to the folder saved from the previous app. When off, new downloads go to this app's private folder. Files already in that folder stay there, and you can still play and delete them.",
+      "chosen_folder_save_failed": "Couldn't save that setting. Try again."
     },
     "notifications": {
       "login_required_title": "Login Required",
@@ -215,7 +218,8 @@
       "clips": "Updating Your Clips",
       "home_feed": "Reading Home from This Device",
       "identity_remap": "Updating Your Shows",
-      "v4_carryover": "Moving Your Podcasts"
+      "v4_carryover": "Moving Your Podcasts",
+      "v4_download_carryover": "Moving Your Downloads"
     },
     "progress": "{completed} of {total}"
   },
@@ -225,7 +229,7 @@
   "custom_api": {
     "title": "Custom API",
     "menu_subtitle": "Point this app at a different server",
-    "intro": "Replace the server this app talks to. Save checks that the server answers with status 200 before the change is kept. Reset restores the original server. Log out before changing it so this phone does not send your login to another server.",
+    "intro": "Replace the server this app talks to. Save checks that the server answers with status 200, then opens the screen that lists what this phone will erase. Reset does the same when an address is already saved. Log out before changing it so this phone does not send your login to another server.",
     "url_label": "API URL",
     "url_placeholder": "https://example.com/api/v2",
     "original_label": "Original API",
@@ -242,7 +246,111 @@
     "logout_title": "Log Out First",
     "logout_body": "Log out before changing the API. This phone will not send your login to another server.",
     "notice_label": "Custom API",
-    "notice_body": "Sign-in, sign-up, feed passwords, and store purchases in this app go to this server. A page opened in the browser uses the public website, which does not."
+    "notice_body": "Sign-in, sign-up, feed passwords, and store purchases in this app go to this server. A page opened in the browser uses the public website, which does not.",
+    "clear": {
+      "title": "Clear Local Data",
+      "intro": "This phone's copy of the previous server will be erased. An account on that server is left as it is.",
+      "removed_heading": "Will Be Erased",
+      "kept_heading": "Stays on This Phone",
+      "confirm": "Clear and Switch",
+      "failed": "Could not erase this phone's data. The API address was not changed.",
+      "removed": {
+        "subscriptions": {
+          "title": "Subscriptions",
+          "body": "Shows you follow on this phone, stored under the previous server's ids."
+        },
+        "saved_episodes": {
+          "title": "Saved Episodes",
+          "body": "Episode lists saved for those shows."
+        },
+        "downloads": {
+          "title": "Downloads",
+          "body": "Downloaded episodes and their files on this phone."
+        },
+        "add_by_rss_feeds": {
+          "title": "Add by RSS Feeds",
+          "body": "Feeds saved on this phone, including ones parsed here."
+        },
+        "queue_history_playlists": {
+          "title": "Queue, History, and Playlists",
+          "body": "Queue, history, and playlists saved on this phone."
+        },
+        "listening_position": {
+          "title": "Listening Position",
+          "body": "Where playback stopped, the last thing playing, and listening reports that have not been sent."
+        },
+        "seen_marks": {
+          "title": "Seen Marks and Section Chips",
+          "body": "Per-show seen marks, live badges, and which sections a show has."
+        },
+        "per_show_auto_download": {
+          "title": "Per-Show Auto-Download",
+          "body": "Which shows download new episodes on this phone."
+        },
+        "sort_choices": {
+          "title": "Sort Choices for One Show",
+          "body": "Sort and filter choices saved for a specific show, episode, or playlist."
+        },
+        "previous_app_carryover": {
+          "title": "Previous App Carryover",
+          "body": "Podcasts carried over from the previous app that are still waiting on this phone."
+        },
+        "saved_login": {
+          "title": "Saved Login",
+          "body": "The access token and refresh token for the previous server."
+        },
+        "push_registration": {
+          "title": "Push Registration",
+          "body": "This phone's registration with the previous server's push."
+        },
+        "error_log": {
+          "title": "Error Log",
+          "body": "The on-device error log, which names the previous server's ids."
+        },
+        "notification_prompts": {
+          "title": "Notification Prompts",
+          "body": "Notification prompts already answered for the previous account."
+        },
+        "membership_reminder": {
+          "title": "Membership Reminder and Handoff",
+          "body": "A dismissed membership reminder, and a declined playback handoff for an episode from the previous server."
+        }
+      },
+      "kept": {
+        "theme_language_tabs": {
+          "title": "Theme, Language, and Tab Bar",
+          "body": "Theme, language, and which tabs are on the bar."
+        },
+        "offline_mode": {
+          "title": "Offline Mode",
+          "body": "The Offline Mode switch."
+        },
+        "download_limits": {
+          "title": "Download Limits",
+          "body": "Download size limits and defaults that are not tied to one show."
+        },
+        "shuffle_repeat_media": {
+          "title": "Shuffle, Repeat, and Media Type",
+          "body": "Shuffle, repeat, and which media type opens first."
+        },
+        "notification_banners": {
+          "title": "Notification Banners",
+          "body": "Which notification banners to show."
+        },
+        "add_by_rss_passwords": {
+          "title": "Add by RSS Passwords",
+          "body": "Usernames and passwords for a feed host."
+        },
+        "unified_push": {
+          "title": "UnifiedPush and This Install",
+          "body": "A UnifiedPush address or distributor auth key you typed, and this install's id."
+        },
+        "api_address": {
+          "title": "API Address",
+          "body": "The API address you are saving."
+        }
+      }
+    }
   },
   "removed_content": {
     "title": "Removed Content",
@@ -273,6 +381,7 @@
     "directory_channel_converted": "Moved {channel} to Add by RSS. It is no longer in the directory.",
     "add_by_rss_promoted_to_directory": "Moved {channel} to {brand_name} Directory",
     "v4_carryover_done": "Podcasts Moved from the Previous App",
+    "v4_download_carryover_done": "Downloads Moved from the Previous App",
     "row_a11y_hint": "Opens Full Details",
     "saved_footnote": "Full details are saved in More › Advanced › Error Log.",
     "kind": {
@@ -335,7 +444,15 @@
         "subscribed": "Subscribed",
         "add_by_rss": "Add by RSS",
         "blocked": "Left Out",
-        "waiting": "Waiting"
+        "waiting": "Waiting",
+        "directory_episodes": "Directory Episodes",
+        "add_by_rss_episodes": "Add by RSS Episodes",
+        "already_downloaded": "Already Downloaded",
+        "deleted_files": "Files Deleted",
+        "missing_files": "Files Not Found",
+        "unreadable_files": "Files in an Unreadable Folder",
+        "undeletable_files": "Files Not Deleted",
+        "waiting_files": "Files Waiting"
       }
     }
   },

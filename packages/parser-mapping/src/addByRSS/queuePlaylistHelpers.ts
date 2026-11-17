@@ -128,7 +128,11 @@ export function buildAddByRSSResourceData(
   if ('bundle' in item && Array.isArray(item.bundle?.images) && item.bundle.images.length > 0) {
     item_images = item.bundle.images;
   } else if ('item' in item && hasLivestreamImageUrl(item.item)) {
-    item_images = [{ url: item.item.image, image_width_size: null }];
+    const episodeImage = item.item.image.trim();
+    const channelImage = item.channelImageUrl?.trim() ?? '';
+    if (episodeImage.length > 0 && episodeImage !== channelImage) {
+      item_images = [{ url: item.item.image, image_width_size: null }];
+    }
   }
 
   const feed_url = getCanonicalFeedUrl(item);

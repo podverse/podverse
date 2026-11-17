@@ -1,3 +1,5 @@
+import { isLocalDownloadUrl } from '../downloads/downloadStorage';
+
 export type PlaybackSourceMarker = 'local' | 'remote';
 
 let marker: PlaybackSourceMarker | null = null;
@@ -7,7 +9,7 @@ export function playbackSourceMarkerFromUrl(url: string | null): PlaybackSourceM
   if (url === null || url.length === 0) {
     return null;
   }
-  return url.startsWith('file://') ? 'local' : 'remote';
+  return isLocalDownloadUrl(url) ? 'local' : 'remote';
 }
 
 /** Remember whether the engine URL is a downloaded file. E2E reads this; product UI does not. */

@@ -14,6 +14,7 @@ import { deriveMembershipState, evaluateFeatureAccess } from '@podverse/helpers'
 
 import { useAuth } from '../auth/AuthProvider';
 import { useQueues } from '../contexts/QueuesProvider';
+import { resetQueueCompletionStore } from '../data/queueCompletionStore';
 import { accountRepository } from '../data/repositories/accountRepository';
 import {
   isAutoDownloadCatchUpReady,
@@ -320,6 +321,7 @@ export function SyncProvider({ children }: PropsWithChildren) {
     publishPlaybackReconcileConflicts([]);
     publishPlaybackPositionAdoptions([]);
     setQueues([]);
+    resetQueueCompletionStore();
     setActiveQueue(null);
     setActiveQueueUpcomingResources([]);
   }, [setActiveQueue, setActiveQueueUpcomingResources, setQueues, status]);

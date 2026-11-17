@@ -288,12 +288,12 @@ describe('Add by RSS directory conversion', () => {
     return rows[0]?.['last_seen_at'];
   }
 
-  async function podcastQueueId(accountId: number): Promise<number> {
+  async function avQueueId(accountId: number): Promise<number> {
     const { QueueService } = await import('@podverse/orm');
     const queues = await new QueueService().getAllPrivate(accountId);
-    const queue = queues.find((row) => row.medium_id === MediumEnum.Podcast);
+    const queue = queues.find((row) => row.medium_id === MediumEnum.AV);
     if (queue === undefined) {
-      throw new Error('podcast queue missing');
+      throw new Error('av queue missing');
     }
     return queue.id;
   }
@@ -524,7 +524,7 @@ describe('Add by RSS directory conversion', () => {
       lastSeenAt: SEEN_AT,
     });
 
-    const queueId = await podcastQueueId(account.id);
+    const queueId = await avQueueId(account.id);
     const upcoming = await insertQueueRow({
       queueId,
       listPosition: '1',

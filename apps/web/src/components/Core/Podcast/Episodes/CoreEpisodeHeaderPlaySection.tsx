@@ -15,9 +15,11 @@ import { useQueues } from '../../../../contexts/Queue';
 import { useQueueResourcesAbridgedIndex } from '../../../../contexts/QueueResourcesAbridgedIndex';
 import { getApiRequestService } from '../../../../factories/apiRequestService';
 import { useLikesItemBatch } from '../../../../hooks/useLikesItemBatch';
+import { useMarkQueueResourcePlayed } from '../../../../hooks/useMarkQueueResourcePlayed';
 import { useMediaPlayerResourceUpdate } from '../../../../hooks/useMediaPlayerResourceUpdate';
 import { useQueueAddWithGate } from '../../../../hooks/useQueueAddWithGate';
 import { playbackTargetFromStandardLoad } from '../../../../lib/playback';
+import { markPlayedAfterWrite } from '../../../../lib/queue/queueResourcePlayed';
 import { downloadEpisodeWithModal } from '../../../../utils/downloadModal/downloadEpisodeWithModal';
 import { downloadAndSaveFile } from '../../../../utils/fileDownloader';
 import { ItemRowMoreActions } from '../../../Media/ItemRowMoreActions';
@@ -49,6 +51,7 @@ export const CoreEpisodeHeaderPlaySection: React.FC<CoreEpisodeHeaderPlaySection
   const mediaPlayerResourceUpdate = useMediaPlayerResourceUpdate();
   const { loggedInAccount } = useAccount();
   const { queueResourcesAbridgedIndex } = useQueueResourcesAbridgedIndex();
+  const markQueueResourcePlayed = useMarkQueueResourcePlayed();
   const { durationStr, positionStr } = getDurationAndPositionStr(item, queueResourcesAbridgedIndex);
   const { autoQueueConfig } = useAutoQueue();
   const { isLiked, toggle } = useLikesItemBatch([item.id_text]);
@@ -174,9 +177,18 @@ export const CoreEpisodeHeaderPlaySection: React.FC<CoreEpisodeHeaderPlaySection
     const queue = getQueueForMedium(queues, channel.medium_id);
     if (queue) {
       showToastPromise(
-        apiRequestService.reqQueueResourceItemAddHistory(queue.id_text, item.id_text, {
-          completed: true,
-        }),
+        markPlayedAfterWrite(
+          apiRequestService.reqQueueResourceItemAddHistory(queue.id_text, item.id_text, {
+            completed: true,
+          }),
+          () => {
+            markQueueResourcePlayed({
+              duration: item.item_about?.duration ?? null,
+              id: item.id,
+              kind: 'item',
+            });
+          }
+        ),
         {
           success: tFeatures('history.marked_as_played'),
           error: tFeatures('history.mark_as_played_error'),

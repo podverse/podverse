@@ -2,11 +2,36 @@
  * Pure rewrite of local identity keys after a show or episode moves.
  *
  * The stored download path is the file playback opens. This module never changes that path.
- * These move maps are directory id texts. Add-by-RSS feed URLs and episode hashes are not in
- * them; the Add by RSS promotion remap rewrites those rows.
+ * Resolve accepts a directory id text of at most 64 characters. An Add by RSS download key is
+ * `feedUrl::episode` and is omitted here; the Add by RSS promotion remap rewrites those rows.
+ * One omitted key must not fail the batch that still holds directory ids.
  */
 
 export const IDENTITY_RESOLVE_CHUNK_SIZE = 500;
+
+/** Matches the resolve route's per-id maximum. */
+export const IDENTITY_RESOLVE_ID_MAX_LENGTH = 64;
+
+/**
+ * Directory ids safe to send to resolve. Drops blanks, duplicates, keys over the route maximum,
+ * and Add by RSS download keys (`feedUrl::episode`).
+ */
+export const directoryIdentityIds = (values: readonly string[]): string[] => {
+  const seen = new Set<string>();
+  const result: string[] = [];
+  for (const value of values) {
+    const id = value.trim();
+    if (id.length === 0 || id.length > IDENTITY_RESOLVE_ID_MAX_LENGTH || id.includes('::')) {
+      continue;
+    }
+    if (seen.has(id)) {
+      continue;
+    }
+    seen.add(id);
+    result.push(id);
+  }
+  return result;
+};
 
 export type IdentityIdMove = {
   fromIdText: string;

@@ -89,65 +89,71 @@ export const lookupDirectoryFeedUrls = async (params: {
     return undefined;
   };
 
-  const worker = async (): Promise<void> => {
-    for (;;) {
-      if (signal.aborted || stopped) {
-        return;
-      }
-      const waitMs = pausedUntilMs - now();
-      if (waitMs > 0) {
-        await sleep(waitMs, signal);
-        continue;
-      }
-      const index = takeIndex();
-      if (index === undefined) {
-        return;
-      }
-      const entry = entries[index];
-      if (entry === undefined) {
-        continue;
-      }
+  const runOne = async (index: number): Promise<void> => {
+    const entry = entries[index];
+    if (entry === undefined) {
+      return;
+    }
 
-      let result: DirectoryFeedUrlLookup;
-      try {
-        result = await lookup(entry.idText);
-      } catch {
-        result = { kind: 'missing' };
-      }
-      if (signal.aborted) {
-        return;
-      }
+    let result: DirectoryFeedUrlLookup;
+    try {
+      result = await lookup(entry.idText);
+    } catch {
+      result = { kind: 'missing' };
+    }
+    if (signal.aborted) {
+      return;
+    }
 
-      switch (result.kind) {
-        case 'found':
-          settle(index, { feedUrl: result.feedUrl, title: result.title ?? entry.title });
-          break;
-        case 'missing':
-          settle(index, null);
-          break;
-        case 'rate_limited':
-          if (
-            !stopped &&
-            !retried.has(index) &&
-            result.retryAfterMs <= DIRECTORY_FEED_URL_RATE_LIMIT_MAX_WAIT_MS
-          ) {
-            retried.add(index);
-            pausedUntilMs = Math.max(pausedUntilMs, now() + result.retryAfterMs);
-            retryQueue.push(index);
-          } else {
-            stopped = true;
-          }
-          break;
-        case 'unreachable':
+    switch (result.kind) {
+      case 'found':
+        settle(index, { feedUrl: result.feedUrl, title: result.title ?? entry.title });
+        break;
+      case 'missing':
+        settle(index, null);
+        break;
+      case 'rate_limited':
+        if (
+          !stopped &&
+          !retried.has(index) &&
+          result.retryAfterMs <= DIRECTORY_FEED_URL_RATE_LIMIT_MAX_WAIT_MS
+        ) {
+          retried.add(index);
+          pausedUntilMs = Math.max(pausedUntilMs, now() + result.retryAfterMs);
+          retryQueue.push(index);
+        } else {
           stopped = true;
-          break;
-      }
+        }
+        break;
+      case 'unreachable':
+        stopped = true;
+        break;
     }
   };
 
   onProgress(0, total);
   const workerCount = Math.min(DIRECTORY_FEED_URL_LOOKUP_CONCURRENCY, total);
-  await Promise.all(Array.from({ length: workerCount }, () => worker()));
+  // The next wave waits until this wave's answers are in, including an unreachable one.
+  while (!signal.aborted && !stopped) {
+    const waitMs = pausedUntilMs - now();
+    if (waitMs > 0) {
+      await sleep(waitMs, signal);
+      continue;
+    }
+
+    const wave: number[] = [];
+    while (wave.length < workerCount) {
+      const index = takeIndex();
+      if (index === undefined) {
+        break;
+      }
+      wave.push(index);
+    }
+    if (wave.length === 0) {
+      break;
+    }
+    await Promise.all(wave.map((index) => runOne(index)));
+  }
 
   if (signal.aborted) {
     return null;

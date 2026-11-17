@@ -30,6 +30,7 @@ type DownloadedRow = {
 const downloadedRowKeyExtractor = (entry: DownloadedRow): string => entry.row.id;
 
 const rowFromDownloadRecord = (record: DownloadRecord): HomeFeedRowData => ({
+  completion: { idText: record.itemIdText, kind: 'item', numericId: null },
   description: null,
   duration: null,
   id: record.itemIdText,

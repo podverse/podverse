@@ -302,6 +302,10 @@ export type SubscribedChannelInsert = typeof subscribedChannel.$inferInsert;
  * How much is kept is decided per channel in `channel_item_window`; the rules live in the pure
  * `channelItemWindow.ts`. Add-by-RSS items are **not** duplicated here — those feeds are stored
  * whole in `add_by_rss_feed.mapped_feed_json`, which has no window to enforce.
+ *
+ * `kept_for_download` is 1 when the last finished window walk did not return this episode and the
+ * row exists so a finished download can stay on the show and play. That row is not an Add by RSS
+ * item. `kept_for_download` is 0 for a server row.
  */
 export const channelItem = sqliteTable('channel_item', {
   itemIdText: text('item_id_text').primaryKey(),
@@ -312,6 +316,7 @@ export const channelItem = sqliteTable('channel_item', {
   popularityRank: integer('popularity_rank'),
   payloadJson: text('payload_json').notNull(),
   updatedAt: integer('updated_at').notNull(),
+  keptForDownload: integer('kept_for_download').notNull().default(0),
 });
 
 export type ChannelItemRow = typeof channelItem.$inferSelect;
@@ -575,3 +580,69 @@ export const v4CarryoverEntry = sqliteTable(
 
 export type V4CarryoverEntryRow = typeof v4CarryoverEntry.$inferSelect;
 export type V4CarryoverEntryInsert = typeof v4CarryoverEntry.$inferInsert;
+
+/**
+ * Media files from a finished read of the previous app's download lists and folders.
+ *
+ * Device data: ending a session does not delete these rows. URLs have no userinfo.
+ * `adopted_file_name` is a name under `downloads/`, never an absolute path. A feed password,
+ * username, and auth header are not columns here.
+ */
+export const v4DownloadCarryoverEntry = sqliteTable(
+  'v4_download_carryover_entry',
+  {
+    fileKey: text('file_key').primaryKey(),
+    source: text('source').notNull(),
+    orphanRoot: text('orphan_root'),
+    legacyEpisodeId: text('legacy_episode_id'),
+    legacyExtension: text('legacy_extension').notNull(),
+    isAddByRss: integer('is_add_by_rss').notNull().default(0),
+    legacyPodcastId: text('legacy_podcast_id'),
+    addByRssFeedUrl: text('add_by_rss_feed_url'),
+    podcastFeedUrl: text('podcast_feed_url'),
+    podcastIndexId: text('podcast_index_id'),
+    podcastGuid: text('podcast_guid'),
+    podcastTitle: text('podcast_title'),
+    podcastImageUrl: text('podcast_image_url'),
+    episodeGuid: text('episode_guid'),
+    mediaUrl: text('media_url'),
+    episodeTitle: text('episode_title'),
+    episodePubDateMs: integer('episode_pub_date_ms'),
+    episodeDurationSeconds: integer('episode_duration_seconds'),
+    episodeMediaType: text('episode_media_type'),
+    episodeImageUrl: text('episode_image_url'),
+    status: text('status').notNull(),
+    attempts: integer('attempts').notNull().default(0),
+    adoptedFileName: text('adopted_file_name'),
+    updatedAt: integer('updated_at').notNull(),
+  },
+  (table) => ({
+    statusIdx: index('idx_v4_download_carryover_status').on(table.status),
+  })
+);
+
+export type V4DownloadCarryoverEntryRow = typeof v4DownloadCarryoverEntry.$inferSelect;
+export type V4DownloadCarryoverEntryInsert = typeof v4DownloadCarryoverEntry.$inferInsert;
+
+/**
+ * An Add by RSS episode that exists only on this phone, backed by a download.
+ *
+ * Device data: kept through sign-in and sign-out, removed when its feed is removed, and cleared
+ * with the rest of SQLite when the API address changes. `item_bundle_json` is one compat item
+ * bundle. The enclosure URL is the media URL only; a feed password is not stored here.
+ */
+export const addByRssLocalEpisode = sqliteTable(
+  'add_by_rss_local_episode',
+  {
+    downloadIdText: text('download_id_text').primaryKey(),
+    feedUrl: text('feed_url').notNull(),
+    itemBundleJson: text('item_bundle_json').notNull(),
+    createdAt: integer('created_at').notNull(),
+  },
+  (table) => ({
+    feedUrlIdx: index('idx_add_by_rss_local_episode_feed_url').on(table.feedUrl),
+  })
+);
+
+export type AddByRssLocalEpisodeRow = typeof addByRssLocalEpisode.$inferSelect;
+export type AddByRssLocalEpisodeInsert = typeof addByRssLocalEpisode.$inferInsert;

@@ -3,13 +3,14 @@
 import { useCallback } from 'react';
 
 import type { PlaybackEventKind } from '@podverse/helpers';
-import { getQueueForMedium, isMeaningfulPlaybackEvent } from '@podverse/helpers';
+import { getAddByRSSHashId, getQueueForMedium, isMeaningfulPlaybackEvent } from '@podverse/helpers';
 
 import { useAccount } from '../contexts/Account';
 import { useMediaPlayer } from '../contexts/MediaPlayer';
 import { useQueues } from '../contexts/Queue';
 import { getApiRequestService } from '../factories/apiRequestService';
 import { crossDevicePlaybackStore } from '../lib/crossDevicePlayback/crossDevicePlaybackStore';
+import { useMarkQueueResourcePlayed } from './useMarkQueueResourcePlayed';
 
 /**
  * Returns callbacks to save add-by-RSS playback position and to add to history on ended.
@@ -18,6 +19,7 @@ export function useAddByRSSPositionSave() {
   const { mpAddByRSS } = useMediaPlayer();
   const { queues } = useQueues();
   const { loggedInAccount } = useAccount();
+  const markQueueResourcePlayed = useMarkQueueResourcePlayed();
 
   const savePosition = useCallback(
     (
@@ -67,19 +69,24 @@ export function useAddByRSSPositionSave() {
       if (!queue?.id_text) return;
       const lastPlayedAtIso = new Date().toISOString();
       const eventKind: PlaybackEventKind = 'complete';
-      await apiRequestService
-        .reqQueueResourceItemAddByRSSAddHistory(queue.id_text, {
+      try {
+        await apiRequestService.reqQueueResourceItemAddByRSSAddHistory(queue.id_text, {
           add_by_rss_resource_data: mpAddByRSS.resourceData,
           playback_position: '0',
           completed: true,
           last_played_at: lastPlayedAtIso,
           playback_event_kind: eventKind,
-        })
-        .catch(() => {
-          // Best-effort
         });
+        markQueueResourcePlayed({
+          duration: null,
+          hash: getAddByRSSHashId(mpAddByRSS.resourceData),
+          kind: 'add_by_rss',
+        });
+      } catch {
+        // Best-effort
+      }
     },
-    [loggedInAccount, mpAddByRSS, queues]
+    [loggedInAccount, markQueueResourcePlayed, mpAddByRSS, queues]
   );
 
   const handleClose = useCallback(

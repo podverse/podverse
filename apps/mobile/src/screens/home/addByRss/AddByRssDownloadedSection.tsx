@@ -13,9 +13,9 @@ import type { AddByRssSectionPaneProps } from './addByRssSectionPane';
 /**
  * Episodes of this add-by-RSS feed that are finished downloading on the device.
  *
- * The rows are the feed's current episodes, in recent order, kept when their download id is
- * complete. A download whose episode is no longer in the parsed feed is omitted here; Library →
- * Downloads still lists it.
+ * The rows are the feed's episodes, in recent order, kept when their download id is complete.
+ * A finished download whose episode left the feed stays on the feed as a local episode, plays
+ * from the file, and leaves the list when that file is deleted.
  */
 const downloadedEpisodeRows = (
   episodeRows: readonly AddByRssHomeEpisode[],

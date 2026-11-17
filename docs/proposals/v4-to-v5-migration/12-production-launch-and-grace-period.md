@@ -37,24 +37,33 @@ stay unknown.
 3. Seed every v4 user as an account before public signup: email, password
    hash, name, verified, and the v4 id. Leave the library for login or the
    end-of-grace batch. An email already in v5 is skipped and reported.
-4. Confirm v5 API/web health, billing sandbox flags off for real money, AASA /
+4. Start the directory head start on that same database, before beta is
+   announced ([05](05-id-mapping-and-catalog-seeding.md#launch-queue)). On
+   the 2026-10-30 snapshot that is about 64,000 subscribed public shows, plus
+   viewed shows and shows that appear only on a clip, playlist, history,
+   queue, or now playing row. Do not copy libraries. Leave the parsers and
+   the migration retry loop running while the beta is still closed. Run the
+   head start again against a newer v4 read before opening beta. A show
+   already parsed is left alone.
+5. Confirm v5 API/web health, billing sandbox flags off for real money, AASA /
    assetlinks live.
-5. Submit v5 mobile under v4 store ids ([03](03-store-identity-and-signing.md))
+6. Submit v5 mobile under v4 store ids ([03](03-store-identity-and-signing.md))
    with staged rollout (Play) / phased release (iOS) as available.
-6. On approval: announce grace start; enable lazy migration at full rate.
+7. On approval: announce grace start; enable lazy migration at full rate.
    Before that, the open cap decision in
    [07](07-account-and-data-migration-model.md#account-caps-v4-did-not-have)
    is made, and the copy writes any per-account override before the rows that
    would pass a v5 default v4 did not have.
-7. Once v5 is live in at least one place, disable the v4 subscription products
+8. Once v5 is live in at least one place, disable the v4 subscription products
    in Apple, Google Play, and PayPal. A new v4 purchase fails. The old app may
    not explain the failure. Support tells the person to upgrade to v5. Someone
    who has not been copied can still use v4 until their copy or the end of the
    grace period.
-8. After enough accounts exist, run membership expiry import (corrected SQL;
+9. After enough accounts exist, run membership expiry import (corrected SQL;
    rehearsal runbook under `.llm/plans/completed/v4-membership-expiry-import/`).
-9. Monitor: migration success/fail counts, API latency, crash-free sessions,
-   support volume.
+10. Monitor: migration success/fail counts, API latency, crash-free sessions,
+    support volume. The directory head start reports created feeds, queued
+    parses, settled parses, and failed parses by reason.
 
 ### Grace period operations
 

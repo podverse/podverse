@@ -26,6 +26,8 @@ import crypto from 'node:crypto';
 import bcrypt from 'bcrypt';
 import pg from 'pg';
 
+import { seedDescriptionForStorage } from '../web/seed-description.mjs';
+
 const DB_HOST = process.env.DB_HOST ?? 'localhost';
 const DB_PORT = Number(process.env.DB_PORT ?? '5732');
 const DB_USER = process.env.SEED_DB_USER ?? 'podverse_management_read_write';
@@ -157,7 +159,7 @@ async function seedMergeReview() {
       await client.query(`INSERT INTO channel_about (channel_id) VALUES ($1)`, [channelId]);
       await client.query(`INSERT INTO channel_description (channel_id, value) VALUES ($1, $2)`, [
         channelId,
-        `${title} description.`,
+        seedDescriptionForStorage(`${title} description.`).value,
       ]);
       await client.query(
         `INSERT INTO channel_image (channel_id, url, image_width_size) VALUES ($1, $2, 1400)`,

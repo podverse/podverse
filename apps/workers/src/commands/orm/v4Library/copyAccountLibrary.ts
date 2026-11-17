@@ -707,7 +707,9 @@ export async function readLocalCatalog(snapshot: V4LibrarySnapshot): Promise<Loc
             c.id_text = ANY($2::varchar[])
             AND (
               i.guid = ANY($3::varchar[])
-              OR i.guid_enclosure_url = ANY($4::varchar[])
+              OR i.guid_enclosure_url_digest IN (
+                SELECT decode(md5(url), 'hex') FROM unnest($4::varchar[]) AS url
+              )
               OR i.title = ANY($5::varchar[])
             )
           )`,

@@ -208,6 +208,61 @@ export const reconcileChannelItems = <T extends StoredChannelItemKey>({
 };
 
 /**
+ * Stored episode ids a finished window walk must leave in `channel_item`.
+ *
+ * Only a complete download pins an episode, and an episode the server still returns is omitted.
+ * An episode already kept for its download stays until the file is gone or the server lists it
+ * again. Otherwise the episode left the feed when the walk saw the end of the feed, or when its
+ * publish date is strictly newer than the oldest date still in the window. A date tied with that
+ * oldest row, a null date on a feed that is not exhausted, and an episode pushed past the window
+ * are omitted.
+ */
+export const selectKeptDownloadItemIds = (params: {
+  alreadyKeptIds: ReadonlySet<string>;
+  completeDownloadIds: ReadonlySet<string>;
+  isFeedExhausted: boolean;
+  keep: readonly { itemIdText: string; pubDateMs: number | null }[];
+  stored: readonly { itemIdText: string; pubDateMs: number | null }[];
+}): string[] => {
+  const keepIds = new Set(params.keep.map((row) => row.itemIdText));
+  let oldestKeepPubDateMs: number | null = null;
+  for (const row of params.keep) {
+    if (row.pubDateMs === null) {
+      continue;
+    }
+    if (oldestKeepPubDateMs === null || row.pubDateMs < oldestKeepPubDateMs) {
+      oldestKeepPubDateMs = row.pubDateMs;
+    }
+  }
+
+  const retained: string[] = [];
+  for (const row of params.stored) {
+    if (keepIds.has(row.itemIdText)) {
+      continue;
+    }
+    if (!params.completeDownloadIds.has(row.itemIdText)) {
+      continue;
+    }
+    if (params.alreadyKeptIds.has(row.itemIdText)) {
+      retained.push(row.itemIdText);
+      continue;
+    }
+    if (params.isFeedExhausted) {
+      retained.push(row.itemIdText);
+      continue;
+    }
+    if (
+      row.pubDateMs !== null &&
+      oldestKeepPubDateMs !== null &&
+      row.pubDateMs > oldestKeepPubDateMs
+    ) {
+      retained.push(row.itemIdText);
+    }
+  }
+  return retained;
+};
+
+/**
  * The parts of an item artwork resolution actually reads. Narrower than `DTOItem` so the rule can
  * be exercised without building an entire channel graph around it.
  */

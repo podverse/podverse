@@ -313,3 +313,232 @@
   ticking the checkbox) starts the carryover. Sign In stays available.
 - Who notices: signed-out v4 users after the update
 - Operator steps: none
+
+## Local rehearsal restore drops attached partitions first
+
+- Surfaces: workers
+- Change: a sample or full local rehearsal drops attached partitions in `public` and
+  `listener_identity` before `pg_restore --clean`, and skips comments. A stats partition
+  left by an earlier stage no longer blocks the restore, and the restore does not need the
+  restoring role to own `public`.
+- Who notices: operator running a sample or full local migration rehearsal
+- Operator steps: none. Do not drop the app schemas by hand before the stage.
+
+## Show and episode descriptions are stored as markdown
+
+- Surfaces: api, workers, web, mobile
+- Change: channel and item descriptions are saved as markdown. RSS HTML is converted on the
+  way in, and a second save of that markdown writes the same text. About and Summary render
+  that markdown. A description that is still HTML, such as a phone cache from before this
+  version, still renders. Clip text and playlist text are unchanged. The database is wiped
+  before this version, so existing rows are not converted in place.
+- Who notices: show notes and About text keep their paragraphs, links, and lists, in a
+  smaller column
+- Operator steps: none
+
+## Catalog indexes and duplicate episode artwork
+
+- Surfaces: k8s, workers
+- Change: app migration `0016_drop_duplicate_indexes.sql` drops btree indexes that repeat a
+  unique constraint on the same column. `idx_item_channel_id` stays, because episode lists
+  also use `idx_item_channel_id_pub_date` and the narrower index is the one a channel-only
+  lookup can prefer. `guid` and `guid_enclosure_url` stay btree. A parse skips an episode
+  image whose URL is the show image. A different episode image is still stored.
+  `API_EXPECTED_MIGRATION_FILENAME` advances to this file. The management marker stays.
+- Who notices: a deploy waits until this migration is applied. Episode rows that used the
+  show artwork no longer store a second copy.
+- Operator steps: none beyond the usual migration apply
+
+## Episode enclosure lookups use a 16-byte digest
+
+- Surfaces: api, workers, k8s
+- Change: app migration `0017_item_enclosure_url_digest.sql` adds
+  `item.guid_enclosure_url_digest`, a 16-byte md5 of `guid_enclosure_url`,
+  fills it for rows already stored, and drops `idx_item_guid_enclosure_url`.
+  A trigger keeps the digest in step when the URL is inserted or updated.
+  Parser, Add by RSS, notification, and v4 library matching look up the
+  digest. The URL column stays, and playback still reads it.
+  `API_EXPECTED_MIGRATION_FILENAME` advances to this file. The management
+  marker stays.
+- Who notices: a deploy waits until this migration is applied. The first
+  apply rewrites `item` rows that have an enclosure URL, so startup is slower
+  on a database that already has episodes.
+- Operator steps: none beyond the usual migration apply. Existing databases
+  are updated in place. No wipe.
+
+## Custom API switch erases this phone's copy of the previous server
+
+- Surfaces: mobile
+- Change: Saving a different custom API address opens a screen that lists the local library, login, and push registration that will be erased. Accepting removes them. Cancel leaves the address and the library. An account on the previous server is left as it is. Theme, language, download limits, and feed-host passwords stay.
+- Who notices: people who point the app at another server
+- Operator steps: none
+
+## Phone records v4 downloads after the list read finishes
+
+- Surfaces: mobile
+- Change: on first launch after updating from v4, the phone reads v4's `DOWNLOADED_PODCASTS`,
+  `DOWNLOADING_EPISODES`, and Android download folder setting, and records one row per media
+  file in a new local table (SQLite migration 6, `v4_download_carryover_entry`). Media files in
+  v4's own folders that neither list names are recorded too, and only after that read returns.
+  When the read throws, nothing is recorded and a later launch tries again; those files stay on
+  disk. The read does not move or delete anything; the v4 download carryover acts on these rows.
+- Who notices: no listener-visible change from this entry alone
+- Operator steps: none
+
+## Phone carries v4 downloads into v5
+
+- Surfaces: mobile
+- Change: after updating from v4, a background sync job ("Moving Your Downloads", kind
+  `v4-download-carryover`) settles every media file v4 downloaded. A file whose episode the v5
+  directory knows becomes a finished download of that episode. A show the directory has without
+  that episode keeps the file on that show's episode list. A file from an Add by RSS feed becomes
+  an episode on that feed, kept as a local episode when the feed no longer lists it. Signed out,
+  the phone follows the feed when it did not already. Signed in, the account follows it when the
+  membership can accept another feed within the account's cap. If the server refuses, the file
+  stays in My Library → Downloads and the phone does not add a signed-out feed. Files that cannot
+  migrate are deleted with no screen: unfinished
+  v4 downloads, files no v4 list named, shows dropped as spam or takedown, and files with no show
+  the phone can name. A file waiting on a lookup stays on disk, and being offline is never a
+  failed match. One error-log entry ("Downloads Moved from the Previous App") counts each outcome.
+  Runs signed in or out.
+- Who notices: listeners updating from v4 with downloaded episodes; their downloads appear in My
+  Library → Downloads, and space held by files that cannot migrate is freed
+- Operator steps: deploy the API with `POST /legacy/episode/lookup` before shipping this mobile
+  build
+
+## Public legacy episode lookup
+
+- Surfaces: api, k8s base env
+- Change: new `POST /legacy/episode/lookup` answers up to 200 downloaded v4 directory episodes
+  (v4 episode id, v4 podcast id, guid, media URL). Each answer is the v5 item and its channel,
+  the channel alone when no item matches, the v4 feed URL when v5 has not parsed the show,
+  `blocked` for spam and takedown, or `not_here`. A mapped v4 episode wins; otherwise the guid,
+  then the media URL, is matched inside the show's channel. Read-only; never queues a parse.
+  `POST /legacy/podcast/lookup` answers are unchanged.
+- Who notices: no one directly; signed-out phones upgrading from v4 use it to keep downloaded
+  episodes
+- Operator steps: optional env `LEGACY_EPISODE_LOOKUP_MAX_PER_MINUTE` (default 30) and
+  `LEGACY_EPISODE_LOOKUP_INSTALL_MAX_PER_MINUTE` (default 10)
+
+## Native module for reading v4 download folders
+
+- Surfaces: mobile
+- Change: adds the Android-only local Expo module `podverse-legacy-storage`. It reports the app's
+  external files folder and can remove the app's unfinished system download jobs. v4 kept
+  downloads in that folder. Nothing calls it yet on its own; the v4 download carryover uses it.
+- Who notices: no listener-visible change from this entry alone
+- Operator steps: rebuild the dev client and store builds (`npm run mobile:prebuild`)
+
+## Add by RSS local episodes on mobile
+
+- Surfaces: mobile
+- Change: an Add by RSS feed can hold episodes that exist only on this phone, backed by a downloaded file (used by the v4 download carryover). They list on the feed's Episodes and Downloaded sections and on Home, play from the file offline or when the host is down, and are deleted with the normal download controls. While the feed remains, an episode that leaves the feed stays playable until the listener deletes that file. Removing the feed deletes its downloaded files, including those episodes. A later refresh that lists the same episode turns it into a normal feed episode. New SQLite table `add_by_rss_local_episode` (forward migration).
+- Who notices: listeners updating from v4 whose downloaded episodes are no longer in the feed, or whose feed host is down, and listeners who remove an Add by RSS feed that still has downloads
+- Operator steps: none
+
+## Add by RSS promotion keeps local episodes
+
+- Surfaces: mobile
+- Change: when an Add by RSS feed matches a directory channel, the show is promoted. Local episodes the directory knows move onto the directory episode. A download the directory does not know stays on that show's episode list and plays from the file until the listener deletes it. A promotion the account already made does the same. New behavior uses the existing `channel_item.kept_for_download` column; this change adds no migration.
+- Who notices: listeners whose Add by RSS feeds match the directory, including people carrying v4 downloads the directory has no episode for
+- Operator steps: none
+
+## Downloaded episodes stay on their show
+
+- Surfaces: mobile
+- Change: when a refresh no longer lists an episode this phone has finished downloading, the episode stays on that show's episode list and in Downloads and plays from the local file. This applies to directory subscriptions and to Add by RSS feeds, including downloads made in v5. A directory show stays a directory subscription. Deleting the file removes that local episode. The list then shows what the server still returns. New SQLite column `channel_item.kept_for_download` (forward migration).
+- Who notices: listeners whose shows drop episodes they have downloaded, including people updating from v4
+- Operator steps: none
+
+## Android chosen download folder
+
+- Surfaces: mobile
+- Change: On Android, More → Settings → Downloads shows Chosen Download Folder when the previous app saved a folder this app can still write. On sends new downloads there. Off sends new downloads to the app's private folder. Turning the switch does not move or delete files already in the chosen folder; those still play and delete. iOS has no control. There is no folder picker and no new storage permission.
+- Who notices: Android listeners who chose a download folder in the previous app
+- Operator steps: none
+
+## Numeric chapter times
+
+- Surfaces: parser-mapping, api, mobile
+- Change: chapter files may send start and end times as numbers. Mapping those chapters stores the
+  times and no longer fails when the value is not a string.
+- Who notices: listeners opening chapters on an episode whose chapter file uses numeric times
+- Operator steps: none
+
+## OPML directory lookup stops after an unreachable answer
+
+- Surfaces: mobile
+- Change: while an OPML import looks up feed URLs in the directory, an unreachable answer finishes
+  the lookups already started and does not start another batch.
+- Who notices: listeners importing an OPML file when directory lookup cannot be reached
+- Operator steps: none
+
+## Rejected Add by RSS password stays explained
+
+- Surfaces: web
+- Change: a background refresh no longer replaces the result of a feed parse this page already
+  started. Adding a protected feed with a username and password the feed rejects still opens the
+  credentials page and says the feed rejected them.
+- Who notices: members adding a password-protected feed while Add by RSS is refreshing
+- Operator steps: none
+
+## Podcast and album section chips update the address
+
+- Surfaces: web
+- Change: choosing Remote Items, Podroll, or another non-default section on a podcast or album
+  page puts `type` in the address. Choosing the default section removes it.
+- Who notices: listeners who open those sections, then share or use the back button
+- Operator steps: none
+
+## Add Feed joins a refresh already parsing that feed
+
+- Surfaces: api, web
+- Change: adding a public feed while a background refresh is already parsing it opens the parsed
+  page. The add uses that parse instead of failing with a one-minute duplicate error.
+- Who notices: members who add a feed while Add by RSS is refreshing
+- Operator steps: none
+
+## Subscribed episode grid titles are headings
+
+- Surfaces: web
+- Change: an Add by RSS episode in the grid layout uses a heading for the episode title, with the
+  feed title above that heading. The title stays the same size as the other grid titles.
+- Who notices: screen reader users on Subscribed Episodes
+- Operator steps: none
+
+## Progress bar seeks the file that is loaded
+
+- Surfaces: web
+- Change: after playback switches items, a click on the progress bar seeks the loaded file. The
+  click uses that file's duration when the bar still shows the previous item's length.
+- Who notices: listeners who scrub just after the player changes episodes or tracks
+- Operator steps: none
+
+## Unlimited Add by RSS feed cap
+
+- Surfaces: api, k8s
+- Change: `account_membership_status.max_add_by_rss_feeds` may be `-1`, which means unlimited.
+  Null stays the shared default, and `0` stays a cap of zero. App migration
+  `0018_account_max_add_by_rss_feeds_unlimited.sql`.
+- Who notices: operators who set an account to unlimited Add by RSS; those listeners can add feeds
+  past the numbered tiers
+- Operator steps: apply the app migration before saving an unlimited cap
+
+## Identity resolve skips local download keys
+
+- Surfaces: mobile
+- Change: a scheduled identity check sends only directory ids. An Add by RSS download key
+  (`feed address::episode`) is left out, so one long local key no longer fails the whole check
+  and covers the app with the request error.
+- Who notices: listeners whose phone holds both directory downloads and Add by RSS downloads
+- Operator steps: none
+
+## Played check on list rows
+
+- Surfaces: web, mobile
+- Change: a finished episode, clip, soundbite, or Add by RSS item shows a Played check in the
+  list row, to the left of the progress bar. On the Podverse theme the check is the same blue as
+  the progress time numbers. Mark as Played updates the check without leaving the list. Mark as
+  Unplayed on the phone hides it for the rest of the session.
+- Who notices: listeners looking at a list that includes something they finished
+- Operator steps: none

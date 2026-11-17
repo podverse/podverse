@@ -29,6 +29,9 @@
 }
 
 .title {
+  // A heading in this slot stays the surrounding list size and color.
+  font-size: inherit;
+  color: inherit;
   font-weight: var(--font-weight-light);
   margin: var(--spacing-none);
   @include line-clamp(2);

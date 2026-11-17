@@ -6,6 +6,10 @@ import { convertParsedRSSFeedToCompat } from '@podverse/parser-mapping';
 import { safeJsonParse } from '../../data/db/serialization';
 import { toAddByRssItemPlaybackResourceData } from '../../lib/addByRss/domain';
 import { addByRssDownloadItemIdText } from '../../lib/addByRss/downloadIdText';
+import {
+  buildAddByRssLocalItemBundle,
+  mergeAddByRssLocalEpisodes,
+} from '../../lib/addByRss/localEpisode';
 import { addByRssPlaybackMediaId } from '../../lib/addByRss/resourceData';
 import type { MobileAddByRSSFeedRecord } from '../../prefs/addByRSSFeeds';
 import {
@@ -326,5 +330,26 @@ describe('add-by-RSS Home detail data', () => {
       'Apple',
       'Zebra',
     ]);
+  });
+
+  it('lists one local episode on a feed that has not been parsed', () => {
+    const local = buildAddByRssLocalItemBundle({
+      description: null,
+      durationSeconds: 30,
+      guid: 'local-ep',
+      imageUrl: null,
+      mediaUrl: 'https://cdn.example/local.mp3',
+      mimeType: 'audio/mpeg',
+      pubDate: '2026-04-01T00:00:00.000Z',
+      title: 'Local Episode',
+    });
+    const mapped = mergeAddByRssLocalEpisodes({ feed, localItems: [local], stored: null });
+    const detail = buildAddByRssHomeDetailData(feed, mapped, { hasParsedBundle: false });
+
+    expect(detail.hasParsedBundle).toBe(false);
+    expect(detail.episodeRows).toHaveLength(1);
+    expect(detail.episodeRows[0]?.downloadItemIdText).toBe(
+      addByRssDownloadItemIdText(feed.feedUrl, local.item, 0)
+    );
   });
 });

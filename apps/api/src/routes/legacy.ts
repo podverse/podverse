@@ -1,5 +1,8 @@
 import { config } from '@api/config/index.js';
 import {
+  LegacyEpisodeLookupController,
+  legacyEpisodeLookupInstallRateLimit,
+  legacyEpisodeLookupIpRateLimit,
   LegacyPodcastLookupController,
   legacyPodcastLookupInstallRateLimit,
   legacyPodcastLookupIpRateLimit,
@@ -16,6 +19,13 @@ router.post(
   legacyPodcastLookupIpRateLimit,
   legacyPodcastLookupInstallRateLimit,
   asyncHandler(LegacyPodcastLookupController.lookup)
+);
+
+router.post(
+  '/episode/lookup',
+  legacyEpisodeLookupIpRateLimit,
+  legacyEpisodeLookupInstallRateLimit,
+  asyncHandler(LegacyEpisodeLookupController.lookup)
 );
 
 export const legacyRouter = router;

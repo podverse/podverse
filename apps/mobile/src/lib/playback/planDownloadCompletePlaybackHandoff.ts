@@ -1,6 +1,6 @@
 import type { PlaybackTarget } from '@podverse/playback-core';
 
-import { resolveStoredDownloadFilePath } from '../../downloads/downloadStorage';
+import { isLocalDownloadUrl, resolveStoredDownloadFilePath } from '../../downloads/downloadStorage';
 import type { DownloadRecord } from '../../downloads/downloadTypes';
 
 /**
@@ -53,13 +53,10 @@ const isRemoteHttpUrl = (url: string): boolean => {
   return url.startsWith('http://') || url.startsWith('https://');
 };
 
-const isLocalFileUrl = (url: string): boolean => {
-  return url.startsWith('file://');
-};
-
 /**
- * The download store keeps a file name. Playback needs the absolute file URL for that name
- * in the current document directory.
+ * The download store keeps a private file name, or a `content://` document URI. Playback needs
+ * the absolute URL: a file name joins the current document directory, and a document URI is
+ * already absolute.
  */
 export function resolveDownloadHandoffRecord<T extends DownloadCompleteHandoffRecord>(
   record: T,
@@ -77,8 +74,8 @@ export function resolveDownloadHandoffRecord<T extends DownloadCompleteHandoffRe
 /**
  * When a download of the file currently streaming finishes, return the local URL to load.
  * Any other completion (different item, different enclosure, already local, not item-backed)
- * is ignored so playback is not yanked onto another encode. `filePath` must already be an
- * absolute `file://` URL (`resolveDownloadHandoffRecord`).
+ * is ignored so playback is not yanked onto another encode. `filePath` must already be a
+ * local download URL (`file://` or `content://`) from `resolveDownloadHandoffRecord`.
  */
 export function planDownloadCompletePlaybackHandoff(
   params: PlanDownloadCompletePlaybackHandoffParams
@@ -93,7 +90,7 @@ export function planDownloadCompletePlaybackHandoff(
   }
 
   const filePath = params.record.filePath;
-  if (params.record.status !== 'complete' || filePath === null || !isLocalFileUrl(filePath)) {
+  if (params.record.status !== 'complete' || filePath === null || !isLocalDownloadUrl(filePath)) {
     return null;
   }
 

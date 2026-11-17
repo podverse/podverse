@@ -421,12 +421,11 @@ export function AddByRssEpisodesSection({
     });
   }, [onRefresh]);
 
-  const emptyMessageKey =
-    detail.mappedFeed === null
-      ? 'features.add_by_rss.status_processing'
-      : isMusicFeed
-        ? 'media.music.no_tracks_found'
-        : 'media.podcast.no_episodes_found';
+  const emptyMessageKey = !detail.hasParsedBundle
+    ? 'features.add_by_rss.status_processing'
+    : isMusicFeed
+      ? 'media.music.no_tracks_found'
+      : 'media.podcast.no_episodes_found';
 
   return (
     <>

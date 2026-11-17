@@ -4,6 +4,8 @@ import { cacheGetJson, cacheSetJson } from '@api/lib/keyvaldb/keyvaldb.js';
 
 export type AddByRSSParseDedupeEntry = {
   createdAt: string;
+  /** The parse a later request for this feed should poll, once that parse is stored. */
+  requestId?: string;
 };
 
 const buildAddByRSSParseDedupeKey = (accountId: number, feedUrl: string): string => {
@@ -20,10 +22,11 @@ export const getAddByRSSParseDedupeEntry = async (
 export const setAddByRSSParseDedupeEntry = async (
   accountId: number,
   feedUrl: string,
-  ttlSeconds: number
+  ttlSeconds: number,
+  requestId: string
 ): Promise<void> =>
   cacheSetJson(
     buildAddByRSSParseDedupeKey(accountId, feedUrl),
-    { createdAt: new Date().toISOString() },
+    { createdAt: new Date().toISOString(), requestId },
     ttlSeconds
   );

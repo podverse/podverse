@@ -1,0 +1,37 @@
+-- Unique constraints already index these columns.
+
+DROP INDEX public.idx_account_credentials_account_id;
+DROP INDEX public.idx_account_email_change_verification_id;
+DROP INDEX public.idx_account_fcm_device_fcm_token;
+DROP INDEX public.idx_account_fcm_device_installation_id;
+DROP INDEX public.idx_account_membership_status_account_id;
+DROP INDEX public.idx_account_metaboost_sender_guid;
+DROP INDEX public.idx_account_profile_account_id;
+DROP INDEX public.idx_account_reset_password_account_id;
+DROP INDEX public.idx_account_set_password_account_id;
+DROP INDEX public.idx_account_up_device_account_id;
+DROP INDEX public.idx_account_up_device_up_endpoint;
+DROP INDEX public.idx_account_verification_account_id;
+DROP INDEX public.idx_account_webpush_device_endpoint;
+DROP INDEX public.idx_channel_about_channel_id;
+DROP INDEX public.idx_channel_chat_channel_id;
+DROP INDEX public.idx_channel_description_channel_id;
+DROP INDEX public.idx_channel_feed_id;
+DROP INDEX public.idx_channel_license_channel_id;
+DROP INDEX public.idx_channel_location_channel_id;
+DROP INDEX public.idx_channel_podroll_channel_id;
+DROP INDEX public.idx_channel_publisher_channel_id;
+DROP INDEX public.idx_feed_log_feed_id;
+DROP INDEX public.idx_item_about_item_id;
+DROP INDEX public.idx_item_chapter_location_item_chapter_id;
+DROP INDEX public.idx_item_chapters_feed_item_id;
+DROP INDEX public.idx_item_chapters_feed_log_item_chapters_feed_id;
+DROP INDEX public.idx_item_chapters_object_item_chapters_feed_id;
+DROP INDEX public.idx_item_chat_item_id;
+DROP INDEX public.idx_item_description_item_id;
+DROP INDEX public.idx_item_enclosure_integrity_item_enclosure_id;
+DROP INDEX public.idx_item_license_item_id;
+DROP INDEX public.idx_item_location_item_id;
+DROP INDEX public.idx_item_season_episode_item_id;
+DROP INDEX public.idx_item_value_time_split_remote_item_item_value_time_split_id;
+DROP INDEX public.idx_live_item_item_id;

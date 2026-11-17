@@ -52,8 +52,10 @@ failed. Ten failures in a full window do not stop it. Eleven do. A phase with fe
 200 finished accounts does not stop on rate.
 
 Sample and full restore `.artifacts/v4-full-rehearsal/clean.dump` unless the process is a
-resume or a single `--phase`. Pilot writes that file when it is missing and does not
-restore it. The first pilot has to start from a local database that does not already hold
+resume or a single `--phase`. The restore drops attached partitions in `public` and
+`listener_identity` before `pg_restore --clean`. Do not drop those schemas by hand before
+a stage. Pilot writes that file when it is missing and does not restore it. The first
+pilot has to start from a local database that does not already hold
 rehearsal accounts. This command reads `V4_DATABASE_URL` and does not refresh it. Do not
 replace the snapshot. The later full run, after the operator replaces the snapshot, is
 another night.

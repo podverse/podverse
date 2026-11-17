@@ -11,6 +11,7 @@ import {
 import type { StatsPopularityItem } from '@orm/entities/stats/statsPopularityItem.js';
 import { applyProperties } from '@orm/lib/applyProperties.js';
 import { getChannelCategoryWhere } from '@orm/lib/categoryFilterWhere.js';
+import { enclosureUrlDigest } from '@orm/lib/enclosureUrlDigest.js';
 import {
   findOptionsRelationsFromPaths,
   mergeFindOptionsRelations,
@@ -444,7 +445,7 @@ export class ItemService {
     return this.repositoryRead.findOne({
       where: {
         channel: findWhereChannelId(channel),
-        guid_enclosure_url,
+        guid_enclosure_url_digest: enclosureUrlDigest(guid_enclosure_url),
       },
     });
   }
@@ -474,12 +475,41 @@ export class ItemService {
     return this.repositoryRead.find({
       where: {
         channel: findWhereChannelId(channel),
-        guid_enclosure_url: In(guidEnclosureUrls),
+        guid_enclosure_url_digest: In(guidEnclosureUrls.map((url) => enclosureUrlDigest(url))),
         item_flag_status: {
           id: ItemFlagStatusStatusEnum.Active,
         },
       },
       ...options,
+    });
+  }
+
+  /**
+   * Active items for these id_texts, with the relations the caller names. Missing ids are omitted.
+   */
+  async getManyActiveByIdText(
+    idTexts: readonly string[],
+    relations: FindOptionsRelations<Item> = {}
+  ): Promise<Item[]> {
+    const usable: string[] = [];
+    const seen = new Set<string>();
+    for (const idText of idTexts) {
+      if (idText === '' || seen.has(idText)) {
+        continue;
+      }
+      seen.add(idText);
+      usable.push(idText);
+    }
+    if (usable.length === 0) {
+      return [];
+    }
+
+    return this.repositoryRead.find({
+      where: {
+        id_text: In(usable),
+        item_flag_status: { id: ItemFlagStatusStatusEnum.Active },
+      },
+      relations,
     });
   }
 

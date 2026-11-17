@@ -4212,6 +4212,155 @@ components:
                     type: string
                     enum:
                       - not_here
+    ApiPostLegacyEpisodeLookupRequest:
+      type: object
+      required:
+        - episodes
+      properties:
+        episodes:
+          type: array
+          minItems: 1
+          maxItems: 200
+          items:
+            type: object
+            required:
+              - episode_id
+              - podcast_id
+              - guid
+              - media_url
+            properties:
+              episode_id:
+                type: string
+                minLength: 1
+                maxLength: 14
+              podcast_id:
+                type: string
+                minLength: 1
+                maxLength: 14
+              guid:
+                type: string
+                nullable: true
+                maxLength: 2048
+              media_url:
+                type: string
+                nullable: true
+                maxLength: 2048
+      example:
+        episodes:
+          - episode_id: ep123
+            podcast_id: pod123
+            guid: "https://example.com/episodes/1"
+            media_url: "https://cdn.example.com/episode-1.mp3"
+    ApiPostLegacyEpisodeLookupResponse200:
+      type: object
+      required:
+        - answers
+      properties:
+        answers:
+          type: array
+          items:
+            oneOf:
+              - type: object
+                required:
+                  - episode_id
+                  - kind
+                  - item_id_text
+                  - channel
+                properties:
+                  episode_id:
+                    type: string
+                  kind:
+                    type: string
+                    enum:
+                      - item
+                  item_id_text:
+                    type: string
+                  channel:
+                    type: object
+                    required:
+                      - id_text
+                      - title
+                      - medium_id
+                      - image_url
+                    properties:
+                      id_text:
+                        type: string
+                      title:
+                        type: string
+                        nullable: true
+                      medium_id:
+                        type: integer
+                        nullable: true
+                      image_url:
+                        type: string
+                        nullable: true
+              - type: object
+                required:
+                  - episode_id
+                  - kind
+                  - channel
+                properties:
+                  episode_id:
+                    type: string
+                  kind:
+                    type: string
+                    enum:
+                      - channel
+                  channel:
+                    type: object
+                    required:
+                      - id_text
+                      - title
+                      - medium_id
+                      - image_url
+                    properties:
+                      id_text:
+                        type: string
+                      title:
+                        type: string
+                        nullable: true
+                      medium_id:
+                        type: integer
+                        nullable: true
+                      image_url:
+                        type: string
+                        nullable: true
+              - type: object
+                required:
+                  - episode_id
+                  - kind
+                  - feed_url
+                properties:
+                  episode_id:
+                    type: string
+                  kind:
+                    type: string
+                    enum:
+                      - feed_url
+                  feed_url:
+                    type: string
+              - type: object
+                required:
+                  - episode_id
+                  - kind
+                properties:
+                  episode_id:
+                    type: string
+                  kind:
+                    type: string
+                    enum:
+                      - blocked
+              - type: object
+                required:
+                  - episode_id
+                  - kind
+                properties:
+                  episode_id:
+                    type: string
+                  kind:
+                    type: string
+                    enum:
+                      - not_here
     ApiGetClipPublicCategoryOldestResponse200:
       allOf:
         - $ref: "#/components/schemas/ClipListResponse"
@@ -17514,6 +17663,53 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ApiPostLegacyPodcastLookupResponse200"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ValidationErrorResponse"
+        "429":
+          description: Too many requests
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TooManyRequestsErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InternalServerErrorResponse"
+  /legacy/episode/lookup:
+    post:
+      operationId: apiPostLegacyEpisodeLookup
+      tags:
+        - legacy
+      summary: POST /legacy/episode/lookup
+      description: >-
+        Public endpoint. For each downloaded v4 directory episode, returns the v5 item and its
+        channel, the channel alone when no item matches the guid or media URL, the v4 feed URL
+        when v5 has not parsed the show, blocked for spam and takedown, or not_here. At most 200
+        episodes. The rate limit counts per IP address, and also per X-Podverse-Install-Id when
+        that header is 16–64 characters of letters, digits, underscore, or hyphen. Reads only and
+        does not queue a parse.
+      security: []
+      parameters:
+        - $ref: "#/components/parameters/LegacyInstallIdHeader"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ApiPostLegacyEpisodeLookupRequest"
+      responses:
+        "200":
+          description: One answer per input episode, in input order.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiPostLegacyEpisodeLookupResponse200"
         "400":
           description: Bad request
           content:

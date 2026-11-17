@@ -116,22 +116,41 @@ the normal channel merge moves follows onto a survivor it finds later.
 
 ### Launch queue
 
-Before accounts are invited to migrate, queue one slow parse for every
-podcast in either set below, when that podcast is still public, is not
-flagged `spam` or `takedown`, and has a numeric Podcast Index id:
+Decided 2026-11-16. This is the directory head start. It runs on the beta
+database as soon as the identity stubs are in, and before anyone is invited
+to beta. Beta and production share that database
+([09](09-beta-environment.md)), so the parses are already there when beta
+opens and when that database becomes production. It does not copy a library
+and does not set `v4_library_copied_at`.
 
-- Subscribed: at least one v4 account subscribes to it. About 64,000 on
-  this snapshot.
+Queue one slow parse for every podcast in the sets below, when that podcast
+is still public, is not flagged `spam` or `takedown`, and has a numeric
+Podcast Index id:
+
+- Subscribed: at least one v4 account subscribes to it. About 64,000 on the
+  2026-10-30 snapshot (63,786 distinct).
 - Viewed: the highest `stats_podcast.play_count` on that podcast, across
   daily, weekly, monthly, yearly, and all-time, is 3 or more, and no account
   subscribes to it. 214 on this snapshot. A highest count of 1 or 2 stays
   off this queue.
+- Library-only: the show is not in the two sets above, and it appears on a
+  user clip, a playlist, history, queue, or now playing. These are queued in
+  the same head start. They do not wait for that account's library copy.
 
 The queue is `rss-slow` (slow priority on `rss-normal`). Operators run it.
 A show that already has a local channel is not queued again. The rest of
-the v4 catalog stays off this queue. A public show that appears only on a
-clip, playlist, history row, queue, or now playing item is parsed later,
-when the account that needs it is seeded.
+the v4 catalog stays off this queue. The head start reads whichever v4
+database it is pointed at. Run it again against a newer read before beta
+opens, and again before library copies begin. A show already parsed is left
+alone, and a show added in v4 since the last run is picked up then.
+
+The command is the full stage of `v4SeedStageCatalog`. It creates each
+missing feed, keeps the v4 podcast id as `channel.id_text`, and queues the
+parse. Parsers and the migration retry job loop run beside it. The pilot
+measured about a day and a half for the full catalog before retries, with
+three parser processes. Today the command refuses a database that is not on
+this machine. The beta run is that same stage once it is allowed to write to
+the beta host.
 
 The viewed set exists for signed-out phones, which have no server record in
 v4. `stats_podcast` only chooses what to parse. It is not imported, so this
@@ -575,11 +594,13 @@ database and no map file.
 - `liveItems.start` is `timestamptz` while most other v4 timestamps are
   `timestamp without time zone`. Do not mix them in one comparison without a
   cast.
-- The launch queue is the subscribed public shows plus shows whose highest
-  Matomo count is at least 3. About 64,200 on this snapshot: about 64,000
-  subscribed and 214 viewed. It is not the 7.7 million podcasts in v4.
-  Measure how long that queue takes in
-  [06](06-database-migration-rehearsal.md).
+- The launch queue is the subscribed public shows, shows whose highest
+  Matomo count is at least 3, and shows that appear only on a clip, playlist,
+  history, queue, or now playing row. On this snapshot that is about 64,000
+  subscribed and 214 viewed, plus the library-only set the full stage
+  reports. It is not the 7.7 million podcasts in v4. It starts after the
+  identity stubs and before beta opens
+  ([12](12-production-launch-and-grace-period.md)).
 - `stats_podcast` is Matomo page views from the website, and from the v4 app
   only when tracking was enabled. iOS needed tracking permission. Most
   signed-out app listeners are missing from it. A less common show they
@@ -593,8 +614,8 @@ database and no map file.
 ## Future plan sets
 
 - Schema and worker commands for the legacy map.
-- Worker command that queues the subscribed and viewed public shows on
-  `rss-slow` at go-live, and a measurement of how long that queue takes.
+- Allow the full stage of `v4SeedStageCatalog` to write to the beta host.
+  Until then it refuses a database that is not on this machine.
 - [Feed source](#feed-source) column and `feed_add_event` table: a linear
   migration, and writers in the parser and the add routes.
 - Redirect handler design for [11](11-web-api-and-url-cutover.md).

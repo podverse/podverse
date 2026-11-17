@@ -224,8 +224,9 @@ One plan set, after this doc is accepted:
   checked by hash, not by signing in.
 - A refreshed copy can show classes the old one did not. That is why the full
   stage reruns before go-live.
-- The phone-storage spike in [08](08-mobile-first-launch-migration.md) is not
-  part of this. This rehearsal covers the server copy only.
+- The phone-storage spike in [08](08-mobile-first-launch-migration.md) passed
+  on iOS and Android and is not part of this. This rehearsal covers the
+  server copy only.
 
 ## Pilot `20261114T034901Z`
 
@@ -367,3 +368,19 @@ Every verify failure is one of F1, F3, F4, F5, or F6.
     `resolve_key` `email_case_twin`, pointing at the kept account. Its
     library is copied after the kept row's copy, with caps from the combined
     counts. Its membership, password, and email are not used.
+
+## Pilot `20261115T001006Z`
+
+Counts only.
+
+| Phase      | Done | Failed | Skipped | Total |
+| ---------- | ---- | ------ | ------- | ----- |
+| preflight  | 1    | 0      | 0       | 1     |
+| identity   | 100  | 0      | 0       | 100   |
+| catalog    | 100  | 0      | 0       | 100   |
+| library    | 100  | 0      | 0       | 100   |
+| replay     | 100  | 0      | 0       | 100   |
+| membership | 95   | 0      | 5       | 100   |
+| verify     | 100  | 0      | 0       | 100   |
+
+Catalog feeds settled: 7,977. Waiting: 0. `parse_failed`: 222.

@@ -55,6 +55,8 @@ const optionalOperations = new Set([
   'get /playlist/{playlist_id_text}/resources/queue-by-list-position',
   'get /playlist/{playlist_id_text}/resources/shuffle',
   'get /clip/{clip_id_text}',
+  'post /account/add-by-rss/remote-item/lookup',
+  'post /account/add-by-rss/remote-item/resolve',
 ]);
 
 const closedOperations: ReadonlyArray<readonly [string, string]> = [
@@ -430,7 +432,7 @@ describe('OpenAPI API key permissions', () => {
     for (const resource of API_KEY_RESOURCES) {
       expect(rows.filter((row) => row.resource === resource)).toHaveLength(sectionCounts[resource]);
     }
-    expect(rows.filter((row) => row.optional)).toHaveLength(6);
+    expect(rows.filter((row) => row.optional)).toHaveLength(8);
     expect(rows.some((row) => row.path === '/stats/listen' || row.path === '/stats/open')).toBe(
       false
     );

@@ -42,7 +42,7 @@ const readJson = (raw: string | null): unknown => {
   }
 };
 
-const readArray = (raw: string | null): unknown[] => {
+export const readArray = (raw: string | null): unknown[] => {
   const parsed = readJson(raw);
   if (!Array.isArray(parsed)) {
     return [];
@@ -50,7 +50,7 @@ const readArray = (raw: string | null): unknown[] => {
   return parsed.slice();
 };
 
-const httpUrlWithoutUserinfo = (url: string): string | null => {
+export const httpUrlWithoutUserinfo = (url: string): string | null => {
   const split = splitFeedUrlUserinfo(url);
   let parsed: URL;
   try {
@@ -81,7 +81,7 @@ const readPodcastIds = (raw: string | null): string[] => {
   return ids;
 };
 
-const readCachedFeedUrl = (item: Record<string, unknown>): string | null => {
+export const readCachedFeedUrl = (item: Record<string, unknown>): string | null => {
   const feedUrls = getOwnPropertyValue(item, 'feedUrls');
   if (!Array.isArray(feedUrls)) {
     return null;

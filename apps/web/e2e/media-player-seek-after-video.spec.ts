@@ -6,6 +6,10 @@ import {
   E2E_EMBED_VIDEO_ITEM_ID_TEXT,
   E2E_MUSIC_TRACK_DURATION_SECONDS,
   E2E_MUSIC_TRACK_ONE_ID_TEXT,
+  E2E_PODCAST_ITEM_RESUME_DURATION_SECONDS,
+  E2E_PODCAST_ITEM_RESUME_P_POS_ID_TEXT,
+  E2E_PODCAST_ITEM_RESUME_P_POS_SECONDS,
+  E2E_PODCAST_QUEUE_ID_TEXT,
   EMBED_SAMPLE_EPISODE_VIDEO_TITLE,
 } from './helpers/seedConstants';
 
@@ -19,6 +23,20 @@ async function loginSeedUser(page: Page): Promise<void> {
     data: { email: LOGIN_EMAIL, password: LOGIN_PASSWORD },
   });
   expect(loginResponse.ok(), await loginResponse.text()).toBeTruthy();
+}
+
+/** Puts a podcast episode at now-playing so the player bar restores before this page starts playback. */
+async function promoteSeededPodcastNowPlaying(page: Page): Promise<void> {
+  const response = await page.request.post(
+    `http://localhost:4030/api/v2/queue/${E2E_PODCAST_QUEUE_ID_TEXT}/item/${E2E_PODCAST_ITEM_RESUME_P_POS_ID_TEXT}/now-playing`,
+    {
+      data: {
+        playback_position: E2E_PODCAST_ITEM_RESUME_P_POS_SECONDS,
+        media_file_duration: E2E_PODCAST_ITEM_RESUME_DURATION_SECONDS,
+      },
+    }
+  );
+  expect(response.ok(), await response.text()).toBeTruthy();
 }
 
 function audioLocator(page: Page): Locator {
@@ -82,6 +100,7 @@ test.describe('Media player seek after video unmount', () => {
     test.setTimeout(20_000);
     await page.setViewportSize(DESKTOP_VIEWPORT);
     await loginSeedUser(page);
+    await promoteSeededPodcastNowPlaying(page);
   });
 
   test('Clicking the progress bar still seeks the audio element after a video has played and unmounted', async ({
@@ -98,6 +117,13 @@ test.describe('Media player seek after video unmount', () => {
       }
     });
     await expect.poll(async () => readAudioCurrentTime(page)).toBeLessThan(3);
+    // The bar can still show the previous item until this file's duration is published.
+    await expect
+      .poll(async () => {
+        const rawMax = await visibleProgressBarLocator(page).getAttribute('aria-valuemax');
+        return rawMax === null ? Number.NaN : Number(rawMax);
+      })
+      .toBeGreaterThan(E2E_MUSIC_TRACK_DURATION_SECONDS - 5);
 
     // Click the middle of the progress bar — the user's exact action. This routes through
     // `useMediaPlayerControls().seek`, which must reach the live audio element.
