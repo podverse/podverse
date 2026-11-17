@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import type { IdentityRemapSnapshot } from './identityRemap';
-import { remapIdentity } from './identityRemap';
+import { directoryIdentityIds, remapIdentity } from './identityRemap';
 
 const emptySnapshot = (): IdentityRemapSnapshot => ({
   applied: [],
@@ -22,6 +22,24 @@ const emptySnapshot = (): IdentityRemapSnapshot => ({
   sectionChrome: [],
   sortKeys: [],
   subscribedChannels: [],
+});
+
+describe('directoryIdentityIds', () => {
+  it('keeps directory ids and drops an Add by RSS download key that would fail the batch', () => {
+    const addByRssDownloadId =
+      'http://localhost:2111/e2e/v4-carryover/podcasting20.xml::PC20-276';
+
+    expect(
+      directoryIdentityIds([
+        'e2ePc20Ep275',
+        ' e2ePc20Ep274 ',
+        addByRssDownloadId,
+        'e2ePc20Ep275',
+        '',
+        'http://short.example/feed.xml::ep',
+      ])
+    ).toEqual(['e2ePc20Ep275', 'e2ePc20Ep274']);
+  });
 });
 
 describe('remapIdentity', () => {

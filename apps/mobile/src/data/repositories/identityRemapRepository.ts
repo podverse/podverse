@@ -24,7 +24,12 @@ import type {
   IdentityRemapSnapshot,
   IdentitySortKey,
 } from '../identityRemap';
-import { collectIdTexts, IDENTITY_RESOLVE_CHUNK_SIZE, remapIdentity } from '../identityRemap';
+import {
+  collectIdTexts,
+  directoryIdentityIds,
+  IDENTITY_RESOLVE_CHUNK_SIZE,
+  remapIdentity,
+} from '../identityRemap';
 import {
   reprojectLibraryChildrenForChannel,
   reprojectLibraryIndex,
@@ -615,8 +620,8 @@ const resolveMoves = async (
   channelIdTexts: readonly string[],
   itemIdTexts: readonly string[]
 ): Promise<IdentityRemapMoves> => {
-  const channels = uniqueIds(channelIdTexts);
-  const items = uniqueIds(itemIdTexts);
+  const channels = directoryIdentityIds(channelIdTexts);
+  const items = directoryIdentityIds(itemIdTexts);
   if (channels.length === 0 && items.length === 0) {
     return { channels: [], items: [] };
   }

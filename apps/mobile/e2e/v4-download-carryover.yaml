@@ -181,7 +181,8 @@ name: V4 Download Carryover
 - takeScreenshot: v4-download-carryover-local-episode-deleted
 
 # Deleted outcome and counts: one error-log entry for the pass.
-# More is two pages on phone; iOS XCUITest omits off-screen testIDs until this row is scrolled in.
+# More is two pages on phone. The Advanced row's bottom edge sits under the mini player, so a
+# tap there opens the player. Centering the row puts the tap on the row.
 - tapOn:
     id: tab-more
 - assertVisible:
@@ -191,6 +192,7 @@ name: V4 Download Carryover
       id: more-nav-advanced
     direction: DOWN
     timeout: ${TIMEOUT_FAST}
+    centerElement: true
 - tapOn:
     id: more-nav-advanced
 - assertVisible:

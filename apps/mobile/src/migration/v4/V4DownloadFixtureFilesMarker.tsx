@@ -1,6 +1,8 @@
 import { useSyncExternalStore } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { HEADER_BAR_HEIGHT } from '../../components/screen/HeaderBar';
 import { isMobileE2eFromEnv } from '../../config/env';
 import {
   getV4DownloadFixtureFilesMarker,
@@ -11,39 +13,50 @@ import {
  * E2E-only marker above the root navigator. `v4-download-fixture-files-e2e` lists planted
  * download file names still at the document root, or `none` once every planted name is gone.
  *
- * The node is a 1×1 absolute marker, same as the playback and perf markers. It does not receive
- * touches.
+ * The box sits in the header row, just left of the playback status markers, and paints nothing.
+ * A 1px box at the top of the window sits under the status bar, and Android leaves it out of the
+ * accessibility tree. It does not receive touches.
  */
+const MARKER_HEIGHT = 44;
+const MARKER_WIDTH = 28;
+/** Playback status is three boxes wide, then a gap, then this one. */
+const PLAYBACK_MARKER_SLOTS = 3;
+
 export function V4DownloadFixtureFilesMarker() {
   const label = useSyncExternalStore(
     subscribeV4DownloadFixtureFilesMarker,
     getV4DownloadFixtureFilesMarker
   );
+  const insets = useSafeAreaInsets();
 
   if (!__DEV__ || !isMobileE2eFromEnv()) {
     return null;
   }
 
   return (
-    <View pointerEvents="none" style={styles.host}>
-      <Text numberOfLines={1} style={styles.marker} testID="v4-download-fixture-files-e2e">
-        {label}
-      </Text>
-    </View>
+    <View
+      accessibilityLabel={label}
+      accessible
+      collapsable={false}
+      importantForAccessibility="yes"
+      pointerEvents="none"
+      style={[
+        styles.marker,
+        {
+          right: HEADER_BAR_HEIGHT + 12 + MARKER_WIDTH * PLAYBACK_MARKER_SLOTS + 8,
+          top: insets.top,
+        },
+      ]}
+      testID="v4-download-fixture-files-e2e"
+    />
   );
 }
 
 const styles = StyleSheet.create({
-  host: {
-    height: 1,
-    left: 0,
-    overflow: 'hidden',
-    position: 'absolute',
-    top: 0,
-    width: 1,
-  },
   marker: {
-    height: 1,
-    width: 1,
+    height: MARKER_HEIGHT,
+    position: 'absolute',
+    width: MARKER_WIDTH,
+    zIndex: 2000,
   },
 });

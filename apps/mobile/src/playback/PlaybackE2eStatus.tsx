@@ -1,6 +1,8 @@
 import { useSyncExternalStore } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { HEADER_BAR_HEIGHT } from '../components/screen/HeaderBar';
 import { isMobileE2eFromEnv } from '../config/env';
 import { usePlaybackSession } from './PlaybackProvider';
 import { getPlaybackSourceMarker, subscribePlaybackSourceMarker } from './playbackSourceMarker';
@@ -13,28 +15,57 @@ import { getPlaybackSourceMarker, subscribePlaybackSourceMarker } from './playba
  * `playback-source-e2e` is `remote` while streaming and `local` after a completed download of that
  * file is what the engine is playing.
  *
- * The node is a 1×1 absolute marker, same as the perf report. It does not receive touches.
+ * Each label is a header-row box with no painted content. A 1px box at the top of the window sits
+ * under the status bar, and Android leaves it out of the accessibility tree. These match the
+ * quick-login targets: full opacity, inset past the back control and a trailing header action,
+ * and they do not receive touches.
  */
+const MARKER_HEIGHT = 44;
+const MARKER_WIDTH = 28;
+
 export function PlaybackE2eStatus() {
   const { activeTarget, isPlaying, nowPlaying } = usePlaybackSession();
   const source = useSyncExternalStore(subscribePlaybackSourceMarker, getPlaybackSourceMarker);
+  const insets = useSafeAreaInsets();
 
   if (!isMobileE2eFromEnv() || activeTarget === null) {
     return null;
   }
 
+  const activeLabel = isPlaying ? 'playing' : 'paused';
+  const titleLabel = nowPlaying?.title ?? '';
+
   return (
-    <View pointerEvents="none" style={styles.host}>
-      <Text numberOfLines={1} style={styles.marker} testID="playback-active-e2e">
-        {isPlaying ? 'playing' : 'paused'}
-      </Text>
-      <Text numberOfLines={1} style={styles.marker} testID="playback-now-playing-title-e2e">
-        {nowPlaying?.title ?? ''}
-      </Text>
+    <View
+      collapsable={false}
+      pointerEvents="none"
+      style={[styles.host, { top: insets.top }]}
+    >
+      <View
+        accessibilityLabel={activeLabel}
+        accessible
+        collapsable={false}
+        importantForAccessibility="yes"
+        style={styles.marker}
+        testID="playback-active-e2e"
+      />
+      <View
+        accessibilityLabel={titleLabel}
+        accessible
+        collapsable={false}
+        importantForAccessibility="yes"
+        style={styles.marker}
+        testID="playback-now-playing-title-e2e"
+      />
       {source !== null ? (
-        <Text numberOfLines={1} style={styles.marker} testID="playback-source-e2e">
-          {source}
-        </Text>
+        <View
+          accessibilityLabel={source}
+          accessible
+          collapsable={false}
+          importantForAccessibility="yes"
+          style={styles.marker}
+          testID="playback-source-e2e"
+        />
       ) : null}
     </View>
   );
@@ -42,15 +73,14 @@ export function PlaybackE2eStatus() {
 
 const styles = StyleSheet.create({
   host: {
-    height: 1,
-    left: 0,
-    overflow: 'hidden',
+    flexDirection: 'row',
+    height: MARKER_HEIGHT,
     position: 'absolute',
-    top: 0,
-    width: 1,
+    right: HEADER_BAR_HEIGHT + 12,
+    zIndex: 2000,
   },
   marker: {
-    height: 1,
-    width: 1,
+    height: MARKER_HEIGHT,
+    width: MARKER_WIDTH,
   },
 });
