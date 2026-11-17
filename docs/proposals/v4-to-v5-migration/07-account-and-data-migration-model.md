@@ -102,10 +102,13 @@ already have a local feed. Without `--dry-run` it creates each missing local
 feed, keeps the v4 podcast id as `channel.id_text`, and queues a parse. It
 refuses a non-local database.
 
-Before accounts are invited to migrate, queue the subscribed public shows
-and shows whose highest Matomo count is at least 3 on `rss-slow`. A show
-already stored is left alone. Other shows wait for the account that needs
-them. The rules are the launch queue in
+As soon as the identity stubs are in, and before anyone is invited to beta,
+run the directory head start on that same database. Libraries stay uncopied.
+The head start queues the subscribed public shows, the viewed shows, and the
+shows that appear only on a clip, playlist, history, queue, or now playing
+row. A show already stored is left alone. Run it again against a newer v4
+read before beta opens, and again before library copies begin. The rules are
+the launch queue in
 [05](05-id-mapping-and-catalog-seeding.md#launch-queue).
 
 The v4 API keeps serving that person until the library copy finishes. The

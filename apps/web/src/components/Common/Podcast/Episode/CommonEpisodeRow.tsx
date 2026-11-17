@@ -24,11 +24,17 @@ import { useModals } from '../../../../contexts/Modals';
 import { useQueues } from '../../../../contexts/Queue';
 import { useQueueResourcesAbridgedIndex } from '../../../../contexts/QueueResourcesAbridgedIndex';
 import { getApiRequestService } from '../../../../factories/apiRequestService';
+import { useMarkQueueResourcePlayed } from '../../../../hooks/useMarkQueueResourcePlayed';
 import { useMediaPlayerResourceUpdate } from '../../../../hooks/useMediaPlayerResourceUpdate';
 import { useQueueAddWithGate } from '../../../../hooks/useQueueAddWithGate';
 import { playbackTargetFromStandardLoad } from '../../../../lib/playback';
+import {
+  isQueueResourcePlayed,
+  markPlayedAfterWrite,
+} from '../../../../lib/queue/queueResourcePlayed';
 import { downloadEpisodeWithModal } from '../../../../utils/downloadModal/downloadEpisodeWithModal';
 import { downloadAndSaveFile } from '../../../../utils/fileDownloader';
+import { checkIsLiveItem } from '../../../../utils/mediaPlayer/mediaPlayerItemEnclosureType';
 import { ItemRowMoreActions } from '../../../Media/ItemRowMoreActions';
 import { PlayButtonRow } from '../../../MediaPlayer/Buttons/PlayButtonRow';
 import { ReadableDate } from '../../../Time/ReadableDate';
@@ -67,6 +73,7 @@ export const CommonEpisodeListRow: React.FC<EpisodeListRowProps> = ({
   const mediaPlayerResourceUpdate = useMediaPlayerResourceUpdate();
   const { setModalPlaylistAddTo, setModalSourceSelector, setModalLoginRequired } = useModals();
   const { queueResourcesAbridgedIndex } = useQueueResourcesAbridgedIndex();
+  const markQueueResourcePlayed = useMarkQueueResourcePlayed();
   const { durationStr, positionStr } = getDurationAndPositionStr(item, queueResourcesAbridgedIndex);
   const { autoQueueConfig } = useAutoQueue();
 
@@ -180,9 +187,18 @@ export const CommonEpisodeListRow: React.FC<EpisodeListRowProps> = ({
     const queue = getQueueForMedium(queues, channel.medium_id);
     if (queue) {
       showToastPromise(
-        apiRequestService.reqQueueResourceItemAddHistory(queue.id_text, item.id_text, {
-          completed: true,
-        }),
+        markPlayedAfterWrite(
+          apiRequestService.reqQueueResourceItemAddHistory(queue.id_text, item.id_text, {
+            completed: true,
+          }),
+          () => {
+            markQueueResourcePlayed({
+              duration: item.item_about?.duration ?? null,
+              id: item.id,
+              kind: 'item',
+            });
+          }
+        ),
         {
           success: tFeatures('history.marked_as_played'),
           error: tFeatures('history.mark_as_played_error'),
@@ -305,6 +321,14 @@ export const CommonEpisodeListRow: React.FC<EpisodeListRowProps> = ({
         <div className={styles.bottomSection}>
           <div className={styles.bottomSectionStart}>
             <PlayButtonRow
+              completed={
+                checkIsLiveItem(item)
+                  ? false
+                  : isQueueResourcePlayed(queueResourcesAbridgedIndex, {
+                      id: item.id,
+                      kind: 'item',
+                    })
+              }
               item={item}
               onClick={playButtonOnClick}
               afterPlay={

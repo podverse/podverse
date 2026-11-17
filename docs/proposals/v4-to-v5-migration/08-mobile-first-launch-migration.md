@@ -57,17 +57,23 @@ users who have no server graph.
      phone parses and refreshes itself with no feed limit
      ([ADD-BY-RSS.md](/docs/features/ADD-BY-RSS.md)). Add by RSS addresses never go
      through the legacy lookup.
-   - Import queue / history / now playing best-effort.
+   - Do not read `QUEUE_ITEMS`, `HISTORY_ITEMS`, `HISTORY_ITEMS_INDEX`, or
+     `NOW_PLAYING_ITEM`. A signed-out phone starts queue, history, and now
+     playing empty. A person who signs in gets them from the account copy in
+     [07](07-account-and-data-migration-model.md), not from these keys. Decided
+     2026-11-16. There is no on-device importer to build for them.
    - Attempt to reattach download files when paths and names still match;
      otherwise mark for re-download.
    - Do **not** reuse the v4 Bearer token against v5. Clear it. There is no
      session exchange ([02](02-capabilities-and-limits.md)).
 3. Persist a `localMigrationCompleted` flag so the pass runs once.
 4. Signed-out carryover is good enough when the subscribed podcasts and Add
-   by RSS addresses that were on the phone are present. Queue, history, and
-   downloaded files are best-effort and may be missing. If the old storage
-   cannot be read, the phone starts empty. The signed-in library copy remains
-   the reliable path ([07](07-account-and-data-migration-model.md)).
+   by RSS addresses that were on the phone are present. Downloaded files are
+   best-effort and may be missing. Queue, history, and now playing are not
+   part of this pass: a signed-out phone starts them empty, and a signed-in
+   account gets them from the server copy. If the old storage cannot be read,
+   the phone starts empty. The signed-in library copy remains the reliable
+   path ([07](07-account-and-data-migration-model.md)).
 
 5. Notification settings are not copied. The account uses v5's own defaults.
    The person changes them later if they want. v4 `notifications` rows are
@@ -158,6 +164,10 @@ the migration move them to the directory as v5 parses those shows.
 
 - If AsyncStorage is not readable from the Expo app, signed-out users reset to
   empty local state. Be honest in release notes and emails.
+- Queue, history, and now playing are account data. The phone does not copy
+  them from v4 storage for anyone. A signed-out phone starts them empty. They
+  arrive when the person signs in, from the account copy in
+  [07](07-account-and-data-migration-model.md). Decided 2026-11-16.
 - Custom Android download locations may be invisible to the new app.
 - A show that no account subscribed to, and whose highest Matomo count is
   below 3, is not parsed at launch. A signed-out phone keeps it as an Add by

@@ -26,8 +26,7 @@ const emptySnapshot = (): IdentityRemapSnapshot => ({
 
 describe('directoryIdentityIds', () => {
   it('keeps directory ids and drops an Add by RSS download key that would fail the batch', () => {
-    const addByRssDownloadId =
-      'http://localhost:2111/e2e/v4-carryover/podcasting20.xml::PC20-276';
+    const addByRssDownloadId = 'http://localhost:2111/e2e/v4-carryover/podcasting20.xml::PC20-276';
 
     expect(
       directoryIdentityIds([

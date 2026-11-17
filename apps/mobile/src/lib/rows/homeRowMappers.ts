@@ -48,7 +48,9 @@ type PlaylistResourceHomeRowOptions = {
  */
 export type ItemHomeRowSource = {
   channel?: Pick<DTOChannel, 'channel_images' | 'medium_id' | 'title'>;
+  id?: number;
   id_text: string;
+  live_item?: unknown;
   item_about?: { duration?: string | null };
   item_description?: { value?: string | null; preview?: string | null; is_truncated?: boolean };
   item_images: DTOItemImage[];
@@ -64,6 +66,44 @@ const itemDescriptionPlain = (item: ItemHomeRowSource): string | null => {
 const itemDuration = (item: ItemHomeRowSource): string | null => {
   const duration = item.item_about?.duration?.trim() ?? '';
   return duration.length > 0 ? duration : null;
+};
+
+const itemPlayedCompletion = (item: ItemHomeRowSource): HomeFeedRowData['completion'] => {
+  if (typeof item.id !== 'number') {
+    return undefined;
+  }
+  if (item.live_item !== null && item.live_item !== undefined) {
+    return undefined;
+  }
+  return { idText: item.id_text, kind: 'item', numericId: item.id };
+};
+
+const clipPlayedCompletion = (clip: {
+  id?: number;
+  id_text: string;
+}): HomeFeedRowData['completion'] => {
+  if (typeof clip.id !== 'number') {
+    return undefined;
+  }
+  return { idText: clip.id_text, kind: 'clip', numericId: clip.id };
+};
+
+const recordIsLivestream = (record: Record<string, unknown>): boolean => {
+  return (
+    (record.liveItem !== undefined && record.liveItem !== null) ||
+    (record.livestream_item !== undefined && record.livestream_item !== null)
+  );
+};
+
+const addByRssPlayedCompletion = (
+  hash: string,
+  mediaType: 'episodes' | 'tracks',
+  record: Record<string, unknown>
+): HomeFeedRowData['completion'] => {
+  if (mediaType === 'tracks' || recordIsLivestream(record)) {
+    return undefined;
+  }
+  return { idText: hash, kind: 'add_by_rss', numericId: null };
 };
 
 export function channelToHomeRow(channel: DTOChannel): HomeFeedRowData {
@@ -97,6 +137,7 @@ export const MIXED_SOURCE_CLIP_ROW_OPTIONS: ClipHomeRowOptions = {
  */
 export type ClipHomeRowSource = {
   end_time?: string | number | null;
+  id?: number;
   id_text: string;
   item?: ItemHomeRowSource | null;
   removed_source?: DTORemovedSource | null;
@@ -188,9 +229,11 @@ export function clipToHomeRow(
   }
 
   if (item === null || item === undefined) {
+    const completion = clipPlayedCompletion(clip);
     return {
       clipEndTime,
       clipStartTime,
+      ...(completion !== undefined ? { completion } : {}),
       description: null,
       duration: null,
       id: clip.id_text,
@@ -201,9 +244,11 @@ export function clipToHomeRow(
     };
   }
 
+  const completion = clipPlayedCompletion(clip);
   return {
     clipEndTime,
     clipStartTime,
+    ...(completion !== undefined ? { completion } : {}),
     description: itemDescriptionPlain(item),
     duration: null,
     id: clip.id_text,
@@ -337,12 +382,14 @@ export const clipHomeRowSourceFromUnknown = (value: unknown): ClipHomeRowSource 
 
   const startTime = value.start_time;
   const endTime = value.end_time;
+  const numericId = value.id;
 
   const sourceRemovedAt = value.source_removed_at;
   const removedSource = readRemovedSource(value.removed_source);
 
   return {
     end_time: typeof endTime === 'number' || typeof endTime === 'string' ? endTime : null,
+    ...(typeof numericId === 'number' ? { id: numericId } : {}),
     id_text: idText,
     item: readClipItem(value.item),
     ...(removedSource !== null ? { removed_source: removedSource } : {}),
@@ -356,7 +403,9 @@ export const clipHomeRowSourceFromUnknown = (value: unknown): ClipHomeRowSource 
 
 export function itemToHomeRow(item: ItemHomeRowSource): ItemHomeRow {
   const mediumId = item.channel?.medium_id ?? null;
+  const completion = itemPlayedCompletion(item);
   return {
+    ...(completion !== undefined ? { completion } : {}),
     description: itemDescriptionPlain(item),
     duration: itemDuration(item),
     id: item.id_text,
@@ -375,6 +424,11 @@ function itemSoundbiteToHomeRow(itemSoundbite: DTOItemSoundbite): PlaylistResour
   }
 
   return {
+    completion: {
+      idText: itemSoundbite.id_text,
+      kind: 'soundbite',
+      numericId: itemSoundbite.id,
+    },
     description: itemDescriptionPlain(item),
     duration: itemSoundbite.duration?.trim() || itemDuration(item),
     id: `soundbite-${itemSoundbite.id_text}`,
@@ -491,7 +545,11 @@ export function playlistResourceToHomeRow(
       })
     : '';
 
+  const mediaType = resolveAddByRssMediaType(resourceData);
+  const completion = addByRssPlayedCompletion(addByRssHashId, mediaType, resourceData);
+
   return {
+    ...(completion !== undefined ? { completion } : {}),
     description: descriptionRaw ?? (descriptionFromItem.length > 0 ? descriptionFromItem : null),
     duration:
       typeof durationRaw === 'number'
@@ -504,7 +562,7 @@ export function playlistResourceToHomeRow(
       toAddByRssImages(resourceData.item_images),
       toAddByRssImages(resourceData.channel_images)
     ),
-    mediaType: resolveAddByRssMediaType(resourceData),
+    mediaType,
     subtitle: getNonEmptyTrimmedStringProperty(resourceData, 'channel_title'),
     title,
     updatedAt:
@@ -653,7 +711,11 @@ const addByRssToHomeRow = (
       })
     : '';
 
+  const mediaType = resolveAddByRssMediaType(resourceData);
+  const completion = addByRssPlayedCompletion(addByRssHashId, mediaType, resourceData);
+
   return {
+    ...(completion !== undefined ? { completion } : {}),
     description: descriptionRaw ?? (descriptionFromItem.length > 0 ? descriptionFromItem : null),
     duration:
       typeof durationRaw === 'number'
@@ -666,7 +728,7 @@ const addByRssToHomeRow = (
       toAddByRssImages(resourceData.item_images),
       toAddByRssImages(resourceData.channel_images)
     ),
-    mediaType: resolveAddByRssMediaType(resourceData),
+    mediaType,
     queueResourceId: resource.id,
     subtitle: getNonEmptyTrimmedStringProperty(resourceData, 'channel_title'),
     title,
@@ -684,7 +746,17 @@ export function queueResourceToHomeRow(
   if (item !== null) {
     const itemRow = itemToHomeRow(item);
     const mediaType = resource.clip || resource.item_soundbite ? 'clips' : itemRow.mediaType;
+    const completion = resource.clip
+      ? clipPlayedCompletion(resource.clip)
+      : resource.item_soundbite
+        ? {
+            idText: resource.item_soundbite.id_text,
+            kind: 'soundbite' as const,
+            numericId: resource.item_soundbite.id,
+          }
+        : itemRow.completion;
     return {
+      ...(completion !== undefined ? { completion } : {}),
       contentTarget: resolveQueueResourceContentTarget(resource, item),
       description: itemRow.description,
       duration: itemRow.duration,

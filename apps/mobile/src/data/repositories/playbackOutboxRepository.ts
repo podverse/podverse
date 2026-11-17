@@ -11,6 +11,7 @@ import { requestWithMobileAuthRefresh } from '../../auth/authRequestWithRefresh'
 import { createUuid } from '../../lib/createUuid';
 import { isEffectivelyOffline } from '../../net/connectivity';
 import { getDb, initializeDatabase, safeJsonParse, schema } from '../db';
+import { noteQueueCompletionFromPlayback } from '../queueCompletionStore';
 import { readPlaybackClockOffsetMs, writePlaybackClockOffsetMs } from '../sync';
 import type {
   PlaybackLocalStateValue,
@@ -903,6 +904,10 @@ export const playbackOutboxRepository = {
           .where(inArray(schema.playbackOutbox.id, evictIds));
       }
     });
+
+    if (event.completed === true) {
+      noteQueueCompletionFromPlayback(event.resourceKind, event.resourceIdText);
+    }
 
     return true;
   },

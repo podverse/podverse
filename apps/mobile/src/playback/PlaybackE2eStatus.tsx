@@ -36,11 +36,7 @@ export function PlaybackE2eStatus() {
   const titleLabel = nowPlaying?.title ?? '';
 
   return (
-    <View
-      collapsable={false}
-      pointerEvents="none"
-      style={[styles.host, { top: insets.top }]}
-    >
+    <View collapsable={false} pointerEvents="none" style={[styles.host, { top: insets.top }]}>
       <View
         accessibilityLabel={activeLabel}
         accessible

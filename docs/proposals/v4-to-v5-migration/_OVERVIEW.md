@@ -44,6 +44,7 @@ commits them.
 | Only operators run commands against the practice-run database copy       | Decided |
 | On-device ids are saved first and matched when the network is available  | Decided |
 | Signed-out phone carryover bar is subscriptions and Add by RSS           | Decided |
+| Signed-out queue, history, and now playing stay empty until sign-in      | Decided |
 | First store version is the app version; Android code stays above 5280    | Decided |
 | v5 reuses Firebase project podverse-app; v4 tokens stay out              | Decided |
 | Next alpha, beta, and prod send with podverse-next-fcm; v4 admin stays   | Decided |
@@ -57,7 +58,7 @@ commits them.
 | Playlist members come from the joins; `itemsOrder` only sorts            | Decided |
 | A follow uses the survivor when an absorb merge is already applied       | Decided |
 | The selective seed skips spam, takedown, and non-public podcasts         | Decided |
-| At go-live, queue subscribed shows and Matomo views of 3 or more         | Decided |
+| Directory parse starts after account stubs, before beta opens            | Decided |
 | Signed-out v4 ids use a read-only lookup; signed-out never adds feeds    | Decided |
 | The legacy podcast lookup accepts at most 2,000 ids per request          | Decided |
 | Signed-out Add by RSS refreshes on the phone with no feed limit          | Decided |

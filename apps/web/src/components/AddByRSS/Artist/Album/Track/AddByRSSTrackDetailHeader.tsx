@@ -18,9 +18,11 @@ import { useMediaPlayer } from '../../../../../contexts/MediaPlayer';
 import { useModals } from '../../../../../contexts/Modals';
 import { useQueues } from '../../../../../contexts/Queue';
 import { getApiRequestService } from '../../../../../factories/apiRequestService';
+import { useMarkQueueResourcePlayed } from '../../../../../hooks/useMarkQueueResourcePlayed';
 import { usePlayAddByRSS } from '../../../../../hooks/usePlayAddByRSS';
 import { useQueueAddWithGate } from '../../../../../hooks/useQueueAddWithGate';
 import type { ArtistLineLink } from '../../../../../lib/artistPublishers';
+import { markPlayedAfterWrite } from '../../../../../lib/queue/queueResourcePlayed';
 import { getAddByRSSItemPath } from '../../../../../utils/addByRSS/itemPath';
 import type { AddByRSSItemIndexItem } from '../../../../../utils/addByRSS/types';
 import { downloadAddByRSSMediaWithModal } from '../../../../../utils/downloadModal/downloadAddByRSSMediaWithModal';
@@ -56,6 +58,7 @@ export const AddByRSSTrackDetailHeader: React.FC<AddByRSSTrackDetailHeaderProps>
   const { loggedInAccount } = useAccount();
   const { setModalPlaylistAddTo, setModalLoginRequired, setModalSourceSelector } = useModals();
   const { queues } = useQueues();
+  const markQueueResourcePlayed = useMarkQueueResourcePlayed();
   const { mpAddByRSS, mpIsPlaying, setMPIsPlaying } = useMediaPlayer();
   const playAddByRSS = usePlayAddByRSS();
   const apiRequestService = getApiRequestService();
@@ -142,10 +145,19 @@ export const AddByRSSTrackDetailHeader: React.FC<AddByRSSTrackDetailHeaderProps>
     if (!queue || !indexItem) return;
     const add_by_rss_resource_data = buildAddByRSSResourceData(indexItem);
     showToastPromise(
-      apiRequestService.reqQueueResourceItemAddByRSSAddHistory(queue.id_text, {
-        add_by_rss_resource_data,
-        completed: true,
-      }),
+      markPlayedAfterWrite(
+        apiRequestService.reqQueueResourceItemAddByRSSAddHistory(queue.id_text, {
+          add_by_rss_resource_data,
+          completed: true,
+        }),
+        () => {
+          markQueueResourcePlayed({
+            duration: null,
+            hash: getAddByRSSHashId(indexItem),
+            kind: 'add_by_rss',
+          });
+        }
+      ),
       {
         success: tFeatures('history.marked_as_played'),
         error: tFeatures('history.mark_as_played_error'),

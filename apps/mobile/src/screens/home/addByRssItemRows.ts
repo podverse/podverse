@@ -65,6 +65,15 @@ export const toAddByRssItemHomeRow = (
   }
 
   return {
+    ...(item.playbackMediaId.length > 0
+      ? {
+          completion: {
+            idText: item.playbackMediaId,
+            kind: 'add_by_rss' as const,
+            numericId: null,
+          },
+        }
+      : {}),
     description: item.description,
     duration: item.duration,
     id: item.id,

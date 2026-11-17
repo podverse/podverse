@@ -19,6 +19,7 @@ import {
   UNSEEN_INDICATOR_SIZE,
   UnseenIndicator,
 } from '../../components/primitives';
+import { useQueueResourceCompleted } from '../../data/useQueueResourceCompleted';
 import { downloadActionLabelKey, runDownloadAction } from '../../downloads/downloadAction';
 import { useDownloadAction } from '../../downloads/useDownloads';
 import { formatPlaybackDurationLabel } from '../../lib/formatPlaybackDurationLabel';
@@ -562,6 +563,9 @@ export const HomeFeedRow = memo(function HomeFeedRow({
   const showScheduledLivestreamMore =
     mediaType === 'livestreams' && !isPlayable && moreActions.length > 0;
   const showLiveStatusBand = itemLiveStatus !== null && mediaType !== 'tracks';
+  const played = useQueueResourceCompleted(
+    showPlayBand && !showLiveStatusBand ? (row.completion ?? null) : null
+  );
 
   const downloadControl =
     download !== undefined && mediaType !== 'livestreams' ? (
@@ -592,6 +596,7 @@ export const HomeFeedRow = memo(function HomeFeedRow({
           : [channelLabel, removedLabel, row.title, updatedLabel]),
         description,
         durationLabel,
+        played ? t('features.history.played') : null,
         isChannelList ? liveLabel : itemLiveStatusLabel,
         unseenSpoken,
         showItemDot ? t('subscriptions.row.unseen_indicator_aria') : null,
@@ -744,6 +749,7 @@ export const HomeFeedRow = memo(function HomeFeedRow({
               onPlayPress={() => {
                 onPlayPress(row);
               }}
+              completed={played}
               playbackMediaId={row.playbackMediaId ?? row.id}
               playLabel={t('media_player.play')}
               playTestID={playTestID ?? `home-row-play-${row.id}`}

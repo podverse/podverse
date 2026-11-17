@@ -1,5 +1,6 @@
 import { eq, like } from 'drizzle-orm';
 
+import { getAddByRSSHashId } from '@podverse/helpers';
 import type {
   DTOQueue,
   DTOQueueResource,
@@ -17,6 +18,11 @@ import { getDb, initializeDatabase, safeJsonParse, schema } from '../db';
 import type { NativeCacheQueueEntry } from '../nativeCache';
 import { projectQueueSnapshotToNativeCache } from '../nativeCache';
 import { nativeQueueEntryFromQueueResource } from '../nativeCache/queueEntryMapping';
+import {
+  publishQueueCompletionFromAbridged,
+  resetQueueCompletionStore,
+  setQueueCompletionOverride,
+} from '../queueCompletionStore';
 import { readThroughOrFetch, shouldSkipOpportunisticRemoteFetch } from '../sync';
 import { nativeAdvanceSourceRepository } from './nativeAdvanceSourceRepository';
 import type { MobileAuthRequestContext } from './types';
@@ -317,6 +323,14 @@ const addResourceToHistory = async (
     return api.reqQueueResourceItemAddHistory(queueIdText, target.idText, params);
   });
 
+  if (target.completed === true || target.completed === false) {
+    const idText =
+      target.kind === 'add_by_rss'
+        ? getAddByRSSHashId(withCanonicalAddByRssFeedUrl(target.resourceData))
+        : target.idText;
+    setQueueCompletionOverride(target.kind, idText, target.completed);
+  }
+
   return refreshQueueViewsAfterMutation(context, queueIdText, generation);
 };
 
@@ -378,7 +392,9 @@ export const queueRepository = {
       },
     });
 
-    return abridged ?? [];
+    const rows = abridged ?? [];
+    publishQueueCompletionFromAbridged(rows);
+    return rows;
   },
 
   getNowPlaying: async (
@@ -802,6 +818,7 @@ export const queueRepository = {
       api.reqQueueResourcesGetAllByAccountAbridged()
     );
     await writeQueueCache(CACHE_KEY_ABRIDGED_INDEX, abridged, generation);
+    publishQueueCompletionFromAbridged(abridged);
 
     for (const queueIdText of uniqueQueueIdTexts) {
       await deleteQueueCacheByPrefix(`history:${queueIdText}:`);
@@ -819,6 +836,7 @@ export const queueRepository = {
    * manual queue rows), its saved source (it holds auto-queue rows), and history.
    */
   clearAll: async (): Promise<void> => {
+    resetQueueCompletionStore();
     queueCacheGeneration += 1;
     await initializeDatabase();
     await getDb().delete(schema.queueCache);

@@ -1,6 +1,6 @@
 import { useTranslations } from 'next-intl';
 import type { ReactNode } from 'react';
-import { FaPause, FaPlay } from 'react-icons/fa6';
+import { FaCheck, FaPause, FaPlay } from 'react-icons/fa6';
 
 import type {
   AddByRSSResourceData,
@@ -38,6 +38,11 @@ type PlayButtonRowProps = {
    * Date, duration, or time range for this row. It stays left of the in-row progress bar.
    */
   beforeProgress?: ReactNode;
+  /**
+   * Queue completed flag for this row. A chapter row ignores it: chapters have no completed flag
+   * of their own.
+   */
+  completed?: boolean;
 };
 
 function isAddByRSSLivestreamResource(resourceData: AddByRSSResourceData): boolean {
@@ -101,9 +106,11 @@ export const PlayButtonRow: React.FC<PlayButtonRowProps> = ({
   onClick,
   afterPlay,
   beforeProgress,
+  completed = false,
 }) => {
   const { mpIsPlaying, mpItem, mpItemChapter, mpItemSoundbite, mpClip, mpAddByRSS } =
     useMediaPlayer();
+  const tFeatures = useTranslations('features');
   const tMediaPlayer = useTranslations('media_player');
   const remoteRow = useRemoteRowPlayback({
     itemIdText: item?.id_text ?? null,
@@ -150,6 +157,8 @@ export const PlayButtonRow: React.FC<PlayButtonRowProps> = ({
     ) : remoteRow.showsProgress ? (
       <RemotePlayButtonRowProgress />
     ) : null;
+  const showCompleted =
+    completed && item_chapter === undefined && (item === null || !checkIsLiveItem(item));
 
   return (
     <div
@@ -171,6 +180,16 @@ export const PlayButtonRow: React.FC<PlayButtonRowProps> = ({
         <div className={styles.playButtonRowMeta} data-testid="play-button-row-meta">
           {beforeProgress}
         </div>
+      ) : null}
+      {showCompleted ? (
+        <span
+          aria-label={tFeatures('history.played')}
+          className={styles.playButtonRowCompleted}
+          data-testid="play-button-row-completed"
+          role="img"
+        >
+          <FaCheck aria-hidden="true" />
+        </span>
       ) : null}
       {progress}
     </div>

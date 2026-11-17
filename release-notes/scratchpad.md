@@ -532,3 +532,13 @@
   and covers the app with the request error.
 - Who notices: listeners whose phone holds both directory downloads and Add by RSS downloads
 - Operator steps: none
+
+## Played check on list rows
+
+- Surfaces: web, mobile
+- Change: a finished episode, clip, soundbite, or Add by RSS item shows a Played check in the
+  list row, to the left of the progress bar. On the Podverse theme the check is the same blue as
+  the progress time numbers. Mark as Played updates the check without leaving the list. Mark as
+  Unplayed on the phone hides it for the rest of the session.
+- Who notices: listeners looking at a list that includes something they finished
+- Operator steps: none
