@@ -1,0 +1,283 @@
+appId: com.podverse.app.next
+name: V4 Download Carryover
+---
+# A signed-out phone carries the previous app's downloads of the Podcasting 2.0 feed.
+# The fixture link plants v4 download lists and files: two directory episodes, two episodes of an
+# Add by RSS copy of the feed (one the copy no longer lists), and three files that cannot migrate
+# (a blocked show, an unfinished download, and a file no list names).
+# Directory files become downloads of seeded items. Add by RSS files land on that feed; the one
+# the feed does not list stays a local episode, plays from its file, and leaves the feed when
+# deleted. The error log counts each outcome. A root marker reads none once every planted name
+# is gone from the document root.
+# Needs Mobile E2E API (:4230) for the legacy episode lookup and test-assets (:2111) for the file
+# bytes and the feed copy (registered in scripts/mobile/e2e-test.sh).
+
+- runFlow: shared/launch-and-connect.yaml
+
+- openLink: podverse-next://e2e/v4-download-fixture
+
+- runFlow: shared/confirm-ios-open-dialog.yaml
+
+# Directory outcome: both files are finished downloads of the seeded Podcasting 2.0 items.
+- tapOn:
+    id: tab-my-library
+- assertVisible:
+    id: library-hub-screen
+- tapOn:
+    id: library-nav-downloads
+- extendedWaitUntil:
+    visible:
+      id: download-row-e2ePc20Ep275
+    timeout: ${TIMEOUT_SLOWEST}
+- assertVisible:
+    id: download-row-channel-e2ePc20Ep275
+    text: "Podcasting 2.0"
+- assertVisible:
+    id: download-row-e2ePc20Ep274
+
+# Add by RSS outcome: both files are listed under the feed copy's address.
+- scrollUntilVisible:
+    element:
+      id: "download-row-http.*::PC20-276"
+    direction: DOWN
+    timeout: ${TIMEOUT_SLOW}
+- scrollUntilVisible:
+    element:
+      id: "download-row-http.*::PC20-273"
+    direction: DOWN
+    timeout: ${TIMEOUT_SLOW}
+- takeScreenshot: v4-download-carryover-library-downloads
+
+# The Add by RSS feed lists the copy's three episodes and the local episode the copy dropped.
+# 274 appears only after the device parses the copy.
+- tapOn:
+    id: tab-my-library
+- assertVisible:
+    id: library-hub-screen
+- tapOn:
+    id: library-nav-add-by-rss
+- assertVisible:
+    id: rss-root-screen
+- extendedWaitUntil:
+    visible:
+      text: "Podcasting 2.0"
+    timeout: ${TIMEOUT_SLOW}
+- tapOn:
+    text: "Podcasting 2.0"
+- assertVisible:
+    id: add-by-rss-home-detail-screen
+- extendedWaitUntil:
+    visible:
+      id: "home-feed-row-title-.*"
+      text: 'Episode 274: "Vibe Cloning"'
+    timeout: ${TIMEOUT_SLOWEST}
+- assertVisible:
+    id: "home-feed-row-title-.*"
+    text: 'Episode 276: "Jackleg leechers"'
+- scrollUntilVisible:
+    element:
+      id: "home-feed-row-title-.*"
+      text: 'Episode 273: "Advertising is the Horse and Buggies of Podcasting"'
+    direction: DOWN
+    timeout: ${TIMEOUT_SLOW}
+- takeScreenshot: v4-download-carryover-add-by-rss-feed
+
+# The local episode plays from its carried file.
+- tapOn:
+    id: "home-feed-row-title-.*"
+    text: 'Episode 273: "Advertising is the Horse and Buggies of Podcasting"'
+- extendedWaitUntil:
+    visible:
+      id: add-by-rss-episode-detail-screen
+    timeout: ${TIMEOUT_SLOW}
+- tapOn:
+    id: "home-row-play-.*"
+- extendedWaitUntil:
+    visible:
+      id: playback-source-e2e
+      text: local
+    timeout: ${TIMEOUT_SLOW}
+- extendedWaitUntil:
+    visible:
+      id: playback-active-e2e
+      text: playing
+    timeout: ${TIMEOUT_SLOW}
+- takeScreenshot: v4-download-carryover-local-episode-playing
+
+# A directory episode plays from its carried file. Playing it first also moves the player off the
+# local episode before that file is deleted.
+- tapOn:
+    id: tab-my-library
+- assertVisible:
+    id: library-hub-screen
+- tapOn:
+    id: library-nav-downloads
+- assertVisible:
+    id: library-downloads-screen
+- tapOn:
+    id: download-row-e2ePc20Ep275
+- extendedWaitUntil:
+    visible:
+      id: episode-detail-screen
+    timeout: ${TIMEOUT_SLOW}
+- tapOn:
+    id: "home-row-play-.*"
+- extendedWaitUntil:
+    visible:
+      id: playback-source-e2e
+      text: local
+    timeout: ${TIMEOUT_SLOW}
+- extendedWaitUntil:
+    visible:
+      id: playback-active-e2e
+      text: playing
+    timeout: ${TIMEOUT_SLOW}
+- takeScreenshot: v4-download-carryover-directory-playing
+- runFlow: shared/stack-back.yaml
+
+# Deleting the local episode's download removes it from Downloads and from the feed.
+- assertVisible:
+    id: library-downloads-screen
+- scrollUntilVisible:
+    element:
+      id: "download-row-http.*::PC20-273"
+    direction: DOWN
+    timeout: ${TIMEOUT_SLOW}
+- swipe:
+    from:
+      id: "download-row-http.*::PC20-273"
+    direction: LEFT
+- extendedWaitUntil:
+    visible:
+      id: "download-row-http.*::PC20-273-remove"
+    timeout: ${TIMEOUT_FASTEST}
+- tapOn:
+    id: "download-row-http.*::PC20-273-remove"
+- extendedWaitUntil:
+    notVisible:
+      id: "download-row-http.*::PC20-273"
+    timeout: ${TIMEOUT_FAST}
+- tapOn:
+    id: tab-my-library
+- assertVisible:
+    id: library-hub-screen
+- tapOn:
+    id: library-nav-add-by-rss
+- tapOn:
+    text: "Podcasting 2.0"
+- assertVisible:
+    id: add-by-rss-home-detail-screen
+- scrollUntilVisible:
+    element:
+      id: "home-feed-row-title-.*"
+      text: 'Episode 274: "Vibe Cloning"'
+    direction: DOWN
+    timeout: ${TIMEOUT_SLOW}
+- extendedWaitUntil:
+    notVisible:
+      id: "home-feed-row-title-.*"
+      text: 'Episode 273: "Advertising is the Horse and Buggies of Podcasting"'
+    timeout: ${TIMEOUT_FAST}
+- takeScreenshot: v4-download-carryover-local-episode-deleted
+
+# Deleted outcome and counts: one error-log entry for the pass.
+# More is two pages on phone. The Advanced row's bottom edge sits under the mini player, so a
+# tap there opens the player. Centering the row puts the tap on the row.
+- tapOn:
+    id: tab-more
+- assertVisible:
+    id: more-screen
+- scrollUntilVisible:
+    element:
+      id: more-nav-advanced
+    direction: DOWN
+    timeout: ${TIMEOUT_FAST}
+    centerElement: true
+- tapOn:
+    id: more-nav-advanced
+- assertVisible:
+    id: more-advanced-screen
+- tapOn:
+    id: more-advanced-error-log
+- assertVisible:
+    id: error-log-screen
+- tapOn:
+    id: "error-log-row-[0-9]+"
+    text: "Moving Your Downloads.*"
+    index: 0
+- assertVisible:
+    id: error-log-detail-screen
+- assertVisible: ".*v4_download_carryover_done.*"
+# Each field is one accessible element named "<label>: <value>".
+- scrollUntilVisible:
+    element:
+      id: error-log-detail-field-directory_episodes
+    direction: DOWN
+    timeout: ${TIMEOUT_FAST}
+- assertVisible:
+    id: error-log-detail-field-directory_episodes
+    text: "Directory Episodes: 2"
+- scrollUntilVisible:
+    element:
+      id: error-log-detail-field-add_by_rss_episodes
+    direction: DOWN
+    timeout: ${TIMEOUT_FAST}
+- assertVisible:
+    id: error-log-detail-field-add_by_rss_episodes
+    text: "Add by RSS Episodes: 2"
+- scrollUntilVisible:
+    element:
+      id: error-log-detail-field-already_downloaded
+    direction: DOWN
+    timeout: ${TIMEOUT_FAST}
+- assertVisible:
+    id: error-log-detail-field-already_downloaded
+    text: "Already Downloaded: 0"
+- scrollUntilVisible:
+    element:
+      id: error-log-detail-field-deleted_files
+    direction: DOWN
+    timeout: ${TIMEOUT_FAST}
+- assertVisible:
+    id: error-log-detail-field-deleted_files
+    text: "Files Deleted: 3"
+- scrollUntilVisible:
+    element:
+      id: error-log-detail-field-missing_files
+    direction: DOWN
+    timeout: ${TIMEOUT_FAST}
+- assertVisible:
+    id: error-log-detail-field-missing_files
+    text: "Files Not Found: 0"
+- scrollUntilVisible:
+    element:
+      id: error-log-detail-field-unreadable_files
+    direction: DOWN
+    timeout: ${TIMEOUT_FAST}
+- assertVisible:
+    id: error-log-detail-field-unreadable_files
+    text: "Files in an Unreadable Folder: 0"
+- scrollUntilVisible:
+    element:
+      id: error-log-detail-field-undeletable_files
+    direction: DOWN
+    timeout: ${TIMEOUT_FAST}
+- assertVisible:
+    id: error-log-detail-field-undeletable_files
+    text: "Files Not Deleted: 0"
+- scrollUntilVisible:
+    element:
+      id: error-log-detail-field-waiting_files
+    direction: DOWN
+    timeout: ${TIMEOUT_FAST}
+- assertVisible:
+    id: error-log-detail-field-waiting_files
+    text: "Files Waiting: 0"
+# The log row above is written when the pass finishes. The marker lists planted names still at
+# the document root; none means all seven are gone. The wait covers one stat after that write.
+- extendedWaitUntil:
+    visible:
+      id: v4-download-fixture-files-e2e
+      text: "none"
+    timeout: ${TIMEOUT_SLOWEST}
+- takeScreenshot: v4-download-carryover-error-log

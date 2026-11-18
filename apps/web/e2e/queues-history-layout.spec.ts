@@ -9,22 +9,22 @@ async function expectListFillsContent(page: Page) {
   await expect(page.locator('#mainOuterWrapper main aside')).toHaveCount(0);
 
   const widths = await loginPrompt.evaluate((node) => {
-    let current = node.parentElement;
-    while (current) {
-      const parent = current.parentElement;
-      if (!parent) {
-        break;
-      }
-      if (getComputedStyle(parent).flexDirection === 'row-reverse') {
-        return {
-          childCount: parent.children.length,
-          childWidth: current.getBoundingClientRect().width,
-          parentWidth: parent.getBoundingClientRect().width,
-        };
-      }
-      current = parent;
+    const main = node.closest('main');
+    const column = main?.firstElementChild;
+    if (!(main instanceof HTMLElement) || !(column instanceof HTMLElement)) {
+      return null;
     }
-    return null;
+    const style = getComputedStyle(column);
+    const marginLeft = Number.parseFloat(style.marginLeft);
+    const marginRight = Number.parseFloat(style.marginRight);
+    return {
+      childCount: main.children.length,
+      occupiedWidth:
+        column.getBoundingClientRect().width +
+        (Number.isFinite(marginLeft) ? marginLeft : 0) +
+        (Number.isFinite(marginRight) ? marginRight : 0),
+      parentWidth: main.getBoundingClientRect().width,
+    };
   });
 
   expect(widths).not.toBeNull();
@@ -32,7 +32,7 @@ async function expectListFillsContent(page: Page) {
     return;
   }
   expect(widths.childCount).toBe(1);
-  expect(widths.childWidth).toBeGreaterThan(widths.parentWidth - 2);
+  expect(widths.occupiedWidth).toBeGreaterThan(widths.parentWidth - 2);
 }
 
 test.describe('Queues and History layout', () => {

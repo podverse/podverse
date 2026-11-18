@@ -90,6 +90,7 @@ import type { PlaybackOutboxEnqueueEvent } from '../data';
 import {
   accountRepository,
   addByRssRepository,
+  downloadsRepository,
   playbackContentRepository,
   playbackOutboxRepository,
   queueRepository,
@@ -102,6 +103,7 @@ import type {
   PlaybackReconcileResourceState,
 } from '../data/repositories/playbackReconcile';
 import { downloadManager } from '../downloads/downloadManager';
+import { isLocalDownloadUrl } from '../downloads/downloadStorage';
 import { downloadStore } from '../downloads/downloadStore';
 import { playbackErrorFromLoadFailure } from '../feedback/actionErrorCopy';
 import { useQueueDataRevision } from '../hooks/useQueueDataRevision';
@@ -170,6 +172,7 @@ import {
   resolveSessionEnclosureSelectedParams,
 } from '../lib/playback/resolveEnclosureUrl';
 import {
+  playbackUrlForEpisode,
   resolveLocalDownloadPlaybackUrl,
   resolvePlaybackUrl,
 } from '../lib/playback/resolvePlaybackUrl';
@@ -592,6 +595,8 @@ export type PlaybackContextValue = {
   previewWindow: (params: { fromSeconds: number; pauseAtSeconds?: number | null }) => Promise<void>;
   loadItemPausedAt: (item: DTOItem, channel: DTOChannel, seconds: number) => Promise<void>;
   pause: () => void;
+  /** Pause, drop the current item, and clear the last-playback snapshot. */
+  clearNowPlaying: () => void;
   resume: () => Promise<void>;
   /** Reload the current source after an engine error. */
   retryPlayback: () => Promise<void>;
@@ -1705,7 +1710,7 @@ export function PlaybackProvider({ children }: PropsWithChildren) {
       const localMatchesSelection =
         remoteUrl !== null &&
         resolved !== null &&
-        resolved.startsWith('file://') &&
+        isLocalDownloadUrl(resolved) &&
         handoffRecord !== null &&
         planDownloadCompletePlaybackHandoff({
           advancing: false,
@@ -1940,8 +1945,9 @@ export function PlaybackProvider({ children }: PropsWithChildren) {
   );
 
   /**
-   * A finished download plays from the device when the caller names it, and with Offline Mode on
-   * there is no remote fallback.
+   * A finished download plays from the device when the caller names it. An episode kept only for
+   * that file plays the file and does not fall back to the remote enclosure. With Offline Mode
+   * on there is no remote fallback.
    */
   const startAddByRssPlayback = useCallback(
     async (
@@ -1954,12 +1960,25 @@ export function PlaybackProvider({ children }: PropsWithChildren) {
         commandedStartSeconds?: number;
       }
     ): Promise<boolean> => {
+      const downloadItemIdText = options.localDownloadItemIdText;
+      const localFileOnly =
+        downloadItemIdText === undefined
+          ? false
+          : await downloadsRepository.isLocalFileOnlyPlayback(downloadItemIdText);
       const localUrl =
-        options.localDownloadItemIdText !== undefined
-          ? await resolveLocalDownloadPlaybackUrl(options.localDownloadItemIdText)
-          : null;
-      const url =
-        localUrl ?? (isOfflineModeEnabled() ? null : resolveAddByRssPlaybackUrl(resourceData));
+        downloadItemIdText === undefined
+          ? null
+          : await resolveLocalDownloadPlaybackUrl(downloadItemIdText);
+      if (localUrl === null && localFileOnly && downloadItemIdText !== undefined) {
+        await downloadsRepository.remove(downloadItemIdText);
+      }
+      const url = playbackUrlForEpisode({
+        localFileOnly,
+        localUrl,
+        offlineMode: isOfflineModeEnabled(),
+        remoteUrl:
+          localUrl === null && localFileOnly ? null : resolveAddByRssPlaybackUrl(resourceData),
+      });
       if (url === null) {
         setNoticeKey('media_player.no_media');
         return false;
@@ -4722,6 +4741,7 @@ export function PlaybackProvider({ children }: PropsWithChildren) {
       enclosureSelectedParams,
       itemLabeledEnclosures,
       pause: routedPause,
+      clearNowPlaying,
       playChapter: routedPlayChapter,
       playAddByRssResourceData: routedPlayAddByRssResourceData,
       playClip: routedPlayClip,
@@ -4778,6 +4798,7 @@ export function PlaybackProvider({ children }: PropsWithChildren) {
       lastPlaybackError,
       routedGoToLive,
       routedJumpBy,
+      clearNowPlaying,
       routedPause,
       routedPlayAddByRssResourceData,
       routedPlayChapter,

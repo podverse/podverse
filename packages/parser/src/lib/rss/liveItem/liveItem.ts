@@ -51,7 +51,8 @@ const processLiveItemBatch = async (
   liveItemGuids: string[],
   transactionalEntityManager: EntityManager,
   timerAccumulator: ItemTimerAccumulator,
-  liveItemService: LiveItemService
+  liveItemService: LiveItemService,
+  channelImageUrls: ReadonlySet<string>
 ) => {
   for (const liveItemObjDto of liveItemObjDtosBatch) {
     const itemDto = liveItemObjDto.item;
@@ -64,6 +65,7 @@ const processLiveItemBatch = async (
       transactionalEntityManager,
       timerAccumulator,
       isLiveItem: true,
+      channelImageUrls,
     });
 
     updatedLiveItemIds.push(item.id);
@@ -111,7 +113,8 @@ export const handleParsedLiveItems = async (
   channelSeasonIndex: ChannelSeasonIndex,
   descriptionContext: DescriptionIngestContext,
   itemKeysToSkip: Set<string> = new Set(),
-  regularUpdatedItemIds: readonly number[] = []
+  regularUpdatedItemIds: readonly number[] = [],
+  channelImageUrls: ReadonlySet<string> = new Set()
 ): Promise<HandleParsedLiveItemsResult> => {
   const itemService = new ItemService();
   const liveItemService = new LiveItemService();
@@ -149,7 +152,8 @@ export const handleParsedLiveItems = async (
         liveItemGuids,
         transactionalEntityManager,
         timerAccumulator,
-        liveItemService
+        liveItemService,
+        channelImageUrls
       );
     });
   }

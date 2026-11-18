@@ -22,6 +22,9 @@ name: Settings Downloads Storage
     id: more-settings-downloads
 - assertVisible:
     id: more-settings-downloads-screen
+# This device has no saved download folder, so the chosen-folder card is not on the screen.
+- assertNotVisible:
+    id: more-settings-downloads-chosen-folder
 - assertVisible:
     id: settings-downloads-device
 - assertVisible:
@@ -58,7 +61,8 @@ name: Settings Downloads Storage
     waitToSettleTimeoutMs: 1000
 - assertVisible:
     id: more-settings-downloads-catch-up-limit
-# The auto-free rows sit below the fold once the mini player is up.
+# The auto-free rows sit below the fold once the mini player is up. The second row stays
+# under that bar after the first row is on screen, so each row is scrolled in on its own.
 - scrollUntilVisible:
     element:
       id: more-settings-downloads-auto-limit
@@ -66,18 +70,29 @@ name: Settings Downloads Storage
     timeout: ${TIMEOUT_SLOW}
 - assertVisible:
     id: more-settings-downloads-auto-limit
+- scrollUntilVisible:
+    element:
+      id: more-settings-downloads-auto-device-low
+    direction: DOWN
+    timeout: ${TIMEOUT_SLOW}
 - assertVisible:
     id: more-settings-downloads-auto-device-low
 - takeScreenshot: settings-downloads-storage
 
-# Delete All sits below this fold. A hierarchy that keeps changing makes Maestro spend the
-# timeout waiting for the screen to go still after one swipe, so it never looks again.
+# Delete All is the last row, so the list cannot scroll it to the center. The sliver that
+# first appears sits under the mini player, and a tap there misses the button. A short swipe
+# moves it clear of that bar. The mini player clock never lets the screen go still, so this
+# scroll does not wait long to settle.
 - scrollUntilVisible:
     element:
       id: more-settings-downloads-delete-all
     direction: DOWN
     timeout: ${TIMEOUT_FAST}
-    waitToSettleTimeoutMs: 1000
+    waitToSettleTimeoutMs: 400
+- swipe:
+    start: "50%,70%"
+    end: "50%,50%"
+    duration: 400
 - tapOn:
     id: more-settings-downloads-delete-all
 - assertVisible:

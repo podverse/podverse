@@ -26,10 +26,16 @@ import { useAddByRSSListContext } from '../../../../contexts/AddByRSSListContext
 import { useMediaPlayer } from '../../../../contexts/MediaPlayer';
 import { useModals } from '../../../../contexts/Modals';
 import { useQueues } from '../../../../contexts/Queue';
+import { useQueueResourcesAbridgedIndex } from '../../../../contexts/QueueResourcesAbridgedIndex';
 import { getApiRequestService } from '../../../../factories/apiRequestService';
 import { useChannelVisitActions, useItemUnseenDot } from '../../../../hooks/useChannelVisit';
+import { useMarkQueueResourcePlayed } from '../../../../hooks/useMarkQueueResourcePlayed';
 import { usePlayAddByRSS } from '../../../../hooks/usePlayAddByRSS';
 import { useQueueAddWithGate } from '../../../../hooks/useQueueAddWithGate';
+import {
+  isAnyAddByRssHashPlayed,
+  markPlayedAfterWrite,
+} from '../../../../lib/queue/queueResourcePlayed';
 import { getAddByRSSItemPath } from '../../../../utils/addByRSS/itemPath';
 import type { AddByRSSItemIndexItem, AddByRSSMappedFeed } from '../../../../utils/addByRSS/types';
 import { downloadAddByRSSMediaWithModal } from '../../../../utils/downloadModal/downloadAddByRSSMediaWithModal';
@@ -81,6 +87,8 @@ export const AddByRSSEpisodeRow: React.FC<AddByRSSEpisodeRowProps> = ({
   const { setAddByRSSListContext } = useAddByRSSListContext();
   const { mpAddByRSS, mpIsPlaying, setMPIsPlaying } = useMediaPlayer();
   const { queues } = useQueues();
+  const { queueResourcesAbridgedIndex } = useQueueResourcesAbridgedIndex();
+  const markQueueResourcePlayed = useMarkQueueResourcePlayed();
   const playAddByRSS = usePlayAddByRSS();
   const apiRequestService = getApiRequestService();
   const { runQueueAdd } = useQueueAddWithGate();
@@ -176,10 +184,19 @@ export const AddByRSSEpisodeRow: React.FC<AddByRSSEpisodeRowProps> = ({
     if (!queue || !indexItem) return;
     const add_by_rss_resource_data = buildAddByRSSResourceData(indexItem);
     showToastPromise(
-      apiRequestService.reqQueueResourceItemAddByRSSAddHistory(queue.id_text, {
-        add_by_rss_resource_data,
-        completed: true,
-      }),
+      markPlayedAfterWrite(
+        apiRequestService.reqQueueResourceItemAddByRSSAddHistory(queue.id_text, {
+          add_by_rss_resource_data,
+          completed: true,
+        }),
+        () => {
+          markQueueResourcePlayed({
+            duration: null,
+            hash: getAddByRSSHashId(indexItem),
+            kind: 'add_by_rss',
+          });
+        }
+      ),
       {
         success: tFeatures('history.marked_as_played'),
         error: tFeatures('history.mark_as_played_error'),
@@ -314,9 +331,10 @@ export const AddByRSSEpisodeRow: React.FC<AddByRSSEpisodeRowProps> = ({
         <div className={styles.bottomSection}>
           <div className={styles.bottomSectionStart}>
             <PlayButtonRow
-              item={null}
-              addByRSSIdText={indexItem?.idText ?? undefined}
               addByRSSHashIds={addByRSSHashIds}
+              addByRSSIdText={indexItem?.idText ?? undefined}
+              completed={isAnyAddByRssHashPlayed(queueResourcesAbridgedIndex, addByRSSHashIds)}
+              item={null}
               onClick={playButtonOnClick}
               afterPlay={
                 <ItemRowMoreActions

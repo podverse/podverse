@@ -4,6 +4,7 @@ import { v4CarryoverRepository } from '../../data/repositories/v4CarryoverReposi
 import { buildCarryoverOutlines, carryoverOutlineCount } from './carryoverOutlines';
 import type { V4StagedEntry } from './parseV4LocalState';
 import { parseV4LocalState } from './parseV4LocalState';
+import { performV4DownloadRead } from './readV4DownloadState';
 
 /**
  * The previous app's signed-out subscription lists. Feed passwords and the sign-in token are
@@ -135,11 +136,21 @@ export const enqueueV4CarryoverWork = (task: () => Promise<void>): Promise<void>
 };
 
 /**
- * Reads the previous app's signed-out lists once and stores them.
+ * Reads the previous app's signed-out lists once, then its download lists until that read
+ * writes `v4_download_carryover.read_at`.
  *
- * A second call does nothing. A missing key is an empty list. A failed read still records that
- * it finished, so a broken store does not retry on every launch. When the stored rows include an
- * OPML outline, the copy waits for the save screen. Otherwise the copy may start immediately.
+ * A second call does nothing once each read has finished. A missing subscription key is an
+ * empty list. A failed subscription read still records that it finished, so a broken store does
+ * not retry that read on every launch. A thrown download-list read leaves every file in place
+ * and is tried again on a later launch. When the stored subscription rows include an OPML
+ * outline, the copy waits for the save screen. Otherwise the copy may start immediately. When
+ * the download read stages at least one file, the sync listener is asked to resolve staged rows.
  * Callers do not await this on the render path.
  */
-export const runV4CarryoverReadOnce = (): Promise<void> => enqueueV4CarryoverWork(performRead);
+export const runV4CarryoverReadOnce = (): Promise<void> =>
+  enqueueV4CarryoverWork(async () => {
+    await performRead();
+    if (await performV4DownloadRead()) {
+      notifyV4CarryoverRowsSaved();
+    }
+  });

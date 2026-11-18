@@ -37,6 +37,8 @@ export type AddByRssHomeDetailData = {
   episodeRows: AddByRssHomeEpisode[];
   feed: MobileAddByRSSFeedRecord;
   fundings: AboutFundingLink[];
+  /** True when the stored bundle was readable. An omitted option follows `mappedFeed`. */
+  hasParsedBundle: boolean;
   mappedFeed: AddByRSSMappedFeed | null;
   people: AboutPerson[];
 };
@@ -128,8 +130,10 @@ export const addByRssFeedHeaderArtwork = (
 
 export const buildAddByRssHomeDetailData = (
   feed: MobileAddByRSSFeedRecord,
-  mappedFeed: AddByRSSMappedFeed | null
+  mappedFeed: AddByRSSMappedFeed | null,
+  options?: { hasParsedBundle?: boolean }
 ): AddByRssHomeDetailData => {
+  const hasParsedBundle = options?.hasParsedBundle ?? mappedFeed !== null;
   const channelTitle = mappedFeed?.channel.channel.title ?? feed.title ?? feed.feedUrl;
   const channelImageUrl =
     mappedFeed === null
@@ -181,6 +185,7 @@ export const buildAddByRssHomeDetailData = (
     episodeRows,
     feed,
     fundings: buildAddByRssFundings(mappedFeed),
+    hasParsedBundle,
     mappedFeed,
     people: toAddByRssAboutPeople(mappedFeed?.channel.people ?? []),
   };

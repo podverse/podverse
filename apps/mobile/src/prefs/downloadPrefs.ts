@@ -1,19 +1,28 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { Platform } from 'react-native';
 
 import type { AutoDownloadCatchUpLimit } from '../downloads/autoDownloadPlanner';
 import {
   AUTO_DOWNLOAD_CATCH_UP_LIMIT_PRESETS,
   DEFAULT_AUTO_DOWNLOAD_CATCH_UP_LIMIT,
 } from '../downloads/autoDownloadPlanner';
+import type { ChosenFolderKind } from '../downloads/chosenDownloadFolder';
+import { chosenFolderSwitchState } from '../downloads/chosenDownloadFolder';
 import { DEFAULT_DOWNLOAD_QUOTA_BYTES } from '../downloads/downloadQuota';
+import { classifyV4SharedFolder } from '../migration/v4/v4DownloadNames';
 import { DEFAULT_DOWNLOAD_AUTO_DELETE, getPref, setPref } from './prefsStore';
 
 /**
  * Download storage prefs (device-local AsyncStorage). The limit-reached auto-delete toggle is the
- * AsyncStorage key `downloads.auto_delete`.
+ * AsyncStorage key `downloads.auto_delete`. `downloads.chosen_folder` is the Android chosen-folder
+ * switch. `EXT_STORAGE_DLOAD_LOCATION` is read only: it holds the folder URI saved on this device.
+ * Neither key is cleared on sign-out.
  */
 
 const DOWNLOAD_AUTO_DELETE_DEVICE_LOW_KEY = 'downloads.auto_delete_device_low';
+const CHOSEN_DOWNLOAD_FOLDER_SWITCH_KEY = 'downloads.chosen_folder';
+/** Read only. Never written or removed by this module. */
+const LEGACY_SHARED_DOWNLOAD_FOLDER_KEY = 'EXT_STORAGE_DLOAD_LOCATION';
 const DOWNLOAD_QUOTA_BYTES_KEY = 'downloads.quota_bytes';
 const DOWNLOAD_AUTO_DOWNLOAD_DEFAULT_KEY = 'downloads.auto_download_default';
 const DOWNLOAD_AUTO_DOWNLOAD_CELLULAR_DEFAULT_KEY = 'downloads.auto_download_cellular_default';
@@ -147,4 +156,67 @@ export const writeAutoDownloadCatchUpLimit = async (
   limit: AutoDownloadCatchUpLimit
 ): Promise<void> => {
   await AsyncStorage.setItem(DOWNLOAD_AUTO_DOWNLOAD_CATCH_UP_LIMIT_KEY, String(limit));
+};
+
+const chosenFolderPlatform = (): 'android' | 'ios' | 'other' => {
+  if (Platform.OS === 'android') {
+    return 'android';
+  }
+  if (Platform.OS === 'ios') {
+    return 'ios';
+  }
+  return 'other';
+};
+
+const folderKindFromStoredValue = (value: string | null): ChosenFolderKind => {
+  const classified = classifyV4SharedFolder(value);
+  if (classified === null) {
+    return null;
+  }
+  return classified.kind;
+};
+
+const readChosenFolderSnapshot = async (): Promise<{
+  folder: string | null;
+  pref: string | null;
+}> => {
+  const [pref, folder] = await Promise.all([
+    AsyncStorage.getItem(CHOSEN_DOWNLOAD_FOLDER_SWITCH_KEY),
+    AsyncStorage.getItem(LEGACY_SHARED_DOWNLOAD_FOLDER_KEY),
+  ]);
+  return { folder, pref };
+};
+
+export const readChosenDownloadFolderSwitch = async (): Promise<{
+  visible: boolean;
+  enabled: boolean;
+}> => {
+  const { folder, pref } = await readChosenFolderSnapshot();
+  return chosenFolderSwitchState({
+    folderKind: folderKindFromStoredValue(folder),
+    platform: chosenFolderPlatform(),
+    pref,
+  });
+};
+
+/** Tree URI when the switch is on and the saved value is `saf_tree`. Otherwise null. */
+export const readChosenDownloadFolderTreeUri = async (): Promise<string | null> => {
+  const { folder, pref } = await readChosenFolderSnapshot();
+  const state = chosenFolderSwitchState({
+    folderKind: folderKindFromStoredValue(folder),
+    platform: chosenFolderPlatform(),
+    pref,
+  });
+  if (!state.enabled) {
+    return null;
+  }
+  const classified = classifyV4SharedFolder(folder);
+  if (classified === null || classified.kind !== 'saf_tree') {
+    return null;
+  }
+  return classified.uri;
+};
+
+export const writeChosenDownloadFolderEnabled = async (enabled: boolean): Promise<void> => {
+  await AsyncStorage.setItem(CHOSEN_DOWNLOAD_FOLDER_SWITCH_KEY, enabled ? 'true' : 'false');
 };

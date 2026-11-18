@@ -16,13 +16,16 @@ import { isEffectivelyOffline, subscribeConnectivity } from '../net/connectivity
 import { addByRssRequestHeaderAuth } from '../playback/addByRssMediaAuth';
 import {
   isDownloadQuotaUnlimited,
+  readChosenDownloadFolderTreeUri,
   readDownloadAutoDeleteOnDeviceLowEnabled,
   readDownloadAutoDeleteOnLimitEnabled,
   readDownloadQuotaBytes,
 } from '../prefs/downloadPrefs';
 import { isOfflineModeEnabled, subscribeOfflineMode } from '../prefs/offlineMode';
+import { safCreateMimeType } from './chosenDownloadFolder';
+import { copyCompletedDownloadToChosenFolder } from './chosenDownloadFolderWrite';
 import { mergeDownloadChannelIdentity, usableDownloadChannelText } from './downloadChannelIdentity';
-import type { DownloadIneligibleReason } from './downloadEligibility';
+import type { DownloadIneligibleReason, DownloadSourceSelection } from './downloadEligibility';
 import { isItemDownloadable } from './downloadEligibility';
 import {
   DEVICE_LOW_FREE_BYTES,
@@ -46,7 +49,7 @@ import {
 import type { DownloadPatch, DownloadRecord } from './downloadTypes';
 import { DOWNLOAD_MAX_CONCURRENCY } from './downloadTypes';
 
-/** Absolute file:// for a stored download file name. */
+/** Resolved URL for a stored download path: a private file name or a document URI. */
 const absoluteDownloadPath = (storedPath: string): string | null => {
   const baseDirectory = FileSystem.documentDirectory;
   if (baseDirectory === null) {
@@ -465,13 +468,36 @@ const runTransfer = async (itemIdText: string): Promise<void> => {
     }
 
     lastProgressPersistAt.delete(itemIdText);
+    let storedPath = toStoredDownloadFileName(result.uri);
+    const treeUri = await readChosenDownloadFolderTreeUri();
+    if (treeUri !== null) {
+      const documentUri = await copyCompletedDownloadToChosenFolder({
+        fileName,
+        mimeType: safCreateMimeType(record.fileExtension, record.enclosureMime),
+        sourceByteSize: byteSize,
+        sourceUri: result.uri,
+        treeUri,
+      });
+      if (documentUri !== null) {
+        storedPath = documentUri;
+      } else if (__DEV__) {
+        console.warn('[downloads] chosen folder copy failed');
+      }
+    }
     await applyChange(itemIdText, {
       dismissedFromList: false,
-      // Persist the file name only — absolute paths embed the iOS container UUID.
-      filePath: toStoredDownloadFileName(result.uri),
+      // A private file stores its file name. A chosen-folder file stores the document URI.
+      filePath: storedPath,
       status: 'complete',
     });
     pinShowNotesForDownload(itemIdText);
+    if (storedPath.startsWith('content://')) {
+      try {
+        await FileSystem.deleteAsync(result.uri, { idempotent: true });
+      } catch {
+        // The row points at the document. A leftover private file is not on the row.
+      }
+    }
     await maybeAutoDelete(itemIdText);
   } catch {
     inFlight.delete(itemIdText);
@@ -743,6 +769,87 @@ export const downloadManager = {
       pumpQueue();
     }
     return { ok: true };
+  },
+
+  /**
+   * Record a media file already inside `downloads/` as a finished download of `item` (the v4
+   * download carryover). Returns `adopted` and writes nothing when that episode is already
+   * complete for this same file. Returns `exists` and writes nothing when the episode already
+   * has a queued, downloading, paused, or complete row for another file; the caller deletes its
+   * own file. Returns `ineligible` when neither the item nor `fallbackSource` names a progressive
+   * source.
+   */
+  adoptCompletedFile: async (input: {
+    item: DTOItem;
+    fileName: string;
+    byteSize: number | null;
+    fileExtension: string | null;
+    channel: { channelIdText: string | null; channelTitle: string | null };
+    fallbackArtworkUrl: string | null;
+    fallbackSource: DownloadSourceSelection | null;
+  }): Promise<'adopted' | 'exists' | 'ineligible'> => {
+    await ensureHydrated();
+
+    const existing = downloadStore.get(input.item.id_text);
+    if (
+      existing !== null &&
+      (existing.status === 'queued' ||
+        existing.status === 'downloading' ||
+        existing.status === 'paused' ||
+        existing.status === 'complete')
+    ) {
+      if (existing.status === 'complete' && existing.filePath === input.fileName) {
+        return 'adopted';
+      }
+      return 'exists';
+    }
+
+    const eligibility = isItemDownloadable(input.item);
+    const source = eligibility.ok ? eligibility.source : input.fallbackSource;
+    if (source === null) {
+      return 'ineligible';
+    }
+
+    const byteSize =
+      input.byteSize ?? (await readDownloadedByteSize(absoluteDownloadPath(input.fileName) ?? ''));
+    const channel = mergeDownloadChannelIdentity([input.channel, channelFromItem(input.item)]);
+    const now = Date.now();
+    const record: DownloadRecord = {
+      artworkUrl: artworkFromItem(input.item) ?? input.fallbackArtworkUrl,
+      byteSize,
+      bytesDownloaded: byteSize,
+      channelIdText: channel.channelIdText,
+      channelTitle: channel.channelTitle,
+      createdAt: now,
+      dismissedFromList: false,
+      enclosureMime: source.mime,
+      enclosureUri: source.uri,
+      enclosureUrlHash: hashEnclosureUri(source.uri),
+      errorReason: null,
+      fileExtension: input.fileExtension ?? source.fileExtension,
+      filePath: input.fileName,
+      itemIdText: input.item.id_text,
+      mediaType: source.mediaType,
+      status: 'complete',
+      title: input.item.title ?? null,
+      updatedAt: now,
+    };
+
+    await playableItemRepository.put('download', input.item);
+    await downloadsRepository.upsert(record);
+    downloadStore.put(record);
+    if (channel.channelIdText !== null && channel.channelTitle !== null) {
+      try {
+        await downloadsRepository.attachChannelToDownloads({
+          channelIdText: channel.channelIdText,
+          channelTitle: channel.channelTitle,
+        });
+      } catch {
+        // The new row already carries the title; sibling backfill is best-effort.
+      }
+    }
+    pinShowNotesForDownload(input.item.id_text);
+    return 'adopted';
   },
 
   getAutoDeleteNotice: (): AutoDeleteNotice | null => autoDeleteNotice,

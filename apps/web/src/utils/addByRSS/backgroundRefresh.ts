@@ -4,6 +4,7 @@ import { applyAddByRSSParseStatus } from './actions';
 import { toAddByRSSFeedChangedUrl } from './feedChangedEvent';
 import { enqueueAddByRSSFirstParses } from './firstParse';
 import { runAddByRSSParseAll } from './parseAll';
+import { isAddByRSSParseInFlight } from './parseInFlight';
 import { getAllAddByRSSFeeds } from './storage';
 import { syncAddByRSSFollowStubs } from './sync';
 
@@ -98,9 +99,16 @@ export async function runAddByRSSBackgroundRefresh(
       feeds,
       force: false,
       onQueued: async (feedUrl) => {
+        // A feed this page is already parsing keeps that parse's stored result.
+        if (isAddByRSSParseInFlight(feedUrl)) {
+          return;
+        }
         await applyAddByRSSParseStatus({ feedUrl, parsedFeed: undefined, status: 'queued' });
       },
       onStatusUpdate: async (feedUrl, statusResponse) => {
+        if (isAddByRSSParseInFlight(feedUrl)) {
+          return;
+        }
         await applyAddByRSSParseStatus({
           feedUrl,
           parsedFeed: statusResponse.payload,

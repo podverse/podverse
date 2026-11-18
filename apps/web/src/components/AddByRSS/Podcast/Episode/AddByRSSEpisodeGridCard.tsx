@@ -50,7 +50,7 @@ export const AddByRSSEpisodeGridCard: React.FC<AddByRSSEpisodeGridCardProps> = (
           className={styles.image}
         />
         {showChannelInfo && <div className={styles.channelTitle}>{item.channelTitle}</div>}
-        <div className={styles.title}>{title}</div>
+        <h3 className={styles.title}>{title}</h3>
         {lastPubDate ? (
           <span className={styles.lastPubDate}>{formatDateAbbrev(lastPubDate, locale)}</span>
         ) : null}

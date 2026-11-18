@@ -21,7 +21,10 @@ import { defineConfig } from 'vitest/config';
  * local stores against the subscription list (`src/screens/home/homeRowMetadata.ts` — pure; the
  * repository reads stay in `homeFeedData.ts`), the env-driven deep-link scheme / prefix helpers
  * (`src/config/deepLinkSchemes.js`), the custom API address and health verdict
- * (`src/config/customApiUrl.ts`), deep-link path mapping (`src/navigation/deepLinking.ts`), pure notification
+ * (`src/config/customApiUrl.ts`), the clear-screen row copy and the AsyncStorage / sqlite keep-or-drop
+ * rules (`src/config/customApiClearLists.ts`, `src/data/customApiLocalClearPlan.ts` — the erase module
+ * talks to SQLite and SecureStore and stays out of this suite), deep-link path mapping
+ * (`src/navigation/deepLinking.ts`), pure notification
  * payload target extraction (`src/push/notificationTarget.ts`), the path an inbox row and a banner
  * open (`src/push/accountNotificationLink.ts`), which notifications may show a
  * banner and the device-local kind switches (`src/notifications/bannerNotificationPolicy.ts`,
@@ -158,8 +161,14 @@ import { defineConfig } from 'vitest/config';
  * (`src/lib/playback/planDownloadCompletePlaybackHandoff.ts`). The
  * migration ladder (`src/data/db/migrations.ts`) is covered because the statement list is data, not a
  * connection. The signed-out list parser (`src/migration/v4/parseV4LocalState.ts`) is covered
- * because it is a pure function of four stored strings. Scope
- * the `include` narrowly so tests never pull in native/Expo modules — the excluded adapter
+ * because it is a pure function of four stored strings. The v4 download carryover
+ * decisions (`src/migration/v4/planV4DownloadCarryover.ts`) are covered because they
+ * are a pure function of staged rows and server answers. The v4 download name rules
+ * (`src/migration/v4/v4DownloadNames.ts`) are covered the same way. The download-list
+ * parser (`src/migration/v4/parseV4DownloadState.ts`) is a pure function of three stored
+ * strings. The download read (`src/migration/v4/readV4DownloadState.ts`) runs with storage
+ * and folders mocked. Scope the `include` narrowly so tests never pull in native/Expo
+ * modules — the excluded adapter
  * (`src/bridge/nativePlaybackBridge.ts`) imports `expo-modules-core`, and repositories import
  * `expo-sqlite`, so neither is tested here. `apps/mobile` is a standalone install; run with
  * `npm --prefix apps/mobile run test`.
@@ -189,12 +198,19 @@ export default defineConfig({
       'src/components/screen/headerBackChoice.test.ts',
       'src/components/player/fullPlayerRows.test.ts',
       'src/config/customApiUrl.test.ts',
+      'src/config/customApiClearLists.test.ts',
+      'src/data/customApiLocalClearPlan.test.ts',
       'src/config/publicWebBaseUrl.test.ts',
       'src/config/deepLinkSchemes.test.ts',
       'src/data/db/migrations.test.ts',
       'src/migration/v4/carryoverOutlines.test.ts',
       'src/migration/v4/parseV4LocalState.test.ts',
+      'src/migration/v4/v4DownloadNames.test.ts',
+      'src/migration/v4/parseV4DownloadState.test.ts',
+      'src/migration/v4/readV4DownloadState.test.ts',
       'src/migration/v4/planV4Carryover.test.ts',
+      'src/migration/v4/planV4DownloadCarryover.test.ts',
+      'src/migration/v4/legacyLookupRequest.test.ts',
       'src/data/identityRemap.test.ts',
       'src/data/addByRssPromotionRemap.test.ts',
       'src/data/repositories/addByRssListedFeeds.test.ts',

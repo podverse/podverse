@@ -1,5 +1,6 @@
 'use client';
 
+import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import React from 'react';
 
@@ -12,6 +13,7 @@ import type { ChipRowItem } from '@podverse/ui';
 import { CommonDetailListHeader } from '../../../components/Common/List/CommonDetailListHeader';
 import { ListSortChip } from '../../../components/ListSortChip/ListSortChip';
 import { useAccount } from '../../../contexts/Account';
+import { detailSectionPath } from '../../../utils/detailSectionPath';
 import { useAlbumPageContext } from './AlbumPageContext';
 
 type AlbumPageListHeaderProps = {
@@ -28,6 +30,7 @@ export const AlbumPageListHeader: React.FC<AlbumPageListHeaderProps> = ({
   ssrCanShowBoosts,
 }) => {
   const { filterParams, setFilterParams } = useAlbumPageContext();
+  const router = useRouter();
   const { type, sort, range } = filterParams;
   const tFilters = useTranslations('filters');
   const tMedia = useTranslations('media');
@@ -93,6 +96,10 @@ export const AlbumPageListHeader: React.FC<AlbumPageListHeaderProps> = ({
       items={items}
       onSelect={(nextType) => {
         setFilterParams({ ...filterParams, type: nextType, page: 1 });
+        router.replace(
+          detailSectionPath(window.location.pathname, window.location.search, nextType, 'tracks'),
+          { scroll: false }
+        );
       }}
       selectedKey={type}
       testId="album-detail-chips"

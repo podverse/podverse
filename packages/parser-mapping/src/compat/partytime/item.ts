@@ -187,6 +187,18 @@ export const compatItemImageDtos = (parsedItem: Episode) => {
   return dtos;
 };
 
+/** Episode images whose URL is not already a channel image. Comparison is trimmed and exact. */
+export function itemImagesNotOnChannel<T extends { url: string }>(
+  itemImages: readonly T[],
+  channelImageUrls: ReadonlySet<string>
+): T[] {
+  if (channelImageUrls.size === 0) {
+    return [...itemImages];
+  }
+  const channelUrls = new Set([...channelImageUrls].map((url) => url.trim()));
+  return itemImages.filter((image) => !channelUrls.has(image.url.trim()));
+}
+
 export const compatItemLicenseDto = (parsedItem: Episode) => {
   if (!parsedItem?.license?.identifier) {
     return null;

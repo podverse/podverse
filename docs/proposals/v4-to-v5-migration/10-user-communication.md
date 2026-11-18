@@ -56,11 +56,11 @@ it is not linked from the announcement. It is not drafted yet.
 - On-device files are best-effort ([08](08-mobile-first-launch-migration.md)).
   Review that plan before the backup sentence is final, so the message does
   not promise a local file the app cannot map.
-- A feed-list file before the phone copy is planned in
-  [08](08-mobile-first-launch-migration.md#feed-list-file-before-the-phone-copy)
-  and waits for the field spike. The email does not mention that screen, or
-  Continue Migration, until the field spike has a result. The existing v5
-  Export OPML is not that file.
+- A feed-list file before the phone copy is specified in
+  [08](08-mobile-first-launch-migration.md#feed-list-file-before-the-phone-copy).
+  The field spike passed on iOS and Android, and Save Your Podcast List is in
+  the app. The existing v5 Export OPML is not that file. The store listing
+  still asks for More → Export OPML in the v4 app before update.
 - Signed-out v4 users have no email address with us. The store listing and
   the "What's New" text of the first v5 build are their message. Both ask them
   to save a backup first with More → Export OPML in the current app (decided
@@ -128,8 +128,9 @@ move to the directory on their own once we have them.
 
 ## Future plan sets
 
-- Backup sentence review after the doc 08 feed-list field spike. Until then
-  the drafts stay as written.
+- Backup sentence review now that the doc 08 feed-list field spike passed on
+  iOS and Android. Drafts still ask for More → Export OPML in the v4 app
+  before update.
 - The store listing and What's New text above go into the first v5 store
   submission ([12](12-production-launch-and-grace-period.md)).
 - Copy deck (email / longer reply / listing).

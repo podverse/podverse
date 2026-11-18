@@ -1,8 +1,13 @@
 import { and, eq } from 'drizzle-orm';
 
-import type { DTOAddByRSSMatchFeed, DTOChannelDirectoryMatch } from '@podverse/helpers/dto';
+import type {
+  DTOAddByRSSMatchFeed,
+  DTOChannelDirectoryMatch,
+  DTOItem,
+} from '@podverse/helpers/dto';
 import { ADD_BY_RSS_DIRECTORY_MATCH_MAX_ITEMS } from '@podverse/helpers/dto';
 import { getErrorResponseStatus } from '@podverse/helpers/error';
+import { canonicalAddByRSSFeedUrl } from '@podverse/helpers-validation/client';
 
 import {
   requestWithMobileAuthRefresh,
@@ -14,6 +19,7 @@ import type {
   LocalAddByRssItemRef,
 } from '../../lib/addByRss/directoryMatch';
 import { buildAddByRssMatchRefs, localItemRefsForFeed } from '../../lib/addByRss/directoryMatch';
+import { addByRssDownloadItem } from '../../lib/addByRss/downloadItem';
 import { homeFeedRefresh } from '../../lib/home/homeFeedRefresh';
 import type {
   AddByRssPromotionMove,
@@ -21,14 +27,19 @@ import type {
   PromotionListedFeed,
   PromotionOutbox,
 } from '../addByRssPromotionRemap';
-import { addByRssPromotionRemap } from '../addByRssPromotionRemap';
+import {
+  addByRssPromotionRemap,
+  promotionMovesForUnmatchedLocalEpisodes,
+} from '../addByRssPromotionRemap';
 import type { AppDatabase } from '../db';
 import { getDb, initializeDatabase, schema } from '../db';
 import type { DownloadRow } from '../db/schema';
 import type { IdentityPlayback } from '../identityRemap';
 import { reprojectLibraryChildrenForChannel, reprojectLibraryIndex } from '../nativeCache';
 import { rowToListedFeedRecord } from './addByRssListedFeeds';
+import { addByRssLocalEpisodeRepository } from './addByRssLocalEpisodeRepository';
 import { addByRssRepository } from './addByRssRepository';
+import { channelItemsRepository } from './channelItemsRepository';
 import { formatDirectoryChannelGoneDetail } from './directoryChannelGone';
 import { downloadsRepository } from './downloadsRepository';
 import { playableItemRepository } from './playableItemRepository';
@@ -56,6 +67,31 @@ const listedKey = (row: PromotionListedFeed): string => {
   return `${row.publisherFeedUrl}\0${row.feedGuid}`;
 };
 
+const comparableFeedUrl = (feedUrl: string): string => {
+  return canonicalAddByRSSFeedUrl(feedUrl) ?? feedUrl.trim();
+};
+
+type KeptDirectoryEpisode = {
+  item: DTOItem;
+  outcome: 'kept' | 'server_listed';
+};
+
+/** Point a downloaded episode at the directory channel the episode list reads. */
+const keptDirectoryItem = (
+  downloaded: DTOItem,
+  channelIdText: string,
+  channelTitle: string | null
+): DTOItem => {
+  const channel = downloaded.channel;
+  if (channel === undefined) {
+    return downloaded;
+  }
+  return {
+    ...downloaded,
+    channel: { ...channel, id_text: channelIdText, title: channelTitle },
+  };
+};
+
 const loadSnapshot = async (feedUrl: string): Promise<AddByRssPromotionSnapshot> => {
   await initializeDatabase();
   const db = getDb();
@@ -72,6 +108,7 @@ const loadSnapshot = async (feedUrl: string): Promise<AddByRssPromotionSnapshot>
     listed,
     subscribed,
     feedRows,
+    localEpisodeRows,
   ] = await Promise.all([
     db.select().from(schema.download),
     db.select().from(schema.playbackLocalState),
@@ -89,8 +126,15 @@ const loadSnapshot = async (feedUrl: string): Promise<AddByRssPromotionSnapshot>
       .from(schema.addByRssFeed)
       .where(eq(schema.addByRssFeed.feedUrl, feedUrl))
       .limit(1),
+    db
+      .select({
+        downloadIdText: schema.addByRssLocalEpisode.downloadIdText,
+        feedUrl: schema.addByRssLocalEpisode.feedUrl,
+      })
+      .from(schema.addByRssLocalEpisode),
   ]);
 
+  const promotedFeedUrl = comparableFeedUrl(feedUrl);
   return {
     autoDownloadCandidates: autoItems.map((row) => ({
       channelIdText: row.channelIdText,
@@ -141,6 +185,12 @@ const loadSnapshot = async (feedUrl: string): Promise<AddByRssPromotionSnapshot>
         unresolvedReason: record.unresolvedReason,
       };
     }),
+    localEpisodes: localEpisodeRows
+      .filter((row) => comparableFeedUrl(row.feedUrl) === promotedFeedUrl)
+      .map((row) => ({
+        downloadIdText: row.downloadIdText,
+        feedUrl: row.feedUrl,
+      })),
     playableItems: playable.map((row) => ({
       itemIdText: row.itemIdText,
       payloadJson: row.payloadJson,
@@ -720,6 +770,23 @@ const persistListed = async (
   }
 };
 
+/** Deletes local-episode rows the remap removed. Rows still listed are already stored. */
+const persistLocalEpisodes = async (
+  transaction: PromotionTransaction,
+  before: AddByRssPromotionSnapshot['localEpisodes'],
+  after: AddByRssPromotionSnapshot['localEpisodes']
+): Promise<void> => {
+  const afterIds = new Set(after.map((row) => row.downloadIdText));
+  for (const row of before) {
+    if (afterIds.has(row.downloadIdText)) {
+      continue;
+    }
+    await transaction
+      .delete(schema.addByRssLocalEpisode)
+      .where(eq(schema.addByRssLocalEpisode.downloadIdText, row.downloadIdText));
+  }
+};
+
 const refreshMovedPlayables = async (
   moved: readonly { fromItemIdText: string; toItemIdText: string }[]
 ): Promise<void> => {
@@ -757,6 +824,60 @@ const appendPromoted = async (
     occurredAt: Date.now(),
     outcome: 'reconciled',
   });
+};
+
+/**
+ * Store each local episode the match did not name on the directory channel, under its download id.
+ * When `keepDownloadedItem` skips a row, that local-episode row stays.
+ */
+const keepUnmatchedLocalEpisodes = async (
+  feedUrl: string,
+  move: AddByRssPromotionMove
+): Promise<KeptDirectoryEpisode[]> => {
+  const localEpisodes = await addByRssLocalEpisodeRepository.listByFeedUrl(feedUrl);
+  if (localEpisodes.length === 0) {
+    return [];
+  }
+  const record = await addByRssRepository.getFeedByUrl(feedUrl);
+  const mappedFeed = record === null ? null : await addByRssRepository.getMappedFeedByUrl(feedUrl);
+  const refs =
+    record !== null && mappedFeed !== null
+      ? localItemRefsForFeed(record, mappedFeed, await referencedKeys())
+      : [];
+  const hashByDownloadId = new Map(refs.map((ref) => [ref.downloadIdText, ref.hashId]));
+  const matched = new Set(move.items.map((item) => item.downloadIdText));
+  const unmatched = promotionMovesForUnmatchedLocalEpisodes(
+    localEpisodes.map((episode) => ({
+      downloadIdText: episode.downloadIdText,
+      hashId: hashByDownloadId.get(episode.downloadIdText) ?? episode.downloadIdText,
+    })),
+    matched
+  );
+  const episodeByDownloadId = new Map(
+    localEpisodes.map((episode) => [episode.downloadIdText, episode])
+  );
+  const kept: KeptDirectoryEpisode[] = [];
+  for (const unmatchedItem of unmatched) {
+    const episode = episodeByDownloadId.get(unmatchedItem.downloadIdText);
+    if (episode === undefined) {
+      continue;
+    }
+    const downloaded = addByRssDownloadItem(feedUrl, episode.itemBundle, 0);
+    if (downloaded === null) {
+      continue;
+    }
+    const item = keptDirectoryItem(downloaded, move.channelIdText, move.channelTitle);
+    const outcome = await channelItemsRepository.keepDownloadedItem({
+      channelIdText: move.channelIdText,
+      item,
+    });
+    if (outcome !== 'kept' && outcome !== 'server_listed') {
+      continue;
+    }
+    move.items.push(unmatchedItem);
+    kept.push({ item, outcome });
+  }
+  return kept;
 };
 
 export const addByRssPromotion = {
@@ -892,6 +1013,9 @@ export const addByRssPromotion = {
   /**
    * Subscribe, rewrite local rows, and remove the Add by RSS feed.
    *
+   * An episode the directory match does not name stays on that channel under its download id.
+   * A promotion the account already recorded uses this same function.
+   *
    * `accountSync` is the signed-in move. The account already follows the directory channel, so
    * this does not call the account follow route. It drops the cached queue and the playlists
    * the account owns; those payloads still name Add by RSS rows the server has already moved.
@@ -913,6 +1037,7 @@ export const addByRssPromotion = {
     }
     const before = await loadSnapshot(params.feedUrl);
     const move = await moveForMatch(params.feedUrl, params.match);
+    const keptEpisodes = await keepUnmatchedLocalEpisodes(params.feedUrl, move);
     const result = addByRssPromotionRemap(before, move);
     const fullDownloads = await getDb().select().from(schema.download);
     const fullById = new Map(fullDownloads.map((row) => [row.itemIdText, row]));
@@ -941,14 +1066,29 @@ export const addByRssPromotion = {
       await persistChrome(transaction, before.sectionChrome, result.snapshot.sectionChrome);
       await persistPlayable(transaction, before.playableItems, result.snapshot.playableItems);
       await persistListed(transaction, before.listedFeeds, result.snapshot.listedFeeds);
+      await persistLocalEpisodes(transaction, before.localEpisodes, result.snapshot.localEpisodes);
     });
     for (const filePath of result.downloadFilesToDelete) {
       await downloadsRepository.deleteStoredFile(filePath);
     }
-    if (result.movedDownloadItemIds.length > 0 || result.downloadFilesToDelete.length > 0) {
+    if (
+      result.movedDownloadItemIds.length > 0 ||
+      result.downloadFilesToDelete.length > 0 ||
+      keptEpisodes.length > 0
+    ) {
       downloadStore.hydrate(await downloadsRepository.list());
     }
     await refreshMovedPlayables(result.movedDownloadItemIds);
+    for (const kept of keptEpisodes) {
+      if (kept.outcome === 'kept') {
+        await playableItemRepository.put('download', kept.item);
+        continue;
+      }
+      const stored = await channelItemsRepository.getByIdText(kept.item.id_text);
+      if (stored !== null) {
+        await playableItemRepository.put('download', stored);
+      }
+    }
     const feed = await addByRssRepository.getFeedByUrl(params.feedUrl);
     if (feed !== null) {
       await addByRssRepository.removeFeed(params.feedUrl);

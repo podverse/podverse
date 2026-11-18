@@ -33,17 +33,18 @@ const configState = vi.hoisted((): { pushProvider: PushProvider } => ({
   pushProvider: 'fcm',
 }));
 
-vi.mock('@react-native-firebase/app', () => ({
-  getApps: () => native.apps,
-}));
-
-vi.mock('@react-native-firebase/messaging', () => ({
-  getMessaging: () => ({ name: 'messaging' }),
-  getToken: () => native.getToken(),
-  isDeviceRegisteredForRemoteMessages: () => native.registered,
-  onTokenRefresh: (messaging: unknown, listener: (token: string) => void) =>
-    native.onTokenRefresh(messaging, listener),
-  registerDeviceForRemoteMessages: () => native.register(),
+vi.mock('./firebaseNativeModules', () => ({
+  readFirebaseAppModule: () => ({
+    getApps: () => native.apps,
+  }),
+  readFirebaseMessagingModule: () => ({
+    getMessaging: () => ({ name: 'messaging' }),
+    getToken: () => native.getToken(),
+    isDeviceRegisteredForRemoteMessages: () => native.registered,
+    onTokenRefresh: (messaging: unknown, listener: (token: string) => void) =>
+      native.onTokenRefresh(messaging, listener),
+    registerDeviceForRemoteMessages: () => native.register(),
+  }),
 }));
 
 vi.mock('expo-constants', () => ({

@@ -299,6 +299,7 @@ export * from './services/channel/channelValue.js';
 export * from './services/channel/channelMerge.js';
 export * from './services/channel/channelMergeRedirect.js';
 export * from './services/legacy/legacyPodcastLookup.js';
+export * from './services/legacy/legacyEpisodeLookup.js';
 export * from './services/channel/channelMergeJournal.js';
 export * from './services/remoteStub/remoteChannelStub.js';
 export * from './services/remoteStub/remoteItemStub.js';

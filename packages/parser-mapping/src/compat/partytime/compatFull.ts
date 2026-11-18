@@ -39,6 +39,7 @@ import {
   compatItemTranscriptDtos,
   compatItemTxtDtos,
   compatItemValueDtos,
+  itemImagesNotOnChannel,
 } from './item.js';
 import type { CompatLiveItemDto } from './liveItem.js';
 import { compatLiveItemsDtos } from './liveItem.js';
@@ -89,6 +90,8 @@ export type ParsedRSSFeedCompatBundle = {
 };
 
 export const convertParsedRSSFeedToCompat = (parsedFeed: FeedObject): ParsedRSSFeedCompatBundle => {
+  const channelImages = compatChannelImageDtos(parsedFeed);
+  const channelImageUrls = new Set(channelImages.map((image) => image.url));
   const items = (parsedFeed.items ?? []).map((item) => ({
     item: compatItemDto(item),
     about: compatItemAboutDto(item),
@@ -96,7 +99,7 @@ export const convertParsedRSSFeedToCompat = (parsedFeed: FeedObject): ParsedRSSF
     chat: compatItemChatDto(item),
     description: compatItemDescriptionDto(item, DEFAULT_DESCRIPTION_LENGTH_TIER),
     enclosures: compatItemEnclosureDtos(item),
-    images: compatItemImageDtos(item),
+    images: itemImagesNotOnChannel(compatItemImageDtos(item), channelImageUrls),
     license: compatItemLicenseDto(item),
     location: compatItemLocationDto(item),
     people: compatItemPersonDtos(item),
@@ -121,7 +124,7 @@ export const convertParsedRSSFeedToCompat = (parsedFeed: FeedObject): ParsedRSSF
       chat: compatChannelChatDto(parsedFeed),
       description: compatChannelDescriptionDto(parsedFeed, DEFAULT_DESCRIPTION_LENGTH_TIER),
       funding: compatChannelFundingDtos(parsedFeed),
-      images: compatChannelImageDtos(parsedFeed),
+      images: channelImages,
       license: compatChannelLicenseDto(parsedFeed),
       location: compatChannelLocationDto(parsedFeed),
       people: compatChannelPersonDtos(parsedFeed),

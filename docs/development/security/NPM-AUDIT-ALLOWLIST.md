@@ -13,11 +13,11 @@ overrides so nested installs (including `next` optional/`postcss`) resolve to pa
 | `postcss` / `next.postcss`    | `8.5.23`       | PostCSS XSS / sourceMappingURL HIGH+moderate |
 | `sharp` / `next.sharp`        | `0.35.3`       | libvips HIGH via nested Next sharp           |
 | `uuid` (direct app use)       | `14.0.3`       | Direct UUID use; Firebase chain listed below |
-| `fast-xml-parser`             | `5.12.0`       | DOCTYPE entity-expansion HIGH                |
+| `fast-xml-parser`             | `5.12.1`       | DOCTYPE entity-expansion HIGH                |
 | `brace-expansion`             | `5.0.12`       | unbounded expansion DoS HIGH                 |
-| `follow-redirects`            | `1.16.2`       | cross-realm `sensitiveHeaders` HIGH          |
-| `glob` / `rimraf.glob`        | `14.0.4`       | AbortSignal walk continues after cancel      |
-| `minimatch`                   | `11.0.5`       | glob-parts amplification moderate            |
+| `follow-redirects`            | `1.16.3`       | cross-realm `sensitiveHeaders` HIGH          |
+| `glob` / `rimraf.glob`        | `14.0.6`       | AbortSignal walk continues after cancel      |
+| `minimatch`                   | `11.0.8`       | glob-parts amplification moderate            |
 | `joi` (direct app deps)       | `^18.3.2`      | `email({ multiple: true })` split HIGH       |
 
 After changing overrides, regenerate the lockfile cleanly (`rm package-lock.json` then `npm install`,

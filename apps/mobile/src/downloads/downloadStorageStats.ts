@@ -1,12 +1,14 @@
 import * as FileSystem from 'expo-file-system/legacy';
 
+import { downloadsRepository } from '../data/repositories/downloadsRepository';
+import { sumChosenFolderBytes } from './chosenDownloadFolder';
 import { DOWNLOADS_SUBDIRECTORY } from './downloadStorage';
 
 export type DownloadStorageBreakdown = {
   /** Bytes used on the device (total − free). */
   deviceUsedBytes: number;
   deviceTotalBytes: number;
-  /** Bytes under documentDirectory/downloads. */
+  /** Bytes in the private downloads folder, plus completed files in the chosen folder. */
   downloadsBytes: number;
   /** documentDirectory total minus downloads folder. */
   appDataBytes: number;
@@ -39,7 +41,9 @@ const directorySize = async (absolutePath: string): Promise<number> => {
 
 /**
  * Measure device / downloads / app-data / cache buckets for Settings → Downloads.
- * Best-effort: failures return zeros for that bucket rather than throwing.
+ * Best-effort: a bucket that fails is zero, and the directory walk still returns.
+ * Completed files in the chosen folder count in `downloadsBytes` only. They are outside
+ * `documentDirectory`, so they are not part of `appDataBytes`.
  */
 export const measureDownloadStorageBreakdown = async (): Promise<DownloadStorageBreakdown> => {
   let deviceUsedBytes = 0;
@@ -66,6 +70,13 @@ export const measureDownloadStorageBreakdown = async (): Promise<DownloadStorage
     documentBytes = await directorySize(documentDirectory);
   }
 
+  let chosenFolderBytes = 0;
+  try {
+    chosenFolderBytes = sumChosenFolderBytes(await downloadsRepository.list());
+  } catch {
+    // A listing failure leaves the chosen-folder total at zero.
+  }
+
   const appDataBytes = Math.max(0, documentBytes - downloadsBytes);
   const cacheBytes = cacheDirectory !== null ? await directorySize(cacheDirectory) : 0;
 
@@ -74,6 +85,6 @@ export const measureDownloadStorageBreakdown = async (): Promise<DownloadStorage
     cacheBytes,
     deviceTotalBytes,
     deviceUsedBytes,
-    downloadsBytes,
+    downloadsBytes: downloadsBytes + chosenFolderBytes,
   };
 };

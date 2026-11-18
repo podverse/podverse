@@ -21,7 +21,9 @@ import { useConfig } from '../../../contexts/Config';
 import { useModals } from '../../../contexts/Modals';
 import { useQueues } from '../../../contexts/Queue';
 import { getApiRequestService } from '../../../factories/apiRequestService';
+import { useMarkQueueResourcePlayed } from '../../../hooks/useMarkQueueResourcePlayed';
 import { useQueueAddWithGate } from '../../../hooks/useQueueAddWithGate';
+import { markPlayedAfterWrite } from '../../../lib/queue/queueResourcePlayed';
 import { getAddByRSSItemPath } from '../../../utils/addByRSS/itemPath';
 import { loadAddByRSSIndexItemFromResourceData } from '../../../utils/addByRSS/playFromQueueResource';
 import { downloadAddByRSSMediaWithModal } from '../../../utils/downloadModal/downloadAddByRSSMediaWithModal';
@@ -64,6 +66,7 @@ export const ListPlaylistResourceRow: React.FC<Props> = ({
   const { loggedInAccount } = useAccount();
   const { setModalPlaylistAddTo, setModalLoginRequired, setModalSourceSelector } = useModals();
   const { queues } = useQueues();
+  const markQueueResourcePlayed = useMarkQueueResourcePlayed();
   const router = useRouter();
   const item = playlistResource.item;
   const clip = playlistResource.clip;
@@ -174,10 +177,19 @@ export const ListPlaylistResourceRow: React.FC<Props> = ({
     const markAsPlayed = () => {
       if (!queue || !resourceData) return;
       showToastPromise(
-        apiRequestService.reqQueueResourceItemAddByRSSAddHistory(queue.id_text, {
-          add_by_rss_resource_data: resourceData,
-          completed: true,
-        }),
+        markPlayedAfterWrite(
+          apiRequestService.reqQueueResourceItemAddByRSSAddHistory(queue.id_text, {
+            add_by_rss_resource_data: resourceData,
+            completed: true,
+          }),
+          () => {
+            markQueueResourcePlayed({
+              duration: null,
+              hash: add_by_rss_hash_id,
+              kind: 'add_by_rss',
+            });
+          }
+        ),
         {
           success: tFeatures('history.marked_as_played'),
           error: tFeatures('history.mark_as_played_error'),

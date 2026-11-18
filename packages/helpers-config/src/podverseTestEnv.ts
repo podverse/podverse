@@ -128,6 +128,9 @@ const apiProfileOverrides: Record<PodverseApiTestEnvProfile, Record<string, stri
     // Legacy podcast lookup has no 429 case. The cap stays above what the API suite sends from one IP.
     LEGACY_PODCAST_LOOKUP_MAX_PER_MINUTE: '1000',
     LEGACY_PODCAST_LOOKUP_INSTALL_MAX_PER_MINUTE: '1000',
+    // Episode lookup has no 429 case, so the cap stays above one IP's API-suite calls.
+    LEGACY_EPISODE_LOOKUP_MAX_PER_MINUTE: '1000',
+    LEGACY_EPISODE_LOOKUP_INSTALL_MAX_PER_MINUTE: '1000',
     API_PUBLIC_BASE_URL: 'http://localhost:29999',
     PLAYBACK_PRESENCE_LEAVE_GRACE_MS: '5000',
   },

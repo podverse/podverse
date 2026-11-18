@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import {
   acceptStoredCustomApiBaseUrl,
+  customApiCommitOpensClearScreen,
   customApiHealthUrl,
   judgeCustomApiHealthResponse,
   normalizeCustomApiBaseUrl,
@@ -71,6 +72,15 @@ describe('planCustomApiCommit', () => {
       action: 'probe',
       baseUrl: CUSTOM,
     });
+  });
+});
+
+describe('customApiCommitOpensClearScreen', () => {
+  it('is true only when the saved address would change', () => {
+    expect(customApiCommitOpensClearScreen({ action: 'clear' })).toBe(true);
+    expect(customApiCommitOpensClearScreen({ action: 'probe', baseUrl: CUSTOM })).toBe(true);
+    expect(customApiCommitOpensClearScreen({ action: 'unchanged' })).toBe(false);
+    expect(customApiCommitOpensClearScreen({ action: 'invalid' })).toBe(false);
   });
 });
 

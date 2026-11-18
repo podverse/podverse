@@ -28,21 +28,28 @@ future work per [INFRA-K8S.md](/infra/k8s/INFRA-K8S.md).
 
 1. One database. Before launch, testers use the database that will be
    production. It is not copied into a second cluster.
-2. Invite testers who accept: "this build replaces your v4 app; after you
+2. After the identity stubs are in, and before anyone is invited, run the
+   directory head start on that database
+   ([05](05-id-mapping-and-catalog-seeding.md#launch-queue)). About 64,000
+   subscribed public shows on the 2026-10-30 snapshot, plus viewed shows and
+   shows that appear only in a library. Libraries stay uncopied. Parsing
+   continues while the beta is still closed. A later run against a newer v4
+   read picks up shows added since, and leaves a parsed show alone.
+3. Invite testers who accept: "this build replaces your v4 app; after you
    migrate, treat v4 as unavailable on this device."
-3. On first beta login, run the same pipeline as prod
+4. On first beta login, run the same pipeline as prod
    ([07](07-account-and-data-migration-model.md)). A v5 worker reads that
    tester's v4 rows at that moment, over a read-only connection, into that
    database. The v4 app does not run the copy.
-4. Alpha is internal testing, before beta. Sandbox purchases are tested there
+5. Alpha is internal testing, before beta. Sandbox purchases are tested there
    only. Beta is public pre-release testing. Beta mobile uses v4 ids so
    local-data migration is real. A beta build does not offer a purchase. The
    person buys on the website at `podverse.fm`, or writes to
    `contact@podverse.fm`.
-5. At launch, that database becomes the production database. Beta clients
+6. At launch, that database becomes the production database. Beta clients
    keep using it. There is no dump into a new cluster and no second copy of
    the accounts.
-6. After launch, new production logins continue lazy migration from v4 for
+7. After launch, new production logins continue lazy migration from v4 for
    everyone who was not a beta tester. Later beta builds read and write the
    same production rows.
 

@@ -237,6 +237,7 @@ import {
   reqItemSoundbiteGetManyByItemIdText,
 } from './itemSoundbite/itemSoundbite.js';
 import { reqItemTranscriptGet } from './itemTranscript/itemTranscript.js';
+import { reqLegacyEpisodeLookup } from './legacy/legacyEpisodeLookup.js';
 import { reqLegacyPodcastLookup } from './legacy/legacyPodcastLookup.js';
 import { reqLegalTasteProfileAgreement } from './legal/tasteProfileAgreement.js';
 import { reqLegalTerms } from './legal/terms.js';
@@ -1312,6 +1313,18 @@ export class ApiRequestService {
 
   reqLegacyPodcastLookup(body: { podcast_ids: string[]; install_id: string | null }) {
     return reqLegacyPodcastLookup(this, body);
+  }
+
+  reqLegacyEpisodeLookup(body: {
+    episodes: {
+      episode_id: string;
+      podcast_id: string;
+      guid: string | null;
+      media_url: string | null;
+    }[];
+    install_id: string | null;
+  }) {
+    return reqLegacyEpisodeLookup(this, body);
   }
 
   /* LIVE ITEM */

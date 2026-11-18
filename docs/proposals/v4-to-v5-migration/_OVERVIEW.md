@@ -44,6 +44,7 @@ commits them.
 | Only operators run commands against the practice-run database copy       | Decided |
 | On-device ids are saved first and matched when the network is available  | Decided |
 | Signed-out phone carryover bar is subscriptions and Add by RSS           | Decided |
+| Signed-out queue, history, and now playing stay empty until sign-in      | Decided |
 | First store version is the app version; Android code stays above 5280    | Decided |
 | v5 reuses Firebase project podverse-app; v4 tokens stay out              | Decided |
 | Next alpha, beta, and prod send with podverse-next-fcm; v4 admin stays   | Decided |
@@ -57,7 +58,7 @@ commits them.
 | Playlist members come from the joins; `itemsOrder` only sorts            | Decided |
 | A follow uses the survivor when an absorb merge is already applied       | Decided |
 | The selective seed skips spam, takedown, and non-public podcasts         | Decided |
-| At go-live, queue subscribed shows and Matomo views of 3 or more         | Decided |
+| Directory parse starts after account stubs, before beta opens            | Decided |
 | Signed-out v4 ids use a read-only lookup; signed-out never adds feeds    | Decided |
 | The legacy podcast lookup accepts at most 2,000 ids per request          | Decided |
 | Signed-out Add by RSS refreshes on the phone with no feed limit          | Decided |
@@ -67,8 +68,8 @@ commits them.
 | The directory match moves queue, playlist, and playback rows too         | Decided |
 | Feeds record their source; the account link clears on account deletion   | Decided |
 | Copied list order uses the ORM step of `0.00000001`                      | Decided |
-| Phone-storage spike is written in doc 08 and has not been run            | Decided |
-| Continue Migration OPML screen is planned; it waits for the field spike  | Decided |
+| Phone-storage spike passed on iOS and Android (doc 08)                   | Decided |
+| Continue Migration OPML screen ships; field spike passed on both         | Decided |
 | First v5 store listing asks v4 users to Export OPML before updating      | Decided |
 | F-Droid is a placeholder until later                                     | Decided |
 | Do not import `subscribedPodcastListIds`                                 | Decided |
@@ -157,6 +158,9 @@ flowchart LR
 | [14](14-fdroid.md)                             | F-Droid placeholder                                       |
 | [15](15-near-term-rehearsal-checklist.md)      | Ordered rehearsal steps before migration code             |
 | [16](16-full-local-migration-rehearsal.md)     | Copy every account locally and check each one             |
+| [17](17-storage-v4-vs-v5.md)                   | Storage per episode, full-database estimate, savings      |
+| [18](18-v5-table-storage.md)                   | Where the v5 catalog bytes sit, table by table            |
+| [19](19-unused-large-indexes.md)               | One unused index; keep the global `pub_date` index        |
 
 ## Can and cannot (honest summary)
 
@@ -186,9 +190,10 @@ flowchart LR
 - Use the existing v5 Export OPML as a backup taken before either copy. That
   control reads data the copy has not written yet. A separate feed-list
   reading is specified in
-  [08](08-mobile-first-launch-migration.md#feed-list-file-before-the-phone-copy)
-  and waits for its field spike. Until then, the store listing asks v4 users
-  to Export OPML in the v4 app before they update.
+  [08](08-mobile-first-launch-migration.md#feed-list-file-before-the-phone-copy);
+  the field spike passed on iOS and Android, and Save Your Podcast List is in
+  the app. The store listing still asks v4 users to Export OPML in the v4 app
+  before they update, because automatic updates may skip that screen.
 - Promise every clip, history row, or download survives. Feeds, guids, and
   storage paths may have drifted.
 - Seed popularity from Matomo or from the v4 stats tables. v5 popularity
@@ -201,10 +206,9 @@ flowchart LR
 
 1. **Database rehearsal** ([06](06-database-migration-rehearsal.md)) against the
    prod-copy test DB. No store or beta dependency.
-2. **Mobile local-data spike** ([08](08-mobile-first-launch-migration.md)) on a
-   build that temporarily uses the v4 store ids in a private channel. The
-   feed-list field reading is written in that doc and gates the Continue
-   Migration screen. It is not the next rehearsal step.
+2. **Mobile local-data spike** ([08](08-mobile-first-launch-migration.md)):
+   done on iOS and Android. Counts are in that doc's open questions. Not a
+   rehearsal step.
 3. **Add by RSS directory match**
    ([08](08-mobile-first-launch-migration.md#add-by-rss-directory-match)) on
    mobile, web, and the API. It ships on its own, before the migration.

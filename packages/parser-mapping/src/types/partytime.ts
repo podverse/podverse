@@ -299,8 +299,10 @@ export type PIChapterLocation = {
 };
 
 export type PIChapter = {
-  startTime: string;
-  endTime: string | null;
+  /** Seconds, as a number in chapters JSON or a numeric string. */
+  startTime: string | number;
+  /** Seconds, as a number in chapters JSON or a numeric string. */
+  endTime: string | number | null;
   title: string | null;
   img: string | null;
   url: string | null;

@@ -18,9 +18,11 @@ import { useMediaPlayer } from '../../../contexts/MediaPlayer';
 import { useModals } from '../../../contexts/Modals';
 import { useQueues } from '../../../contexts/Queue';
 import { getApiRequestService } from '../../../factories/apiRequestService';
+import { useMarkQueueResourcePlayed } from '../../../hooks/useMarkQueueResourcePlayed';
 import { useMediaPlayerResourceUpdate } from '../../../hooks/useMediaPlayerResourceUpdate';
 import { useQueueAddWithGate } from '../../../hooks/useQueueAddWithGate';
 import { playbackTargetFromStandardLoad } from '../../../lib/playback';
+import { markPlayedAfterWrite } from '../../../lib/queue/queueResourcePlayed';
 import { downloadEpisodeWithModal } from '../../../utils/downloadModal/downloadEpisodeWithModal';
 import { downloadAndSaveFile } from '../../../utils/fileDownloader';
 import { PlayButtonLarge } from '../../MediaPlayer/Buttons/PlayButtonLarge';
@@ -53,6 +55,7 @@ export const ItemSoundbiteHeaderPlaySection: React.FC<ItemSoundbiteHeaderPlaySec
   const { mpItemSoundbite, mpIsPlaying, setMPIsPlaying } = useMediaPlayer();
   const mediaPlayerResourceUpdate = useMediaPlayerResourceUpdate();
   const { loggedInAccount } = useAccount();
+  const markQueueResourcePlayed = useMarkQueueResourcePlayed();
   const { autoQueueConfig } = useAutoQueue();
 
   const startTime = item_soundbite.start_time;
@@ -176,11 +179,20 @@ export const ItemSoundbiteHeaderPlaySection: React.FC<ItemSoundbiteHeaderPlaySec
     const queue = getQueueForMedium(queues, channel.medium_id);
     if (queue) {
       showToastPromise(
-        apiRequestService.reqQueueResourceItemSoundbiteAddHistory(
-          queue.id_text,
-          item_soundbite.id_text,
-          {
-            completed: true,
+        markPlayedAfterWrite(
+          apiRequestService.reqQueueResourceItemSoundbiteAddHistory(
+            queue.id_text,
+            item_soundbite.id_text,
+            {
+              completed: true,
+            }
+          ),
+          () => {
+            markQueueResourcePlayed({
+              duration: item_soundbite.duration ?? null,
+              id: item_soundbite.id,
+              kind: 'soundbite',
+            });
           }
         ),
         {

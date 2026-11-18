@@ -94,6 +94,14 @@ describe('planDownloadCompletePlaybackHandoff', () => {
     expect(plan()).toEqual({ localUrl: 'file:///downloads/item-1.mp3' });
   });
 
+  it('returns a chosen-folder document URI when the streaming item and enclosure match', () => {
+    const documentUri =
+      'content://com.android.externalstorage.documents/document/primary%3Aitem-1.mp3';
+    expect(plan({ record: completeRecord({ filePath: documentUri }) })).toEqual({
+      localUrl: documentUri,
+    });
+  });
+
   it('matches a clip, chapter, or soundbite through the parent item file', () => {
     expect(plan({ target: clipTarget })).toEqual({ localUrl: 'file:///downloads/item-1.mp3' });
     expect(plan({ target: chapterTarget })).toEqual({

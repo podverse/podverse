@@ -20,7 +20,11 @@ the v4 password both succeeded. All 925 clips and 19 playlist members are
 written. Two user follows and 16 history rows on failed feeds are not. The
 migration feed retry, `legacy_pending_row`, and `v4ReplayLegacyRows` are now
 built for those gaps but not rehearsed yet; the replay steps are in checklist
-15 section 5. The 21 unseeded subscriptions stay off the public catalog. See
+15 section 5. The 21 unseeded subscriptions stay off the public catalog. After the identity
+stubs are in the beta database, and before beta opens, the directory head
+start queues the subscribed public shows, the viewed shows, and the shows
+that appear only in a library. Libraries stay uncopied (decided 2026-11-16).
+See
 [05 § Migration resilience](05-id-mapping-and-catalog-seeding.md#migration-resilience).
 The membership expiry dry run at `2026-11-12T04:01:50Z` wrote nothing:
 created 1, skipped past 1563, unmatched 1373, and the other counts are 0.
@@ -121,8 +125,10 @@ operators run commands against the practice-run database copy. The
 questions in 06 are decided. Old ids found on the phone are saved first
 and matched when the network is available. The first screen does not wait
 for that match. Signed-out phone carryover is good enough when
-subscriptions and Add by RSS addresses from the phone are present. Queue,
-history, and downloads may be missing. The first store build uses the app
+subscriptions and Add by RSS addresses from the phone are present. Downloads
+may be missing. Queue, history, and now playing are not copied from the
+phone: a signed-out phone starts them empty, and a signed-in account gets
+them from the account copy (decided 2026-11-16). The first store build uses the app
 version as its version name. The Android build number stays above `5280`
 and only increases. v5 reuses Firebase project podverse-app. It adds apps
 for the v5 ids and does not edit the v4 apps, their config, or the v4 admin
@@ -143,13 +149,10 @@ the running process before the identity seed. Extra v4 worktrees wait until
 someone starts the migration code. The questions in 01 are decided. An
 episode in a v4 playlist becomes a playlist row that points at the episode.
 The clip stays empty. Do not invent a clip for that episode. The
-phone-storage spike is written in
-[08](08-mobile-first-launch-migration.md#storage-spike) and has not been run.
-It reads two keys on a private in-place install and leaves the app code
-alone. A feed-list file before the phone copy is specified in
-[08](08-mobile-first-launch-migration.md#feed-list-file-before-the-phone-copy)
-and is deferred. Do not run that spike, and do not build Continue Migration,
-until the operator asks. It is not the next item in
+phone-storage spike and the feed-list field spike both passed on iOS and
+Android. Counts are in
+[08](08-mobile-first-launch-migration.md#open-questions). Save Your Podcast
+List is in the app. Neither spike is a rehearsal step in
 [15](15-near-term-rehearsal-checklist.md). Doc 12 does not freeze or promote
 a beta database. Beta and production already share the production database.
 
@@ -174,6 +177,8 @@ a beta database. Beta and production already share the production database.
   42 subscribed podcast ids have no podcast row. Every remaining subscribed
   podcast has a numeric Podcast Index id. 2,707 history rows have a blank
   episode guid.
+- Phone-storage and feed-list field spikes passed on iOS and Android. Counts
+  are in [08](08-mobile-first-launch-migration.md#open-questions).
 
 ## Counts
 

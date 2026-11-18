@@ -203,11 +203,13 @@ export function AddByRssHomeDetailScreen({ navigation, route }: AddByRssHomeDeta
           return;
         }
 
-        const mappedFeed = await addByRssRepository.getMappedFeedByUrl(feed.feedUrl);
+        const { hasParsedBundle, mappedFeed } = await addByRssRepository.getMappedFeedDetailByUrl(
+          feed.feedUrl
+        );
         if (generation !== loadGenerationRef.current) {
           return;
         }
-        setDetail(buildAddByRssHomeDetailData(feed, mappedFeed));
+        setDetail(buildAddByRssHomeDetailData(feed, mappedFeed, { hasParsedBundle }));
       } catch {
         if (generation !== loadGenerationRef.current) {
           return;
@@ -232,6 +234,14 @@ export function AddByRssHomeDetailScreen({ navigation, route }: AddByRssHomeDeta
     }
     await loadDetail({ silent: true });
   }, [feedIdText, loadDetail]);
+
+  useEffect(
+    () =>
+      homeFeedRefresh.subscribe(() => {
+        void reloadDetailSilently();
+      }),
+    [reloadDetailSilently]
+  );
 
   const detailFeedUrl =
     detail !== null && detail.feed.idText === feedIdText ? detail.feed.feedUrl : null;

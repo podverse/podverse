@@ -3,24 +3,29 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { LocalMediaPlayerProgress } from './MediaPlayerProgress';
 
-const { seek, setMPCurrentTime, mediaPlayerState } = vi.hoisted(() => ({
-  seek: vi.fn(),
-  setMPCurrentTime: vi.fn(),
-  mediaPlayerState: {
-    mpClip: null,
-    mpItemSoundbite: null,
-    mpItemChapter: null,
-    mpItemChapters: [] as unknown[],
-    mpDuration: 100,
-  },
-}));
+const { seek, setMPCurrentTime, setMPDuration, readDurationSeconds, mediaPlayerState } = vi.hoisted(
+  () => ({
+    seek: vi.fn(),
+    setMPCurrentTime: vi.fn(),
+    setMPDuration: vi.fn(),
+    readDurationSeconds: vi.fn((): number | null | undefined => undefined),
+    mediaPlayerState: {
+      mpClip: null,
+      mpItemSoundbite: null,
+      mpItemChapter: null,
+      mpItemChapters: [] as unknown[],
+      mpDuration: 100,
+      setMPDuration: vi.fn(),
+    },
+  })
+);
 
 vi.mock('../../../contexts/MediaPlayer', () => ({
   useMediaPlayer: () => mediaPlayerState,
 }));
 
 vi.mock('../../../contexts/MediaPlayerControls', () => ({
-  useMediaPlayerControls: () => ({ seek }),
+  useMediaPlayerControls: () => ({ seek, readDurationSeconds }),
 }));
 
 vi.mock('../../../contexts/MediaPlayerCurrentTime', () => ({
@@ -48,6 +53,10 @@ describe('LocalMediaPlayerProgress', () => {
   beforeEach(() => {
     seek.mockClear();
     setMPCurrentTime.mockClear();
+    setMPDuration.mockClear();
+    mediaPlayerState.setMPDuration = setMPDuration;
+    readDurationSeconds.mockReset();
+    readDurationSeconds.mockReturnValue(undefined);
     mediaPlayerState.mpDuration = 100;
   });
 
@@ -89,5 +98,20 @@ describe('LocalMediaPlayerProgress', () => {
     expect(seek).toHaveBeenCalledTimes(1);
     expect(seek).toHaveBeenCalledWith(50);
     expect(setMPCurrentTime).toHaveBeenCalledWith(50);
+  });
+
+  it('seeks using the loaded file duration when player state still has another length', () => {
+    readDurationSeconds.mockReturnValue(200);
+    render(<LocalMediaPlayerProgress />);
+
+    const slider = screen.getByTestId('media-player-local-progress');
+    mockBarRect(slider);
+
+    fireEvent.mouseDown(slider, { clientX: 100 });
+    fireEvent.mouseUp(window);
+
+    expect(seek).toHaveBeenCalledTimes(1);
+    expect(seek).toHaveBeenCalledWith(100);
+    expect(setMPDuration).toHaveBeenCalledWith(200);
   });
 });

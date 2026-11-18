@@ -339,6 +339,20 @@ const validateAllEnvironmentVariables = (): ValidationSummary => {
       'Use Default (10)'
     )
   );
+  results.push(
+    validateOptional(
+      'LEGACY_EPISODE_LOOKUP_MAX_PER_MINUTE',
+      'Legacy episode lookup',
+      'Use Default (30)'
+    )
+  );
+  results.push(
+    validateOptional(
+      'LEGACY_EPISODE_LOOKUP_INSTALL_MAX_PER_MINUTE',
+      'Legacy episode lookup',
+      'Use Default (10)'
+    )
+  );
 
   // OPML import (optional; default 50 new feeds/hour)
   results.push(

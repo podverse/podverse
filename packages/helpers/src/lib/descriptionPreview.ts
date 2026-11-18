@@ -1,5 +1,9 @@
+import type { DescriptionNode } from './descriptionDocument.js';
 import { DESCRIPTION_PREVIEW_MAX_LENGTH } from './descriptionLimits.js';
-import { escapeHtml, htmlToPlainTextPreview } from './html.js';
+import {
+  descriptionValueToPlainPreview,
+  serializeDescriptionMarkdown,
+} from './descriptionMarkdown.js';
 
 type DescriptionPreviewSource =
   { preview?: string | null; value?: string | null; is_truncated?: boolean } | null | undefined;
@@ -12,7 +16,7 @@ export function getDescriptionPreviewText(description: DescriptionPreviewSource)
 
   const value = description?.value;
   if (typeof value === 'string' && value.length > 0) {
-    return htmlToPlainTextPreview(value, DESCRIPTION_PREVIEW_MAX_LENGTH);
+    return descriptionValueToPlainPreview(value, DESCRIPTION_PREVIEW_MAX_LENGTH);
   }
 
   return '';
@@ -22,10 +26,11 @@ export function isDescriptionTruncated(description: DescriptionPreviewSource): b
   return description?.is_truncated === true;
 }
 
-/** Stored description left on an archived episode or show: the preview, as one paragraph. */
+/** Stored description left on an archived episode or show: the preview, as one markdown paragraph. */
 export function buildArchivedDescriptionValue(preview: string): string {
   if (preview.length === 0) {
     return '';
   }
-  return `<p>${escapeHtml(preview)}</p>`;
+  const paragraph: DescriptionNode = { kind: 'p', children: [{ kind: 'text', text: preview }] };
+  return serializeDescriptionMarkdown([paragraph]);
 }

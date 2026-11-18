@@ -129,6 +129,9 @@
       "delete_all": "",
       "delete_all_confirm_title": "",
       "delete_all_confirm_body": "",
+      "chosen_folder": "",
+      "chosen_folder_description": "",
+      "chosen_folder_save_failed": "",
       "auto_download_heading": "",
       "auto_download_default": "",
       "auto_download_default_description": "",
@@ -215,7 +218,8 @@
       "home_feed": "",
       "auto_download": "",
       "identity_remap": "",
-      "v4_carryover": ""
+      "v4_carryover": "",
+      "v4_download_carryover": ""
     },
     "progress": ""
   },
@@ -285,7 +289,15 @@
         "subscribed": "",
         "add_by_rss": "",
         "blocked": "",
-        "waiting": ""
+        "waiting": "",
+        "directory_episodes": "",
+        "add_by_rss_episodes": "",
+        "already_downloaded": "",
+        "deleted_files": "",
+        "missing_files": "",
+        "unreadable_files": "",
+        "undeletable_files": "",
+        "waiting_files": ""
       }
     },
     "title": "",
@@ -303,6 +315,7 @@
     "directory_channel_converted": "",
     "add_by_rss_promoted_to_directory": "",
     "v4_carryover_done": "",
+    "v4_download_carryover_done": "",
     "row_a11y_hint": "",
     "saved_footnote": "",
     "kind": {
@@ -390,6 +403,110 @@
     "logout_title": "",
     "logout_body": "",
     "notice_label": "",
-    "notice_body": ""
+    "notice_body": "",
+    "clear": {
+      "title": "",
+      "intro": "",
+      "removed_heading": "",
+      "kept_heading": "",
+      "confirm": "",
+      "failed": "",
+      "removed": {
+        "subscriptions": {
+          "title": "",
+          "body": ""
+        },
+        "saved_episodes": {
+          "title": "",
+          "body": ""
+        },
+        "downloads": {
+          "title": "",
+          "body": ""
+        },
+        "add_by_rss_feeds": {
+          "title": "",
+          "body": ""
+        },
+        "queue_history_playlists": {
+          "title": "",
+          "body": ""
+        },
+        "listening_position": {
+          "title": "",
+          "body": ""
+        },
+        "seen_marks": {
+          "title": "",
+          "body": ""
+        },
+        "per_show_auto_download": {
+          "title": "",
+          "body": ""
+        },
+        "sort_choices": {
+          "title": "",
+          "body": ""
+        },
+        "previous_app_carryover": {
+          "title": "",
+          "body": ""
+        },
+        "saved_login": {
+          "title": "",
+          "body": ""
+        },
+        "push_registration": {
+          "title": "",
+          "body": ""
+        },
+        "error_log": {
+          "title": "",
+          "body": ""
+        },
+        "notification_prompts": {
+          "title": "",
+          "body": ""
+        },
+        "membership_reminder": {
+          "title": "",
+          "body": ""
+        }
+      },
+      "kept": {
+        "theme_language_tabs": {
+          "title": "",
+          "body": ""
+        },
+        "offline_mode": {
+          "title": "",
+          "body": ""
+        },
+        "download_limits": {
+          "title": "",
+          "body": ""
+        },
+        "shuffle_repeat_media": {
+          "title": "",
+          "body": ""
+        },
+        "notification_banners": {
+          "title": "",
+          "body": ""
+        },
+        "add_by_rss_passwords": {
+          "title": "",
+          "body": ""
+        },
+        "unified_push": {
+          "title": "",
+          "body": ""
+        },
+        "api_address": {
+          "title": "",
+          "body": ""
+        }
+      }
+    }
   }
 }

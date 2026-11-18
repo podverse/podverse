@@ -22,10 +22,12 @@ import { useAutoQueue } from '../../../contexts/AutoQueue';
 import { useMediaPlayer } from '../../../contexts/MediaPlayer';
 import { useModals } from '../../../contexts/Modals';
 import { useQueues } from '../../../contexts/Queue';
+import { useQueueResourcesAbridgedIndex } from '../../../contexts/QueueResourcesAbridgedIndex';
 import { getApiRequestService } from '../../../factories/apiRequestService';
 import { useMediaPlayerResourceUpdate } from '../../../hooks/useMediaPlayerResourceUpdate';
 import { useQueueAddWithGate } from '../../../hooks/useQueueAddWithGate';
 import { playbackTargetFromStandardLoad } from '../../../lib/playback';
+import { isQueueResourcePlayed } from '../../../lib/queue/queueResourcePlayed';
 import { ItemRowMoreActions } from '../../Media/ItemRowMoreActions';
 import { PlayButtonRow } from '../../MediaPlayer/Buttons/PlayButtonRow';
 import { ReadableDate } from '../../Time/ReadableDate';
@@ -101,6 +103,7 @@ export const ListClipRow: React.FC<Props> = ({
   const { queues } = useQueues();
   const mediaPlayerResourceUpdate = useMediaPlayerResourceUpdate();
   const { autoQueueConfig } = useAutoQueue();
+  const { queueResourcesAbridgedIndex } = useQueueResourcesAbridgedIndex();
 
   const clipTitle = clip.title || tMisc('untitled');
   const itemTitle = item?.title || tMisc('untitled');
@@ -377,6 +380,10 @@ export const ListClipRow: React.FC<Props> = ({
               <>
                 <PlayButtonRow
                   clip={clip}
+                  completed={isQueueResourcePlayed(queueResourcesAbridgedIndex, {
+                    id: clip.id,
+                    kind: 'clip',
+                  })}
                   item={item ?? null}
                   onClick={onPlayAndRemove ?? playButtonOnClick}
                   afterPlay={

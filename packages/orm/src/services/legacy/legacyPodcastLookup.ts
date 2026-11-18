@@ -28,13 +28,27 @@ export type LegacyPodcastLookupRow = {
  * `byIdText` is keyed by the row's channel id. `byPodcastIndexId` is keyed by the row's
  * resolve key. `byFeedUrl` is keyed by the row's feed URL.
  */
-export type LegacyPodcastLookupChannelMaps = {
-  byIdText: ReadonlyMap<string, DTOLegacyPodcastLookupChannel>;
-  byPodcastIndexId: ReadonlyMap<string, DTOLegacyPodcastLookupChannel>;
-  byFeedUrl: ReadonlyMap<string, DTOLegacyPodcastLookupChannel>;
+export type LegacyPodcastLookupChannelMaps<TChannel = DTOLegacyPodcastLookupChannel> = {
+  byIdText: ReadonlyMap<string, TChannel>;
+  byPodcastIndexId: ReadonlyMap<string, TChannel>;
+  byFeedUrl: ReadonlyMap<string, TChannel>;
 };
 
-const LOOKUP_RELATIONS: FindOptionsRelations<Channel> = {
+/** Directory channel, feed URL, blocked, or not_here for one legacy podcast id. */
+export type LegacyPodcastResolution<TChannel> =
+  | { kind: 'channel'; channel: TChannel }
+  | { kind: 'feed_url'; feed_url: string }
+  | { kind: 'blocked' }
+  | { kind: 'not_here' };
+
+/** Rows and eligible channels for a batch of legacy podcast ids, before list artwork. */
+export type LegacyPodcastChannelResolution = {
+  rowsByLegacyId: ReadonlyMap<string, LegacyPodcastLookupRow>;
+  channels: LegacyPodcastLookupChannelMaps<Channel>;
+};
+
+/** Relations `channelPassesDirectoryMatchEligibility` reads. */
+export const LEGACY_LOOKUP_CHANNEL_RELATIONS: FindOptionsRelations<Channel> = {
   channel_about: true,
   feed: {
     feed_policy: true,
@@ -107,38 +121,61 @@ function readMapRows(value: unknown): LegacyPodcastLookupRow[] {
   return rows;
 }
 
-function answerForId(
+/**
+ * Same order as a podcast lookup answer, without the podcast id: no row is not_here, a dropped
+ * row is blocked, then the mapped channel, the Podcast Index id, and the feed URL. A feed URL
+ * with no directory channel is feed_url.
+ */
+export function resolveLegacyPodcastAnswer<TChannel>(
   podcastId: string,
   rowsByLegacyId: ReadonlyMap<string, LegacyPodcastLookupRow>,
-  channels: LegacyPodcastLookupChannelMaps
-): DTOLegacyPodcastLookupAnswer {
+  channels: LegacyPodcastLookupChannelMaps<TChannel>
+): LegacyPodcastResolution<TChannel> {
   const row = rowsByLegacyId.get(podcastId);
   if (row === undefined) {
-    return { podcast_id: podcastId, kind: 'not_here' };
+    return { kind: 'not_here' };
   }
   if (row.status === 'dropped') {
-    return { podcast_id: podcastId, kind: 'blocked' };
+    return { kind: 'blocked' };
   }
   if (row.v5IdText !== null) {
     const channel = channels.byIdText.get(row.v5IdText);
     if (channel !== undefined) {
-      return { podcast_id: podcastId, kind: 'channel', channel };
+      return { kind: 'channel', channel };
     }
   }
   if (row.resolveKey !== null) {
     const channel = channels.byPodcastIndexId.get(row.resolveKey);
     if (channel !== undefined) {
-      return { podcast_id: podcastId, kind: 'channel', channel };
+      return { kind: 'channel', channel };
     }
   }
   if (row.v4FeedUrl !== null) {
     const channel = channels.byFeedUrl.get(row.v4FeedUrl);
     if (channel !== undefined) {
-      return { podcast_id: podcastId, kind: 'channel', channel };
+      return { kind: 'channel', channel };
     }
-    return { podcast_id: podcastId, kind: 'feed_url', feed_url: row.v4FeedUrl };
+    return { kind: 'feed_url', feed_url: row.v4FeedUrl };
   }
-  return { podcast_id: podcastId, kind: 'not_here' };
+  return { kind: 'not_here' };
+}
+
+function answerForId(
+  podcastId: string,
+  rowsByLegacyId: ReadonlyMap<string, LegacyPodcastLookupRow>,
+  channels: LegacyPodcastLookupChannelMaps
+): DTOLegacyPodcastLookupAnswer {
+  const resolution = resolveLegacyPodcastAnswer(podcastId, rowsByLegacyId, channels);
+  switch (resolution.kind) {
+    case 'channel':
+      return { podcast_id: podcastId, kind: 'channel', channel: resolution.channel };
+    case 'feed_url':
+      return { podcast_id: podcastId, kind: 'feed_url', feed_url: resolution.feed_url };
+    case 'blocked':
+      return { podcast_id: podcastId, kind: 'blocked' };
+    case 'not_here':
+      return { podcast_id: podcastId, kind: 'not_here' };
+  }
 }
 
 /**
@@ -167,25 +204,16 @@ function uniqueStrings(values: readonly string[]): string[] {
   return unique;
 }
 
-function toLookupChannel(
-  channel: Channel,
-  artwork: ReadonlyMap<number, string | null>
-): DTOLegacyPodcastLookupChannel {
-  return {
-    id_text: channel.id_text,
-    title: channel.title,
-    medium_id: channel.medium_id,
-    image_url: artwork.get(channel.id) ?? null,
-  };
-}
-
 function toDtoMap(
   hits: ReadonlyMap<string, Channel>,
-  artwork: ReadonlyMap<number, string | null>
+  channelDtos: ReadonlyMap<number, DTOLegacyPodcastLookupChannel>
 ): Map<string, DTOLegacyPodcastLookupChannel> {
   const dtos = new Map<string, DTOLegacyPodcastLookupChannel>();
   for (const [key, channel] of hits) {
-    dtos.set(key, toLookupChannel(channel, artwork));
+    const dto = channelDtos.get(channel.id);
+    if (dto !== undefined) {
+      dtos.set(key, dto);
+    }
   }
   return dtos;
 }
@@ -233,6 +261,26 @@ async function listArtworkByChannelId(
   return urls;
 }
 
+/** List-artwork DTO for each channel, keyed by channel primary key. One artwork query. */
+export async function legacyLookupChannelDtos(
+  channels: readonly Channel[]
+): Promise<Map<number, DTOLegacyPodcastLookupChannel>> {
+  const artwork = await listArtworkByChannelId(channels.map((channel) => channel.id));
+  const dtos = new Map<number, DTOLegacyPodcastLookupChannel>();
+  for (const channel of channels) {
+    if (dtos.has(channel.id)) {
+      continue;
+    }
+    dtos.set(channel.id, {
+      id_text: channel.id_text,
+      title: channel.title,
+      medium_id: channel.medium_id,
+      image_url: artwork.get(channel.id) ?? null,
+    });
+  }
+  return dtos;
+}
+
 /**
  * Answers each legacy podcast id in input order. A dropped map row is blocked. Otherwise the
  * first eligible directory channel wins: the mapped channel id, then the Podcast Index id on
@@ -251,23 +299,35 @@ export class LegacyPodcastLookupService {
   }
 
   async lookup(podcastIds: readonly string[]): Promise<DTOLegacyPodcastLookupAnswer[]> {
+    const resolved = await this.resolveChannels(podcastIds);
+    const channelDtos = await legacyLookupChannelDtos([
+      ...resolved.channels.byIdText.values(),
+      ...resolved.channels.byPodcastIndexId.values(),
+      ...resolved.channels.byFeedUrl.values(),
+    ]);
+
+    return orderLegacyPodcastLookupAnswers(podcastIds, resolved.rowsByLegacyId, {
+      byIdText: toDtoMap(resolved.channels.byIdText, channelDtos),
+      byPodcastIndexId: toDtoMap(resolved.channels.byPodcastIndexId, channelDtos),
+      byFeedUrl: toDtoMap(resolved.channels.byFeedUrl, channelDtos),
+    });
+  }
+
+  /**
+   * Podcast map rows and the eligible directory channels each lookup found.
+   * Dropped rows stay in `rowsByLegacyId` and are left out of the channel passes.
+   */
+  async resolveChannels(podcastIds: readonly string[]): Promise<LegacyPodcastChannelResolution> {
     const rows = await this.loadRows(podcastIds);
     const rowsByLegacyId = new Map(rows.map((row) => [row.legacyId, row]));
     const candidates = rows.filter((row) => row.status !== 'dropped');
     const byIdText = await this.channelsForMappedIdTexts(candidates);
     const byPodcastIndexId = await this.channelsForPodcastIndexIds(candidates, byIdText);
     const byFeedUrl = await this.channelsForFeedUrls(candidates, byIdText, byPodcastIndexId);
-    const artwork = await listArtworkByChannelId([
-      ...[...byIdText.values()].map((channel) => channel.id),
-      ...[...byPodcastIndexId.values()].map((channel) => channel.id),
-      ...[...byFeedUrl.values()].map((channel) => channel.id),
-    ]);
-
-    return orderLegacyPodcastLookupAnswers(podcastIds, rowsByLegacyId, {
-      byIdText: toDtoMap(byIdText, artwork),
-      byPodcastIndexId: toDtoMap(byPodcastIndexId, artwork),
-      byFeedUrl: toDtoMap(byFeedUrl, artwork),
-    });
+    return {
+      rowsByLegacyId,
+      channels: { byIdText, byPodcastIndexId, byFeedUrl },
+    };
   }
 
   private async loadRows(podcastIds: readonly string[]): Promise<LegacyPodcastLookupRow[]> {
@@ -286,7 +346,10 @@ export class LegacyPodcastLookupService {
   }
 
   private async eligibleByIdText(idTexts: readonly string[]): Promise<Map<string, Channel>> {
-    const channels = await this.channelService.getManyByIdText(idTexts, LOOKUP_RELATIONS);
+    const channels = await this.channelService.getManyByIdText(
+      idTexts,
+      LEGACY_LOOKUP_CHANNEL_RELATIONS
+    );
     const eligible = new Map<string, Channel>();
     for (const channel of channels) {
       if (channelPassesDirectoryMatchEligibility(channel)) {
@@ -297,7 +360,10 @@ export class LegacyPodcastLookupService {
   }
 
   private async eligibleByPodcastIndexId(ids: readonly number[]): Promise<Map<number, Channel>> {
-    const channels = await this.channelService.getManyByPodcastIndexIds(ids, LOOKUP_RELATIONS);
+    const channels = await this.channelService.getManyByPodcastIndexIds(
+      ids,
+      LEGACY_LOOKUP_CHANNEL_RELATIONS
+    );
     const eligible = new Map<number, Channel>();
     const ordered = [...channels].sort((left, right) => left.id - right.id);
     for (const channel of ordered) {

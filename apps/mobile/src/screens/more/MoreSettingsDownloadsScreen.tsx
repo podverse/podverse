@@ -1,6 +1,6 @@
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
 
@@ -32,8 +32,10 @@ import {
   readAutoDownloadCatchUpLimit,
   readAutoDownloadCellularDefaultEnabled,
   readAutoDownloadDefaultEnabled,
+  readChosenDownloadFolderSwitch,
   writeAutoDownloadCellularDefaultEnabled,
   writeAutoDownloadDefaultEnabled,
+  writeChosenDownloadFolderEnabled,
   writeDownloadAutoDeleteOnDeviceLowEnabled,
   writeDownloadAutoDeleteOnLimitEnabled,
 } from '../../prefs/downloadPrefs';
@@ -103,6 +105,9 @@ export function MoreSettingsDownloadsScreen() {
   const [applyDialog, setApplyDialog] = useState<ApplyDialogKind>(null);
   const [pendingDefault, setPendingDefault] = useState<boolean | null>(null);
   const [affectedCount, setAffectedCount] = useState(0);
+  const [chosenFolder, setChosenFolder] = useState({ enabled: false, visible: false });
+  const [chosenFolderError, setChosenFolderError] = useState<string | null>(null);
+  const chosenFolderWriteInFlightRef = useRef(false);
 
   const reloadBreakdown = useCallback(async () => {
     const next = await measureDownloadStorageBreakdown();
@@ -118,6 +123,13 @@ export function MoreSettingsDownloadsScreen() {
       setAutoDownloadDefault(autoDefault);
       setCellularDefault(cellDefault);
     })();
+    void readChosenDownloadFolderSwitch()
+      .then((next) => {
+        setChosenFolder(next);
+      })
+      .catch(() => {
+        // A failed read leaves the switch hidden.
+      });
   }, []);
 
   useFocusEffect(
@@ -161,6 +173,12 @@ export function MoreSettingsDownloadsScreen() {
         },
         catchUp: {
           gap: tokens.spacing.xs,
+          paddingBottom: tokens.spacing.lg,
+          paddingHorizontal: tokens.spacing.lg,
+        },
+        chosenFolderError: {
+          ...typography.body,
+          color: themeStyles.textSecondary.color,
           paddingBottom: tokens.spacing.lg,
           paddingHorizontal: tokens.spacing.lg,
         },
@@ -246,6 +264,27 @@ export function MoreSettingsDownloadsScreen() {
       setApplyDialog('auto_download');
     },
     [commitAutoDownloadDefault, requireAutoDownloadAccess]
+  );
+
+  const handleChosenFolderChange = useCallback(
+    (next: boolean) => {
+      if (chosenFolderWriteInFlightRef.current) {
+        return;
+      }
+      chosenFolderWriteInFlightRef.current = true;
+      void writeChosenDownloadFolderEnabled(next)
+        .then(() => {
+          setChosenFolder((current) => ({ enabled: next, visible: current.visible }));
+          setChosenFolderError(null);
+        })
+        .catch(() => {
+          setChosenFolderError(t('settings.downloads.chosen_folder_save_failed'));
+        })
+        .finally(() => {
+          chosenFolderWriteInFlightRef.current = false;
+        });
+    },
+    [t]
   );
 
   const handleCellularDefaultToggle = useCallback(
@@ -355,6 +394,31 @@ export function MoreSettingsDownloadsScreen() {
             />
           </View>
         </Card>
+
+        {chosenFolder.visible ? (
+          <Card padded={false} testID="more-settings-downloads-chosen-folder">
+            <SettingsSwitchRow
+              onValueChange={handleChosenFolderChange}
+              switchTestID="more-settings-downloads-chosen-folder-switch"
+              testID="more-settings-downloads-chosen-folder-row"
+              title={t('settings.downloads.chosen_folder')}
+              value={chosenFolder.enabled}
+            >
+              <SettingsRowDescription>
+                {t('settings.downloads.chosen_folder_description')}
+              </SettingsRowDescription>
+            </SettingsSwitchRow>
+            {chosenFolderError !== null ? (
+              <Text
+                accessibilityLiveRegion="polite"
+                style={styles.chosenFolderError}
+                testID="more-settings-downloads-chosen-folder-error"
+              >
+                {chosenFolderError}
+              </Text>
+            ) : null}
+          </Card>
+        ) : null}
 
         <Card padded={false} testID="more-settings-downloads-auto-download-card">
           <Text style={[styles.sectionHeading, styles.cardHeading]}>

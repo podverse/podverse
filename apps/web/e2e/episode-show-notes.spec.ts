@@ -65,7 +65,7 @@ test.describe('Episode show notes', () => {
     const episodeLink = page
       .getByRole('main')
       .locator(`a[href*="/episode/${E2E_PODCAST_ITEM_LONG_NOTES_ID_TEXT}"]`)
-      .first();
+      .filter({ has: page.getByRole('heading') });
     const episodeHeading = episodeLink.getByRole('heading').first();
     await expect(episodeHeading).toBeVisible();
     await expect(

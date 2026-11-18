@@ -60,6 +60,14 @@ export const SYNC_EVENT_DETAIL_KEYS = [
   'add_by_rss',
   'blocked',
   'waiting',
+  'directory_episodes',
+  'add_by_rss_episodes',
+  'already_downloaded',
+  'deleted_files',
+  'missing_files',
+  'unreadable_files',
+  'undeletable_files',
+  'waiting_files',
 ] as const;
 
 export type SyncEventDetailKey = (typeof SYNC_EVENT_DETAIL_KEYS)[number];

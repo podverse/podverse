@@ -129,6 +129,9 @@
       "delete_all": "Tout supprimer",
       "delete_all_confirm_title": "Supprimer tous les téléchargements ?",
       "delete_all_confirm_body": "Cela supprime tous les fichiers de téléchargement locaux et les retire de la liste Téléchargements. Les épisodes devront être téléchargés à nouveau pour une écoute hors ligne.",
+      "chosen_folder": "Dossier de téléchargement choisi",
+      "chosen_folder_description": "Si l'option est activée, les nouveaux téléchargements vont dans le dossier enregistré par l'application précédente. Si elle est désactivée, les nouveaux téléchargements vont dans le dossier privé de cette application. Les fichiers déjà dans ce dossier y restent, et vous pouvez toujours les lire et les supprimer.",
+      "chosen_folder_save_failed": "Impossible d'enregistrer ce réglage. Réessayez.",
       "auto_download_heading": "Téléchargement automatique",
       "auto_download_default": "Téléchargement auto pour les nouveaux abonnements",
       "auto_download_default_description": "Si l'option est activée, les podcasts auxquels vous vous abonnez démarrent avec le téléchargement auto. Vous pouvez encore le changer dans les réglages de chaque podcast.",
@@ -215,7 +218,8 @@
       "home_feed": "Lecture de l'accueil depuis cet appareil",
       "auto_download": "Téléchargement des nouveaux épisodes",
       "identity_remap": "Mise à jour de vos émissions",
-      "v4_carryover": "Déplacement de vos podcasts"
+      "v4_carryover": "Déplacement de vos podcasts",
+      "v4_download_carryover": "Déplacement de vos téléchargements"
     },
     "progress": "{completed} sur {total}"
   },
@@ -285,7 +289,15 @@
         "subscribed": "Abonnements",
         "add_by_rss": "Ajouter par RSS",
         "blocked": "Laissés de côté",
-        "waiting": "En attente"
+        "waiting": "En attente",
+        "directory_episodes": "Épisodes du répertoire",
+        "add_by_rss_episodes": "Épisodes Ajouter par RSS",
+        "already_downloaded": "Déjà téléchargés",
+        "deleted_files": "Fichiers supprimés",
+        "missing_files": "Fichiers introuvables",
+        "unreadable_files": "Fichiers dans un dossier illisible",
+        "undeletable_files": "Fichiers non supprimés",
+        "waiting_files": "Fichiers en attente"
       }
     },
     "title": "Journal d'erreurs",
@@ -303,6 +315,7 @@
     "directory_channel_converted": "{channel} a été déplacé vers Ajouter par RSS. Il n'est plus dans le répertoire.",
     "add_by_rss_promoted_to_directory": "{channel} a été déplacé vers le répertoire {brand_name}",
     "v4_carryover_done": "Podcasts déplacés depuis l'application précédente",
+    "v4_download_carryover_done": "Téléchargements déplacés depuis l'application précédente",
     "row_a11y_hint": "Ouvre les détails complets",
     "saved_footnote": "Les détails complets sont enregistrés dans Plus › Avancé › Journal d'erreurs.",
     "kind": {
@@ -373,7 +386,7 @@
   "custom_api": {
     "title": "API personnalisée",
     "menu_subtitle": "Diriger cette app vers un autre serveur",
-    "intro": "Remplace le serveur auquel cette app parle. Enregistrer vérifie que le serveur répond avec le statut 200 avant de conserver le changement. Réinitialiser rétablit le serveur d'origine. Déconnectez-vous avant de le changer pour que ce téléphone n'envoie pas votre session à un autre serveur.",
+    "intro": "Remplace le serveur auquel cette app parle. Enregistrer vérifie que le serveur répond avec le statut 200, puis ouvre un écran qui liste ce que ce téléphone effacera. Réinitialiser fait de même lorsqu'une adresse est déjà enregistrée. Déconnectez-vous avant de le changer pour que ce téléphone n'envoie pas votre session à un autre serveur.",
     "url_label": "URL de l'API",
     "url_placeholder": "https://example.com/api/v2",
     "original_label": "API d'origine",
@@ -390,6 +403,110 @@
     "logout_title": "Déconnexion d'abord",
     "logout_body": "Déconnectez-vous avant de changer l'API. Ce téléphone n'enverra pas votre session à un autre serveur.",
     "notice_label": "API personnalisée",
-    "notice_body": "La connexion, l'inscription, les mots de passe de flux et les achats en boutique dans cette app vont vers ce serveur. Une page ouverte dans le navigateur utilise le site public, qui ne le fait pas."
+    "notice_body": "La connexion, l'inscription, les mots de passe de flux et les achats en boutique dans cette app vont vers ce serveur. Une page ouverte dans le navigateur utilise le site public, qui ne le fait pas.",
+    "clear": {
+      "title": "Effacer les données locales",
+      "intro": "La copie de ce téléphone du serveur précédent sera effacée. Un compte sur ce serveur reste tel quel.",
+      "removed_heading": "Sera effacé",
+      "kept_heading": "Reste sur ce téléphone",
+      "confirm": "Effacer et changer",
+      "failed": "Impossible d'effacer les données de ce téléphone. L'adresse de l'API n'a pas été changée.",
+      "removed": {
+        "subscriptions": {
+          "title": "Abonnements",
+          "body": "Émissions que vous suivez sur ce téléphone, enregistrées sous les ID du serveur précédent."
+        },
+        "saved_episodes": {
+          "title": "Épisodes enregistrés",
+          "body": "Listes d'épisodes enregistrées pour ces émissions."
+        },
+        "downloads": {
+          "title": "Téléchargements",
+          "body": "Épisodes téléchargés et leurs fichiers sur ce téléphone."
+        },
+        "add_by_rss_feeds": {
+          "title": "Flux Ajouter par RSS",
+          "body": "Flux enregistrés sur ce téléphone, y compris ceux analysés ici."
+        },
+        "queue_history_playlists": {
+          "title": "File d'attente, historique et playlists",
+          "body": "File d'attente, historique et playlists enregistrés sur ce téléphone."
+        },
+        "listening_position": {
+          "title": "Position d'écoute",
+          "body": "Où la lecture s'est arrêtée, le dernier contenu en cours et les rapports d'écoute qui n'ont pas été envoyés."
+        },
+        "seen_marks": {
+          "title": "Marques de vu et pastilles de section",
+          "body": "Marques de vu par émission, indicateurs en direct et quelles sections une émission a."
+        },
+        "per_show_auto_download": {
+          "title": "Téléchargement automatique par émission",
+          "body": "Quelles émissions téléchargent les nouveaux épisodes sur ce téléphone."
+        },
+        "sort_choices": {
+          "title": "Choix de tri pour une émission",
+          "body": "Choix de tri et de filtre enregistrés pour une émission, un épisode ou une playlist précis."
+        },
+        "previous_app_carryover": {
+          "title": "Reprise de l'app précédente",
+          "body": "Podcasts repris de l'app précédente qui attendent encore sur ce téléphone."
+        },
+        "saved_login": {
+          "title": "Session enregistrée",
+          "body": "Le jeton d'accès et le jeton d'actualisation du serveur précédent."
+        },
+        "push_registration": {
+          "title": "Inscription push",
+          "body": "L'inscription de ce téléphone auprès du push du serveur précédent."
+        },
+        "error_log": {
+          "title": "Journal d'erreurs",
+          "body": "Le journal d'erreurs de l'appareil, qui nomme les ID du serveur précédent."
+        },
+        "notification_prompts": {
+          "title": "Invitations de notification",
+          "body": "Invitations de notification déjà répondues pour le compte précédent."
+        },
+        "membership_reminder": {
+          "title": "Rappel d'abonnement et transfert",
+          "body": "Un rappel d'abonnement ignoré, et un transfert de lecture refusé pour un épisode du serveur précédent."
+        }
+      },
+      "kept": {
+        "theme_language_tabs": {
+          "title": "Thème, langue et barre d'onglets",
+          "body": "Thème, langue et quels onglets sont sur la barre."
+        },
+        "offline_mode": {
+          "title": "Mode hors ligne",
+          "body": "L'interrupteur Mode hors ligne."
+        },
+        "download_limits": {
+          "title": "Limites de téléchargement",
+          "body": "Limites de taille de téléchargement et valeurs par défaut qui ne sont pas liées à une émission."
+        },
+        "shuffle_repeat_media": {
+          "title": "Lecture aléatoire, répétition et type de média",
+          "body": "Lecture aléatoire, répétition et quel type de média s'ouvre en premier."
+        },
+        "notification_banners": {
+          "title": "Bannières de notification",
+          "body": "Quelles bannières de notification afficher."
+        },
+        "add_by_rss_passwords": {
+          "title": "Mots de passe Ajouter par RSS",
+          "body": "Noms d'utilisateur et mots de passe d'un hôte de flux."
+        },
+        "unified_push": {
+          "title": "Unified Push et cette installation",
+          "body": "Une adresse Unified Push ou une clé d'authentification de distributeur que vous avez saisie, et l'ID de cette installation."
+        },
+        "api_address": {
+          "title": "Adresse de l'API",
+          "body": "L'adresse de l'API que vous enregistrez."
+        }
+      }
+    }
   }
 }

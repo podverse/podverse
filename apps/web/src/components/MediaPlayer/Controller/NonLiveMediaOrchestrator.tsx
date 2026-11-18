@@ -920,7 +920,6 @@ export const NonLiveMediaOrchestrator: React.FC<NonLiveMediaOrchestratorProps> =
     },
   });
   bridgeRef.current = bridge;
-  useRegisterMediaPlayerControlsBridge(bridge);
 
   const prevSelectedRef = useRef<SelectedLabeledItemEnclosureAndSource | null>(null);
 
@@ -942,6 +941,21 @@ export const NonLiveMediaOrchestrator: React.FC<NonLiveMediaOrchestratorProps> =
     mpAddByRSS && mpItemLabeledEnclosures.length > 0
       ? (selectedItemEnclosureAndSource?.labeledItemEnclosure?.mediaType ?? null)
       : null;
+
+  const selectedFileIsAudio = selectedItemEnclosureAndSource
+    ? checkIfIsAudioFile(selectedItemEnclosureAndSource)
+    : false;
+  const selectedFileIsVideo = selectedItemEnclosureAndSource
+    ? checkIfIsVideoFile(selectedItemEnclosureAndSource)
+    : false;
+  // This orchestrator owns the scrub while its file is the active one, including while another
+  // orchestrator is still registered during a switch.
+  const controlsClaim =
+    !checkIsLiveItem(mpItem) &&
+    (mediaType === 'audio'
+      ? selectedFileIsAudio || (allowVideoOnAudioOrchestrator && selectedFileIsVideo)
+      : selectedFileIsVideo && !allowVideoOnAudioOrchestrator);
+  useRegisterMediaPlayerControlsBridge(bridge, controlsClaim);
 
   useEffect(() => {
     if (!mediaRef.current || !mpAddByRSS?.resourceData) return;

@@ -206,7 +206,7 @@ describe('Add-by-RSS parse credentials in transit', () => {
     expect(second.body.request_id).not.toBe(first.body.request_id);
   });
 
-  it('rejects a second public parse inside the duplicate window', async () => {
+  it('returns the stored request when a public parse is already in the duplicate window', async () => {
     const url = feedUrl('public-duplicate');
     const send = () =>
       request(app)
@@ -218,7 +218,36 @@ describe('Add-by-RSS parse credentials in transit', () => {
     expect(first.status).toBe(201);
 
     const second = await send();
-    expect(second.status).toBe(429);
+    expect(second.status).toBe(201);
+    expect(second.body.request_id).toBe(first.body.request_id);
+    expect(mqAddByRSSAddMock).toHaveBeenCalledTimes(1);
+  });
+
+  it('returns the request parse-all already stored for that feed', async () => {
+    const url = feedUrl('public-after-parse-all');
+    getFollowedAddByRSSChannelsMock.mockResolvedValue([
+      { feed_url: url, requires_credentials: false },
+    ]);
+
+    const parsedAll = await request(app)
+      .post(`${accountBase}/add-by-rss/parse/all`)
+      .set(authHeaders(TEST_USER_ID))
+      .send({});
+    expect(parsedAll.status).toBe(201);
+    const started = parsedAll.body.request_ids.find(
+      (entry: { feed_url: string; request_id: string }) => entry.feed_url === url
+    );
+    expect(started?.request_id).toEqual(expect.any(String));
+
+    mqAddByRSSAddMock.mockClear();
+    const single = await request(app)
+      .post(`${accountBase}/add-by-rss/parse`)
+      .set(authHeaders(TEST_USER_ID))
+      .send({ feed_url: url });
+
+    expect(single.status).toBe(201);
+    expect(single.body.request_id).toBe(started?.request_id);
+    expect(mqAddByRSSAddMock).not.toHaveBeenCalled();
   });
 
   it('sends no envelope for a public feed', async () => {
