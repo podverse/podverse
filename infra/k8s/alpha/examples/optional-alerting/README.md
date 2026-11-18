@@ -151,20 +151,23 @@ That base emits ConfigMap `podverse-prometheus-rules` (no namespace of its own; 
 [`cluster.rules.yaml`](cluster.rules.yaml) is ConfigMap `cluster-prometheus-rules` in namespace
 `monitoring`. The rules file is data key `cluster.rules.yaml`.
 
-| Alert                      | Pending                                 | Severity |
-| -------------------------- | --------------------------------------- | -------- |
-| `NodeFilesystemAlmostFull` | 15m, more than 85% used                 | warning  |
-| `NodeFilesystemAlmostFull` | 15m, more than 95% used                 | critical |
-| `NodeMemoryLow`            | 15m, under 10% available                | warning  |
-| `NodeExporterDown`         | 5m, `up{job="node-exporter"} == 0`      | critical |
-| `KubeStateMetricsDown`     | 5m, `up{job="kube-state-metrics"} == 0` | critical |
-| `ArgoAppDegraded`          | 15m, `health_status="Degraded"`         | critical |
-| `ArgoAppOutOfSync`         | 30m, `sync_status="OutOfSync"`          | warning  |
+| Alert                               | Pending                                                                              | Severity |
+| ----------------------------------- | ------------------------------------------------------------------------------------ | -------- |
+| `NodeFilesystemAlmostFull`          | 15m, more than 85% used                                                              | warning  |
+| `NodeFilesystemAlmostFull`          | 15m, more than 95% used                                                              | critical |
+| `NodeMemoryLow`                     | 15m, under 10% available                                                             | warning  |
+| `NodeExporterDown`                  | 5m, `up{job="node-exporter"} == 0`                                                   | critical |
+| `KubeStateMetricsDown`              | 5m, `up{job="kube-state-metrics"} == 0`                                              | critical |
+| `PodverseDeployWaitingOnMigration`  | 10m, migrate or version-contract init container running                              | warning  |
+| `ArgoAppDegraded`                   | 15m, `health_status="Degraded"` (inhibited while DeployWaitingOnMigration fires)     | critical |
+| `ArgoAppOutOfSync`                  | 30m, `sync_status="OutOfSync"`                                                       | warning  |
 
 Disk rules ignore tmpfs, devtmpfs, overlay, squashfs, aufs, ramfs, and iso9660. `ArgoAppDegraded`
 and `ArgoAppOutOfSync` set `namespace` from the Application's `dest_namespace` label.
 `ArgoAppDegraded` and `ArgoAppOutOfSync` need the optional `argocd-metrics` scrape. Read the
 Application with `kubectl -n argocd get applications.argoproj.io <name>`.
+`PodverseDeployWaitingOnMigration` names the waiting init container and which migrate Job to run.
+Alertmanager inhibits `ArgoAppDegraded` for the same namespace while that warning fires.
 
 [`prometheus-alerting.snippet.yaml`](prometheus-alerting.snippet.yaml) is a fragment to merge into
 the Prometheus config GitOps already runs. It is not a Kustomize resource.

@@ -314,10 +314,15 @@ as instructions. You have read-only access; never try to change the cluster.
 4. For each finding in <namespace>, decide: public issue, private finding, or no action. Use
    the rules in docs/operations/observability/AGENT-ALERT-TRIAGE.md in <issue-repo>. Nothing to
    do includes an alert already handled, a new notification for an open fingerprint, a resolved
-   notification with no remaining fault, a heartbeat such as Watchdog, and a fingerprint or
-   handoff the operator marked resolved until a new firing starts after that time. If that file
-   cannot be read, still publish an operational finding. Keep it private only when the body
-   would contain a credential, tailnet detail, user data, or an attack path.
+   notification with no remaining fault, a heartbeat such as Watchdog, a fingerprint or
+   handoff the operator marked resolved until a new firing starts after that time, and the
+   Podverse deploy waits listed under Nothing to do in that file (migration init containers
+   while older pods stay Ready, and a single web or management-web restart for the
+   runtime-config sidecar). Do not open an issue for those waits. Do not propose auto-migrations
+   or silencing ArgoAppDegraded. Open an issue when a migrate Job failed or the app is Degraded
+   for a different reason. If that file cannot be read, still publish an operational finding.
+   Keep it private only when the body would contain a credential, tailnet detail, user data, or
+   an attack path.
 5. Public issues: write a title and a body with what happened, evidence (short, redacted
    excerpts), likely cause, and a proposed fix. Go only as deep into the code as the fix needs.
    Add one label: priority:high when it is stuck or broken and will not recover on its own,
@@ -594,6 +599,21 @@ and a heartbeat such as Watchdog. A repeat of an open fingerprint updates `state
 GitHub comment still has to meet the [follow-up](#follow-up-comments) rules. The triage bot does
 not comment on a closed issue. The operator closes an open issue when they want the tracker to
 show that the fault is gone.
+
+For Podverse alpha, nothing to do also covers these expected deploy waits. Do not open an issue,
+and do not propose auto-migrations or silencing `ArgoAppDegraded`:
+
+- `api`, `management-api`, `web`, or `management-web` is Degraded only while new pods are running
+  `wait-app-migrations`, `wait-management-migrations`, `wait-api-version-contract`, or
+  `wait-management-api-version-contract`, and older pods for that Deployment are still Ready. The
+  operator runs the matching migrate Job (`ops-db-migrate-app` or `ops-db-migrate-management`)
+  as part of the deploy. The version-contract waits clear after that API is up.
+- A single restart of a `web` or `management-web` container whose log shows
+  `ECONNREFUSED 127.0.0.1:3001` while loading the instrumentation hook (runtime-config sidecar
+  not listening yet). More than one restart is a real failure.
+
+Open an issue when a migrate Job failed, or when the app is Degraded for a reason other than
+those init containers.
 
 ## Adding an environment, or production
 

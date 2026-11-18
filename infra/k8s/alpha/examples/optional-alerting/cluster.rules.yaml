@@ -79,6 +79,21 @@ data:
             annotations:
               summary: "kube-state-metrics is down"
               description: "kube-state-metrics has been down for 5 minutes. Workload alerts that read its metrics stay quiet until it returns. kubectl -n monitoring get pods -l app.kubernetes.io/name=kube-state-metrics"
+      - name: cluster.deploy-waits
+        rules:
+          # Init wait loops stay Running until the migration or version contract clears.
+          # Alertmanager inhibits ArgoAppDegraded for the same namespace while this fires.
+          - alert: PodverseDeployWaitingOnMigration
+            expr: |
+              kube_pod_init_container_status_running{
+                container=~"wait-app-migrations|wait-management-migrations|wait-api-version-contract|wait-management-api-version-contract"
+              } == 1
+            for: 10m
+            labels:
+              severity: warning
+            annotations:
+              summary: "Pod {{ $labels.pod }} is waiting in init {{ $labels.container }}"
+              description: "Pod {{ $labels.namespace }}/{{ $labels.pod }} has been running init container {{ $labels.container }} for 10 minutes. Previous pods keep serving. For wait-app-migrations run kubectl -n {{ $labels.namespace }} create job --from=cronjob/ops-db-migrate-app ops-db-migrate-app-manual. For wait-management-migrations run the matching ops-db-migrate-management job. The version-contract waits clear after that API is up."
       - name: cluster.argocd
         rules:
           # health_status and sync_status are labels on argocd_app_info (gauge 1).
