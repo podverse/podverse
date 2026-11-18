@@ -88,6 +88,12 @@ data:
           - alertname
           - namespace
       - source_matchers:
+          - alertname="PodverseDeployWaitingOnMigration"
+        target_matchers:
+          - alertname="ArgoAppDegraded"
+        equal:
+          - namespace
+      - source_matchers:
           - alertname="KubeStateMetricsDown"
         target_matchers:
           - alertname=~"PodverseScheduledCronJobSuspended|PodverseRecentFeedsPollerStale|PodverseScheduledCronJobNeverSucceeds|PodverseStartupConfigInvalid|CronJobLastRunFailed|JobDeadlineExceeded|JobRunningTooLong|DeploymentUnavailable|DeploymentScaledToZero|ContainerRestarting"

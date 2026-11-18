@@ -130,6 +130,7 @@ data:
         body: |
           Argo CD health degraded for {{.app.metadata.name}}.
           {{.app.status.health.message}}
+          If new pods are in wait-app-migrations, wait-management-migrations, wait-api-version-contract, or wait-management-api-version-contract, run the matching ops-db-migrate-app or ops-db-migrate-management Job; previous pods keep serving.
           {{.context.argocdUrl}}/applications/{{.app.metadata.name}}
       ntfy-metaboost-alpha-health-degraded:
         method: POST
