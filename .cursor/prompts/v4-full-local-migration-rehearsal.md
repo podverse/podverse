@@ -1,15 +1,18 @@
 # Full local migration rehearsal
 
-The overnight agent follows this file. It does not follow the finished inventory prompt.
+Closed 2026-11-19. Account-copy testing stopped at pilot `20261115T001006Z`
+(verify 100 done, 0 failed). That pilot is enough testing before beta.
+
+Do not start `--stage sample` or `--stage full`. Do not refresh the prod copy
+for another stage. Do not start another pilot. If the operator message is
+"Run the full local migration rehearsal overnight prompt", stop and say the
+rehearsal is already finished.
+
+The rest of this file is how that pilot was run. It is not a remaining job.
 
 ## Who runs it
 
-The operator message "Run the full local migration rehearsal overnight prompt" means follow
-this file. Run it on Cursor Grok 4.7, reasoning high. If that run stalls, rerun this same
-file one reasoning level higher, still on Cursor Grok 4.7.
-
-One prompt runs every stage. Do not ask the operator a question. Do not commit. Do not
-push. Do not open a pull request. Leave edits in the working tree.
+This file is the record of the finished pilot. It does not start a new stage.
 
 When the operator runs a stage by hand instead, give them [Operator-run stage](#operator-run-stage)
 and do not launch anything.
@@ -33,16 +36,13 @@ fails, stop the night and name it.
 
 ## What it runs
 
-From the monorepo root, three processes, each with a new run id. Do not pass `--resume`
-between them. Do not pass `--limit`. Do not pass `--dry-run`. Do not start a second
-`--stage full`.
+The finished rehearsal is `--stage pilot` only. The command still accepts
+`sample` and `full`. This prompt does not start them.
 
 ```bash
 npm run build:packages
 npm run build -w apps/workers
 npm run v4_run_full_rehearsal -w apps/workers -- --stage pilot
-npm run v4_run_full_rehearsal -w apps/workers -- --stage sample
-npm run v4_run_full_rehearsal -w apps/workers -- --stage full
 ```
 
 The command is `v4RunFullRehearsal`. Phases, in order: preflight, identity, catalog,
@@ -57,8 +57,7 @@ resume or a single `--phase`. The restore drops attached partitions in `public` 
 a stage. Pilot writes that file when it is missing and does not restore it. The first
 pilot has to start from a local database that does not already hold
 rehearsal accounts. This command reads `V4_DATABASE_URL` and does not refresh it. Do not
-replace the snapshot. The later full run, after the operator replaces the snapshot, is
-another night.
+replace the snapshot.
 
 Build before the first stage. Build again after every code edit that the focused test
 kept, `npm run build:packages` and then `npm run build -w apps/workers`. If that build
@@ -89,12 +88,8 @@ only way to start a stage.
 - When `--stage` is `full` and `WEB_DOMAIN` is empty or `localhost:3000`, set the spawned
   process `WEB_DOMAIN` to `localhost:3002`. Any other non-empty value stays. Do not edit
   an env file. The web app serves `next dev -p 3002`.
-- Do not print any other environment value. A second new `--stage full` is refused by the
-  prompt text above, not by a lock file. The later full run, after the snapshot is
-  replaced, is another night and must be able to start.
-
-Before sample or full, if `clean.dump` is missing, stop the night. Do not build a dump by
-hand. The message to record is `Missing clean database dump.`
+- Do not print any other environment value. `--stage sample` and `--stage full`
+  are not started from this prompt.
 
 ## Parser and web
 
@@ -129,11 +124,9 @@ database sessions, so a parser or job loop that was already running does not fin
   for days. Do not change the rehearsal back to the standard schedule to measure it.
 - The catalog wait ends when nothing is waiting or after `--catalog-wait-hours` (default
   24). Pass 3 for pilot as a safety net. Do not add any other timeout.
-- After the run, keep the job loop running and rerun `v4_replay_legacy_rows` for the run's
-  accounts until no `waiting_parse` rows remain or the retries have all settled.
-- Before `--stage full`, request `http://localhost:3002`. When it does not respond, start
-  `npm run dev -w apps/web` in the background (**Dev**) and wait until it responds. When
-  it already responds, do not start a second server.
+- After the pilot, keep the job loop running and rerun `v4_replay_legacy_rows` for the
+  pilot accounts until no `waiting_parse` rows remain or the retries have all settled.
+  There is no later stage.
 
 ## What the agent reads
 
@@ -380,7 +373,7 @@ and `needs_operator` stay out. After the retry exits, run `summary` again.
   call `fix`. When the count still did not drop, `git checkout --` the files of this edit
   and defer with why `The edit did not clear the class.`
 
-One edit per class for the whole night. A deferred class does not stop the next stage.
+One edit per class for the whole night. A deferred class does not stop the rest of the pilot.
 
 Membership resume keeps `runNow` from `run.json` `startedAt`. Do not pass a clock flag.
 The paid-expiry file is in the temp directory and the command deletes it.
@@ -487,8 +480,7 @@ checkout.
    npm run v4_run_full_rehearsal -w apps/workers -- --stage pilot --catalog-wait-hours 3
    ```
 
-   For sample and full, restart steps 5–7 after the log prints
-   `rehearsal restore=finished`. The restore disconnects them.
+   The pilot is the only stage this prompt starts.
 
 How long a pilot takes: identity, replay, membership, and verify take minutes each. The
 library copy took 23 minutes for 100 accounts. The catalog phase ends when no feed is

@@ -28,8 +28,9 @@ sample and full restore .artifacts/v4-full-rehearsal/clean.dump unless
 does not restore it. The first pilot run must start from a local database
 that does not already hold rehearsal accounts.
 
-This command reads V4_DATABASE_URL and does not refresh it. Run --stage full
-again after that snapshot is replaced, before go-live.
+This command reads V4_DATABASE_URL and does not refresh it. The account-copy
+rehearsal is --stage pilot. --stage sample and --stage full stay on the
+command and are not part of that rehearsal.
 
 The catalog phase waits until feeds are settled or the catalog wait deadline
 is reached, whichever is first. Feeds still waiting keep retrying, and a later

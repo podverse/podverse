@@ -28,13 +28,15 @@ leave alone. Wait for a yes. Do not start the chunk in that same turn.
   Do not guess, and do not log it and keep going.
 - Write each answer into the doc it belongs to, and into the decisions log in
   the overview, before starting another question.
-- The next chunk is the first unchecked item in
-  [15](/docs/proposals/v4-to-v5-migration/15-near-term-rehearsal-checklist.md),
-  section 6. `v4SeedAccountIdentity`, the `v4CopyAccountLibrary` dry run, and
-  the `v4SeedAccountCatalog` command are already built. Without `--dry-run`
-  the catalog command writes local feeds. It refuses a non-local database.
-  Do not start the library write before the catalog seed for that account
-  has been parsed.
+- Section 6 of
+  [15](/docs/proposals/v4-to-v5-migration/15-near-term-rehearsal-checklist.md)
+  is closed. Pilot `20261115T001006Z` is the account-copy test, and it is the
+  last one. Do not propose or start `--stage sample`, `--stage full`, a
+  prod-copy refresh for those stages, or another pilot. There is no next
+  rehearsal chunk. When the operator resumes the migration, ask what they
+  want next. `v4SeedAccountIdentity`, `v4CopyAccountLibrary`, and
+  `v4SeedAccountCatalog` are already built. Without `--dry-run` the catalog
+  command writes local feeds. It refuses a non-local database.
 - Do not write a membership CSV, and do not print secrets, emails, raw rows,
   or the database URL.
 - Public v4 web URLs on `podverse.fm` must keep working. Migrated public
@@ -46,9 +48,7 @@ leave alone. Wait for a yes. Do not start the chunk in that same turn.
 
 ## First chunk to propose
 
-Section 6 of
-[15](/docs/proposals/v4-to-v5-migration/15-near-term-rehearsal-checklist.md),
-the first unchecked item. The review questions in `_WAKE-UP.md`, 04, and 07
-are decided, including the account caps. Do not reopen them. The full local
-rehearsal stages run from the agent prompt that plan set writes; a stage
-reads `summary.json`, not the full error log.
+None. Section 6 is finished. The review questions in `_WAKE-UP.md`, 04, and
+07 are decided, including the account caps. Do not reopen them. Do not
+propose a chunk that copies more accounts. The pilot reads `summary.json`,
+not the full error log, and that pilot has already been read.

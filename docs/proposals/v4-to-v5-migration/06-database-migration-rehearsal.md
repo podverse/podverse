@@ -290,10 +290,12 @@ batch and the active gift accounts, are not capped.
 5. **Membership export dry run** — corrected CSV from `users`; feed the existing
    `billingImportLegacyMembershipExpiry` dry-run against the isolated v5 DB
    **after** accounts exist.
-6. **Scale-up** — the full local rehearsal in
-   [16](16-full-local-migration-rehearsal.md): a pilot picked by rule, then
-   1,000 random accounts, then every account, each checked after its copy.
-   Its timing sizes the lazy-login copy and the end-of-grace batch
+6. **Scale-up** — stopped at the pilot in
+   [16](16-full-local-migration-rehearsal.md). The second pilot
+   `20261115T001006Z` verified all 100 accounts. Decided 2026-11-19: that is
+   enough account-copy testing before beta. The 1,000-account sample and the
+   every-account stage are not run. The pilot's timing is what sizes the
+   lazy-login copy and the end-of-grace batch
    ([07](07-account-and-data-migration-model.md)).
 7. **Launch queue timing** — queue the subscribed and viewed public shows
    from the [launch queue](05-id-mapping-and-catalog-seeding.md#launch-queue),
