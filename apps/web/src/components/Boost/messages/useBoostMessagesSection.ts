@@ -1,14 +1,21 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 
-import type { PublicBoostMessage, PublicBoostMessagesPage } from '@podverse/v4v-metaboost';
+import type {
+  PublicBoostMessage,
+  PublicBoostMessagesPage,
+  PublicBoostMessagesPageFetcher,
+} from '@podverse/v4v-metaboost';
+import {
+  PUBLIC_BOOST_MESSAGES_PAGE_LIMIT,
+  resolvePublicBoostBreadcrumbTarget,
+} from '@podverse/v4v-metaboost';
 
-import { getPublicBoostMessageLinkKey } from './getPublicBoostMessageLinkKey';
-import type { BoostBreadcrumbLinkResolver, BoostMessagesPageFetcher } from './types';
+import type { BoostBreadcrumbLinkResolver } from './types';
 
 type Status = 'idle' | 'loading' | 'success' | 'error';
 
 type UseBoostMessagesSectionOptions = {
-  pageFetcher: BoostMessagesPageFetcher;
+  pageFetcher: PublicBoostMessagesPageFetcher;
   initialPage?: number;
   limit?: number;
   breadcrumbLinkResolver?: BoostBreadcrumbLinkResolver;
@@ -23,7 +30,10 @@ type UseBoostMessagesSectionResult = {
   messageLinkMap: Record<string, string | null>;
 };
 
-const DEFAULT_LIMIT = 20;
+const DEFAULT_LIMIT = PUBLIC_BOOST_MESSAGES_PAGE_LIMIT;
+
+const publicBoostMessageLinkKey = (message: PublicBoostMessage): string =>
+  message.messageGuid !== '' ? message.messageGuid : message.id;
 
 const EMPTY_PAGE: PublicBoostMessagesPage = {
   messages: [],
@@ -48,7 +58,8 @@ const getResolverCacheKey = (message: PublicBoostMessage): string | null => {
 };
 
 const shouldResolveLink = (message: PublicBoostMessage): boolean =>
-  message.breadcrumbContext?.isSubBucket === true;
+  resolvePublicBoostBreadcrumbTarget(message, message.breadcrumbContext?.podcastGuid ?? null)
+    .kind !== 'none';
 
 export const useBoostMessagesSection = ({
   pageFetcher,
@@ -117,7 +128,7 @@ export const useBoostMessagesSection = ({
       const next = { ...previous };
       let changed = false;
       for (const message of data.messages) {
-        const messageKey = getPublicBoostMessageLinkKey(message);
+        const messageKey = publicBoostMessageLinkKey(message);
         const cacheKey = getResolverCacheKey(message);
         if (cacheKey === null) {
           if (next[messageKey] !== null) {
@@ -150,7 +161,7 @@ export const useBoostMessagesSection = ({
 
       await Promise.all(
         resolvableMessages.map(async (message) => {
-          const key = getPublicBoostMessageLinkKey(message);
+          const key = publicBoostMessageLinkKey(message);
           const cacheKey = getResolverCacheKey(message);
           if (cacheKey === null) {
             nextEntries[key] = null;

@@ -126,4 +126,10 @@ describe('resolveMobileDeepLinkAction', () => {
       type: 'NAVIGATE',
     });
   });
+
+  it('does not navigate an Alby callback path', () => {
+    expect(
+      resolveMobileDeepLinkAction('podverse-next://alby/callback?code=1&state=2', options)
+    ).toBeUndefined();
+  });
 });

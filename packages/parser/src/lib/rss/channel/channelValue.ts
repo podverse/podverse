@@ -11,28 +11,38 @@ export const handleParsedChannelValue = async (
   transactionalEntityManager?: EntityManager
 ) => {
   timerManager.start('handleParsedChannelValue');
-  const channelValueService = new ChannelValueService(transactionalEntityManager);
-  const channelValueDtos = compatChannelValueDtos(parsedFeed);
-  const channelValueRecipientService = new ChannelValueRecipientService(transactionalEntityManager);
+  try {
+    const channelValueService = new ChannelValueService(transactionalEntityManager);
+    const channelValueDtos = compatChannelValueDtos(parsedFeed);
 
-  if (channelValueDtos.length > 0) {
-    for (const channelValueDto of channelValueDtos) {
-      const channel_value = await channelValueService.update(
-        channel,
-        channelValueDto.channel_value
-      );
-
-      const channelValueRecipientDtos = channelValueDto.channel_value_recipients;
-      if (channelValueRecipientDtos.length > 0) {
-        for (const channelValueRecipientDto of channelValueRecipientDtos) {
-          await channelValueRecipientService.update(channel_value, channelValueRecipientDto);
-        }
-      } else {
-        await channelValueService.deleteAll(channel);
-      }
+    if (channelValueDtos.length === 0) {
+      await channelValueService.deleteAll(channel);
+      return;
     }
-  } else {
-    await channelValueService.deleteAll(channel);
+
+    const savedValues = await channelValueService.updateMany(
+      channel,
+      channelValueDtos.map((channelValueDto) => channelValueDto.channel_value)
+    );
+    const channelValueRecipientService = new ChannelValueRecipientService(
+      transactionalEntityManager
+    );
+
+    for (const channelValueDto of channelValueDtos) {
+      const channel_value = savedValues.find(
+        (saved) =>
+          saved.type === channelValueDto.channel_value.type &&
+          saved.method === channelValueDto.channel_value.method
+      );
+      if (channel_value === undefined) {
+        continue;
+      }
+      await channelValueRecipientService.updateMany(
+        channel_value,
+        channelValueDto.channel_value_recipients
+      );
+    }
+  } finally {
+    timerManager.end('handleParsedChannelValue');
   }
-  timerManager.end('handleParsedChannelValue');
 };

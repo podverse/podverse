@@ -1,15 +1,21 @@
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { ReactNode } from 'react';
-import { useCallback, useMemo, useRef, useState } from 'react';
+import { useCallback, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { FlatList } from 'react-native';
 import { StyleSheet, Text, View } from 'react-native';
 
 import type { DTOItemChapter, TranscriptRow } from '@podverse/helpers';
 import { chapterSectionHasImages } from '@podverse/helpers';
+import { buildAddByRssBoostChannel } from '@podverse/parser-mapping';
+import { getBoostEligibilityForContent } from '@podverse/v4v-metaboost';
 
 import { useAuthPrompt } from '../../auth/AuthPromptContext';
 import { useAuth } from '../../auth/AuthProvider';
+import { BoostHeaderAction } from '../../components/boost/BoostHeaderAction';
+import { ReceivedBoostsSection } from '../../components/boost/ReceivedBoostsSection';
+import { useBoostSheet } from '../../components/boost/useBoostSheet';
+import { usePublicBoostMessagesFetchState } from '../../components/boost/useMbrssPublicMessagesCapability';
 import {
   DescriptionText,
   ItemChapterRow,
@@ -21,6 +27,7 @@ import {
 import type { SectionChipItem } from '../../components/form';
 import { SectionChipRow } from '../../components/form';
 import { FillList } from '../../components/primitives';
+import { HeaderBarActions } from '../../components/screen/HeaderBarActions';
 import { CallToActionSection } from '../../components/state/CallToActionSection';
 import { ListEmpty } from '../../components/state/ListEmpty';
 import { ListError } from '../../components/state/ListError';
@@ -28,9 +35,11 @@ import { LoadingSection } from '../../components/state/LoadingSection';
 import { useAddByRssPlayback } from '../../hooks/useAddByRssPlayback';
 import { useTranscriptFollowControls } from '../../hooks/useTranscriptFollowControls';
 import { useTranscriptListAutoscroll } from '../../hooks/useTranscriptListAutoscroll';
+import { boostTargetFromMappedFeed } from '../../lib/addByRss/boostTarget';
 import { toAddByRssItemPlaybackResourceData } from '../../lib/addByRss/domain';
 import { addByRssItemSectionUrls } from '../../lib/addByRss/itemSections';
 import { addByRssPlaybackMediaId } from '../../lib/addByRss/resourceData';
+import { insertBoostsChip } from '../../lib/boost/insertBoostsChip';
 import { OFFLINE_UNAVAILABLE_MESSAGE_KEY } from '../../lib/offlineModeViews';
 import { usePlayingChapterIdText } from '../../playback/usePlayingChapterIdText';
 import { usePlayingTranscriptIndex } from '../../playback/usePlayingTranscriptIndex';
@@ -39,6 +48,10 @@ import { listHeaderStackGap, screenBodyInsets } from '../../theme/screenLayout';
 import { typography } from '../../theme/typography';
 import { useTheme } from '../../theme/useTheme';
 import { EPISODE_TAB_LABEL_KEYS } from '../episode/episodeTabs';
+import {
+  isAddByRssMusicFeed,
+  resolveAddByRssBoostItemNavigation,
+} from './addByRss/addByRssDetailSections';
 import { AddByRssEpisodeHeader } from './addByRss/AddByRssEpisodeHeader';
 import type { AddByRssEpisodeTab } from './addByRss/addByRssEpisodeTabs';
 import { resolveAddByRssEpisodeTabs } from './addByRss/addByRssEpisodeTabs';
@@ -53,6 +66,8 @@ type AddByRssEpisodeDetailScreenProps = NativeStackScreenProps<
   AddByRssDetailStackParamList,
   'AddByRssEpisodeDetail'
 >;
+
+type AddByRssEpisodeDetailTab = AddByRssEpisodeTab | 'boosts';
 
 type AddByRssEpisodePaneRow =
   | { type: 'chapter'; id: string; chapter: DTOItemChapter }
@@ -86,7 +101,8 @@ export function AddByRssEpisodeDetailScreen({
   } = useAddByRssItemDetail(route.params);
   const { t } = useTranslation();
   const { styles: themeStyles, tokens } = useTheme();
-  const [tab, setTab] = useState<AddByRssEpisodeTab>('summary');
+  const { boostSheet, openBoost } = useBoostSheet();
+  const [tab, setTab] = useState<AddByRssEpisodeDetailTab>('summary');
   const [playbackNoticeKey, setPlaybackNoticeKey] = useState<string | null>(null);
   const routeKey = `${route.params.feedIdText}\n${route.params.itemKey}`;
   const [loadedKey, setLoadedKey] = useState(routeKey);
@@ -141,20 +157,81 @@ export function AddByRssEpisodeDetailScreen({
     () => (episode === null ? null : addByRssItemSectionUrls(episode.itemBundle)),
     [episode]
   );
+  const boostChannel = useMemo(() => {
+    if (feed === null) {
+      return null;
+    }
+    return buildAddByRssBoostChannel({
+      ...feed,
+      mappedFeed: mappedFeed ?? undefined,
+    });
+  }, [feed, mappedFeed]);
+  const boostTarget = useMemo(() => {
+    if (feed === null || mappedFeed === null || episode === null) {
+      return null;
+    }
+    return boostTargetFromMappedFeed({
+      feed,
+      item: episode.itemBundle,
+      itemKey: route.params.itemKey,
+      liveItem: null,
+      mappedFeed,
+    });
+  }, [episode, feed, mappedFeed, route.params.itemKey]);
+  const canShowBoost =
+    boostTarget !== null &&
+    getBoostEligibilityForContent({
+      channel: boostTarget.channel,
+      item: boostTarget.item,
+      itemValues: boostTarget.item?.item_values,
+    }).canShowBoostAction;
+
+  useLayoutEffect(() => {
+    navigation.setOptions({
+      headerRight: () => {
+        if (boostTarget === null || !canShowBoost) {
+          return null;
+        }
+        const target = boostTarget;
+        return (
+          <HeaderBarActions>
+            <BoostHeaderAction
+              onPress={() => {
+                openBoost(target);
+              }}
+              testID="add-by-rss-episode-detail-boost"
+            />
+          </HeaderBarActions>
+        );
+      },
+    });
+  }, [boostTarget, canShowBoost, navigation, openBoost]);
+  const itemGuid = episode?.itemBundle.item.guid ?? null;
+  const boostMessages = usePublicBoostMessagesFetchState({
+    channel: boostChannel,
+    fetchAllowed: feed !== null && episode !== null,
+    itemGuid,
+    scopeType: 'item',
+  });
+  const musicFeed = feed !== null && isAddByRssMusicFeed(feed.resourceType);
   const tabs = useMemo(
     () =>
-      resolveAddByRssEpisodeTabs({
-        hasChapters: sectionUrls?.chaptersFeedUrl !== undefined,
-        hasPeople: people.length > 0,
-        hasTranscript: sectionUrls?.transcriptUrl !== undefined,
-      }),
-    [people.length, sectionUrls]
+      insertBoostsChip(
+        resolveAddByRssEpisodeTabs({
+          hasChapters: sectionUrls?.chaptersFeedUrl !== undefined,
+          hasPeople: people.length > 0,
+          hasTranscript: sectionUrls?.transcriptUrl !== undefined,
+        }),
+        boostMessages.fetcher !== null,
+        'people'
+      ),
+    [boostMessages.fetcher, people.length, sectionUrls]
   );
   const sectionChips = useMemo(
-    (): SectionChipItem<AddByRssEpisodeTab>[] =>
+    (): SectionChipItem<AddByRssEpisodeDetailTab>[] =>
       tabs.map((key) => ({
         key,
-        label: t(EPISODE_TAB_LABEL_KEYS[key]),
+        label: key === 'boosts' ? t('value.boost') : t(EPISODE_TAB_LABEL_KEYS[key]),
         testID: `add-by-rss-episode-detail-tab-${key}`,
       })),
     [t, tabs]
@@ -296,7 +373,41 @@ export function AddByRssEpisodeDetailScreen({
     navigation.navigate('AddByRssPodcastDetail', { feedIdText });
   }, [feedIdText, navigation]);
 
-  const handleTabPress = useCallback((nextTab: AddByRssEpisodeTab) => {
+  const openBoostTarget = useCallback(
+    (guid: string) => {
+      if (feed === null || mappedFeed === null) {
+        return null;
+      }
+      return resolveAddByRssBoostItemNavigation({
+        feedIdText,
+        feedUrl: feed.feedUrl,
+        isMusicFeed: musicFeed,
+        itemGuid: guid,
+        mappedFeed,
+      });
+    },
+    [feed, feedIdText, mappedFeed, musicFeed]
+  );
+  const openBoostItem = useCallback(
+    (guid: string) => {
+      const target = openBoostTarget(guid);
+      if (target === null) {
+        return;
+      }
+      if (target.screen === 'AddByRssLivestreamDetail') {
+        navigation.navigate(target.screen, target.params);
+        return;
+      }
+      if (target.screen === 'AddByRssTrackDetail') {
+        navigation.navigate(target.screen, target.params);
+        return;
+      }
+      navigation.navigate(target.screen, target.params);
+    },
+    [navigation, openBoostTarget]
+  );
+
+  const handleTabPress = useCallback((nextTab: AddByRssEpisodeDetailTab) => {
     setTab(nextTab);
   }, []);
 
@@ -362,8 +473,51 @@ export function AddByRssEpisodeDetailScreen({
   const isReady =
     !isLoading && errorKey === null && feed !== null && mappedFeed !== null && episode !== null;
 
+  const detailHeader =
+    feed === null || episode === null ? null : (
+      <View>
+        <AddByRssEpisodeHeader
+          channelTitle={episode.subtitle ?? feed.feedUrl}
+          episode={episode}
+          feedUrl={feed.feedUrl}
+          onAddToPlaylistPress={handleAddToPlaylist}
+          onChannelPress={handleChannelPress}
+          onMarkAsPlayedPress={handleMarkAsPlayed}
+          onPlayPress={handlePlay}
+          onQueuePress={handleQueue}
+        />
+        {noticeKey !== null ? (
+          <Text accessibilityLiveRegion="polite" style={styles.notice}>
+            {t(noticeKey)}
+          </Text>
+        ) : null}
+        <View style={styles.chipRow}>
+          <SectionChipRow
+            items={sectionChips}
+            onSelect={handleTabPress}
+            selectedKey={activeTab}
+            testID="add-by-rss-episode-detail-sections"
+          />
+        </View>
+      </View>
+    );
+
   let listFooter: ReactNode = null;
-  if (isSectionTab && offlineModeEnabled && sections === null) {
+  if (activeTab === 'boosts') {
+    listFooter = (
+      <ReceivedBoostsSection
+        channel={boostChannel}
+        fetchAllowed={feed !== null && episode !== null}
+        isItemLink={(guid) => openBoostTarget(guid) !== null}
+        itemGuid={itemGuid}
+        listHeader={detailHeader}
+        onOpenChannel={handleChannelPress}
+        onOpenItem={openBoostItem}
+        scopeType="item"
+        testIDPrefix="add-by-rss-episode-detail-boosts"
+      />
+    );
+  } else if (isSectionTab && offlineModeEnabled && sections === null) {
     listFooter = (
       <ListEmpty
         messageKey={OFFLINE_UNAVAILABLE_MESSAGE_KEY}
@@ -440,67 +594,52 @@ export function AddByRssEpisodeDetailScreen({
   }
 
   return (
-    <View style={styles.container} testID="add-by-rss-episode-detail-screen">
-      {isLoading ? <LoadingSection testID="add-by-rss-episode-detail-loading" /> : null}
-      {!isLoading && errorKey !== null ? (
-        <ListError messageKey={errorKey} onRetry={load} testID="add-by-rss-episode-detail-error" />
-      ) : null}
-      {isReady && feed !== null && mappedFeed !== null && episode !== null ? (
-        <FillList
-          ListEmptyComponent={null}
-          ListFooterComponent={listFooter}
-          ListHeaderComponent={
-            <View>
-              <AddByRssEpisodeHeader
-                channelTitle={episode.subtitle ?? feed.feedUrl}
-                episode={episode}
-                feedUrl={feed.feedUrl}
-                onAddToPlaylistPress={handleAddToPlaylist}
-                onChannelPress={handleChannelPress}
-                onMarkAsPlayedPress={handleMarkAsPlayed}
-                onPlayPress={handlePlay}
-                onQueuePress={handleQueue}
-              />
-              {noticeKey !== null ? (
-                <Text accessibilityLiveRegion="polite" style={styles.notice}>
-                  {t(noticeKey)}
-                </Text>
-              ) : null}
-              <View style={styles.chipRow}>
-                <SectionChipRow
-                  items={sectionChips}
-                  onSelect={handleTabPress}
-                  selectedKey={activeTab}
-                  testID="add-by-rss-episode-detail-sections"
-                />
-              </View>
-            </View>
-          }
-          contentContainerStyle={styles.listContent}
-          data={listRows}
-          extraData={listExtraData}
-          keyExtractor={addByRssEpisodePaneKeyExtractor}
-          onScrollToIndexFailed={
-            activeTab === 'transcript' ? onTranscriptScrollToIndexFailed : undefined
-          }
-          onViewableItemsChanged={onTranscriptViewableItemsChanged}
-          ref={listRef}
-          renderItem={renderPaneRow}
-          stickyHeaderIndices={
-            transcriptStickyOffset > 0 ? [TRANSCRIPT_FOLLOW_BAR_STICKY_INDEX] : undefined
-          }
-          style={styles.list}
-          testID={
-            activeTab === 'chapters'
-              ? 'add-by-rss-episode-detail-chapter-list'
-              : activeTab === 'transcript'
-                ? 'add-by-rss-episode-detail-transcript-list'
-                : 'add-by-rss-episode-detail-list'
-          }
-          viewabilityConfig={transcriptViewabilityConfig}
-        />
-      ) : null}
-      {addToPlaylistSheet}
-    </View>
+    <>
+      <View style={styles.container} testID="add-by-rss-episode-detail-screen">
+        {isLoading ? <LoadingSection testID="add-by-rss-episode-detail-loading" /> : null}
+        {!isLoading && errorKey !== null ? (
+          <ListError
+            messageKey={errorKey}
+            onRetry={load}
+            testID="add-by-rss-episode-detail-error"
+          />
+        ) : null}
+        {isReady && feed !== null && mappedFeed !== null && episode !== null ? (
+          activeTab === 'boosts' ? (
+            <View style={styles.list}>{listFooter}</View>
+          ) : (
+            <FillList
+              ListEmptyComponent={null}
+              ListFooterComponent={listFooter}
+              ListHeaderComponent={detailHeader}
+              contentContainerStyle={styles.listContent}
+              data={listRows}
+              extraData={listExtraData}
+              keyExtractor={addByRssEpisodePaneKeyExtractor}
+              onScrollToIndexFailed={
+                activeTab === 'transcript' ? onTranscriptScrollToIndexFailed : undefined
+              }
+              onViewableItemsChanged={onTranscriptViewableItemsChanged}
+              ref={listRef}
+              renderItem={renderPaneRow}
+              stickyHeaderIndices={
+                transcriptStickyOffset > 0 ? [TRANSCRIPT_FOLLOW_BAR_STICKY_INDEX] : undefined
+              }
+              style={styles.list}
+              testID={
+                activeTab === 'chapters'
+                  ? 'add-by-rss-episode-detail-chapter-list'
+                  : activeTab === 'transcript'
+                    ? 'add-by-rss-episode-detail-transcript-list'
+                    : 'add-by-rss-episode-detail-list'
+              }
+              viewabilityConfig={transcriptViewabilityConfig}
+            />
+          )
+        ) : null}
+        {addToPlaylistSheet}
+      </View>
+      {boostSheet}
+    </>
   );
 }

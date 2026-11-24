@@ -17,6 +17,7 @@ import { getBoostEligibilityForContent } from '@podverse/v4v-metaboost';
 
 import { requestWithMobileAuthRefresh } from '../../auth';
 import { useAuth } from '../../auth/AuthProvider';
+import { BoostHeaderAction } from '../../components/boost/BoostHeaderAction';
 import { useBoostSheet } from '../../components/boost/useBoostSheet';
 import { ChannelDetailShell, ChannelHeader, ChannelSettingsPane } from '../../components/channel';
 import type { MenuSelectChipOption, SectionChipItem } from '../../components/form';
@@ -63,8 +64,8 @@ import {
   writePodcastDetailSort,
 } from '../../prefs/detailListPrefs';
 import { isOfflineModeEnabled, useOfflineMode } from '../../prefs/offlineMode';
-import { useTheme } from '../../theme/useTheme';
 import {
+  channelHasBoosts,
   channelHasFunding,
   channelHasPeople,
   channelHasPodroll,
@@ -78,6 +79,7 @@ import {
 import type { PodcastSectionPaneProps } from './sections';
 import {
   PodcastAboutSection,
+  PodcastBoostsSection,
   PodcastClipsSection,
   PodcastDownloadedSection,
   PodcastEpisodesSection,
@@ -112,6 +114,7 @@ const RANGE_LABEL_KEYS: Record<PodcastDetailRange, string> = {
  */
 const SECTION_COMPONENTS: Record<PodcastTab, ComponentType<PodcastSectionPaneProps>> = {
   about: PodcastAboutSection,
+  boosts: PodcastBoostsSection,
   clips: PodcastClipsSection,
   downloaded: PodcastDownloadedSection,
   episodes: PodcastEpisodesSection,
@@ -138,7 +141,6 @@ const SECTION_COMPONENTS: Record<PodcastTab, ComponentType<PodcastSectionPanePro
  */
 export function PodcastDetailScreen({ navigation, route }: PodcastDetailScreenProps) {
   const { t, i18n } = useTranslation();
-  const { tokens } = useTheme();
   const { boostSheet, openBoost } = useBoostSheet();
   const { accessToken, account, clearSession, refreshToken, setTokens, status } = useAuth();
   const {
@@ -168,6 +170,9 @@ export function PodcastDetailScreen({ navigation, route }: PodcastDetailScreenPr
   );
   const [previewHasFunding, setPreviewHasFunding] = useState<boolean>(
     cachedChrome?.hasFunding === true
+  );
+  const [previewHasBoosts, setPreviewHasBoosts] = useState<boolean>(
+    cachedChrome?.hasBoosts === true
   );
   const [previewHasPeople, setPreviewHasPeople] = useState<boolean>(
     cachedChrome?.hasPeople === true
@@ -225,6 +230,7 @@ export function PodcastDetailScreen({ navigation, route }: PodcastDetailScreenPr
     setPreviewHasPodroll(nextChrome?.hasPodroll === true);
     setPreviewHasRemoteItems(nextChrome?.hasRemoteItems === true);
     setPreviewHasFunding(nextChrome?.hasFunding === true);
+    setPreviewHasBoosts(nextChrome?.hasBoosts === true);
     setPreviewHasPeople(nextChrome?.hasPeople === true);
     setHasCheckedSoundbites(nextChrome !== null);
     setIsSubscribed(resolveInitialSubscribed(podcastId, previewIsSubscribed));
@@ -269,12 +275,15 @@ export function PodcastDetailScreen({ navigation, route }: PodcastDetailScreenPr
         const hasPodroll = channelHasPodroll(response);
         const hasRemoteItems = channelHasRemoteItems(response);
         const hasFunding = channelHasFunding(response);
+        const hasBoosts = channelHasBoosts(response);
         const hasPeople = channelHasPeople(response);
         setPreviewHasPodroll(hasPodroll);
         setPreviewHasRemoteItems(hasRemoteItems);
         setPreviewHasFunding(hasFunding);
+        setPreviewHasBoosts(hasBoosts);
         setPreviewHasPeople(hasPeople);
         void sectionChromeFlagsRepository.mergeChannel(podcastId, {
+          hasBoosts,
           hasFunding,
           hasOfficialClips: soundbites,
           hasPeople,
@@ -334,6 +343,7 @@ export function PodcastDetailScreen({ navigation, route }: PodcastDetailScreenPr
       setPreviewHasPodroll(flags.hasPodroll);
       setPreviewHasRemoteItems(flags.hasRemoteItems);
       setPreviewHasFunding(flags.hasFunding);
+      setPreviewHasBoosts(flags.hasBoosts);
       setPreviewHasPeople(flags.hasPeople);
       setHasCheckedSoundbites(true);
     });
@@ -506,12 +516,9 @@ export function PodcastDetailScreen({ navigation, route }: PodcastDetailScreenPr
       headerRight: () => (
         <HeaderBarActions>
           {canShowBoost && channel !== null ? (
-            <HeaderBarAction
-              accessibilityLabel={t('value.boost')}
-              icon="cash-outline"
-              iconColor={tokens.text.warning}
+            <BoostHeaderAction
               onPress={() => {
-                openBoost({ channel, item: null });
+                openBoost({ addByRss: null, channel, item: null });
               }}
               testID="podcast-detail-boost"
             />
@@ -525,7 +532,7 @@ export function PodcastDetailScreen({ navigation, route }: PodcastDetailScreenPr
         </HeaderBarActions>
       ),
     });
-  }, [canShowBoost, channel, handleShare, navigation, openBoost, t, tokens.text.warning]);
+  }, [canShowBoost, channel, handleShare, navigation, openBoost, t]);
 
   /**
    * Subscribing has three behaviors and unsubscribing has one.
@@ -637,6 +644,7 @@ export function PodcastDetailScreen({ navigation, route }: PodcastDetailScreenPr
       resolvePodcastSections({
         channel,
         hasSoundbites,
+        previewHasBoosts,
         previewHasFunding,
         previewHasPeople,
         previewHasPodroll,
@@ -645,6 +653,7 @@ export function PodcastDetailScreen({ navigation, route }: PodcastDetailScreenPr
     [
       channel,
       hasSoundbites,
+      previewHasBoosts,
       previewHasFunding,
       previewHasPeople,
       previewHasPodroll,

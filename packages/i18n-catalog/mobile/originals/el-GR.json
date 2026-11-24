@@ -508,5 +508,31 @@
         }
       }
     }
+  },
+  "v4v": {
+    "section_connected": "Συνδεδεμένο",
+    "section_available": "Διαθέσιμο",
+    "status_connected": "Συνδεδεμένο",
+    "status_not_connected": "Μη συνδεδεμένο",
+    "provider": {
+      "alby": "Alby"
+    },
+    "alby": {
+      "connect": "Σύνδεση",
+      "disconnect": "Αποσύνδεση",
+      "disconnect_title": "Αποσύνδεση Alby",
+      "disconnect_body": "Αυτό το τηλέφωνο δεν θα στέλνει πλέον boosts από αυτό το πορτοφόλι Alby.",
+      "not_configured": "Το Alby δεν έχει ρυθμιστεί σε αυτή την έκδοση.",
+      "unavailable": "Το Value for Value δεν είναι διαθέσιμο σε αυτή την έκδοση.",
+      "lightning_address": "Διεύθυνση Lightning",
+      "no_lightning_address": "Αυτό το πορτοφόλι Alby δεν έχει διεύθυνση Lightning.",
+      "balance": "Υπόλοιπο",
+      "balance_sats": "{count} sats",
+      "balance_unavailable": "Το υπόλοιπο δεν είναι διαθέσιμο αυτή τη στιγμή.",
+      "connect_failed": "Δεν ήταν δυνατή η σύνδεση με το Alby. Δοκιμάστε ξανά.",
+      "refresh_failed": "Δεν ήταν δυνατή η ανανέωση του πορτοφολιού Alby. Δοκιμάστε ξανά.",
+      "session_ended_title": "Το Alby αποσυνδέθηκε",
+      "session_ended_body": "Η συνεδρία Alby έληξε. Συνδεθείτε ξανά για να στείλετε boosts."
+    }
   }
 }

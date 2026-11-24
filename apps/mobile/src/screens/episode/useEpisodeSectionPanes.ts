@@ -9,7 +9,6 @@ import type {
 } from '@podverse/helpers/dto';
 
 import { requestWithMobileAuthRefresh, useAuth } from '../../auth';
-import type { ItemSectionChromeFlags } from '../../lib/sectionChromeFlags';
 import type { EpisodeClipSort, EpisodeTab } from '../../prefs/detailListPrefs';
 import {
   DEFAULT_EPISODE_CLIP_SORT,
@@ -23,13 +22,14 @@ import {
   loadEpisodeSoundbitesPane,
   loadEpisodeTranscriptPane,
 } from './episodeSectionPaneLoaders';
+import type { EpisodePanePreviewFlags } from './episodeTabs';
 import { resolveEpisodeTabForItem, resolveEpisodeTabs } from './episodeTabs';
 
 type UseEpisodeSectionPanesParams = {
   episode: DTOItem | null;
   itemIdText: string | null;
   offlineModeEnabled: boolean;
-  previewFlags: ItemSectionChromeFlags | null;
+  previewFlags: EpisodePanePreviewFlags | null;
 };
 
 type LoadedTabs = Record<EpisodeTab, boolean>;

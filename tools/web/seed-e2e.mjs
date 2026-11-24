@@ -91,6 +91,38 @@ const E2E_SEO_PUBLIC_PROFILE_ID_TEXT = 'e2eSeoPublic01';
 const E2E_LIVESTREAM_FEED_PI_ID = 876543210;
 const E2E_LIVESTREAM_CHANNEL_ID_TEXT = 'v5fCrIj9Io';
 const E2E_LIVESTREAM_ITEM_ID_TEXT = 'e2eLiveStrm01';
+/** `e2eBstCh00001` is 13 characters, inside nano_id_v2 (9–15). */
+const E2E_BOOST_CHANNEL_ID_TEXT = 'e2eBstCh00001';
+/**
+ * Management merge-review fixtures own 876543240–243. Reusing one deletes this show when that
+ * seed runs after the web seed, so this feed takes the next free id.
+ */
+const E2E_BOOST_FEED_PI_ID = 876543244;
+const E2E_BOOST_SENDER_GUID = '11111111-1111-4111-8111-111111111111';
+/** Lightning node recipient and no MetaBoost tag. `e2eBstNd00001` is 13 characters. */
+const E2E_BOOST_NODE_CHANNEL_ID_TEXT = 'e2eBstNd00001';
+/** PayPal recipient and no MetaBoost tag. `e2eBstPp00001` is 13 characters. */
+const E2E_BOOST_PAYPAL_CHANNEL_ID_TEXT = 'e2eBstPp00001';
+/**
+ * Management merge-review fixtures own 876543240–243, and the MetaBoost boost channel
+ * uses 876543244. These feeds take the next free podcast index ids.
+ */
+const E2E_BOOST_NODE_FEED_PI_ID = 876543245;
+const E2E_BOOST_PAYPAL_FEED_PI_ID = 876543246;
+const E2E_BOOST_NODE_FEED_URL = 'https://e2e-seed-boost-node.example/podcast.xml';
+const E2E_BOOST_PAYPAL_FEED_URL = 'https://e2e-seed-boost-paypal.example/podcast.xml';
+const E2E_BOOST_EPISODE_CHANNEL_ID_TEXT = 'e2eBoostCh01';
+const E2E_BOOST_EPISODE_CHANNEL_TITLE = 'E2E Boost Podcast';
+const E2E_BOOST_EPISODE_ITEM_ID_TEXT = 'e2eBoostEp01';
+const E2E_BOOST_EPISODE_ITEM_TITLE = 'E2E Boost Episode';
+const E2E_BOOST_EPISODE_FEED_URL = 'https://e2e-seed-boost-episode.example/podcast.xml';
+// 876543244–246 belong to the other boost fixtures.
+const E2E_BOOST_EPISODE_FEED_PI_ID = 876543247;
+// channel.podcast_guid is unique. 555555555501 is the music album fixture.
+const E2E_BOOST_EPISODE_PODCAST_GUID = '11111111-2222-4333-8444-555555555506';
+const E2E_BOOST_EPISODE_METABOOST_NODE = 'https://example.com/v1/s/mbrss-v1/boost/e2e/';
+const E2E_BOOST_NODE_RECIPIENT_ADDRESS =
+  '03e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2';
 const E2E_PODCAST_FEED_PI_ID = 876543211;
 const E2E_MERGED_OLD_FEED_PI_ID = 876543230;
 const E2E_MERGED_SURVIVOR_FEED_PI_ID = 876543231;
@@ -633,6 +665,15 @@ async function clearPlaybackKeyvalState(accountId) {
   }
 }
 
+async function upsertE2eBoostSenderGuid(client, accountId) {
+  await client.query(
+    `INSERT INTO "account_metaboost" (account_id, sender_guid)
+     VALUES ($1, $2)
+     ON CONFLICT (account_id) DO UPDATE SET sender_guid = EXCLUDED.sender_guid`,
+    [accountId, E2E_BOOST_SENDER_GUID]
+  );
+}
+
 async function resolveSeedAccountId(client, passwordHash, invitePlaceholderPasswordHash) {
   if (SEED_MEDIA_FIXTURES_ONLY) {
     const existing = await client.query(
@@ -646,6 +687,7 @@ async function resolveSeedAccountId(client, passwordHash, invitePlaceholderPassw
 
     if (existing.rows.length > 0) {
       console.log(`Using existing fixture account ${E2E_USER_EMAIL} (id ${existing.rows[0].id})`);
+      await upsertE2eBoostSenderGuid(client, existing.rows[0].id);
       return existing.rows[0].id;
     }
 
@@ -665,6 +707,7 @@ async function resolveSeedAccountId(client, passwordHash, invitePlaceholderPassw
     );
 
     console.log(`Created fixture account ${E2E_USER_EMAIL} (id ${accountId})`);
+    await upsertE2eBoostSenderGuid(client, accountId);
     return accountId;
   }
 
@@ -1351,6 +1394,7 @@ async function resolveSeedAccountId(client, passwordHash, invitePlaceholderPassw
     console.log(`Seeded change-password user: ${changePasswordMobileAccount.email}`);
   }
 
+  await upsertE2eBoostSenderGuid(client, accountId);
   return accountId;
 }
 
@@ -1482,6 +1526,23 @@ async function seedMediaPlayerAndEmbedFixtures(client, accountId) {
   const podcastChannelId = podcastChannelResult.rows[0].id;
 
   await client.query(`INSERT INTO channel_about (channel_id) VALUES ($1)`, [podcastChannelId]);
+
+  await client.query(
+    `INSERT INTO channel_meta_boost (channel_id, standard, node)
+     VALUES ($1, 'mbrss-v1', 'https://example.com/v1/s/mbrss-v1/boost/e2e/')`,
+    [podcastChannelId]
+  );
+  const podcastChannelValueResult = await client.query(
+    `INSERT INTO channel_value (channel_id, type, method, suggested)
+     VALUES ($1, 'lightning', 'keysend', NULL)
+     RETURNING id`,
+    [podcastChannelId]
+  );
+  await client.query(
+    `INSERT INTO channel_value_recipient (channel_value_id, type, address, split, name, fee)
+     VALUES ($1, 'node', $2, 100, 'E2E Podcast Host', false)`,
+    [podcastChannelValueResult.rows[0].id, E2E_ITEM_VALUE_RECIPIENT_ADDRESS]
+  );
 
   // Ids match apps/mobile/src/migration/v4/e2eFixture.ts. v4E2eUnkn01 is removed and not
   // inserted, so the lookup answers that it is not here and the phone keeps the cached address.
@@ -2696,6 +2757,9 @@ async function seedMediaPlayerAndEmbedFixtures(client, accountId) {
 
   await seedLiveAvFixtures(client);
   await seedHlsVodFixture(client);
+  await seedBoostChannelFixture(client);
+  await seedBoostNodeChannelFixture(client);
+  await seedBoostPayPalChannelFixture(client);
 
   await seedEmbedFixtures(client, { accountId });
 }
@@ -3015,6 +3079,330 @@ async function seedHlsVodFixture(client) {
   console.log(
     `Seeded HLS VOD E2E channel ${E2E_HLS_CHANNEL_ID_TEXT} (item ${E2E_HLS_VOD_ITEM_ID_TEXT}, enclosure ${E2E_HLS_VOD_ENCLOSURE_URL})`
   );
+}
+
+async function seedBoostChannelFixture(client) {
+  await client.query(
+    `DELETE FROM channel_value_recipient
+     WHERE channel_value_id IN (
+       SELECT id FROM channel_value
+       WHERE channel_id IN (SELECT id FROM channel WHERE id_text = $1)
+     )`,
+    [E2E_BOOST_CHANNEL_ID_TEXT]
+  );
+  await client.query(
+    `DELETE FROM channel_value
+     WHERE channel_id IN (SELECT id FROM channel WHERE id_text = $1)`,
+    [E2E_BOOST_CHANNEL_ID_TEXT]
+  );
+  await client.query(
+    `DELETE FROM channel_meta_boost
+     WHERE channel_id IN (SELECT id FROM channel WHERE id_text = $1)`,
+    [E2E_BOOST_CHANNEL_ID_TEXT]
+  );
+  await client.query(`DELETE FROM feed WHERE podcast_index_id = $1`, [E2E_BOOST_FEED_PI_ID]);
+
+  const feedResult = await client.query(
+    `INSERT INTO feed (url, podcast_index_id)
+     VALUES ($1, $2)
+     RETURNING id`,
+    ['https://e2e-seed-boost.example/podcast.xml', E2E_BOOST_FEED_PI_ID]
+  );
+  const feedId = feedResult.rows[0].id;
+
+  await client.query(`INSERT INTO feed_log (feed_id) VALUES ($1)`, [feedId]);
+
+  await client.query(
+    `INSERT INTO feed_policy (feed_id, parse_allowed, public_visible, add_allowed)
+     VALUES ($1, true, true, true)`,
+    [feedId]
+  );
+
+  const channelResult = await client.query(
+    `INSERT INTO channel (id_text, feed_id, medium_id, title)
+     VALUES (
+       $1,
+       $2,
+       (SELECT id FROM medium WHERE value = 'podcast' LIMIT 1),
+       'E2E Boost Channel'
+     )
+     RETURNING id`,
+    [E2E_BOOST_CHANNEL_ID_TEXT, feedId]
+  );
+  const channelId = channelResult.rows[0].id;
+
+  await client.query(`INSERT INTO channel_about (channel_id) VALUES ($1)`, [channelId]);
+
+  await insertSeedChannelDescription(client, channelId, 'E2E seeded channel for the boost form.');
+
+  await client.query(
+    `INSERT INTO channel_image (channel_id, url, image_width_size)
+     VALUES ($1, 'https://e2e-seed-boost.example/channel-art.png', 1400)`,
+    [channelId]
+  );
+
+  await client.query(
+    `INSERT INTO channel_meta_boost (channel_id, standard, node)
+     VALUES ($1, 'mbrss-v1', 'https://metaboost.example/v1/standard/mbrss-v1/boost/e2eBst/')`,
+    [channelId]
+  );
+
+  const channelValueResult = await client.query(
+    `INSERT INTO channel_value (channel_id, type, method, suggested)
+     VALUES ($1, 'lightning', 'keysend', NULL)
+     RETURNING id`,
+    [channelId]
+  );
+  const channelValueId = channelValueResult.rows[0].id;
+
+  await client.query(
+    `INSERT INTO channel_value_recipient (channel_value_id, type, address, split, name, fee)
+     VALUES ($1, 'lnaddress', 'boost@example.com', 60, 'Show', false)`,
+    [channelValueId]
+  );
+  await client.query(
+    `INSERT INTO channel_value_recipient (channel_value_id, type, address, split, name, fee)
+     VALUES ($1, 'node', $2, 40, 'Host', false)`,
+    [channelValueId, '02e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2']
+  );
+
+  console.log(`Seeded boost E2E channel ${E2E_BOOST_CHANNEL_ID_TEXT}`);
+}
+
+async function seedBoostRecipientChannelFixture(client, fixture) {
+  await client.query(
+    `DELETE FROM channel_value_recipient
+     WHERE channel_value_id IN (
+       SELECT id FROM channel_value
+       WHERE channel_id IN (SELECT id FROM channel WHERE id_text = $1)
+     )`,
+    [fixture.channelIdText]
+  );
+  await client.query(
+    `DELETE FROM channel_value
+     WHERE channel_id IN (SELECT id FROM channel WHERE id_text = $1)`,
+    [fixture.channelIdText]
+  );
+  await client.query(
+    `DELETE FROM channel_meta_boost
+     WHERE channel_id IN (SELECT id FROM channel WHERE id_text = $1)`,
+    [fixture.channelIdText]
+  );
+  await client.query(`DELETE FROM feed WHERE podcast_index_id = $1 OR url = $2`, [
+    fixture.feedPiId,
+    fixture.feedUrl,
+  ]);
+
+  const feedResult = await client.query(
+    `INSERT INTO feed (url, podcast_index_id)
+     VALUES ($1, $2)
+     RETURNING id`,
+    [fixture.feedUrl, fixture.feedPiId]
+  );
+  const feedId = feedResult.rows[0].id;
+
+  await client.query(`INSERT INTO feed_log (feed_id) VALUES ($1)`, [feedId]);
+
+  await client.query(
+    `INSERT INTO feed_policy (feed_id, parse_allowed, public_visible, add_allowed)
+     VALUES ($1, true, true, true)`,
+    [feedId]
+  );
+
+  const channelResult = await client.query(
+    `INSERT INTO channel (id_text, feed_id, medium_id, title)
+     VALUES (
+       $1,
+       $2,
+       (SELECT id FROM medium WHERE value = 'podcast' LIMIT 1),
+       $3
+     )
+     RETURNING id`,
+    [fixture.channelIdText, feedId, fixture.title]
+  );
+  const channelId = channelResult.rows[0].id;
+
+  await client.query(`INSERT INTO channel_about (channel_id) VALUES ($1)`, [channelId]);
+
+  await insertSeedChannelDescription(client, channelId, fixture.description);
+
+  await client.query(
+    `INSERT INTO channel_image (channel_id, url, image_width_size)
+     VALUES ($1, $2, 1400)`,
+    [channelId, fixture.imageUrl]
+  );
+
+  const channelValueResult = await client.query(
+    `INSERT INTO channel_value (channel_id, type, method, suggested)
+     VALUES ($1, $2, $3, NULL)
+     RETURNING id`,
+    [channelId, fixture.valueType, fixture.valueMethod]
+  );
+  const channelValueId = channelValueResult.rows[0].id;
+
+  await client.query(
+    `INSERT INTO channel_value_recipient (channel_value_id, type, address, split, name, fee)
+     VALUES ($1, $2, $3, 100, 'Host', false)`,
+    [channelValueId, fixture.recipientType, fixture.recipientAddress]
+  );
+
+  console.log(`Seeded boost E2E channel ${fixture.channelIdText}`);
+}
+
+async function seedBoostEpisodeChannelFixture(client) {
+  await client.query(`DELETE FROM feed WHERE podcast_index_id = $1 OR url = $2`, [
+    E2E_BOOST_EPISODE_FEED_PI_ID,
+    E2E_BOOST_EPISODE_FEED_URL,
+  ]);
+
+  const feedResult = await client.query(
+    `INSERT INTO feed (url, podcast_index_id)
+     VALUES ($1, $2)
+     RETURNING id`,
+    [E2E_BOOST_EPISODE_FEED_URL, E2E_BOOST_EPISODE_FEED_PI_ID]
+  );
+  const feedId = feedResult.rows[0].id;
+
+  await client.query(`INSERT INTO feed_log (feed_id) VALUES ($1)`, [feedId]);
+
+  await client.query(
+    `INSERT INTO feed_policy (feed_id, parse_allowed, public_visible, add_allowed)
+     VALUES ($1, true, true, true)`,
+    [feedId]
+  );
+
+  const channelResult = await client.query(
+    `INSERT INTO channel (id_text, feed_id, medium_id, title, podcast_guid)
+     VALUES (
+       $1,
+       $2,
+       (SELECT id FROM medium WHERE value = 'podcast' LIMIT 1),
+       $3,
+       $4
+     )
+     RETURNING id`,
+    [
+      E2E_BOOST_EPISODE_CHANNEL_ID_TEXT,
+      feedId,
+      E2E_BOOST_EPISODE_CHANNEL_TITLE,
+      E2E_BOOST_EPISODE_PODCAST_GUID,
+    ]
+  );
+  const channelId = channelResult.rows[0].id;
+
+  await client.query(`INSERT INTO channel_about (channel_id) VALUES ($1)`, [channelId]);
+
+  await client.query(
+    `INSERT INTO channel_meta_boost (channel_id, standard, node)
+     VALUES ($1, 'mbrss-v1', $2)`,
+    [channelId, E2E_BOOST_EPISODE_METABOOST_NODE]
+  );
+
+  const channelValueResult = await client.query(
+    `INSERT INTO channel_value (channel_id, type, method, suggested)
+     VALUES ($1, 'lightning', 'keysend', NULL)
+     RETURNING id`,
+    [channelId]
+  );
+  await client.query(
+    `INSERT INTO channel_value_recipient (channel_value_id, type, address, split, name, fee)
+     VALUES ($1, 'node', $2, 100, 'E2E Boost Host', false)`,
+    [channelValueResult.rows[0].id, E2E_ITEM_VALUE_RECIPIENT_ADDRESS]
+  );
+
+  const itemResult = await client.query(
+    `INSERT INTO item (
+       id_text,
+       channel_id,
+       guid,
+       pub_date,
+       title,
+       item_flag_status_id
+     )
+     VALUES ($1, $2, $3, NOW(), $4, 1)
+     RETURNING id`,
+    [
+      E2E_BOOST_EPISODE_ITEM_ID_TEXT,
+      channelId,
+      `${E2E_BOOST_EPISODE_FEED_URL}#episode`,
+      E2E_BOOST_EPISODE_ITEM_TITLE,
+    ]
+  );
+  const itemId = itemResult.rows[0].id;
+
+  await client.query(
+    `INSERT INTO item_about (item_id, duration)
+     VALUES ($1, $2)`,
+    [itemId, E2E_PODCAST_ITEM_RESUME_DURATION_SECONDS]
+  );
+  await insertSeedItemDescription(
+    client,
+    itemId,
+    `${E2E_BOOST_EPISODE_ITEM_TITLE} deterministic E2E boost fixture.`
+  );
+  await client.query(
+    `INSERT INTO item_image (item_id, url, image_width_size)
+     VALUES ($1, $2, 1400)`,
+    [itemId, E2E_FIXTURE_ITEM_IMAGE_URL]
+  );
+
+  const enclosureResult = await client.query(
+    `INSERT INTO item_enclosure (item_id, type, length, bitrate, item_enclosure_default)
+     VALUES ($1, 'audio/mpeg', 0, 24, true)
+     RETURNING id`,
+    [itemId]
+  );
+  await client.query(
+    `INSERT INTO item_enclosure_source (item_enclosure_id, uri, content_type)
+     VALUES ($1, $2, 'audio/mpeg')`,
+    [enclosureResult.rows[0].id, 'http://localhost:2111/audio/audio-001.mp3']
+  );
+
+  const itemValueResult = await client.query(
+    `INSERT INTO item_value (item_id, type, method, suggested)
+     VALUES ($1, 'lightning', 'keysend', $2)
+     RETURNING id`,
+    [itemId, E2E_ITEM_VALUE_SUGGESTED_BTC]
+  );
+  await client.query(
+    `INSERT INTO item_value_recipient (item_value_id, type, address, split, name, fee)
+     VALUES ($1, 'node', $2, 100, 'E2E Podcast Host', false)`,
+    [itemValueResult.rows[0].id, E2E_ITEM_VALUE_RECIPIENT_ADDRESS]
+  );
+
+  console.log(
+    `Seeded boost E2E channel ${E2E_BOOST_EPISODE_CHANNEL_ID_TEXT} (item ${E2E_BOOST_EPISODE_ITEM_ID_TEXT})`
+  );
+}
+
+async function seedBoostNodeChannelFixture(client) {
+  await seedBoostRecipientChannelFixture(client, {
+    channelIdText: E2E_BOOST_NODE_CHANNEL_ID_TEXT,
+    description: 'E2E seeded channel with a lightning node and no MetaBoost tag.',
+    feedPiId: E2E_BOOST_NODE_FEED_PI_ID,
+    feedUrl: E2E_BOOST_NODE_FEED_URL,
+    imageUrl: 'https://e2e-seed-boost-node.example/channel-art.png',
+    recipientAddress: E2E_BOOST_NODE_RECIPIENT_ADDRESS,
+    recipientType: 'node',
+    title: 'E2E Boost Node Channel',
+    valueMethod: 'keysend',
+    valueType: 'lightning',
+  });
+}
+
+async function seedBoostPayPalChannelFixture(client) {
+  await seedBoostRecipientChannelFixture(client, {
+    channelIdText: E2E_BOOST_PAYPAL_CHANNEL_ID_TEXT,
+    description: 'E2E seeded channel with a PayPal recipient and no MetaBoost tag.',
+    feedPiId: E2E_BOOST_PAYPAL_FEED_PI_ID,
+    feedUrl: E2E_BOOST_PAYPAL_FEED_URL,
+    imageUrl: 'https://e2e-seed-boost-paypal.example/channel-art.png',
+    recipientAddress: 'host@example.com',
+    recipientType: 'paypal',
+    title: 'E2E Boost PayPal Channel',
+    valueMethod: 'send',
+    valueType: 'paypal',
+  });
 }
 
 /**
@@ -4298,6 +4686,7 @@ async function main() {
   await clearOpmlImportKeyvalState(accountId);
   await clearPlaybackKeyvalState(accountId);
   await seedMediaPlayerAndEmbedFixtures(client, accountId);
+  await seedBoostEpisodeChannelFixture(client);
   await seedDirectoryMatchChannel(client);
   await seedPodcasting20CarryoverChannel(client);
   await seedRemoteStubListFixtures(client);

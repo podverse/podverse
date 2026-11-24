@@ -12,6 +12,7 @@ import {
   MOBILE_HOME_TAB_SEGMENT,
 } from '@podverse/helpers';
 
+import { isAlbyOAuthCallbackPath } from '../v4v/alby/albyProtocol';
 import { mapIncomingPathToScopedPath } from './deepLinking';
 
 export type HomeStackScreenRef =
@@ -169,6 +170,10 @@ export const resolveMobileDeepLinkState = (
   path: string,
   options: Parameters<typeof getDefaultStateFromPath>[1]
 ) => {
+  if (isAlbyOAuthCallbackPath(path)) {
+    return undefined;
+  }
+
   const scopedPath = mapIncomingPathToScopedPath(path);
   const stackScreens = parseHomeContentStackPath(scopedPath);
   if (stackScreens !== null) {

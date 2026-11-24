@@ -4,6 +4,7 @@ import { useMediaPlayer } from '../../../contexts/MediaPlayer';
 import { useQueues } from '../../../contexts/Queue';
 import { useRemotePlayerDisplay } from '../../../hooks/useRemotePlayerDisplay';
 import { AlternateEnclosureButton } from '../Buttons/AlternateEnclosureButton';
+import { BoostButton } from '../Buttons/BoostButton';
 import { ClipButton } from '../Buttons/ClipButton';
 import { PlaybackDevicesButton } from '../Buttons/PlaybackDevicesButton';
 import { PlaylistAddToButton } from '../Buttons/PlaylistAddToButton';
@@ -25,6 +26,7 @@ export const MediaPlayerButtonsModal = () => {
         {remote === null ? (
           <>
             <AlternateEnclosureButton />
+            <BoostButton />
             <PlaylistAddToButton />
             {medium_id === MediumEnum.AV && !mpAddByRSS && <ClipButton />}
             <RepeatButton />
@@ -34,6 +36,7 @@ export const MediaPlayerButtonsModal = () => {
           </>
         ) : (
           <>
+            <BoostButton />
             <PlaylistAddToButton />
             <SettingsButton />
             <PlaybackDevicesButton />

@@ -4,21 +4,20 @@ import Link from 'next/link';
 import { useLocale, useTranslations } from 'next-intl';
 import { useMemo, useRef } from 'react';
 
-import { formatDateTimeAbbrev } from '@podverse/helpers';
+import type { PublicBoostMessagesPageFetcher } from '@podverse/v4v-metaboost';
+import { PUBLIC_BOOST_MESSAGES_PAGE_LIMIT, toPublicBoostMessageRow } from '@podverse/v4v-metaboost';
 
 import { WebLoadingSpinnerDecorativeSmall } from '../../LoadingSpinner/WebLoadingSpinnerDecorative';
 import { NoResults } from '../../NoResults/NoResults';
 import { Pagination } from '../../Pagination/Pagination';
-import { formatPublicBoostAmountLine } from './formatPublicBoostAmountLine';
-import { getPublicBoostMessageLinkKey } from './getPublicBoostMessageLinkKey';
-import type { BoostBreadcrumbLinkResolver, BoostMessagesPageFetcher } from './types';
+import type { BoostBreadcrumbLinkResolver } from './types';
 import { useBoostMessagesSection } from './useBoostMessagesSection';
 
 import styles from './BoostMessagesSection.module.scss';
 
 type BoostMessagesSectionProps = {
   heading: string;
-  pageFetcher: BoostMessagesPageFetcher;
+  pageFetcher: PublicBoostMessagesPageFetcher;
   initialPage?: number;
   limit?: number;
   breadcrumbLinkResolver?: BoostBreadcrumbLinkResolver;
@@ -41,7 +40,7 @@ export const BoostMessagesSection: React.FC<BoostMessagesSectionProps> = ({
   heading,
   pageFetcher,
   initialPage = 1,
-  limit = 20,
+  limit = PUBLIC_BOOST_MESSAGES_PAGE_LIMIT,
   breadcrumbLinkResolver,
   className = '',
   refreshTrigger = 0,
@@ -104,33 +103,28 @@ export const BoostMessagesSection: React.FC<BoostMessagesSectionProps> = ({
         <Pagination currentPage={page} totalPages={data.totalPages} setPage={handlePageChange}>
           <div className={styles.messageList}>
             {data.messages.map((message) => {
-              const breadcrumb = message.breadcrumbContext;
-              const key = getPublicBoostMessageLinkKey(message);
-              const href = messageLinkMap[key] ?? null;
-              const displaySender =
-                message.senderName !== null && message.senderName.trim() !== ''
-                  ? message.senderName
-                  : tMisc('anonymous');
-              const dateLabel = formatDateTimeAbbrev(message.createdAt, locale);
-              const amountLine = formatPublicBoostAmountLine(message, locale, {
+              const row = toPublicBoostMessageRow(message, {
+                locale,
+                anonymousLabel: tMisc('anonymous'),
+                headingFallback: heading,
+                currentPodcastGuid: null,
                 satoshisDenominationLabel: tValue('types.lightning.denomination'),
                 btcNonSatoshiSuffix: tBoost('public_amount_btc_token'),
               });
-              const hasAppName = message.appName.trim() !== '';
-              const showAmountRow = amountLine !== null || hasAppName;
+              const href = messageLinkMap[row.key] ?? null;
+              const itemHref = href !== null && href !== '' ? href : null;
+              const breadcrumb = row.breadcrumb;
 
               return (
                 <article key={message.id} className={styles.messageCard}>
-                  {breadcrumb?.isSubBucket === true && (
+                  {message.breadcrumbContext?.isSubBucket === true && breadcrumb !== null && (
                     <div className={styles.breadcrumbRow}>
-                      <span className={styles.breadcrumbLabel}>
-                        {breadcrumb.podcastLabel ?? heading}
-                      </span>
-                      {breadcrumb.itemLabel && (
+                      <span className={styles.breadcrumbLabel}>{breadcrumb.podcastLabel}</span>
+                      {breadcrumb.itemLabel !== null && (
                         <>
                           <span className={styles.breadcrumbSeparator}>/</span>
-                          {href ? (
-                            <Link href={href} className={styles.breadcrumbLink}>
+                          {itemHref !== null ? (
+                            <Link href={itemHref} className={styles.breadcrumbLink}>
                               {breadcrumb.itemLabel}
                             </Link>
                           ) : (
@@ -142,21 +136,21 @@ export const BoostMessagesSection: React.FC<BoostMessagesSectionProps> = ({
                   )}
 
                   <div className={styles.headerRow}>
-                    <span className={styles.senderName}>{displaySender}</span>
-                    <time className={styles.dateAt} dateTime={message.createdAt}>
-                      {dateLabel}
+                    <span className={styles.senderName}>{row.senderName}</span>
+                    <time className={styles.dateAt} dateTime={row.createdAt}>
+                      {row.dateLabel}
                     </time>
                   </div>
-                  {showAmountRow && (
+                  {row.showAmountRow && (
                     <div className={styles.amountRow}>
-                      <span className={styles.amountLinePrimary}>{amountLine ?? '\u2014'}</span>
-                      {hasAppName && (
-                        <span className={styles.amountLineApp}>{message.appName}</span>
+                      <span className={styles.amountLinePrimary}>{row.amountPrimary}</span>
+                      {row.appName !== null && (
+                        <span className={styles.amountLineApp}>{row.appName}</span>
                       )}
                     </div>
                   )}
 
-                  {message.body && <p className={styles.messageBody}>{message.body}</p>}
+                  {row.body !== null && <p className={styles.messageBody}>{row.body}</p>}
                 </article>
               );
             })}

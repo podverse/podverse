@@ -1,5 +1,6 @@
 ---
 name: podverse-github-workflows
+description: GitHub workflows for podverse/podverse — gh policy, issue and PR lookup, and Dependabot updates. Use when asked to create or update a GitHub issue, or when working with gh, issues, or pull requests.
 version: 1.0.0
 ---
 
@@ -127,6 +128,47 @@ git log --all --oneline --grep="chore(deps)"
 # View current branch status
 git branch -vv
 ```
+
+## Creating and updating issues
+
+When the operator asks for a GitHub issue, new or edited, use the shape of
+[#398](https://github.com/podverse/podverse/issues/398). That is the usual level of detail.
+
+Read the code before writing. A claim that something already exists, or that a flow gets a
+case wrong, has to come from that reading.
+
+### Title
+
+Name the behavior the issue is responsible for. Include every part a reader would otherwise
+treat as out of scope. A mechanism (a button, an export, a screen) is the wrong title when the
+work also decides ordering, what is kept, or what is cleared.
+
+Prefix with the surface when sibling issues do (`Mobile:`, `Web:`).
+
+If the body covers more than the title, retitle before finishing.
+
+### Body
+
+Two sections, plus a third when the request touched behavior that is already done:
+
+**Summary.** One short paragraph. The outcome.
+
+**What to add.** The work, as points an implementer can finish without guessing the cases that
+change the result:
+
+- Where it shows up, including every path that shares the screen or action
+- What the person sees, and what each action does (confirm, cancel, skip, failure)
+- Ordering that changes the result, such as what must happen before a session ends, and which
+  server a request uses
+- What the change includes, and what it leaves out
+- The test that has to cover the new behavior
+
+**Already in place.** Behavior you checked that this issue must leave as it is. One or two
+sentences each. Record a non-change when the operator's request included it and the code
+already does it. Leave out behavior the request never touched.
+
+Skip the feature-request template's empty sections. Skip a file-by-file implementation plan.
+Skip restating an inventory the product already shows, except to say that inventory stays.
 
 ## Planning from an issue
 

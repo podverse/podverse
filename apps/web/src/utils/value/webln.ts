@@ -1,3 +1,5 @@
+import type { BoostKeysendPayment, BoostPaymentProvider } from '@podverse/v4v-btc-ln';
+
 type WeblnKeysendOptions = {
   destination: string;
   amount: number;
@@ -46,6 +48,22 @@ export const ensureWeblnEnabled = async (): Promise<WeblnProvider | null> => {
   await provider.enable();
   return provider;
 };
+
+export const createWeblnBoostPaymentProvider = (webln: WeblnProvider): BoostPaymentProvider => ({
+  payInvoice: async (invoice: string) => {
+    await webln.sendPayment(invoice);
+  },
+  keysend: async (payment: BoostKeysendPayment) => {
+    if (typeof webln.keysend !== 'function') {
+      throw new Error('WebLN keysend is not available.');
+    }
+    await webln.keysend({
+      destination: payment.destination,
+      amount: payment.amountSats,
+      customRecords: payment.customRecords,
+    });
+  },
+});
 
 export const supportsWeblnKeysend = (provider: WeblnProvider): boolean =>
   typeof provider.keysend === 'function';

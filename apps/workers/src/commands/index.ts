@@ -18,7 +18,6 @@ import { devParserRSSParsePodcasting20Feeds } from '@workers/commands/parser/rss
 import { devParserRSSParseTrendingFeeds } from '@workers/commands/parser/rss/parseTrendingFeeds.js';
 import { podcastIndexDeadFeedsFlagAndMerge } from '@workers/commands/podcastIndex/deadFeeds/flagAndMerge.js';
 import podcastIndexTrendingPodcastsGet from '@workers/commands/podcastIndex/trending/podcastsGet.js';
-import { podcastIndexValueUpdateAll } from '@workers/commands/podcastIndex/value/updateAll.js';
 import { devStatsSeedSimulatedPopularity } from '@workers/commands/stats/devStatsSeedSimulatedPopularity.js';
 import { statsEventPartitionsMaintain } from '@workers/commands/stats/statsEventPartitionsMaintain.js';
 import { statsPopularityRefresh } from '@workers/commands/stats/statsPopularityRefresh.js';
@@ -69,7 +68,6 @@ export default {
   seedEmbedDemoShowcaseFeeds,
   podcastIndexDeadFeedsFlagAndMerge,
   podcastIndexTrendingPodcastsGet,
-  podcastIndexValueUpdateAll,
   mqRSSAdd,
   mqRSSAddAll,
   mqRSSRunDlqConsumer,

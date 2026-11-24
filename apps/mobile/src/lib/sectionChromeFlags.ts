@@ -10,6 +10,7 @@ export type ChannelSectionChromeFlags = {
 };
 
 export type ItemSectionChromeFlags = {
+  hasBoosts: boolean;
   hasChapters: boolean;
   hasFunding: boolean;
   hasPeople: boolean;
@@ -27,6 +28,7 @@ export const EMPTY_CHANNEL_SECTION_CHROME_FLAGS: ChannelSectionChromeFlags = {
 };
 
 export const EMPTY_ITEM_SECTION_CHROME_FLAGS: ItemSectionChromeFlags = {
+  hasBoosts: false,
   hasChapters: false,
   hasFunding: false,
   hasPeople: false,
@@ -65,6 +67,7 @@ export const parseItemSectionChromeFlags = (value: unknown): ItemSectionChromeFl
     return { ...EMPTY_ITEM_SECTION_CHROME_FLAGS };
   }
   return {
+    hasBoosts: readBooleanFlag(value, 'hasBoosts'),
     hasChapters: readBooleanFlag(value, 'hasChapters'),
     hasFunding: readBooleanFlag(value, 'hasFunding'),
     hasPeople: readBooleanFlag(value, 'hasPeople'),

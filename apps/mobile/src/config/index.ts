@@ -2,7 +2,9 @@ import type { AccountSignupMode } from '@podverse/helpers';
 
 import { getMobileAccountSignupModeFromEnv } from './accountSignupModeEnv';
 import { readCustomApiBaseUrlOverride } from './customApiEndpoint';
+import type { MobileAlbyConfig } from './env';
 import {
+  getMobileAlbyConfigFromEnv,
   getMobileBillingModeFromEnv,
   getMobileContactEmailFromEnv,
   getMobileDeepLinkSchemesFromEnv,
@@ -26,6 +28,8 @@ export { validateMobileApiEnv, assertMobileApiEnvOrWarn } from './validateMobile
 export type MobileConfig = {
   /** Signup mode. Email-flow controls follow this. */
   accountSignupMode: AccountSignupMode;
+  /** Public Alby OAuth client. `clientId` is null when this build has not set one. */
+  alby: MobileAlbyConfig;
   /** Parsed API connection, or null when unset (UI-only) or invalid. */
   api: MobileApiConnection | null;
   /** `store` opens a store sheet. `unavailable` is the FOSS build. */
@@ -64,9 +68,11 @@ export const getMobileConfig = (): MobileConfig => {
   const webBaseUrl = getMobilePublicWebBaseUrlFromEnv();
   const contactEmail = getMobileContactEmailFromEnv();
   const accountSignupMode = getMobileAccountSignupModeFromEnv();
+  const alby = getMobileAlbyConfigFromEnv();
 
   const shared = {
     accountSignupMode,
+    alby,
     billingMode,
     contactEmail,
     deepLinkSchemes,

@@ -508,5 +508,31 @@
         }
       }
     }
+  },
+  "v4v": {
+    "section_connected": "Conectado",
+    "section_available": "Disponible",
+    "status_connected": "Conectado",
+    "status_not_connected": "No Conectado",
+    "provider": {
+      "alby": "Alby"
+    },
+    "alby": {
+      "connect": "Conectar",
+      "disconnect": "Desconectar",
+      "disconnect_title": "Desconectar Alby",
+      "disconnect_body": "Este teléfono ya no enviará boosts desde esta billetera de Alby.",
+      "not_configured": "Alby no está configurado en esta compilación.",
+      "unavailable": "Value for Value no está disponible en esta compilación.",
+      "lightning_address": "Dirección Lightning",
+      "no_lightning_address": "Esta billetera de Alby no tiene una dirección Lightning.",
+      "balance": "Saldo",
+      "balance_sats": "{count} sats",
+      "balance_unavailable": "El saldo no está disponible en este momento.",
+      "connect_failed": "No se pudo conectar con Alby. Inténtalo de nuevo.",
+      "refresh_failed": "No se pudo actualizar la billetera de Alby. Inténtalo de nuevo.",
+      "session_ended_title": "Alby Desconectado",
+      "session_ended_body": "La sesión de Alby terminó. Conéctate de nuevo para enviar boosts."
+    }
   }
 }

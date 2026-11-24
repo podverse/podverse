@@ -15,11 +15,14 @@ export EXPO_PUBLIC_MOBILE_E2E="${EXPO_PUBLIC_MOBILE_E2E:-1}"
 # Surface the V4V button (hidden by default per store policy) so the `v4v`
 # Maestro flow can reach it. E2E-only — production builds leave this unset unless deliberately enabled.
 export EXPO_PUBLIC_MOBILE_V4V_ENABLED="${EXPO_PUBLIC_MOBILE_V4V_ENABLED:-1}"
+# Placeholder so the Alby connect button mounts. Not a registered Alby client.
+export EXPO_PUBLIC_ALBY_OAUTH_CLIENT_ID="${EXPO_PUBLIC_ALBY_OAUTH_CLIENT_ID:-e2e-alby-client}"
 
 echo "Starting mobile dev server with E2E API URLs:"
 echo "  EXPO_PUBLIC_MOBILE_API_BASE_URL_IOS=$EXPO_PUBLIC_MOBILE_API_BASE_URL_IOS"
 echo "  EXPO_PUBLIC_MOBILE_API_BASE_URL_ANDROID=$EXPO_PUBLIC_MOBILE_API_BASE_URL_ANDROID"
 echo "  EXPO_PUBLIC_MOBILE_E2E=$EXPO_PUBLIC_MOBILE_E2E"
 echo "  EXPO_PUBLIC_MOBILE_V4V_ENABLED=$EXPO_PUBLIC_MOBILE_V4V_ENABLED"
+echo "  EXPO_PUBLIC_ALBY_OAUTH_CLIENT_ID=$EXPO_PUBLIC_ALBY_OAUTH_CLIENT_ID"
 
 exec npm --prefix apps/mobile run start

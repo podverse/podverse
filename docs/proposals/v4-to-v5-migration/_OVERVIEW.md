@@ -23,109 +23,109 @@ commits them.
 
 ## Decisions log
 
-| Decision                                                                 | Status  |
-| ------------------------------------------------------------------------ | ------- |
-| Docs live under `docs/proposals/v4-to-v5-migration/`                     | Decided |
-| v5 prod ships under v4 store ids (in-place upgrade)                      | Decided |
-| No new v4 mobile release                                                 | Decided |
-| Prefer config-only or v5-only paths; v4 API deploys OK if needed         | Decided |
-| After launch, beta and prod share the production database                | Decided |
-| Beta builds cannot purchase; sandbox purchases stay on alpha             | Decided |
-| Alpha is internal testing; beta is public pre-release testing            | Decided |
-| No tester count; operators decide when beta is ready to submit           | Decided |
-| Grace v5 API is api-prod.podverse.fm; then api.podverse.fm               | Decided |
-| v5 website goes live at operator discretion, likely first store approval | Decided |
-| Legacy id map lives in the app database; workers write it                | Decided |
-| Unmatched ids stay unresolved until a finished parse cannot match them   | Decided |
-| User clips are never dropped; see doc 05 for hidden episodes             | Decided |
-| Do not import v4 stats; v5 popularity starts from its own listens        | Decided |
-| Refresh the practice copy when a run starts and before the seed          | Decided |
-| Library copy shows its groups and keeps running after the app closes     | Decided |
-| Only operators run commands against the practice-run database copy       | Decided |
-| On-device ids are saved first and matched when the network is available  | Decided |
-| Signed-out phone carryover bar is subscriptions and Add by RSS           | Decided |
-| Signed-out queue, history, and now playing stay empty until sign-in      | Decided |
-| First store version is the app version; Android code stays above 5280    | Decided |
-| v5 reuses Firebase project podverse-app; v4 tokens stay out              | Decided |
-| Next alpha, beta, and prod send with podverse-next-fcm; v4 admin stays   | Decided |
-| Ask once per device if the account had a v4 podcast notification         | Decided |
-| Live v4 iOS app is App Store Connect 1390888454, not 6823398032          | Decided |
-| Apple Team ID DF9KG8H54B signs the live v4 app and Podverse Next         | Decided |
-| Play App Signing is on for com.podverse; Google signs the releases       | Decided |
-| Production v4 is believed to run master; entity code matches develop     | Decided |
-| Extra v4 worktrees wait until someone starts the migration code          | Decided |
-| Episode playlist rows point at the episode and do not invent a clip      | Decided |
-| Playlist members come from the joins; `itemsOrder` only sorts            | Decided |
-| A follow uses the survivor when an absorb merge is already applied       | Decided |
-| The selective seed skips spam, takedown, and non-public podcasts         | Decided |
-| Directory parse starts after account stubs, before beta opens            | Decided |
-| Signed-out v4 ids use a read-only lookup; signed-out never adds feeds    | Decided |
-| The legacy podcast lookup accepts at most 2,000 ids per request          | Decided |
-| Signed-out Add by RSS refreshes on the phone with no feed limit          | Decided |
-| Signed-out v4 shows not in v5 yet become Add by RSS on that phone        | Decided |
-| Legacy lookup answers channel, feed_url, blocked, or not_here            | Decided |
-| Add by RSS feeds that match a directory channel move to it everywhere    | Decided |
-| The directory match moves queue, playlist, and playback rows too         | Decided |
-| Feeds record their source; the account link clears on account deletion   | Decided |
-| Copied list order uses the ORM step of `0.00000001`                      | Decided |
-| Phone-storage spike passed on iOS and Android (doc 08)                   | Decided |
-| Continue Migration OPML screen ships; field spike passed on both         | Decided |
-| First v5 store listing asks v4 users to Export OPML before updating      | Decided |
-| F-Droid is a placeholder until later                                     | Decided |
-| Do not import `subscribedPodcastListIds`                                 | Decided |
-| App Store rows from 2023-12-27 through 2024-01-31 are not real purchases | Decided |
-| Official chapters and soundbites stay out of `clip`                      | Decided |
-| v4 public web URLs keep working; changed paths stay reserved redirects   | Decided |
-| Carry over `subscribedUserIds` into `account_following_account`          | Decided |
-| Migrated public entities keep their v4 shortid as `id_text`              | Decided |
-| `nano_id_v2` accepts 7–15 characters; new ids stay 10 characters         | Decided |
-| Leave v4 `accountClaimToken` rows behind                                 | Decided |
-| Carry v4 trials that end within 90 days as Trial grants                  | Decided |
-| Keep paid `membershipExpiration` values with no 90-day cap               | Decided |
-| Cap App Store window memberships longer than 5 years to 5 years          | Decided |
-| Do not import v4 purchase receipts; archive them outside git             | Decided |
-| v4 default playlists become that account's v5 Likes playlist             | Decided |
-| Do not import Django `auth_*` or `django_*` tables                       | Decided |
-| Hybrid account migration: first v5 login, then end-of-grace batch        | Decided |
-| Paid v4 expiry becomes Premium; a carried trial stays Trial              | Decided |
-| Once v5 is live in one place, turn off v4 Apple, Google, and PayPal      | Decided |
-| v4 API rejects an account after that account has been copied to v5       | Decided |
-| Seed v4 identities before public signup; copy the library later          | Decided |
-| Placeholder is the v5 account row; no side table to drop                 | Decided |
-| During grace, copy one library at sign-in; bulk copy waits for the end   | Decided |
-| An existing v5 email is not overwritten; that library waits              | Decided |
-| Grace period is 30 days once v5 is installable, and the end can move     | Decided |
-| Public date is earlier than the real end and tells people to update      | Decided |
-| Announcement says NextGen, asks for a backup, and says we keep one too   | Decided |
-| Announcement email goes only to verified v4 accounts                     | Decided |
-| Unverified v4 accounts are seeded and are not emailed                    | Decided |
-| Announcement is from contact@podverse.fm; the send method comes later    | Decided |
-| Announcement email stays English; v4 stores no user locale               | Decided |
-| Operator reviews copied, remaining, and failed accounts once a day       | Decided |
-| Open the rest of the store rollout after a calm day of sign-in copies    | Decided |
-| After migration, block public v4 API requests; the process may stay up   | Decided |
-| Private v4 process stops once the final database archive is checked      | Decided |
-| Keep the v4 archive after the grace window; retention length comes later | Decided |
-| Minimum version number waits for the first live store build              | Decided |
-| NextGen still needs an app-wide minimum-version check before go-live     | Decided |
-| NextGen version check is a public semver compare after first paint       | Decided |
-| Purchase floor stays on checkout options; drop the after-charge 426      | Decided |
-| NextGen sign-in uses the copied password; no v4 session exchange         | Decided |
-| No public migration page; a longer reply goes out when people ask        | Decided |
-| Installed app cannot show custom text or open a browser from a push      | Decided |
-| No mass notification; the announcement email is the public message       | Decided |
-| Beta hosts: beta, api-beta, management.beta, management-api.beta         | Decided |
-| Beta cookies stay on each API host, not on .podverse.fm                  | Decided |
-| Over a v5 cap default, the copy writes the smallest covering tier        | Decided |
-| Cap tiers are chosen per account at copy time, not from the snapshot     | Decided |
-| Past the last tier a group stops for the operator                        | Decided |
-| A queue past 100,000 keeps 100,000 rows and is `needs_operator`          | Decided |
-| A tier is the cap after the copy; removing rows does not lower it        | Decided |
-| Account-copy testing stops at pilot `20261115T001006Z`                   | Decided 2026-11-19 |
-| Sample and full local rehearsals are not run                             | Decided 2026-11-19 |
+| Decision                                                                 | Status                |
+| ------------------------------------------------------------------------ | --------------------- |
+| Docs live under `docs/proposals/v4-to-v5-migration/`                     | Decided               |
+| v5 prod ships under v4 store ids (in-place upgrade)                      | Decided               |
+| No new v4 mobile release                                                 | Decided               |
+| Prefer config-only or v5-only paths; v4 API deploys OK if needed         | Decided               |
+| After launch, beta and prod share the production database                | Decided               |
+| Beta builds cannot purchase; sandbox purchases stay on alpha             | Decided               |
+| Alpha is internal testing; beta is public pre-release testing            | Decided               |
+| No tester count; operators decide when beta is ready to submit           | Decided               |
+| Grace v5 API is api-prod.podverse.fm; then api.podverse.fm               | Decided               |
+| v5 website goes live at operator discretion, likely first store approval | Decided               |
+| Legacy id map lives in the app database; workers write it                | Decided               |
+| Unmatched ids stay unresolved until a finished parse cannot match them   | Decided               |
+| User clips are never dropped; see doc 05 for hidden episodes             | Decided               |
+| Do not import v4 stats; v5 popularity starts from its own listens        | Decided               |
+| Refresh the practice copy when a run starts and before the seed          | Decided               |
+| Library copy shows its groups and keeps running after the app closes     | Decided               |
+| Only operators run commands against the practice-run database copy       | Decided               |
+| On-device ids are saved first and matched when the network is available  | Decided               |
+| Signed-out phone carryover bar is subscriptions and Add by RSS           | Decided               |
+| Signed-out queue, history, and now playing stay empty until sign-in      | Decided               |
+| First store version is the app version; Android code stays above 5280    | Decided               |
+| v5 reuses Firebase project podverse-app; v4 tokens stay out              | Decided               |
+| Next alpha, beta, and prod send with podverse-next-fcm; v4 admin stays   | Decided               |
+| Ask once per device if the account had a v4 podcast notification         | Decided               |
+| Live v4 iOS app is App Store Connect 1390888454, not 6823398032          | Decided               |
+| Apple Team ID DF9KG8H54B signs the live v4 app and Podverse Next         | Decided               |
+| Play App Signing is on for com.podverse; Google signs the releases       | Decided               |
+| Production v4 is believed to run master; entity code matches develop     | Decided               |
+| Extra v4 worktrees wait until someone starts the migration code          | Decided               |
+| Episode playlist rows point at the episode and do not invent a clip      | Decided               |
+| Playlist members come from the joins; `itemsOrder` only sorts            | Decided               |
+| A follow uses the survivor when an absorb merge is already applied       | Decided               |
+| The selective seed skips spam, takedown, and non-public podcasts         | Decided               |
+| Directory parse starts after account stubs, before beta opens            | Decided               |
+| Signed-out v4 ids use a read-only lookup; signed-out never adds feeds    | Decided               |
+| The legacy podcast lookup accepts at most 2,000 ids per request          | Decided               |
+| Signed-out Add by RSS refreshes on the phone with no feed limit          | Decided               |
+| Signed-out v4 shows not in v5 yet become Add by RSS on that phone        | Decided               |
+| Legacy lookup answers channel, feed_url, blocked, or not_here            | Decided               |
+| Add by RSS feeds that match a directory channel move to it everywhere    | Decided               |
+| The directory match moves queue, playlist, and playback rows too         | Decided               |
+| Feeds record their source; the account link clears on account deletion   | Decided               |
+| Copied list order uses the ORM step of `0.00000001`                      | Decided               |
+| Phone-storage spike passed on iOS and Android (doc 08)                   | Decided               |
+| Continue Migration OPML screen ships; field spike passed on both         | Decided               |
+| First v5 store listing asks v4 users to Export OPML before updating      | Decided               |
+| F-Droid is a placeholder until later                                     | Decided               |
+| Do not import `subscribedPodcastListIds`                                 | Decided               |
+| App Store rows from 2023-12-27 through 2024-01-31 are not real purchases | Decided               |
+| Official chapters and soundbites stay out of `clip`                      | Decided               |
+| v4 public web URLs keep working; changed paths stay reserved redirects   | Decided               |
+| Carry over `subscribedUserIds` into `account_following_account`          | Decided               |
+| Migrated public entities keep their v4 shortid as `id_text`              | Decided               |
+| `nano_id_v2` accepts 7–15 characters; new ids stay 10 characters         | Decided               |
+| Leave v4 `accountClaimToken` rows behind                                 | Decided               |
+| Carry v4 trials that end within 90 days as Trial grants                  | Decided               |
+| Keep paid `membershipExpiration` values with no 90-day cap               | Decided               |
+| Cap App Store window memberships longer than 5 years to 5 years          | Decided               |
+| Do not import v4 purchase receipts; archive them outside git             | Decided               |
+| v4 default playlists become that account's v5 Likes playlist             | Decided               |
+| Do not import Django `auth_*` or `django_*` tables                       | Decided               |
+| Hybrid account migration: first v5 login, then end-of-grace batch        | Decided               |
+| Paid v4 expiry becomes Premium; a carried trial stays Trial              | Decided               |
+| Once v5 is live in one place, turn off v4 Apple, Google, and PayPal      | Decided               |
+| v4 API rejects an account after that account has been copied to v5       | Decided               |
+| Seed v4 identities before public signup; copy the library later          | Decided               |
+| Placeholder is the v5 account row; no side table to drop                 | Decided               |
+| During grace, copy one library at sign-in; bulk copy waits for the end   | Decided               |
+| An existing v5 email is not overwritten; that library waits              | Decided               |
+| Grace period is 30 days once v5 is installable, and the end can move     | Decided               |
+| Public date is earlier than the real end and tells people to update      | Decided               |
+| Announcement says NextGen, asks for a backup, and says we keep one too   | Decided               |
+| Announcement email goes only to verified v4 accounts                     | Decided               |
+| Unverified v4 accounts are seeded and are not emailed                    | Decided               |
+| Announcement is from contact@podverse.fm; the send method comes later    | Decided               |
+| Announcement email stays English; v4 stores no user locale               | Decided               |
+| Operator reviews copied, remaining, and failed accounts once a day       | Decided               |
+| Open the rest of the store rollout after a calm day of sign-in copies    | Decided               |
+| After migration, block public v4 API requests; the process may stay up   | Decided               |
+| Private v4 process stops once the final database archive is checked      | Decided               |
+| Keep the v4 archive after the grace window; retention length comes later | Decided               |
+| Minimum version number waits for the first live store build              | Decided               |
+| NextGen still needs an app-wide minimum-version check before go-live     | Decided               |
+| NextGen version check is a public semver compare after first paint       | Decided               |
+| Purchase floor stays on checkout options; drop the after-charge 426      | Decided               |
+| NextGen sign-in uses the copied password; no v4 session exchange         | Decided               |
+| No public migration page; a longer reply goes out when people ask        | Decided               |
+| Installed app cannot show custom text or open a browser from a push      | Decided               |
+| No mass notification; the announcement email is the public message       | Decided               |
+| Beta hosts: beta, api-beta, management.beta, management-api.beta         | Decided               |
+| Beta cookies stay on each API host, not on .podverse.fm                  | Decided               |
+| Over a v5 cap default, the copy writes the smallest covering tier        | Decided               |
+| Cap tiers are chosen per account at copy time, not from the snapshot     | Decided               |
+| Past the last tier a group stops for the operator                        | Decided               |
+| A queue past 100,000 keeps 100,000 rows and is `needs_operator`          | Decided               |
+| A tier is the cap after the copy; removing rows does not lower it        | Decided               |
+| Account-copy testing stops at pilot `20261115T001006Z`                   | Decided 2026-11-19    |
+| Sample and full local rehearsals are not run                             | Decided 2026-11-19    |
 | Every account is copied to a local v5 database before the grace period   | Superseded 2026-11-19 |
 | Full rehearsal stages: pilot by rule, then 1,000 random, then all        | Superseded 2026-11-19 |
-| Rehearsal errors go to gitignored `.artifacts/v4-full-rehearsal/`        | Decided |
+| Rehearsal errors go to gitignored `.artifacts/v4-full-rehearsal/`        | Decided               |
 
 ## Sequence
 
@@ -159,7 +159,7 @@ flowchart LR
 | [13](13-forced-migration-and-v4-shutdown.md)   | Batch remaining users and retire v4                       |
 | [14](14-fdroid.md)                             | F-Droid placeholder                                       |
 | [15](15-near-term-rehearsal-checklist.md)      | Ordered rehearsal steps before migration code             |
-| [16](16-full-local-migration-rehearsal.md)     | Pilot is the last local account-copy test                |
+| [16](16-full-local-migration-rehearsal.md)     | Pilot is the last local account-copy test                 |
 | [17](17-storage-v4-vs-v5.md)                   | Storage per episode, full-database estimate, savings      |
 | [18](18-v5-table-storage.md)                   | Where the v5 catalog bytes sit, table by table            |
 | [19](19-unused-large-indexes.md)               | One unused index; keep the global `pub_date` index        |

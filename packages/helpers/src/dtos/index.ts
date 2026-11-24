@@ -129,10 +129,7 @@ export * from './playlist/playlistResource.js';
 
 export * from './podcast-index/podcastByGuid.js';
 export * from './podcast-index/podcastById.js';
-export * from './podcast-index/podcastsByTag.js';
 export * from './podcast-index/searchPodcasts.js';
-export * from './podcast-index/valueBatchByEpisodeGuid.js';
-export * from './podcast-index/valueByEpisodeGuid.js';
 export * from './podcast-index/podcastBatchByFeedGuid.js';
 export * from './podcast-index/episodeByGuid.js';
 

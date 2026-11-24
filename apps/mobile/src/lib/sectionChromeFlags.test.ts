@@ -59,6 +59,7 @@ describe('parseItemSectionChromeFlags', () => {
         hasTranscript: true,
       })
     ).toEqual({
+      hasBoosts: false,
       hasChapters: true,
       hasFunding: false,
       hasPeople: false,

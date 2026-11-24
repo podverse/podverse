@@ -1,5 +1,7 @@
 import type { DTOChannel, DTOItem } from '@podverse/helpers';
 
+import type { BoostSheetItem } from './BoostSheet';
+
 type ChannelValue = NonNullable<DTOChannel['channel_values']>[number];
 type ItemValue = NonNullable<DTOItem['item_values']>[number];
 type ChannelRecipient = ChannelValue['channel_value_recipients'][number];
@@ -109,7 +111,10 @@ export type BoostValueTab = {
   key: string;
 };
 
-export const buildBoostValueTabs = (channel: DTOChannel, item: DTOItem | null): BoostValueTab[] => {
+export const buildBoostValueTabs = (
+  channel: DTOChannel,
+  item: BoostSheetItem | null
+): BoostValueTab[] => {
   const channelValues = mergeLightningChannelValues(channel.channel_values ?? []);
   const itemValues = mergeLightningItemValues(item?.item_values ?? []);
   const seen = new Set<string>();

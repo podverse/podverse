@@ -7,6 +7,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import type { DTOChannel, DTOItem } from '@podverse/helpers';
 import { Button, ButtonTabs, Callout, FormStack, ModalActions } from '@podverse/ui';
 import { isLnaddressRecipient } from '@podverse/v4v-btc-ln';
+import { boostFieldsForPayment, showBoostNameAndMessageFields } from '@podverse/v4v-helpers';
 import type { MetaBoost } from '@podverse/v4v-metaboost';
 
 import { useAccount } from '../../contexts/Account';
@@ -246,11 +247,19 @@ export const BoostFormBase: React.FC<BoostFormBaseProps> = ({
     updateRecipientStatus,
   } = useBoostRecipientStatuses();
 
-  const hasLnaddressRecipients = paymentRecipients.some((recipient) =>
+  const hasLnaddressRecipient = paymentRecipients.some((recipient) =>
     isLnaddressRecipient(recipient.recipient_type ?? '')
   );
-
-  const shouldShowBoostMessageNotice = hasLnaddressRecipients && !metaBoost;
+  const hasNodeRecipient = paymentRecipients.some(
+    (recipient) => recipient.recipient_type === 'node'
+  );
+  const showNameAndMessage = showBoostNameAndMessageFields({
+    hasLnaddressRecipient,
+    hasNodeRecipient,
+    hasMetaBoost: metaBoost !== null,
+  });
+  const senderGuid = loggedInAccount?.sender_guid?.trim() ?? '';
+  const mbrssV1SenderGuid = senderGuid !== '' ? senderGuid : null;
 
   const {
     status: mbrssV1CapabilityStatus,
@@ -261,8 +270,8 @@ export const BoostFormBase: React.FC<BoostFormBaseProps> = ({
     preferredCurrency: mbrssV1PreferredCurrency,
     conversionEndpointUrl: mbrssV1ConversionEndpointUrl,
   } = useMbrssV1BoostCapability(metaBoost, {
-    fetchEnabled: metaBoost !== null && loggedInAccount !== null,
-    senderGuid: loggedInAccount?.sender_guid ?? null,
+    fetchEnabled: metaBoost !== null && loggedInAccount !== null && senderGuid !== '',
+    senderGuid: mbrssV1SenderGuid,
   });
   const messageMaxLength = useMemo((): number | undefined => {
     if (metaBoost === null) {
@@ -304,6 +313,7 @@ export const BoostFormBase: React.FC<BoostFormBaseProps> = ({
   }, [messageMaxLength]);
 
   const effectiveTotal = boostPaymentScope === 'app_only' ? totalAmountToApp : totalAmountToCreator;
+  const paymentFields = boostFieldsForPayment(loggedInAccount !== null, yourName, message);
 
   const { handleSubmitBoost } = useBoostPayments({
     channel,
@@ -311,8 +321,8 @@ export const BoostFormBase: React.FC<BoostFormBaseProps> = ({
     boostPaymentScope,
     config,
     tValue,
-    message,
-    yourName,
+    message: paymentFields.message,
+    yourName: paymentFields.yourName,
     metaBoost,
     paymentRecipients,
     toRecipientStatuses,
@@ -324,8 +334,7 @@ export const BoostFormBase: React.FC<BoostFormBaseProps> = ({
       bumpPublicBoostMessagesRefresh();
     },
     mbrssV1HttpMessagingEnabled,
-    mbrssV1SenderGuid: loggedInAccount?.sender_guid ?? null,
-    isLoggedIn: loggedInAccount !== null,
+    mbrssV1SenderGuid,
   });
 
   const totalAmountZeroOrLess = effectiveTotal <= 0;
@@ -360,11 +369,6 @@ export const BoostFormBase: React.FC<BoostFormBaseProps> = ({
             {buttonTabs.length > 0 && (
               <ButtonTabs buttonTabs={buttonTabs} selectedKey={selectedKey} />
             )}
-            {loggedInAccount === null && (
-              <Callout>
-                <p>{tValue('boost_messages.login_required_to_send_boosts')}</p>
-              </Callout>
-            )}
             <BoostFormFields
               totalAmountToCreator={totalAmountToCreator}
               totalAmountToApp={totalAmountToApp}
@@ -376,7 +380,7 @@ export const BoostFormBase: React.FC<BoostFormBaseProps> = ({
               hasStatusUpdates={hasStatusUpdates}
               showCreatorInput={showCreatorInput}
               showAppInput={showAppInput}
-              showNameAndMessage={!shouldShowBoostMessageNotice}
+              showNameAndMessage={showNameAndMessage}
               yourName={yourName}
               setYourName={setYourName}
               message={message}
@@ -397,7 +401,7 @@ export const BoostFormBase: React.FC<BoostFormBaseProps> = ({
               showMetaBoostInfo={showMetaBoostInfo}
               onToggleMetaBoostInfo={() => setShowMetaBoostInfo((s) => !s)}
             />
-            {shouldShowBoostMessageNotice && (
+            {!showNameAndMessage && (
               <BoostMessageNotice tValue={tValue} isAppDonate={boostPaymentScope === 'app_only'} />
             )}
             <div className={styles.moreInfo}>
@@ -470,7 +474,7 @@ export const BoostFormBase: React.FC<BoostFormBaseProps> = ({
               <Button
                 onClick={handleSubmitBoost}
                 isLoading={isSubmitting}
-                disabled={isSubmitting || totalAmountZeroOrLess || loggedInAccount === null}
+                disabled={isSubmitting || totalAmountZeroOrLess}
               >
                 {tMisc('submit')}
               </Button>

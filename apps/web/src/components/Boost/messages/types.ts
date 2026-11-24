@@ -1,9 +1,4 @@
-import type { PublicBoostMessage, PublicBoostMessagesPage } from '@podverse/v4v-metaboost';
-
-export type BoostMessagesPageFetcher = (params: {
-  page: number;
-  limit: number;
-}) => Promise<PublicBoostMessagesPage>;
+import type { PublicBoostMessage } from '@podverse/v4v-metaboost';
 
 export type BoostBreadcrumbLinkResolver = (
   message: PublicBoostMessage

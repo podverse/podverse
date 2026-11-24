@@ -6,6 +6,7 @@ import { useTranslations } from 'next-intl';
 import React, { useState } from 'react';
 import { FaCircleDollarToSlot, FaCommentDollar, FaGlobe, FaRss } from 'react-icons/fa6';
 
+import type { DTOItem } from '@podverse/helpers';
 import {
   appendDistinctImageCandidate,
   buildDTOChannelImageHeroLoadCandidates,
@@ -43,9 +44,13 @@ const alertPlaceholder = (label: string) => () => {
 
 type AddByRSSAlbumHeaderProps = {
   feed: AddByRSSFeedRecord;
+  boostItem?: DTOItem | null;
 };
 
-export const AddByRSSAlbumHeader: React.FC<AddByRSSAlbumHeaderProps> = ({ feed }) => {
+export const AddByRSSAlbumHeader: React.FC<AddByRSSAlbumHeaderProps> = ({
+  feed,
+  boostItem = null,
+}) => {
   const tMedia = useTranslations('media');
   const tInfo = useTranslations('info');
   const tValue = useTranslations('value');
@@ -66,7 +71,8 @@ export const AddByRSSAlbumHeader: React.FC<AddByRSSAlbumHeaderProps> = ({ feed }
   const boostChannel = buildAddByRssBoostChannel(feed);
   const { canShowBoostAction } = getBoostEligibilityForContent({
     channel: boostChannel,
-    item: null,
+    item: boostItem ?? null,
+    ...(boostItem !== null && boostItem !== undefined ? { itemValues: boostItem.item_values } : {}),
   });
   const channelImages = feed.mappedFeed?.channel?.images;
   const {
@@ -133,7 +139,7 @@ export const AddByRSSAlbumHeader: React.FC<AddByRSSAlbumHeaderProps> = ({ feed }
       alertPlaceholder(tValue('boost'))();
       return;
     }
-    setModalBoost({ channel: boostChannel, item: null });
+    setModalBoost({ channel: boostChannel, item: boostItem ?? null });
   };
 
   const buttonsNode = (

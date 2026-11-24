@@ -1,0 +1,30 @@
+appId: com.podverse.app.next
+name: V4V Providers
+---
+# More → Value for Value → Alby, signed out. Connect is visible because the E2E
+# Metro process sets a placeholder Alby client id. Do not tap Connect.
+
+- runFlow: shared/launch-and-connect.yaml
+- tapOn:
+    id: tab-more
+- assertVisible:
+    id: more-screen
+- scrollUntilVisible:
+    element:
+      id: more-nav-value-providers
+    direction: DOWN
+    timeout: ${TIMEOUT_FAST}
+- tapOn:
+    id: more-nav-value-providers
+- assertVisible:
+    id: value-providers-screen
+- assertVisible:
+    id: value-provider-row-alby
+- tapOn:
+    id: value-provider-row-alby
+- extendedWaitUntil:
+    visible:
+      id: value-provider-alby-screen
+    timeout: ${TIMEOUT_FAST}
+- assertVisible:
+    id: value-provider-alby-connect

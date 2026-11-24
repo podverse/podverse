@@ -4,7 +4,7 @@ import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import React from 'react';
 
-import { buildAddByRssBoostChannel } from '@podverse/parser-mapping';
+import { buildAddByRssBoostChannel, buildAddByRssBoostItem } from '@podverse/parser-mapping';
 import type { ChipRowItem } from '@podverse/ui';
 import { MainColumnStack, MainSidebarLayout } from '@podverse/ui';
 
@@ -201,6 +201,7 @@ export const AddByRSSLivestreamItemPageClient: React.FC<AddByRSSLivestreamItemPa
   }
 
   const title = livestream.item.title ?? tInfo('livestream.livestream');
+  const boostItem = buildAddByRssBoostItem(livestream);
   const description = livestream.item.description ?? null;
 
   const items: ChipRowItem<'summary' | 'boosts'>[] = [
@@ -218,11 +219,11 @@ export const AddByRSSLivestreamItemPageClient: React.FC<AddByRSSLivestreamItemPa
 
   const headerNode =
     feed.resourceType === 'artists' ? (
-      <AddByRSSArtistHeader feed={feed} />
+      <AddByRSSArtistHeader boostItem={boostItem} feed={feed} />
     ) : feed.resourceType === 'albums' ? (
-      <AddByRSSAlbumHeader feed={feed} />
+      <AddByRSSAlbumHeader boostItem={boostItem} feed={feed} />
     ) : (
-      <AddByRSSPodcastHeader feed={feed} />
+      <AddByRSSPodcastHeader boostItem={boostItem} feed={feed} />
     );
 
   return (

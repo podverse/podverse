@@ -508,5 +508,31 @@
         }
       }
     }
+  },
+  "v4v": {
+    "section_connected": "",
+    "section_available": "",
+    "status_connected": "",
+    "status_not_connected": "",
+    "provider": {
+      "alby": ""
+    },
+    "alby": {
+      "connect": "",
+      "disconnect": "",
+      "disconnect_title": "",
+      "disconnect_body": "",
+      "not_configured": "",
+      "unavailable": "",
+      "lightning_address": "",
+      "no_lightning_address": "",
+      "balance": "",
+      "balance_sats": "",
+      "balance_unavailable": "",
+      "connect_failed": "",
+      "refresh_failed": "",
+      "session_ended_title": "",
+      "session_ended_body": ""
+    }
   }
 }

@@ -41,8 +41,6 @@ const podcastIndexMocks = vi.hoisted(() => {
     searchMusicByTerm: vi.fn(live),
     trendingGetPodcasts: vi.fn(live),
     episodeGetByGuid: vi.fn(live),
-    valueGetByPodcastIds: vi.fn(live),
-    valueGetByPodcastIdsRecursively: vi.fn(live),
   };
 });
 

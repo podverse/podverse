@@ -86,7 +86,6 @@ const nonEmptyMetaString = (value: string | null | undefined): string | null =>
  */
 export const buildChannelFromEngineMeta = (meta: MediaEngineSourceMeta): DTOChannel => ({
   feed_id: 0,
-  has_podcast_index_value: false,
   has_value_time_splits: false,
   id: 0,
   id_text: '',

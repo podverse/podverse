@@ -42,7 +42,10 @@ export const itemHasPeople = (item: EpisodeTabItem): boolean => {
   return (item.item_persons?.length ?? 0) > 0;
 };
 
-export const itemSectionFlagsFromDto = (item: EpisodeTabItem): ItemSectionChromeFlags => {
+/** Section chips this pane can seed. Boosts is chosen by the screen that owns the chip row. */
+export type EpisodePanePreviewFlags = Omit<ItemSectionChromeFlags, 'hasBoosts'>;
+
+export const itemSectionFlagsFromDto = (item: EpisodeTabItem): EpisodePanePreviewFlags => {
   return {
     hasChapters: itemHasChapters(item),
     hasFunding: itemHasFunding(item),
@@ -62,7 +65,7 @@ export const resolveEpisodeTabs = ({
   previewFlags,
 }: {
   episode: EpisodeTabItem | null;
-  previewFlags: ItemSectionChromeFlags | null;
+  previewFlags: EpisodePanePreviewFlags | null;
 }): EpisodeTab[] => {
   const hasChapters =
     episode !== null ? itemHasChapters(episode) : previewFlags?.hasChapters === true;

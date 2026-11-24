@@ -58,6 +58,7 @@ export const HeaderButtons: React.FC<HeaderButtonsProps> = ({
   const { canShowBoostAction } = getBoostEligibilityForContent({
     channel,
     item,
+    ...(item !== null && item !== undefined ? { itemValues: item.item_values } : {}),
   });
 
   return (

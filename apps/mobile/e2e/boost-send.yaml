@@ -1,0 +1,78 @@
+appId: com.podverse.app.next
+name: Boost send
+---
+# Signed-out boost sheet locks the name and message and offers Connect. Login does not send.
+
+- runFlow: shared/launch-and-connect.yaml
+
+- tapOn:
+    id: home-search
+- assertVisible:
+    id: search-screen
+- tapOn:
+    id: search-input
+- inputText: podcast
+- assertVisible:
+    id: search-result-row-0
+- tapOn:
+    id: search-result-row-0
+- extendedWaitUntil:
+    visible:
+      id: podcast-detail-screen
+    timeout: ${TIMEOUT_SLOW}
+- tapOn:
+    id: podcast-episode-row-0
+- extendedWaitUntil:
+    visible:
+      id: episode-detail-screen
+    timeout: ${TIMEOUT_SLOW}
+- assertVisible:
+    id: episode-detail-boost
+- tapOn:
+    id: episode-detail-boost
+- extendedWaitUntil:
+    visible:
+      id: boost-sheet
+    timeout: ${TIMEOUT_FAST}
+- extendedWaitUntil:
+    visible:
+      id: boost-sheet-connect
+    timeout: ${TIMEOUT_SLOW}
+- assertVisible:
+    id: boost-sheet-name
+    enabled: false
+- assertVisible:
+    id: boost-sheet-message
+    enabled: false
+- assertVisible:
+    id: boost-sheet-amount
+    enabled: true
+- assertNotVisible:
+    id: boost-sheet-message-notice
+- assertNotVisible:
+    id: boost-not-available
+- tapOn:
+    id: boost-sheet-close
+- assertNotVisible:
+    id: boost-sheet
+
+- runFlow: shared/login-seeded-user.yaml
+
+- tapOn:
+    id: episode-detail-boost
+- extendedWaitUntil:
+    visible:
+      id: boost-sheet
+    timeout: ${TIMEOUT_FAST}
+- assertVisible:
+    id: boost-sheet-name
+- assertVisible:
+    id: boost-sheet-amount
+- assertVisible:
+    id: boost-sheet-connect
+- assertNotVisible:
+    id: boost-not-available
+- tapOn:
+    id: boost-sheet-close
+- assertNotVisible:
+    id: boost-sheet

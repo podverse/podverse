@@ -78,7 +78,8 @@ export const isPodcastSectionUnavailableOffline = (section: PodcastTab): boolean
     section === 'clips' ||
     section === 'soundbites' ||
     section === 'podroll' ||
-    section === 'remote_items'
+    section === 'remote_items' ||
+    section === 'boosts'
   );
 };
 

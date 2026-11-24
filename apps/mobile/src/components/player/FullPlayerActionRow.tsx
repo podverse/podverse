@@ -1,6 +1,6 @@
 import { useTranslation } from 'react-i18next';
 
-import { useTheme } from '../../theme/useTheme';
+import { BoostHeaderAction } from '../boost/BoostHeaderAction';
 import { HeaderBarAction } from '../screen/HeaderBarAction';
 import { HeaderBarActions } from '../screen/HeaderBarActions';
 import { HeaderBarChrome } from '../screen/HeaderBarChrome';
@@ -36,7 +36,6 @@ export function FullPlayerActionRow({
   showV4v,
 }: FullPlayerActionRowProps) {
   const { t } = useTranslation();
-  const { tokens } = useTheme();
 
   return (
     <HeaderBarChrome
@@ -47,13 +46,7 @@ export function FullPlayerActionRow({
       right={
         <HeaderBarActions>
           {showBoost ? (
-            <HeaderBarAction
-              accessibilityLabel={t('value.boost')}
-              icon="cash-outline"
-              iconColor={tokens.text.warning}
-              onPress={onOpenBoost}
-              testID="full-player-boost"
-            />
+            <BoostHeaderAction onPress={onOpenBoost} testID="full-player-boost" />
           ) : null}
           {showCreateClip ? (
             <HeaderBarAction

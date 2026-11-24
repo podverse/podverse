@@ -10,9 +10,16 @@ import {
   joinVerifiedPublisherTitles,
   primaryChannelListArtworkUrl,
 } from '@podverse/helpers';
+import { getBoostEligibilityForContent } from '@podverse/v4v-metaboost';
 
 import { requestWithMobileAuthRefresh } from '../../auth';
 import { useAuth } from '../../auth/AuthProvider';
+import { BoostHeaderAction } from '../../components/boost/BoostHeaderAction';
+import {
+  directoryBoostItemRoute,
+  ReceivedBoostsSection,
+} from '../../components/boost/ReceivedBoostsSection';
+import { useBoostSheet } from '../../components/boost/useBoostSheet';
 import { ChannelHeader } from '../../components/channel';
 import {
   ArtistChooserSheet,
@@ -31,6 +38,7 @@ import { SectionChipRow } from '../../components/form';
 import { buildMediaRowMoreActions } from '../../components/player/MediaRowActions';
 import { FillList } from '../../components/primitives';
 import { HeaderBarAction } from '../../components/screen/HeaderBarAction';
+import { HeaderBarActions } from '../../components/screen/HeaderBarActions';
 import { ListEmpty } from '../../components/state/ListEmpty';
 import { ListError } from '../../components/state/ListError';
 import { LoadingSection } from '../../components/state/LoadingSection';
@@ -45,6 +53,7 @@ import { useActionError } from '../../feedback/ActionErrorProvider';
 import { useItemDescription } from '../../hooks/useItemDescription';
 import { useTranscriptFollowControls } from '../../hooks/useTranscriptFollowControls';
 import { useTranscriptListAutoscroll } from '../../hooks/useTranscriptListAutoscroll';
+import { insertBoostsChip } from '../../lib/boost/insertBoostsChip';
 import { shouldReplaceCachedValue } from '../../lib/cachedValue';
 import { cacheItemDescriptionFromDetail } from '../../lib/content/itemDescriptionAccess';
 import { itemDetailArtworkUri } from '../../lib/content/itemDetailArtworkUri';
@@ -262,6 +271,7 @@ export function TrackDetailScreen({ navigation, route }: TrackDetailScreenProps)
   const { enabled: offlineModeEnabled } = useOfflineMode();
   const { openGate } = useMembershipGate();
   const { addToPlaylistSheet, requestAddToPlaylist } = useAddToPlaylist();
+  const { boostSheet, openBoost } = useBoostSheet();
   const { previewImageUrl, previewTitle, trackId } = route.params;
   const cachedItemChrome = getCachedItemSectionFlags(trackId);
   const listRef = useRef<FlatList<TrackTabRow>>(null);
@@ -275,6 +285,9 @@ export function TrackDetailScreen({ navigation, route }: TrackDetailScreenProps)
   );
   const [previewHasPeople, setPreviewHasPeople] = useState<boolean>(
     cachedItemChrome?.hasPeople === true
+  );
+  const [previewHasBoosts, setPreviewHasBoosts] = useState<boolean>(
+    cachedItemChrome?.hasBoosts === true
   );
   const [activeTab, setActiveTab] = useState<TrackTab>(DEFAULT_TRACK_TAB);
   const [transcriptRows, setTranscriptRows] = useState<TranscriptRow[]>([]);
@@ -418,6 +431,7 @@ export function TrackDetailScreen({ navigation, route }: TrackDetailScreenProps)
 
   useEffect(() => {
     setActiveTab(DEFAULT_TRACK_TAB);
+    setPreviewHasBoosts(getCachedItemSectionFlags(trackId)?.hasBoosts === true);
     setTranscriptRows([]);
     setTranscriptErrorKey(null);
     setIsTranscriptLoading(false);
@@ -431,15 +445,33 @@ export function TrackDetailScreen({ navigation, route }: TrackDetailScreenProps)
     const nextHasPeople = (track.item_persons?.length ?? 0) > 0;
     setPreviewHasFunding(nextHasFunding);
     setPreviewHasPeople(nextHasPeople);
+    if (channel === null) {
+      void sectionChromeFlagsRepository.mergeItem(trackId, {
+        hasFunding: nextHasFunding,
+        hasPeople: nextHasPeople,
+      });
+      return;
+    }
+    const nextHasBoosts = getBoostEligibilityForContent({
+      channel,
+      itemGuid: track.guid ?? null,
+    }).canShowBoostMessagesTab;
+    setPreviewHasBoosts(nextHasBoosts);
     void sectionChromeFlagsRepository.mergeItem(trackId, {
+      hasBoosts: nextHasBoosts,
       hasFunding: nextHasFunding,
       hasPeople: nextHasPeople,
     });
-  }, [track, trackId]);
+  }, [channel, track, trackId]);
 
   const hasTranscript = (track?.item_transcripts?.length ?? 0) > 0;
   const hasFunding = track !== null ? (track.item_fundings?.length ?? 0) > 0 : previewHasFunding;
   const hasPeople = track !== null ? (track.item_persons?.length ?? 0) > 0 : previewHasPeople;
+  const hasBoosts =
+    channel !== null && track !== null
+      ? getBoostEligibilityForContent({ channel, itemGuid: track.guid ?? null })
+          .canShowBoostMessagesTab
+      : previewHasBoosts;
   const supportedTabs = useMemo<TrackTab[]>(() => {
     const tabs: TrackTab[] = ['summary'];
     if (hasTranscript || transcriptRows.length > 0) {
@@ -451,8 +483,8 @@ export function TrackDetailScreen({ navigation, route }: TrackDetailScreenProps)
     if (hasPeople) {
       tabs.push('people');
     }
-    return tabs;
-  }, [hasFunding, hasPeople, hasTranscript, transcriptRows.length]);
+    return insertBoostsChip(tabs, hasBoosts, 'funding');
+  }, [hasBoosts, hasFunding, hasPeople, hasTranscript, transcriptRows.length]);
 
   useEffect(() => {
     if (!supportedTabs.includes(activeTab)) {
@@ -532,18 +564,37 @@ export function TrackDetailScreen({ navigation, route }: TrackDetailScreenProps)
     shareResolvedUrl(buildPublicShareUrl('track', trackId));
   }, [trackId]);
 
+  const canShowBoost =
+    channel !== null &&
+    track !== null &&
+    getBoostEligibilityForContent({
+      channel,
+      item: track,
+      itemValues: track.item_values,
+    }).canShowBoostAction;
+
   useLayoutEffect(() => {
     navigation.setOptions({
       headerRight: () => (
-        <HeaderBarAction
-          accessibilityLabel={t('features.share')}
-          icon="share-outline"
-          onPress={handleShare}
-          testID="track-detail-share"
-        />
+        <HeaderBarActions>
+          {canShowBoost && channel !== null && track !== null ? (
+            <BoostHeaderAction
+              onPress={() => {
+                openBoost({ addByRss: null, channel, item: track });
+              }}
+              testID="track-detail-boost"
+            />
+          ) : null}
+          <HeaderBarAction
+            accessibilityLabel={t('features.share')}
+            icon="share-outline"
+            onPress={handleShare}
+            testID="track-detail-share"
+          />
+        </HeaderBarActions>
       ),
     });
-  }, [handleShare, navigation, t]);
+  }, [canShowBoost, channel, handleShare, navigation, openBoost, t, track]);
 
   const handleAddToPlaylist = useCallback(() => {
     if (trackRow === null || status !== 'authenticated') {
@@ -590,6 +641,18 @@ export function TrackDetailScreen({ navigation, route }: TrackDetailScreenProps)
       })
     );
   }, [channel, navigation]);
+
+  const openBoostDirectoryItem = useCallback(
+    (item: DTOItem) => {
+      const destination = directoryBoostItemRoute(item, channel?.medium_id);
+      if (destination.kind === 'track') {
+        navigation.navigate(CHANNEL_BROWSE_STACK_ROUTES.TrackDetail, destination.params);
+        return;
+      }
+      navigation.navigate(CHANNEL_BROWSE_STACK_ROUTES.EpisodeDetail, destination.params);
+    },
+    [channel?.medium_id, navigation]
+  );
 
   const trackArtists = useMemo(
     () => resolveVerifiedArtists({ channel, item: track }),
@@ -804,6 +867,22 @@ export function TrackDetailScreen({ navigation, route }: TrackDetailScreenProps)
   );
 
   const paneFooter = useMemo(() => {
+    if (activeTab === 'boosts') {
+      return (
+        <ReceivedBoostsSection
+          channel={channel}
+          directoryChannelIdText={channel?.id_text}
+          fetchAllowed={channel !== null && track !== null}
+          itemGuid={track?.guid ?? null}
+          listHeader={listHeader}
+          onOpenChannel={openAlbum}
+          onOpenDirectoryItem={openBoostDirectoryItem}
+          scopeType="track"
+          testIDPrefix="track-detail-boosts"
+        />
+      );
+    }
+
     if (activeTab === 'summary') {
       return (
         <View testID="track-detail-summary">
@@ -880,12 +959,16 @@ export function TrackDetailScreen({ navigation, route }: TrackDetailScreenProps)
     return null;
   }, [
     activeTab,
+    channel,
     description,
     descriptionHtml,
     handleRetryTranscript,
+    listHeader,
     onDescriptionClock,
     isTranscriptLoading,
     offlineModeEnabled,
+    openAlbum,
+    openBoostDirectoryItem,
     styles.description,
     styles.showMore,
     t,
@@ -907,55 +990,64 @@ export function TrackDetailScreen({ navigation, route }: TrackDetailScreenProps)
   );
 
   return (
-    <View style={styles.container} testID="track-detail-screen">
-      {isLoading ? <LoadingSection testID="track-detail-loading" /> : null}
-      {!isLoading && offlineModeEnabled && track === null ? (
-        <ListEmpty
-          messageKey={OFFLINE_UNAVAILABLE_MESSAGE_KEY}
-          testID="track-detail-offline-unavailable"
+    <>
+      <View style={styles.container} testID="track-detail-screen">
+        {isLoading ? <LoadingSection testID="track-detail-loading" /> : null}
+        {!isLoading && offlineModeEnabled && track === null ? (
+          <ListEmpty
+            messageKey={OFFLINE_UNAVAILABLE_MESSAGE_KEY}
+            testID="track-detail-offline-unavailable"
+          />
+        ) : null}
+        {!isLoading && errorKey !== null ? (
+          <ListError messageKey={errorKey} onRetry={handleRetryTrack} testID="track-detail-error" />
+        ) : null}
+        {!isLoading && errorKey === null && track !== null ? (
+          activeTab === 'boosts' ? (
+            <View style={styles.container}>{paneFooter}</View>
+          ) : (
+            <FillList
+              ListEmptyComponent={null}
+              ListFooterComponent={paneFooter}
+              ListHeaderComponent={listHeader}
+              contentContainerStyle={styles.content}
+              data={listRows}
+              extraData={listExtraData}
+              keyExtractor={trackTabRowKeyExtractor}
+              onScrollToIndexFailed={
+                activeTab === 'transcript' ? onTranscriptScrollToIndexFailed : undefined
+              }
+              onViewableItemsChanged={onTranscriptViewableItemsChanged}
+              ref={listRef}
+              refreshControl={refreshControl}
+              renderItem={renderTrackTabItem}
+              stickyHeaderIndices={
+                transcriptStickyOffset > 0 ? [TRANSCRIPT_FOLLOW_BAR_STICKY_INDEX] : undefined
+              }
+              testID={
+                activeTab === 'transcript' ? 'track-detail-transcript-list' : 'track-detail-list'
+              }
+              viewabilityConfig={transcriptViewabilityConfig}
+            />
+          )
+        ) : null}
+        {addToPlaylistSheet}
+        <ArtistChooserSheet
+          artists={trackLineArtists}
+          onCancel={() => {
+            setIsArtistChooserOpen(false);
+          }}
+          onSelect={(artist) => {
+            setIsArtistChooserOpen(false);
+            if (artist.kind === 'directory') {
+              openArtist(artist.publisher);
+            }
+          }}
+          testID="track-detail-artist-chooser"
+          visible={isArtistChooserOpen}
         />
-      ) : null}
-      {!isLoading && errorKey !== null ? (
-        <ListError messageKey={errorKey} onRetry={handleRetryTrack} testID="track-detail-error" />
-      ) : null}
-      {!isLoading && errorKey === null && track !== null ? (
-        <FillList
-          ListEmptyComponent={null}
-          ListFooterComponent={paneFooter}
-          ListHeaderComponent={listHeader}
-          contentContainerStyle={styles.content}
-          data={listRows}
-          extraData={listExtraData}
-          keyExtractor={trackTabRowKeyExtractor}
-          onScrollToIndexFailed={
-            activeTab === 'transcript' ? onTranscriptScrollToIndexFailed : undefined
-          }
-          onViewableItemsChanged={onTranscriptViewableItemsChanged}
-          ref={listRef}
-          refreshControl={refreshControl}
-          renderItem={renderTrackTabItem}
-          stickyHeaderIndices={
-            transcriptStickyOffset > 0 ? [TRANSCRIPT_FOLLOW_BAR_STICKY_INDEX] : undefined
-          }
-          testID={activeTab === 'transcript' ? 'track-detail-transcript-list' : 'track-detail-list'}
-          viewabilityConfig={transcriptViewabilityConfig}
-        />
-      ) : null}
-      {addToPlaylistSheet}
-      <ArtistChooserSheet
-        artists={trackLineArtists}
-        onCancel={() => {
-          setIsArtistChooserOpen(false);
-        }}
-        onSelect={(artist) => {
-          setIsArtistChooserOpen(false);
-          if (artist.kind === 'directory') {
-            openArtist(artist.publisher);
-          }
-        }}
-        testID="track-detail-artist-chooser"
-        visible={isArtistChooserOpen}
-      />
-    </View>
+      </View>
+      {boostSheet}
+    </>
   );
 }

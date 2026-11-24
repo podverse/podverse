@@ -65,7 +65,6 @@
     "parser_rss_parse_feed": "node ./dist/index.js parserRSSParseFeed",
     "podcast_index_dead_feeds_flag_and_merge": "node ./dist/index.js podcastIndexDeadFeedsFlagAndMerge",
     "podcast_index_trending_podcasts_get": "node ./dist/index.js podcastIndexTrendingPodcastsGet",
-    "podcast_index_value_update_all": "node ./dist/index.js podcastIndexValueUpdateAll",
     "stats_event_partitions_maintain": "node ./dist/index.js statsEventPartitionsMaintain",
     "stats_popularity_refresh": "node ./dist/index.js statsPopularityRefresh",
     "stats_recommendations_refresh": "node ./dist/index.js statsRecommendationsRefresh"

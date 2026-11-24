@@ -59,7 +59,6 @@ const BASE_ORM_WEB_NOTIFICATIONS_COMMANDS = ['notificationsTestPush'] as const;
 
 const BASE_PODCAST_INDEX_COMMANDS = [
   'podcastIndexTrendingPodcastsGet',
-  'podcastIndexValueUpdateAll',
   'devDiscoverArtistPublisherFeeds',
 ] as const;
 

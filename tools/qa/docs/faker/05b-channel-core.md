@@ -35,7 +35,6 @@ export interface GeneratedChannel {
   title: string | null;
   sortable_title: string | null;
   medium_id: number;
-  has_podcast_index_value: boolean;
   has_value_time_splits: boolean;
 }
 
@@ -59,8 +58,6 @@ export class ChannelGenerator {
           .slice(0, DATABASE_CONSTANTS.varchar_slug)
       : null;
 
-    const hasPodcastIndexValue = faker.datatype.boolean({ probability: 0.3 });
-
     return {
       id: this.idCounter++,
       id_text: generateRandomIdText(),
@@ -74,8 +71,7 @@ export class ChannelGenerator {
         { value: MediumEnum.Video, weight: 2 },
         { value: MediumEnum.Music, weight: 1 },
       ]),
-      has_podcast_index_value: hasPodcastIndexValue,
-      has_value_time_splits: hasPodcastIndexValue && faker.datatype.boolean({ probability: 0.3 }),
+      has_value_time_splits: faker.datatype.boolean({ probability: 0.3 }),
     };
   }
 
@@ -87,7 +83,7 @@ export class ChannelGenerator {
       ? `'${this.escapeSQL(channel.sortable_title)}'`
       : 'NULL';
 
-    return `INSERT INTO channel (id, id_text, slug, feed_id, podcast_guid, title, sortable_title, medium_id, has_podcast_index_value, has_value_time_splits) VALUES (${channel.id}, '${channel.id_text}', ${slug}, ${channel.feed_id}, ${podcastGuid}, ${title}, ${sortableTitle}, ${channel.medium_id}, ${channel.has_podcast_index_value}, ${channel.has_value_time_splits});`;
+    return `INSERT INTO channel (id, id_text, slug, feed_id, podcast_guid, title, sortable_title, medium_id, has_value_time_splits) VALUES (${channel.id}, '${channel.id_text}', ${slug}, ${channel.feed_id}, ${podcastGuid}, ${title}, ${sortableTitle}, ${channel.medium_id}, ${channel.has_value_time_splits});`;
   }
 
   private escapeSQL(str: string): string {

@@ -26,7 +26,6 @@ const liveItem = (statusId: LiveItemStatusEnum, startTime: string): DTOLiveItem 
 const itemFixture = (fixture: ItemFixture): DTOItem => ({
   channel: {
     feed_id: 1,
-    has_podcast_index_value: false,
     has_value_time_splits: false,
     id: 1,
     id_text: fixture.channel.id_text ?? '',

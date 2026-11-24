@@ -104,7 +104,7 @@ that gates beta.
 
 | Stage  | Accounts                                                   | Moves on when                                                              |
 | ------ | ---------------------------------------------------------- | -------------------------------------------------------------------------- |
-| Pilot  | About 100, picked by rule. Ran. This is the last test.    | Every account passed, was fixed and retried, or is listed in `deferred.md` |
+| Pilot  | About 100, picked by rule. Ran. This is the last test.     | Every account passed, was fixed and retried, or is listed in `deferred.md` |
 | Sample | About 1,000 picked at random, on a restored clean database | Not run.                                                                   |
 | Full   | Every account, on a refreshed copy and a clean database    | Not run.                                                                   |
 

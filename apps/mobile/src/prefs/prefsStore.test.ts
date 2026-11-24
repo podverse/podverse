@@ -75,11 +75,20 @@ describe('prefsStore', () => {
       locale: 'es',
       'membership.expiry_dismissed_for': null,
       'playback.handoff_dismissed_state': null,
+      'boost.sender_name': null,
       'offline.mode': null,
       pmt: null,
       preferred_media_type: null,
       uit: null,
     });
+  });
+
+  it('remembers a boost sender name, including a cleared empty string', async () => {
+    await setPref('boost.sender_name', 'Ada');
+    await expect(getPref('boost.sender_name')).resolves.toBe('Ada');
+
+    await setPref('boost.sender_name', '');
+    await expect(getPref('boost.sender_name')).resolves.toBe('');
   });
 
   it('reads and writes playback handoff dismissal state as a raw string', async () => {

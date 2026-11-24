@@ -48,7 +48,10 @@ type BoostFormFieldsProps = {
   tMisc: Translator;
   brandName: string;
   metaBoost?: MetaBoost | null;
-  /** When false, boost amounts and send-related fields are read-only (must log in to Podverse). */
+  /**
+   * A signed-out visitor can edit the amount, and the name and message stay read-only until
+   * Podverse login, including when there is no MetaBoost post.
+   */
   isLoggedIn: boolean;
   showMetaBoostInfo?: boolean;
   onToggleMetaBoostInfo?: () => void;
@@ -296,7 +299,7 @@ export const BoostFormFields = ({
                 }
                 prefix={boostCurrencyFormatMetadata?.symbolPrefix ?? undefined}
                 infoError={creatorAmountInputError}
-                disabled={isSubmitting || hasStatusUpdates || !isLoggedIn}
+                disabled={isSubmitting || hasStatusUpdates}
               />
             </div>
             {creatorBaselineEstimate ? (
@@ -365,7 +368,7 @@ export const BoostFormFields = ({
                 }
                 prefix={boostCurrencyFormatMetadata?.symbolPrefix ?? undefined}
                 infoError={appAmountInputError}
-                disabled={isSubmitting || hasStatusUpdates || !isLoggedIn}
+                disabled={isSubmitting || hasStatusUpdates}
               />
             </div>
             {appBaselineEstimate ? (

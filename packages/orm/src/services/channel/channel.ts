@@ -32,7 +32,6 @@ type ChannelDto = {
   title?: string | null;
   sortable_title?: string | null;
   medium_id: MediumEnum;
-  has_podcast_index_value?: boolean;
   has_value_time_splits?: boolean;
   may_have_live_items?: boolean;
 };

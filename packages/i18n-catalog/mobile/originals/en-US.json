@@ -508,5 +508,31 @@
     "status_free_trial": "Free Trial",
     "trial_limitations_missing_content": "If you have a Trial membership and content you would like is missing, contact {email} for help.",
     "trial_limitations_only": "Trial Limitations Only"
+  },
+  "v4v": {
+    "section_connected": "Connected",
+    "section_available": "Available",
+    "status_connected": "Connected",
+    "status_not_connected": "Not Connected",
+    "provider": {
+      "alby": "Alby"
+    },
+    "alby": {
+      "connect": "Connect",
+      "disconnect": "Disconnect",
+      "disconnect_title": "Disconnect Alby",
+      "disconnect_body": "This phone will no longer send boosts from this Alby wallet.",
+      "not_configured": "Alby is not configured on this build.",
+      "unavailable": "Value for Value is not available on this build.",
+      "lightning_address": "Lightning Address",
+      "no_lightning_address": "This Alby wallet has no Lightning Address.",
+      "balance": "Balance",
+      "balance_sats": "{count} sats",
+      "balance_unavailable": "Balance is unavailable right now.",
+      "connect_failed": "Could not connect to Alby. Please try again.",
+      "refresh_failed": "Could not refresh the Alby wallet. Please try again.",
+      "session_ended_title": "Alby Disconnected",
+      "session_ended_body": "The Alby session ended. Connect again to send boosts."
+    }
   }
 }

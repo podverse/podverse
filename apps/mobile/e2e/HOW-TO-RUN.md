@@ -582,6 +582,7 @@ npm run mobile:e2e:test -- playback-resume-on-relaunch
 npm run mobile:e2e:test -- player-screen
 npm run mobile:e2e:test -- tab-switch-playback
 npm run mobile:e2e:test -- v4v
+npm run mobile:e2e:test -- boost-messages
 npm run mobile:e2e:test -- video-transition
 ```
 

@@ -424,14 +424,6 @@ const WORKER_COMMAND_DEFS: readonly WorkerCommandDef[] = [
     example_cli: 'npm run podcast_index_trending_podcasts_get -w apps/workers',
   },
   {
-    name: 'podcastIndexValueUpdateAll',
-    label: 'Podcast Index: update all value blocks',
-    description: 'Refreshes value (value4value) data across known podcasts.',
-    category: 'podcast_index',
-    risk: 'normal',
-    example_cli: 'npm run podcast_index_value_update_all -w apps/workers',
-  },
-  {
     name: 'devStatsSeedSimulatedPopularity',
     label: 'Dev: seed simulated Top / trending stats',
     description:

@@ -17,3 +17,5 @@ export * from './mbV1FetchCapability.js';
 export * from './mbV1IngestUrl.js';
 export * from './publicMessages.js';
 export * from './publicConversionSnapshot.js';
+export * from './mbrssV1PostBoost.js';
+export * from './publicMessageView.js';
