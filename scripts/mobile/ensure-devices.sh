@@ -34,6 +34,7 @@ AVD_HOME="${ANDROID_AVD_HOME:-$HOME/.android/avd}"
 # and every flow types the 10.0.2.2 URL by hand — inputText is the most expensive command Maestro
 # has on Android, and clearState makes each flow pay it again.
 ANDROID_METRO_PORT="${MOBILE_METRO_PORT:-8081}"
+ANDROID_E2E_API_PORT="${MOBILE_E2E_API_PORT:-4230}"
 
 # Podverse Android AVD performance profile (Apple Silicon + HVF). Applied on every ensure/boot
 # so manual + E2E slots stay consistent. Keeps Pixel_6_Pro LCD size for screenshot parity.
@@ -442,12 +443,17 @@ tune_android_runtime_settings() {
   done
 }
 
-# Reverse-forward the host's Metro port into the guest. Reverse mappings live in the adb daemon's
-# per-device connection, so this is re-applied on every boot and after any reboot.
+# Reverse-forward the host's Metro port and the mobile E2E API port into the guest. Reverse
+# mappings live in the adb daemon's per-device connection, so this is re-applied on every boot
+# and after any reboot. 127.0.0.1 on the guest then reaches the E2E API, which is a different
+# saved address from the Android built-in 10.0.2.2 host.
 ensure_android_host_bridges() {
   local serial="$1"
   if ! "$ADB_BIN" -s "$serial" reverse "tcp:${ANDROID_METRO_PORT}" "tcp:${ANDROID_METRO_PORT}" >/dev/null 2>&1; then
     echo "Warning: adb reverse tcp:${ANDROID_METRO_PORT} failed on ${serial}; Dev Client will fall back to manual URL entry." >&2
+  fi
+  if ! "$ADB_BIN" -s "$serial" reverse "tcp:${ANDROID_E2E_API_PORT}" "tcp:${ANDROID_E2E_API_PORT}" >/dev/null 2>&1; then
+    echo "Warning: adb reverse tcp:${ANDROID_E2E_API_PORT} failed on ${serial}; the guest cannot reach the E2E API at 127.0.0.1." >&2
   fi
 }
 

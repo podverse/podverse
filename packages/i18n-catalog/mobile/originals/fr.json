@@ -386,7 +386,7 @@
   "custom_api": {
     "title": "API personnalisée",
     "menu_subtitle": "Diriger cette app vers un autre serveur",
-    "intro": "Remplace le serveur auquel cette app parle. Enregistrer vérifie que le serveur répond avec le statut 200, puis ouvre un écran qui liste ce que ce téléphone effacera. Réinitialiser fait de même lorsqu'une adresse est déjà enregistrée. Déconnectez-vous avant de le changer pour que ce téléphone n'envoie pas votre session à un autre serveur.",
+    "intro": "Remplace le serveur auquel cette app parle. Enregistrer vérifie que le serveur répond avec le statut 200, puis ouvre un écran qui liste ce que ce téléphone effacera. Réinitialiser fait de même lorsqu'une adresse est déjà enregistrée. Effacer et changer déconnecte ce téléphone du serveur actuel avant d'enregistrer la nouvelle adresse, afin que la session ne soit pas envoyée à l'autre serveur.",
     "url_label": "URL de l'API",
     "url_placeholder": "https://example.com/api/v2",
     "original_label": "API d'origine",
@@ -400,13 +400,12 @@
     "unreachable": "Impossible de joindre ce serveur. Rien n'a été enregistré.",
     "unexpected_status": "Ce serveur a répondu avec le statut {status}. 200 était attendu. Rien n'a été enregistré.",
     "unexpected_body": "Ce serveur a répondu avec le statut 200, mais le contrôle de santé n'a pas indiqué ok. Rien n'a été enregistré.",
-    "logout_title": "Déconnexion d'abord",
-    "logout_body": "Déconnectez-vous avant de changer l'API. Ce téléphone n'enverra pas votre session à un autre serveur.",
     "notice_label": "API personnalisée",
     "notice_body": "La connexion, l'inscription, les mots de passe de flux et les achats en boutique dans cette app vont vers ce serveur. Une page ouverte dans le navigateur utilise le site public, qui ne le fait pas.",
     "clear": {
       "title": "Effacer les données locales",
       "intro": "La copie de ce téléphone du serveur précédent sera effacée. Un compte sur ce serveur reste tel quel.",
+      "export_body": "Exportez un fichier OPML pour emporter les abonnements vers l'autre serveur. Enregistrez-le ici, puis importez-le là-bas après le changement.",
       "removed_heading": "Sera effacé",
       "kept_heading": "Reste sur ce téléphone",
       "confirm": "Effacer et changer",

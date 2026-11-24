@@ -5,8 +5,8 @@ import { acceptStoredCustomApiBaseUrl } from './customApiUrl';
 import { selectMobileApiBaseUrl } from './env';
 
 /**
- * Device-local API override. It survives logout on purpose: the only way to change it is while
- * signed out, and the next sign-in has to use the address that was just saved.
+ * Device-local API override. It survives logout on purpose: the session for the previous server
+ * ends before this address is saved, and the next sign-in uses that address.
  * Account cleanup must not delete this key.
  */
 const STORAGE_KEY = 'api.custom_base_url';

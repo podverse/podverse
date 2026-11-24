@@ -3,8 +3,6 @@ import { useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { StyleSheet, Text, View } from 'react-native';
 
-import { useAuth } from '../../auth/AuthProvider';
-import { ConfirmDialog } from '../../components/feedback/ConfirmDialog';
 import { FormActions, TextField } from '../../components/form';
 import { MobileScreenContainer } from '../../components/screen/MobileScreenContainer';
 import { getBuiltInMobileApiBaseUrl } from '../../config';
@@ -48,7 +46,6 @@ const isCustomApiFieldInvalid = (
 
 export function MoreCustomApiScreen({ navigation }: Props) {
   const { t } = useTranslation();
-  const { logout, status } = useAuth();
   const saved = useCustomApiBaseUrl();
   const { styles: themeStyles, tokens } = useTheme();
   const [draft, setDraft] = useState(saved ?? '');
@@ -56,11 +53,7 @@ export function MoreCustomApiScreen({ navigation }: Props) {
   const [urlBlurred, setUrlBlurred] = useState(false);
   const [feedback, setFeedback] = useState<Feedback | null>(null);
   const [isSaving, setIsSaving] = useState(false);
-  const [isLoggingOut, setIsLoggingOut] = useState(false);
-  const [logoutVisible, setLogoutVisible] = useState(false);
   const busyRef = useRef(false);
-  const statusRef = useRef(status);
-  statusRef.current = status;
 
   if (saved !== draftSource) {
     setDraftSource(saved);
@@ -101,7 +94,7 @@ export function MoreCustomApiScreen({ navigation }: Props) {
   });
 
   const builtIn = getBuiltInMobileApiBaseUrl();
-  const isBusy = isSaving || isLoggingOut;
+  const isBusy = isSaving;
 
   const feedbackText = (value: Feedback): string => {
     switch (value.kind) {
@@ -145,10 +138,6 @@ export function MoreCustomApiScreen({ navigation }: Props) {
     if (!customApiCommitOpensClearScreen(plan)) {
       return;
     }
-    if (statusRef.current !== 'anonymous') {
-      setLogoutVisible(true);
-      return;
-    }
     if (plan.action === 'clear') {
       navigation.navigate(MORE_STACK_ROUTES.MoreCustomApiClear, { baseUrl: null });
       return;
@@ -159,10 +148,6 @@ export function MoreCustomApiScreen({ navigation }: Props) {
     setFeedback(null);
     try {
       const result = await probeCustomApiBaseUrl(plan.baseUrl);
-      if (statusRef.current !== 'anonymous') {
-        setLogoutVisible(true);
-        return;
-      }
       if (!result.ok) {
         setFeedback(result.failure);
         return;
@@ -192,26 +177,7 @@ export function MoreCustomApiScreen({ navigation }: Props) {
       }
       return;
     }
-    if (statusRef.current !== 'anonymous') {
-      setLogoutVisible(true);
-      return;
-    }
     navigation.navigate(MORE_STACK_ROUTES.MoreCustomApiClear, { baseUrl: null });
-  };
-
-  const handleLogout = async () => {
-    if (isLoggingOut) {
-      return;
-    }
-    busyRef.current = true;
-    setIsLoggingOut(true);
-    setLogoutVisible(false);
-    try {
-      await logout();
-    } finally {
-      busyRef.current = false;
-      setIsLoggingOut(false);
-    }
   };
 
   return (
@@ -296,22 +262,6 @@ export function MoreCustomApiScreen({ navigation }: Props) {
           },
         ]}
         style={styles.reset}
-      />
-      <ConfirmDialog
-        body={t('custom_api.logout_body')}
-        cancelLabel={t('misc.cancel')}
-        cancelTestID="custom-api-logout-cancel"
-        confirmLabel={t('authentication.logout')}
-        confirmTestID="custom-api-logout-confirm"
-        onCancel={() => {
-          setLogoutVisible(false);
-        }}
-        onConfirm={() => {
-          void handleLogout();
-        }}
-        testID="custom-api-logout-dialog"
-        title={t('custom_api.logout_title')}
-        visible={logoutVisible}
       />
     </MobileScreenContainer>
   );
