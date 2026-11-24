@@ -121,8 +121,10 @@ commits them.
 | Past the last tier a group stops for the operator                        | Decided |
 | A queue past 100,000 keeps 100,000 rows and is `needs_operator`          | Decided |
 | A tier is the cap after the copy; removing rows does not lower it        | Decided |
-| Every account is copied to a local v5 database before the grace period   | Decided |
-| Full rehearsal stages: pilot by rule, then 1,000 random, then all        | Decided |
+| Account-copy testing stops at pilot `20261115T001006Z`                   | Decided 2026-11-19 |
+| Sample and full local rehearsals are not run                             | Decided 2026-11-19 |
+| Every account is copied to a local v5 database before the grace period   | Superseded 2026-11-19 |
+| Full rehearsal stages: pilot by rule, then 1,000 random, then all        | Superseded 2026-11-19 |
 | Rehearsal errors go to gitignored `.artifacts/v4-full-rehearsal/`        | Decided |
 
 ## Sequence
@@ -157,7 +159,7 @@ flowchart LR
 | [13](13-forced-migration-and-v4-shutdown.md)   | Batch remaining users and retire v4                       |
 | [14](14-fdroid.md)                             | F-Droid placeholder                                       |
 | [15](15-near-term-rehearsal-checklist.md)      | Ordered rehearsal steps before migration code             |
-| [16](16-full-local-migration-rehearsal.md)     | Copy every account locally and check each one             |
+| [16](16-full-local-migration-rehearsal.md)     | Pilot is the last local account-copy test                |
 | [17](17-storage-v4-vs-v5.md)                   | Storage per episode, full-database estimate, savings      |
 | [18](18-v5-table-storage.md)                   | Where the v5 catalog bytes sit, table by table            |
 | [19](19-unused-large-indexes.md)               | One unused index; keep the global `pub_date` index        |
@@ -205,7 +207,8 @@ flowchart LR
 ## Parallel tracks (can start early)
 
 1. **Database rehearsal** ([06](06-database-migration-rehearsal.md)) against the
-   prod-copy test DB. No store or beta dependency.
+   prod-copy test DB. Finished at pilot `20261115T001006Z`. That pilot is
+   enough account-copy testing before beta. Sample and full are not run.
 2. **Mobile local-data spike** ([08](08-mobile-first-launch-migration.md)):
    done on iOS and Android. Counts are in that doc's open questions. Not a
    rehearsal step.

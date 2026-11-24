@@ -1,16 +1,26 @@
 # 16 — Full Local Migration Rehearsal
 
+## Status
+
+Closed 2026-11-19. Account-copy testing stopped at pilot `20261115T001006Z`
+(verify 100 done, 0 failed). That pilot is enough testing before beta. The
+sample stage and the full stage are not run. Do not start them. The runner,
+the cap tiers, and the per-account check stay in the tree. Sign-in during
+grace still copies one library, and the end-of-grace batch still copies the
+rest. Those are the production copy, not more local testing.
+
 ## Goal
 
-Copy every v4 account from the prod-copy snapshot into a local v5 database
-before any real copy runs. Find every way an account fails, and prove that
-copied accounts still behave as they did in v4: same sign-in, same library,
-same public URLs. An agent runs it and watches compact statistics, not the
-full log. Errors are kept in a gitignored folder because they name v4 ids.
+Copy a rule-picked set of v4 accounts from the prod-copy snapshot into a
+local v5 database before any real copy runs. Find the ways an account fails,
+and prove that copied accounts still behave as they did in v4: same sign-in,
+same library, same public URLs. An agent runs it and watches compact
+statistics, not the full log. Errors are kept in a gitignored folder because
+they name v4 ids.
 
-This is required before the grace period. The one-account rehearsal in
+The second pilot is that rehearsal. The one-account rehearsal in
 [15](15-near-term-rehearsal-checklist.md) section 5 proved the commands on
-`eFv5NFx` only.
+`eFv5NFx` first.
 
 ## The snapshot is not the final database
 
@@ -23,9 +33,9 @@ rehearsal does not depend on any id list taken from the snapshot:
 - Cap tiers are decided per account at copy time
   ([07](07-account-and-data-migration-model.md#account-caps-v4-did-not-have)).
 - Counts in these docs are examples. The run reports its own.
-- Refresh the copy before the full stage, as
-  [06](06-database-migration-rehearsal.md) already decides, and rerun the
-  full stage at least once more against a newer copy before go-live.
+- The pilot read the snapshot whose newest `users.updatedAt` is
+  `2026-10-30T03:09:51Z`. A later local copy of every account is not part of
+  testing.
 
 ## What compatible means
 
@@ -68,17 +78,12 @@ starts, because a library copy must not start before its shows have parsed.
 | 5. Membership | Rebuild the paid-expiry file in the same sitting, then `billingImportLegacyMembershipExpiry`.     |
 | 6. Verify     | The checks under [What compatible means](#what-compatible-means), per account.                    |
 
-The catalog phase for the full stage is the
-[launch queue](05-id-mapping-and-catalog-seeding.md#launch-queue) plus shows
-that only appear on a clip, playlist, or playback row. It is the slowest
-phase. Its time to settle and its failed-parse count are results, not
-something to skip. The wait ends when nothing is waiting or after
-`--catalog-wait-hours` (default 24). Migration feed retries run only in the
-scheduled job loop beside the parsers. Feeds still waiting keep retrying.
-After the stage, replay runs again until no `waiting_parse` rows remain or
-those retries have settled. The runner also refuses to start unless the
-process offset is zero (`TZ=UTC`). The pilot and sample stages seed only the
-shows their accounts need.
+The pilot seeds only the shows its accounts need. The wait ends when nothing
+is waiting or after `--catalog-wait-hours` (default 24). Migration feed
+retries run only in the scheduled job loop beside the parsers. Feeds still
+waiting keep retrying. After the stage, replay runs again until no
+`waiting_parse` rows remain or those retries have settled. The runner also
+refuses to start unless the process offset is zero (`TZ=UTC`).
 
 ## Before go-live
 
@@ -93,11 +98,15 @@ so a bad phase is undone by a restore instead of a reseed.
 
 ## Stages
 
+Pilot `20261115T001006Z` is the stage that ran. Sample and full are not run.
+They stay implemented on `v4RunFullRehearsal` and are outside the testing
+that gates beta.
+
 | Stage  | Accounts                                                   | Moves on when                                                              |
 | ------ | ---------------------------------------------------------- | -------------------------------------------------------------------------- |
-| Pilot  | About 100, picked by rule                                  | Every account passed, was fixed and retried, or is listed in `deferred.md` |
-| Sample | About 1,000 picked at random, on a restored clean database | Same. The rate gives a full-stage estimate.                                |
-| Full   | Every account, on a refreshed copy and a clean database    | Same. The operator reviews `deferred.md` and `fixes.md` in the morning.    |
+| Pilot  | About 100, picked by rule. Ran. This is the last test.    | Every account passed, was fixed and retried, or is listed in `deferred.md` |
+| Sample | About 1,000 picked at random, on a restored clean database | Not run.                                                                   |
+| Full   | Every account, on a refreshed copy and a clean database    | Not run.                                                                   |
 
 The pilot rules pick, from the copy as it is that day, the largest account in
 each group (Add by RSS, subscriptions, clips, history, playlists, playlist
@@ -186,8 +195,8 @@ The agent never pastes an email, a raw row, or a v4 id other than
 `eFv5NFx` into chat, a committed doc, or a commit. Class names and counts are
 fine. `deferred.md` and `fixes.md` may name v4 ids because they are gitignored.
 
-The agent prompt goes in `.cursor/prompts/` with the runner. One prompt runs
-the stages in order, so an overnight run does not wait between them.
+The agent prompt is `.cursor/prompts/v4-full-local-migration-rehearsal.md`.
+It records how the pilot ran. It does not start sample or full.
 
 ## Where state lives
 
@@ -222,8 +231,8 @@ One plan set, after this doc is accepted:
   can take days and a lot of disk. The run records database size per phase.
 - Only the rehearsal account's password is known, so other sign-ins are
   checked by hash, not by signing in.
-- A refreshed copy can show classes the old one did not. That is why the full
-  stage reruns before go-live.
+- The pilot read the 2026-10-30 snapshot. Accounts added after that snapshot
+  are copied at sign-in during grace and in the end-of-grace batch.
 - The phone-storage spike in [08](08-mobile-first-launch-migration.md) passed
   on iOS and Android and is not part of this. This rehearsal covers the
   server copy only.

@@ -58,7 +58,9 @@ the machine for another URL.
 
 ## Git
 
-The overnight inventory pass is finished. Further v4-to-v5 migration work follows
+The overnight inventory pass is finished. The local account-copy rehearsal stopped
+at pilot `20261115T001006Z`. Do not start `--stage sample` or `--stage full`.
+Further v4-to-v5 migration work follows
 [.cursor/prompts/v4-to-v5-migration-guided.md](/.cursor/prompts/v4-to-v5-migration-guided.md):
 one chunk, then stop and ask. Do not continue into the next chunk in the same turn.
 Do not commit or push. Leave edits in the working tree. Do not run `git commit` or

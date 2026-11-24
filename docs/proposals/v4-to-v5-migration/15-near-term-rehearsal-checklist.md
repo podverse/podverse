@@ -1,8 +1,7 @@
 # 15 — Near-term Rehearsal Checklist
 
-Ordered next steps after the inventory docs. Do these before writing the
-migration workers, and before running the legacy apps. Beta deploy is not
-required. Check items off as they finish.
+Ordered steps after the inventory docs. Sections 1–6 are finished. Account-copy
+testing stops at the pilot in section 6. Do not start another rehearsal.
 
 The prod-copy database is the snapshot named only by `V4_DATABASE_URL`
 ([06](06-database-migration-rehearsal.md)). Never commit the URL, a dump, or
@@ -234,33 +233,33 @@ clip is never dropped.
 
 ## 6. Full local rehearsal
 
-Every account, on a local v5 database. The design is
-[16](16-full-local-migration-rehearsal.md). Do these in order.
+Closed 2026-11-19. The design is
+[16](16-full-local-migration-rehearsal.md). The second pilot is the last
+account-copy test. Do not start the sample stage, the full stage, a snapshot
+refresh for those stages, or another pilot.
 
 - [x] Caps v4 did not have. Decided: an account over a default keeps its
       whole library at the smallest tier that covers it, decided at copy
       time. Past the last tier is `needs_operator`. A queue uses tiers through
       100,000 and keeps 100,000 rows past that. See
       [07](07-account-and-data-migration-model.md#account-caps-v4-did-not-have).
-- [ ] Plan set for the runner, cap tiers in the library copy, the
+- [x] Plan set for the runner, cap tiers in the library copy, the
       per-account check, the pilot pick, the run folder, and the agent prompt.
-- [ ] Job loop for each stage. In **Workers**, beside the parsers, after
-      `rehearsal restore=finished`, start it and record its pid. Restart it
-      when a restore finishes, on the same rule as the parsers. If the stage
-      does not restore, start it when the parsers start. It claims at most
-      100 due jobs per pass. Run one loop only:
+      The command is `v4RunFullRehearsal`.
+- [x] Job loop for the pilot. In **Workers**, beside the parsers. It claims
+      at most 100 due jobs per pass:
       `while true; npm run scheduled_jobs_run_due -w apps/workers -- -limit 100; sleep 15; end`
-- [ ] Replay after each stage. Keep that loop running and rerun
-      `v4_replay_legacy_rows` for the run's accounts until no `waiting_parse`
-      rows remain or the retries have all settled.
-- [ ] Pilot stage, about 100 accounts picked by rule. Zero `unaccounted`.
-      Every error class fixed or accepted.
-- [ ] Sample stage, about 1,000 random accounts on a clean database. Record
-      the rate and the full-stage estimate.
-- [ ] Refresh the prod copy.
-- [ ] Full stage, every account, on a clean database. Record classes and
-      counts in 16.
-- [ ] Full stage again on a newer copy before go-live.
+- [x] Replay for the pilot. The loop stayed up and `v4_replay_legacy_rows`
+      ran for the pilot accounts. The second pilot's replay phase is 100 done.
+- [x] Pilot stage, about 100 accounts picked by rule. First run
+      `20261114T034901Z` found the classes fixed in
+      `.llm/plans/completed/v4-pilot-findings/`. Second run
+      `20261115T001006Z`: verify 100 done, 0 failed. Catalog feeds settled
+      7,977, waiting 0, `parse_failed` 222. Counts are in
+      [16](16-full-local-migration-rehearsal.md). This is the last
+      account-copy test before beta.
+- [x] Sample stage, prod-copy refresh, and both full stages. Not run.
+      Decided 2026-11-19: the pilot is enough testing before beta.
 
 ## Not blockers for this list
 

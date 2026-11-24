@@ -252,8 +252,9 @@ Apply refuses unless `DB_HOST` is local.
 `sample` and `full` restore `.artifacts/v4-full-rehearsal/clean.dump` unless
 `--resume` or `--phase` is set. `pilot` writes that file when it is missing
 and does not restore it. The first pilot run has to start from a local
-database that does not already hold rehearsal accounts. Run `--stage full`
-again after the snapshot is replaced, before go-live.
+database that does not already hold rehearsal accounts. The account-copy
+rehearsal is `--stage pilot`. `--stage sample` and `--stage full` stay on the
+command and are not part of that rehearsal.
 
 Dump and restore use `DB_APP_MIGRATOR_USER` and `DB_APP_MIGRATOR_PASSWORD`
 when both are non-empty. Otherwise they use the read-write pair. The password

@@ -26,9 +26,9 @@ file of theirs is in context.
   alone; do not add a reinstall step)
 - Legacy app, podverse-rn, or v4 mobile → `legacy-app-reference`
 - v4 / OGen API, entities, or prod-copy database (`V4_DATABASE_URL`) → `v4-backend-reference`
-- Running the v4 local rehearsal (pilot, sample, full), its parsers, or a database wipe before
- it → `.cursor/prompts/v4-full-local-migration-rehearsal.md` § Clean start and § Operator-run
- stage
+- The v4 local rehearsal stopped at the pilot. Do not start sample or full. How that
+ pilot was run → `.cursor/prompts/v4-full-local-migration-rehearsal.md` § Clean start and
+ § Operator-run stage
 - Popularity tracking, Taste Profile consent, listener ids, stats or taste tables →
   `popularity-listener-id-separation`
 - Adding or changing an authenticated API route, or a rate-limit wrapper that authenticates →

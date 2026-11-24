@@ -5,11 +5,11 @@ were written into git.
 
 Resume from a new agent window with the guided prompt:
 [.cursor/prompts/v4-to-v5-migration-guided.md](/.cursor/prompts/v4-to-v5-migration-guided.md).
-Section 5 of [15](15-near-term-rehearsal-checklist.md) is finished. The
-current work is section 6, the full local rehearsal designed in
-[16](16-full-local-migration-rehearsal.md). The cap decision in 07 is made.
-The next item is the runner plan set. One chunk, then stop and ask. Do not
-commit or push.
+Sections 5 and 6 of [15](15-near-term-rehearsal-checklist.md) are finished.
+Account-copy testing stopped at pilot `20261115T001006Z`: verify 100 done,
+0 failed. Decided 2026-11-19: that pilot is enough testing before beta.
+The sample stage and the full stage are not run. Do not start them. One
+chunk, then stop and ask. Do not commit or push.
 
 Built on this branch: `v4SeedAccountIdentity` (rehearsal account `eFv5NFx` is
 seeded on the local database) and `v4CopyAccountLibrary` (reapplied for that
@@ -205,15 +205,13 @@ relational tables.
 
 ## Deferred
 
-- The library write for `eFv5NFx` has been run on the local database.
-  Sign-in, the count comparison, and the membership expiry dry run are still
-  open. The order is section 5 of
-  [15](15-near-term-rehearsal-checklist.md).
+- Local account-copy testing is finished at pilot `20261115T001006Z`. The
+  sample stage and the full stage are not run.
 - No membership CSV export (that file would contain email addresses).
 - v4 purchase receipts are not imported. An operator-held archive of those
   tables, outside git, is part of the later import. Not written in this pass.
-- The one-account library dry run is the crosswalk so far. A full-catalog
-  crosswalk is not done. The v4-side gap counts are done.
+- A crosswalk of every v4 podcast is not done. The v4-side gap counts are
+  done. The pilot catalog is the shows those 100 accounts needed.
 - `freeTrialExpiration` is not in the expiry CSV. Decided. 406 future trials
   end within 90 days and become Trial grants. 4 later than that are not
   imported. Paid `membershipExpiration` keeps its date, with no 90-day cap.
