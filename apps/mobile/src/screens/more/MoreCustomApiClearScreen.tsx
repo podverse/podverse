@@ -5,6 +5,8 @@ import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { StyleSheet, Text, View } from 'react-native';
 
+import { useAuth } from '../../auth/AuthProvider';
+import { readSecureToken } from '../../auth/secureTokenStorage';
 import { FormActions } from '../../components/form';
 import { Card } from '../../components/primitives/Card';
 import { ListRow } from '../../components/primitives/ListRow';
@@ -16,10 +18,11 @@ import {
   CUSTOM_API_CLEAR_REMOVED_ROWS,
 } from '../../config/customApiClearLists';
 import { clearLocalLibraryForApiSwitch } from '../../data/clearLocalLibraryForApiSwitch';
+import { useOpmlExport } from '../../hooks/useOpmlExport';
 import type { MoreStackParamList } from '../../navigation';
 import { MORE_STACK_ROUTES } from '../../navigation';
 import { usePlaybackSession } from '../../playback/PlaybackProvider';
-import { formActionsTopGap } from '../../theme/screenLayout';
+import { formActionsTopGap, settingsCardInnerGap } from '../../theme/screenLayout';
 import { typography } from '../../theme/typography';
 import { useTheme } from '../../theme/useTheme';
 import type { ThemedStylesTheme } from '../../theme/useThemedStyles';
@@ -151,9 +154,16 @@ const createStyles = ({ styles: themeStyles, tokens }: ThemedStylesTheme) =>
       ...typography.body,
       color: tokens.text.danger,
     },
+    exportBlock: {
+      gap: settingsCardInnerGap(tokens.spacing),
+    },
     intro: {
       ...typography.prose,
       color: themeStyles.textPrimary.color,
+    },
+    notice: {
+      ...typography.body,
+      color: themeStyles.textSecondary.color,
     },
     page: {
       gap: tokens.spacing.xl,
@@ -198,14 +208,23 @@ function ClearRowList({
   );
 }
 
+const sessionStillHasAccessToken = async (): Promise<boolean> => {
+  const accessToken = await readSecureToken('accessToken');
+  return accessToken !== null && accessToken !== '';
+};
+
 export function MoreCustomApiClearScreen({ navigation, route }: Props) {
   const { t } = useTranslation();
   const styles = useThemedStyles(createStyles);
+  const { logout, status } = useAuth();
   const { clearNowPlaying } = usePlaybackSession();
+  const opmlExport = useOpmlExport();
   const clearTarget = clearScreenBaseUrl(route.params);
   const [failed, setFailed] = useState(false);
   const [isClearing, setIsClearing] = useState(false);
   const busyRef = useRef(false);
+  const statusRef = useRef(status);
+  statusRef.current = status;
 
   useEffect(() => {
     if (clearTarget === undefined) {
@@ -218,7 +237,7 @@ export function MoreCustomApiClearScreen({ navigation, route }: Props) {
   }
 
   const handleConfirm = () => {
-    if (busyRef.current) {
+    if (busyRef.current || opmlExport.isExporting) {
       return;
     }
     const baseUrl = clearTarget.baseUrl;
@@ -227,6 +246,18 @@ export function MoreCustomApiClearScreen({ navigation, route }: Props) {
     setFailed(false);
     void (async () => {
       try {
+        if (statusRef.current === 'authenticated') {
+          // Revoke on this server before the wipe saves the next address.
+          try {
+            await logout();
+          } catch {
+            // The revoke can reject after the local session is already cleared.
+          }
+          if (await sessionStillHasAccessToken()) {
+            setFailed(true);
+            return;
+          }
+        }
         clearNowPlaying();
         await clearLocalLibraryForApiSwitch(baseUrl);
       } catch {
@@ -245,7 +276,44 @@ export function MoreCustomApiClearScreen({ navigation, route }: Props) {
   return (
     <MobileScreenContainer scrollEnabled testID="custom-api-clear-screen">
       <View style={styles.page}>
-        <Text style={styles.intro}>{t('custom_api.clear.intro')}</Text>
+        <View style={styles.exportBlock}>
+          <Text style={styles.intro}>{t('custom_api.clear.intro')}</Text>
+          <Text style={styles.intro}>{t('custom_api.clear.export_body')}</Text>
+          <FormActions
+            actions={[
+              {
+                disabled:
+                  isClearing || opmlExport.source === 'unavailable' || opmlExport.isExporting,
+                label: t('settings.opml.export_button'),
+                loading: opmlExport.isExporting,
+                onPress: () => {
+                  void opmlExport.exportOpml();
+                },
+                testID: 'custom-api-clear-export',
+                variant: 'secondary',
+              },
+            ]}
+            testID="custom-api-clear-export-actions"
+          />
+          {opmlExport.notice !== null ? (
+            <Text
+              accessibilityLiveRegion="polite"
+              style={styles.notice}
+              testID="custom-api-clear-export-notice"
+            >
+              {t(opmlExport.notice.key, opmlExport.notice.params)}
+            </Text>
+          ) : null}
+          {opmlExport.errorKey !== null ? (
+            <Text
+              accessibilityLiveRegion="polite"
+              style={styles.error}
+              testID="custom-api-clear-export-error"
+            >
+              {t(opmlExport.errorKey)}
+            </Text>
+          ) : null}
+        </View>
         <View style={styles.section}>
           <SectionHeading testID="custom-api-clear-removed-heading">
             {t('custom_api.clear.removed_heading')}
@@ -283,7 +351,7 @@ export function MoreCustomApiClearScreen({ navigation, route }: Props) {
             variant: 'secondary',
           },
           {
-            disabled: isClearing,
+            disabled: isClearing || opmlExport.isExporting,
             label: t('custom_api.clear.confirm'),
             loading: isClearing,
             onPress: handleConfirm,

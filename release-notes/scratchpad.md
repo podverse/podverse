@@ -92,3 +92,10 @@
 - Change: The boost sheet sends a manual Lightning boostagram through the listener's Alby account. A signed-out listener can pay. The name and message stay locked until Podverse login. The sheet does not fill the name from the account display name. A typed name is remembered on the device and filled in next time until they edit it, and an empty name is sent as no name. After the largest split succeeds, one mbrss-v1 boost is posted when the channel uses that standard and the signed-in account has a MetaBoost sender id. The phone does not post mb-v1. PayPal, Patreon, and Buy Me a Coffee tabs still say sending is not available yet.
 - Who notices: listeners on iOS and Android who open Boost on a channel that has Lightning value tags
 - Operator steps: the build needs `EXPO_PUBLIC_ALBY_OAUTH_CLIENT_ID` for Connect to appear. There is no client secret.
+
+## Custom API switch can carry subscriptions
+
+- Surfaces: mobile
+- Change: Clear Local Data opens while the person is still signed in. Export OPML on that screen saves subscriptions before this phone is erased. Signed in, the file is the current server's account subscriptions. Signed out, it is the subscriptions on this phone. Skipping the export, dismissing the share sheet, or a failed export leaves the address and local data as they are. Clear and Switch signs out of the current server, erases this phone, then saves the new address. Cancel leaves the session, the address, and local data.
+- Who notices: listeners who point the app at a different API or reset to the built-in API
+- Operator steps: none

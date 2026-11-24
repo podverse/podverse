@@ -229,7 +229,7 @@
   "custom_api": {
     "title": "Custom API",
     "menu_subtitle": "Point this app at a different server",
-    "intro": "Replace the server this app talks to. Save checks that the server answers with status 200, then opens the screen that lists what this phone will erase. Reset does the same when an address is already saved. Log out before changing it so this phone does not send your login to another server.",
+    "intro": "Replace the server this app talks to. Save checks that the server answers with status 200, then opens the screen that lists what this phone will erase. Reset does the same when an address is already saved. Clear and Switch signs this phone out of the current server before saving the new address, so the login is not sent to the other server.",
     "url_label": "API URL",
     "url_placeholder": "https://example.com/api/v2",
     "original_label": "Original API",
@@ -243,13 +243,12 @@
     "unreachable": "Could not reach that server. Nothing was saved.",
     "unexpected_status": "That server responded with status {status}. Expected 200. Nothing was saved.",
     "unexpected_body": "That server responded with status 200, but the health check did not report ok. Nothing was saved.",
-    "logout_title": "Log Out First",
-    "logout_body": "Log out before changing the API. This phone will not send your login to another server.",
     "notice_label": "Custom API",
     "notice_body": "Sign-in, sign-up, feed passwords, and store purchases in this app go to this server. A page opened in the browser uses the public website, which does not.",
     "clear": {
       "title": "Clear Local Data",
       "intro": "This phone's copy of the previous server will be erased. An account on that server is left as it is.",
+      "export_body": "Export an OPML file to carry subscriptions to the other server. Save it here, then import it there after the switch.",
       "removed_heading": "Will Be Erased",
       "kept_heading": "Stays on This Phone",
       "confirm": "Clear and Switch",

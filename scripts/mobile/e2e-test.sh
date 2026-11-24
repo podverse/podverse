@@ -38,7 +38,7 @@ TIMEOUTS_ENV="$E2E_DIR/shared/timeouts.env"
 # API-backed apps/mobile/e2e/<area>.yaml — full suite (`all`) always requires the API.
 flow_needs_e2e_api() {
   case "$1" in
-  add-by-rss | add-by-rss-credentials | add-by-rss-episode-sections | add-by-rss-remote-items | add-by-rss-track | add-by-rss-artist | add-by-rss-livestream | add-by-rss-anonymous | add-by-rss-directory-match-anonymous | add-by-rss-directory-match-signed-in | add-by-rss-anonymous-artist | add-by-rss-anonymous-sections | add-by-rss-anonymous-podroll | add-by-rss-sign-in | add-by-rss-device-credentials | signup-add-by-rss-limit | about | album | api-health | archived-clip | artist | artist-unsubscribe | auth-change-password | auth-login | auth-logout | auth-sessions | auto-queue-advance | banner-notification | browse | deep-link | \
+  add-by-rss | add-by-rss-credentials | add-by-rss-episode-sections | add-by-rss-remote-items | add-by-rss-track | add-by-rss-artist | add-by-rss-livestream | add-by-rss-anonymous | add-by-rss-directory-match-anonymous | add-by-rss-directory-match-signed-in | add-by-rss-anonymous-artist | add-by-rss-anonymous-sections | add-by-rss-anonymous-podroll | add-by-rss-sign-in | add-by-rss-device-credentials | signup-add-by-rss-limit | about | album | api-health | archived-clip | artist | artist-unsubscribe | auth-change-password | auth-login | auth-logout | auth-sessions | auto-queue-advance | banner-notification | browse | custom-api | deep-link | \
   detail-sort-prefs | engine-audio-spike | hls-playback | home | history-screen | identity-remap | library-downloads | library-playlists | \
   livestream-player-controls | \
   make-clip | membership-checkout | membership-gate | notifications-inbox | offline-mode | opml | opml-signed-out | perf-chip-switch | \
@@ -720,6 +720,12 @@ else
   if [[ "$PLATFORM" == "android" || "$PLATFORM" == "both" ]]; then
     if ANDROID_SERIAL="$(bash "$SCRIPT_DIR/ensure-devices.sh" resolve-e2e-android-serial 2>/dev/null)"; then
       echo "E2E Android serial: $ANDROID_SERIAL"
+      # A guest that is already running does not pass through ensure-devices boot, which is
+      # where 127.0.0.1 is forwarded to the host E2E API. Re-apply it here so that address
+      # still reaches the process.
+      if ! adb -s "$ANDROID_SERIAL" reverse "tcp:${MOBILE_E2E_API_PORT}" "tcp:${MOBILE_E2E_API_PORT}" >/dev/null 2>&1; then
+        echo "Warning: adb reverse tcp:${MOBILE_E2E_API_PORT} failed on ${ANDROID_SERIAL}; the guest cannot reach the E2E API at 127.0.0.1." >&2
+      fi
       if ! bash "$SCRIPT_DIR/ensure-devices.sh" check-e2e-app-android >/dev/null 2>&1; then
         echo "Error: app not installed on E2E Android (${E2E_ANDROID_AVD})." >&2
         echo "In another terminal: npm run mobile:e2e:android" >&2

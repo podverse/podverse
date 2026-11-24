@@ -386,7 +386,7 @@
   "custom_api": {
     "title": "API personalizada",
     "menu_subtitle": "Apuntar esta app a otro servidor",
-    "intro": "Sustituye el servidor con el que habla esta app. Guardar comprueba que el servidor responda con el estado 200 y luego abre una pantalla que lista lo que este teléfono borrará. Restablecer hace lo mismo cuando ya hay una dirección guardada. Cierra la sesión antes de cambiarlo para que este teléfono no envíe tu acceso a otro servidor.",
+    "intro": "Sustituye el servidor con el que habla esta app. Guardar comprueba que el servidor responda con el estado 200 y luego abre una pantalla que lista lo que este teléfono borrará. Restablecer hace lo mismo cuando ya hay una dirección guardada. Borrar y cambiar cierra la sesión de este teléfono en el servidor actual antes de guardar la nueva dirección, para que el acceso no se envíe al otro servidor.",
     "url_label": "URL de la API",
     "url_placeholder": "https://example.com/api/v2",
     "original_label": "API original",
@@ -400,13 +400,12 @@
     "unreachable": "No se pudo contactar ese servidor. No se guardó nada.",
     "unexpected_status": "Ese servidor respondió con el estado {status}. Se esperaba 200. No se guardó nada.",
     "unexpected_body": "Ese servidor respondió con el estado 200, pero la comprobación de salud no informó ok. No se guardó nada.",
-    "logout_title": "Cierra la sesión primero",
-    "logout_body": "Cierra la sesión antes de cambiar la API. Este teléfono no enviará tu acceso a otro servidor.",
     "notice_label": "API personalizada",
     "notice_body": "El inicio de sesión, el registro, las contraseñas de feeds y las compras en la tienda dentro de esta app van a este servidor. Una página abierta en el navegador usa el sitio público, que no lo hace.",
     "clear": {
       "title": "Borrar datos locales",
       "intro": "Se borrará la copia de este teléfono del servidor anterior. Una cuenta en ese servidor se deja como está.",
+      "export_body": "Exporta un archivo OPML para llevar las suscripciones al otro servidor. Guárdalo aquí e impórtalo allí después del cambio.",
       "removed_heading": "Se borrará",
       "kept_heading": "Permanece en este teléfono",
       "confirm": "Borrar y cambiar",

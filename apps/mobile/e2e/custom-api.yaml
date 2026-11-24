@@ -1,9 +1,11 @@
 appId: com.podverse.app.next
 name: Custom API
 ---
-# More › Advanced › Custom API. A malformed address is rejected on the device, so this flow
-# never calls the network. A non-URL shows the error before Save. Reset restores the field
-# without a probe.
+# More › Advanced › Custom API. A non-URL is rejected on the device before Save. Reset restores
+# the field without a probe. A different address that is still this E2E API (127.0.0.1:4230)
+# must pass the health check, show Export OPML, and switch when Clear and Switch is tapped
+# without exporting. Android reaches that host through adb reverse of 4230; its built-in
+# address stays 10.0.2.2:4230.
 # More is two pages on phone; iOS XCUITest omits off-screen testIDs until this row is scrolled in.
 
 - runFlow: shared/launch-and-connect.yaml
@@ -61,3 +63,60 @@ name: Custom API
 - assertVisible:
     id: custom-api-status
 - takeScreenshot: custom-api-reset
+- scrollUntilVisible:
+    element:
+      id: custom-api-url-input
+    direction: UP
+    timeout: ${TIMEOUT_FAST}
+    centerElement: true
+- tapOn:
+    id: custom-api-url-input
+- inputText: "http://127.0.0.1:4230/api/v2"
+- scrollUntilVisible:
+    element:
+      id: custom-api-save
+    direction: DOWN
+    timeout: ${TIMEOUT_FAST}
+    centerElement: true
+- tapOn:
+    id: custom-api-save
+# The health check waits up to 8s before the confirmation can open.
+- extendedWaitUntil:
+    visible:
+      id: custom-api-clear-screen
+    timeout: ${TIMEOUT_SLOWER}
+- assertVisible:
+    id: custom-api-clear-export
+- scrollUntilVisible:
+    element:
+      id: custom-api-clear-confirm
+    direction: DOWN
+    timeout: ${TIMEOUT_FAST}
+    centerElement: true
+- tapOn:
+    id: custom-api-clear-confirm
+- extendedWaitUntil:
+    visible:
+      id: custom-api-screen
+    timeout: ${TIMEOUT_SLOW}
+- assertNotVisible:
+    id: custom-api-clear-error
+- scrollUntilVisible:
+    element:
+      id: custom-api-active
+    direction: UP
+    timeout: ${TIMEOUT_FAST}
+    centerElement: true
+- assertVisible:
+    id: custom-api-active
+    text: "This app is using the custom API in the field below."
+- scrollUntilVisible:
+    element:
+      id: custom-api-url-input
+    direction: UP
+    timeout: ${TIMEOUT_FAST}
+    centerElement: true
+- assertVisible:
+    id: custom-api-url-input
+    text: "127\\.0\\.0\\.1:4230"
+- takeScreenshot: custom-api-switched
