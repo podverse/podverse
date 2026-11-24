@@ -27,7 +27,7 @@
     "google-auth-library": "^11.3.3"
   },
   "devDependencies": {
-    "vitest": "^5.1.0"
+    "vitest": "^5.1.1"
   },
   "type": "module"
 }

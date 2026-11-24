@@ -91,7 +91,7 @@
     "@podverse/parser": "*",
     "@podverse/parser-mapping": "*",
     "@podverse/worker-commands": "*",
-    "amqplib": "^2.2.1",
+    "amqplib": "^2.4.0",
     "axios": "^1.19.0",
     "bcrypt": "^6.0.0",
     "ioredis": "^6.0.0",
@@ -109,6 +109,6 @@
     "ts-node": "^10.9.2",
     "tsc-alias": "^1.8.16",
     "tsconfig-paths": "^4.2.0",
-    "vitest": "^5.1.0"
+    "vitest": "^5.1.1"
   }
 }
