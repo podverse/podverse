@@ -1,9 +1,12 @@
+import type { BoostEligibilityChannel } from '@podverse/v4v-metaboost';
+import { getBoostEligibilityForContent } from '@podverse/v4v-metaboost';
+
 import type { ChannelItemSort } from '../../data/repositories/channelItemsRepository';
 import { channelItemsRepository } from '../../data/repositories/channelItemsRepository';
 import type { PodcastDetailSort, PodcastTab } from '../../prefs/detailListPrefs';
 import { PODCAST_TABS } from '../../prefs/detailListPrefs';
 
-export type PodcastSectionChannel = {
+export type PodcastSectionChannel = BoostEligibilityChannel & {
   channel_fundings?: readonly unknown[] | null;
   channel_persons?: readonly unknown[] | null;
   channel_podroll?: {
@@ -14,6 +17,7 @@ export type PodcastSectionChannel = {
 
 export const PODCAST_SECTION_LABEL_KEYS: Record<PodcastTab, string> = {
   about: 'info.about',
+  boosts: 'value.boost',
   clips: 'features.clip.clips',
   downloaded: 'features.download.downloaded',
   episodes: 'media.podcast.episodes',
@@ -60,19 +64,25 @@ export const channelHasPeople = (channel: PodcastSectionChannel | null): boolean
   return (channel?.channel_persons?.length ?? 0) > 0;
 };
 
+export const channelHasBoosts = (channel: PodcastSectionChannel | null): boolean => {
+  return channel !== null && getBoostEligibilityForContent({ channel }).canShowBoostMessagesTab;
+};
+
 /**
  * Which sections this podcast can offer.
  *
  * Episodes, Downloaded, About, and Clips are always answerable. Official clips, Podroll, and
  * Remote Items sit after those and appear from cached evidence, then from the channel DTO /
- * stored episodes once those have been read. Funding appears when this channel has funding
- * rows. People follows Funding when this channel has people. Channel settings are the gear on
- * the channel header, not a chip. The optional sort / category trailing chip may follow the
- * last content chip.
+ * stored episodes once those have been read. Boosts sits immediately before Funding when this
+ * channel's MetaBoost eligibility exposes a public message list. Funding appears when this
+ * channel has funding rows. People follows Funding when this channel has people. Channel
+ * settings are the gear on the channel header, not a chip. The optional sort / category
+ * trailing chip may follow the last content chip.
  */
 export const resolvePodcastSections = ({
   channel,
   hasSoundbites,
+  previewHasBoosts,
   previewHasFunding,
   previewHasPeople,
   previewHasPodroll,
@@ -80,6 +90,7 @@ export const resolvePodcastSections = ({
 }: {
   channel: PodcastSectionChannel | null;
   hasSoundbites: boolean;
+  previewHasBoosts?: boolean;
   previewHasFunding?: boolean;
   previewHasPeople?: boolean;
   previewHasPodroll?: boolean;
@@ -88,6 +99,7 @@ export const resolvePodcastSections = ({
   const hasPodroll = channel !== null ? channelHasPodroll(channel) : previewHasPodroll === true;
   const hasRemoteItems =
     channel !== null ? channelHasRemoteItems(channel) : previewHasRemoteItems === true;
+  const hasBoosts = channel !== null ? channelHasBoosts(channel) : previewHasBoosts === true;
   const hasFunding = channel !== null ? channelHasFunding(channel) : previewHasFunding === true;
   const hasPeople = channel !== null ? channelHasPeople(channel) : previewHasPeople === true;
 
@@ -103,6 +115,9 @@ export const resolvePodcastSections = ({
     }
     if (section === 'remote_items') {
       return hasRemoteItems;
+    }
+    if (section === 'boosts') {
+      return hasBoosts;
     }
     if (section === 'funding') {
       return hasFunding;

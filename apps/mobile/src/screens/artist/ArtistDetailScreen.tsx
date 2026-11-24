@@ -9,6 +9,11 @@ import { getBoostEligibilityForContent } from '@podverse/v4v-metaboost';
 
 import { requestWithMobileAuthRefresh } from '../../auth';
 import { useAuth } from '../../auth/AuthProvider';
+import { BoostHeaderAction } from '../../components/boost/BoostHeaderAction';
+import {
+  directoryBoostItemRoute,
+  ReceivedBoostsSection,
+} from '../../components/boost/ReceivedBoostsSection';
 import { useBoostSheet } from '../../components/boost/useBoostSheet';
 import { ChannelDetailShell, ChannelHeader, ChannelSettingsPane } from '../../components/channel';
 import {
@@ -69,7 +74,12 @@ import { mapTrackToHomeFeedRow } from '../home/homeFeedData';
 import { HomeFeedRow } from '../home/HomeFeedRow';
 import type { QueueActionPosition } from '../home/useHomeRowPlayback';
 import { useHomeRowPlayback } from '../home/useHomeRowPlayback';
-import { channelHasFunding, channelHasPeople, channelHasPodroll } from '../podcast/podcastSections';
+import {
+  channelHasBoosts,
+  channelHasFunding,
+  channelHasPeople,
+  channelHasPodroll,
+} from '../podcast/podcastSections';
 import type { ArtistAlbumSectionRow, ArtistDetailSectionRow } from './artistDetailSections';
 import { buildArtistAlbumSectionRows, buildArtistTrackSectionRows } from './artistDetailSections';
 import {
@@ -105,6 +115,7 @@ type ArtistAlbumUnadded = DTORemoteChannelStub;
 const SECTION_LABEL_KEYS: Record<ArtistTab, string> = {
   about: 'info.about',
   albums: 'media.music.albums',
+  boosts: 'value.boost',
   funding: 'info.funding',
   people: 'info.people.people',
   podroll: 'info.podroll',
@@ -221,6 +232,9 @@ export function ArtistDetailScreen({ navigation, route }: ArtistDetailScreenProp
   const [previewHasFunding, setPreviewHasFunding] = useState<boolean>(
     cachedChrome?.hasFunding === true
   );
+  const [previewHasBoosts, setPreviewHasBoosts] = useState<boolean>(
+    cachedChrome?.hasBoosts === true
+  );
   const [previewHasPeople, setPreviewHasPeople] = useState<boolean>(
     cachedChrome?.hasPeople === true
   );
@@ -305,6 +319,7 @@ export function ArtistDetailScreen({ navigation, route }: ArtistDetailScreenProp
     setIsChannelLoading(true);
     setPreviewHasPodroll(nextChrome?.hasPodroll === true);
     setPreviewHasFunding(nextChrome?.hasFunding === true);
+    setPreviewHasBoosts(nextChrome?.hasBoosts === true);
     setPreviewHasPeople(nextChrome?.hasPeople === true);
     setTracksAdded([]);
     setAlbumsAdded([]);
@@ -381,11 +396,14 @@ export function ArtistDetailScreen({ navigation, route }: ArtistDetailScreenProp
         setAlbumsUnadded(response.channelsUnadded);
         const hasPodroll = channelHasPodroll(response.channel);
         const hasFunding = channelHasFunding(response.channel);
+        const hasBoosts = channelHasBoosts(response.channel);
         const hasPeople = channelHasPeople(response.channel);
         setPreviewHasPodroll(hasPodroll);
         setPreviewHasFunding(hasFunding);
+        setPreviewHasBoosts(hasBoosts);
         setPreviewHasPeople(hasPeople);
         void sectionChromeFlagsRepository.mergeChannel(artistId, {
+          hasBoosts,
           hasFunding,
           hasPeople,
           hasPodroll,
@@ -456,11 +474,15 @@ export function ArtistDetailScreen({ navigation, route }: ArtistDetailScreenProp
     // answer, so Tracks stays in the row while the publisher-feed request is still out.
     const hasPodroll = channel !== null ? channelHasPodroll(channel) : previewHasPodroll;
     const hasFunding = channel !== null ? channelHasFunding(channel) : previewHasFunding;
+    const hasBoosts = channel !== null ? channelHasBoosts(channel) : previewHasBoosts;
     const hasPeople = channel !== null ? channelHasPeople(channel) : previewHasPeople;
 
     const tabs: ArtistTab[] = ['albums', 'tracks', 'about'];
     if (hasPodroll) {
       tabs.push('podroll');
+    }
+    if (hasBoosts) {
+      tabs.push('boosts');
     }
     if (hasFunding) {
       tabs.push('funding');
@@ -469,7 +491,7 @@ export function ArtistDetailScreen({ navigation, route }: ArtistDetailScreenProp
       tabs.push('people');
     }
     return tabs;
-  }, [channel, previewHasFunding, previewHasPeople, previewHasPodroll]);
+  }, [channel, previewHasBoosts, previewHasFunding, previewHasPeople, previewHasPodroll]);
 
   useEffect(() => {
     if (availableSections.length === 0) {
@@ -634,12 +656,9 @@ export function ArtistDetailScreen({ navigation, route }: ArtistDetailScreenProp
       headerRight: () => (
         <HeaderBarActions>
           {canShowBoost && channel !== null ? (
-            <HeaderBarAction
-              accessibilityLabel={t('value.boost')}
-              icon="cash-outline"
-              iconColor={tokens.text.warning}
+            <BoostHeaderAction
               onPress={() => {
-                openBoost({ channel, item: null });
+                openBoost({ addByRss: null, channel, item: null });
               }}
               testID="artist-detail-boost"
             />
@@ -653,7 +672,7 @@ export function ArtistDetailScreen({ navigation, route }: ArtistDetailScreenProp
         </HeaderBarActions>
       ),
     });
-  }, [canShowBoost, channel, handleShare, navigation, openBoost, t, tokens.text.warning]);
+  }, [canShowBoost, channel, handleShare, navigation, openBoost, t]);
 
   const handleGoToChannel = useCallback(
     (nextRow: HomeFeedRowData) => {
@@ -1030,11 +1049,34 @@ export function ArtistDetailScreen({ navigation, route }: ArtistDetailScreenProp
     />
   );
 
+  const openBoostDirectoryItem = useCallback(
+    (item: DTOItem) => {
+      const destination = directoryBoostItemRoute(item, channel?.medium_id);
+      if (destination.kind === 'track') {
+        navigation.navigate(CHANNEL_BROWSE_STACK_ROUTES.TrackDetail, destination.params);
+        return;
+      }
+      navigation.navigate(CHANNEL_BROWSE_STACK_ROUTES.EpisodeDetail, destination.params);
+    },
+    [channel?.medium_id, navigation]
+  );
+
   const fundingBody = (
     <FundingLinksSection
       fundings={channel?.channel_fundings ?? []}
       isLoading={isChannelLoading && channel === null}
       testIDPrefix="artist-detail"
+    />
+  );
+
+  const boostsBody = (
+    <ReceivedBoostsSection
+      channel={channel}
+      directoryChannelIdText={channel?.id_text}
+      fetchAllowed={channel !== null}
+      onOpenDirectoryItem={openBoostDirectoryItem}
+      scopeType="artist"
+      testIDPrefix="artist-detail-boosts"
     />
   );
 
@@ -1083,7 +1125,9 @@ export function ArtistDetailScreen({ navigation, route }: ArtistDetailScreenProp
             ? podrollBody
             : section === 'funding'
               ? fundingBody
-              : peopleBody;
+              : section === 'boosts'
+                ? boostsBody
+                : peopleBody;
   const sectionBody = settingsOpen ? settingsBody : sectionListBody;
 
   return (

@@ -1,0 +1,30 @@
+appId: com.podverse.app.next
+name: Boost messages chip stays off
+---
+# The seeded podcast has no public boost list. The Boosts chip stays off.
+# This flow does not call a MetaBoost host.
+
+- runFlow: shared/launch-and-connect.yaml
+- runFlow: shared/login-seeded-user.yaml
+
+- tapOn:
+    id: home-search
+- assertVisible:
+    id: search-screen
+- tapOn:
+    id: search-input
+- inputText: podcast
+- assertVisible:
+    id: search-result-row-0
+- tapOn:
+    id: search-result-row-0
+- extendedWaitUntil:
+    visible:
+      id: podcast-detail-screen
+    timeout: ${TIMEOUT_FAST}
+- extendedWaitUntil:
+    visible:
+      id: podcast-detail-sections
+    timeout: ${TIMEOUT_FAST}
+- assertNotVisible:
+    id: podcast-detail-section-boosts

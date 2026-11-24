@@ -7,6 +7,7 @@ import type { QueryParamsStatsRange } from '@podverse/helpers-requests';
 // Import directly from the request module (not the auth barrel) to avoid a cycle, mirroring
 // subscriptionsRepository (AuthProvider → accountRepository → auth barrel → AuthProvider).
 import { requestWithMobileAuthRefresh } from '../../auth/authRequestWithRefresh';
+import { findChannelItemByGuid } from '../../lib/boost/findChannelItemByGuid';
 import { classifySyncError } from '../../sync/syncErrorClassification';
 import { getDb, initializeDatabase, safeJsonParse, schema } from '../db';
 import type { ChannelItemRow, ChannelItemWindowRow } from '../db/schema';
@@ -438,6 +439,39 @@ export const channelItemsRepository = {
       .orderBy(desc(schema.channelItem.pubDateMs));
 
     return sortItems(rowsToRankedItems(rows), options.sort ?? 'recent');
+  },
+
+  /**
+   * The directory item on this channel whose guid matches, walking recent pages until the feed
+   * ends. Does not write those pages into the on-device item store.
+   */
+  findByGuid: async (
+    channelIdText: string,
+    guid: string,
+    context: MobileAuthRequestContext
+  ): Promise<DTOItem | null> => {
+    const channelId = channelIdText.trim();
+    if (channelId === '' || guid.trim() === '') {
+      return null;
+    }
+
+    return findChannelItemByGuid(guid, async (page) => {
+      const response = await requestWithMobileAuthRefresh(context, async (api) =>
+        api.reqItemGetManyByChannel({
+          idOrIdText: channelId,
+          page,
+          range: null,
+          sort: 'recent',
+        })
+      );
+      return {
+        items: response.data,
+        meta: {
+          count: response.meta.count,
+          limit: response.meta.limit,
+        },
+      };
+    });
   },
 
   /**

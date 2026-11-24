@@ -71,7 +71,6 @@ function makeChannel(overrides: Partial<DTOChannel> = {}): DTOChannel {
     title: 'Show Name',
     sortable_title: null,
     medium_id: MediumEnum.Podcast,
-    has_podcast_index_value: false,
     has_value_time_splits: false,
     ...overrides,
   };

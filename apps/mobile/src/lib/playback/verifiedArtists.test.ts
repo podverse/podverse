@@ -35,7 +35,6 @@ const podcastNetwork = publisher('net', 'Network', MediumEnum.PublisherPodcast);
 
 const albumChannel = (verified_publishers?: DTOVerifiedPublisher[]): DTOChannel => ({
   feed_id: 0,
-  has_podcast_index_value: false,
   has_value_time_splits: false,
   id: 1,
   id_text: 'album-1',

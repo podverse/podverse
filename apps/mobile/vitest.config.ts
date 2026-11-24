@@ -172,6 +172,8 @@ import { defineConfig } from 'vitest/config';
  * (`src/bridge/nativePlaybackBridge.ts`) imports `expo-modules-core`, and repositories import
  * `expo-sqlite`, so neither is tested here. `apps/mobile` is a standalone install; run with
  * `npm --prefix apps/mobile run test`.
+ * The boost send helpers under `src/lib/boost/` map recipients, adapt Alby, and decide when a
+ * manual boost posts.
  */
 export default defineConfig({
   test: {
@@ -334,6 +336,7 @@ export default defineConfig({
       'src/screens/artist/artistUnsubscribeTargets.test.ts',
       'src/screens/episode/episodeSectionPaneLoaders.test.ts',
       'src/screens/episode/episodeTabs.test.ts',
+      'src/screens/episode/episodeDetailTabs.test.ts',
       'src/screens/player/fullPlayerAddByRssPanes.test.ts',
       'src/screens/player/fullPlayerLayout.test.ts',
       'src/screens/player/fullPlayerContentLink.test.ts',
@@ -350,6 +353,20 @@ export default defineConfig({
       'src/theme/bottomChromeOverlay.test.ts',
       'src/theme/resolveColumns.test.ts',
       'src/theme/useThemedStyles.test.ts',
+      'src/v4v/alby/albyProtocol.test.ts',
+      'src/v4v/alby/albyHttp.test.ts',
+      'src/v4v/alby/albySession.test.ts',
+      'src/v4v/valueProviders.test.ts',
+      'src/lib/boost/albyBoostPaymentProvider.test.ts',
+      'src/lib/boost/findChannelItemByGuid.test.ts',
+      'src/lib/boost/insertBoostsChip.test.ts',
+      'src/lib/boost/mobileBoostRecipients.test.ts',
+      'src/lib/boost/mobileBoostPaymentDescription.test.ts',
+      'src/lib/boost/mobileBoostMessageLimit.test.ts',
+      'src/lib/boost/mobileBoostFailureCopy.test.ts',
+      'src/lib/boost/mobileBoostPostNotice.test.ts',
+      'src/lib/boost/runMobileManualBoost.test.ts',
+      'src/lib/addByRss/boostTarget.test.ts',
     ],
   },
 });

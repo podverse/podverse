@@ -48,7 +48,6 @@ const itemFixture = (overrides: {
       website_link_url: null,
     },
     feed_id: 1,
-    has_podcast_index_value: false,
     has_value_time_splits: false,
     id: 1,
     id_text: 'ch-1',

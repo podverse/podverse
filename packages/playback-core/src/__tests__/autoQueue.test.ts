@@ -51,7 +51,6 @@ function createChannel(idText: string, mediumId: number = MediumEnum.Podcast): D
     title: idText,
     sortable_title: idText,
     medium_id: mediumId,
-    has_podcast_index_value: false,
     has_value_time_splits: false,
   };
 }

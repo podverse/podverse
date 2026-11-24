@@ -10,6 +10,11 @@ import { getBoostEligibilityForContent } from '@podverse/v4v-metaboost';
 
 import { requestWithMobileAuthRefresh } from '../../auth';
 import { useAuth } from '../../auth/AuthProvider';
+import { BoostHeaderAction } from '../../components/boost/BoostHeaderAction';
+import {
+  directoryBoostItemRoute,
+  ReceivedBoostsSection,
+} from '../../components/boost/ReceivedBoostsSection';
 import { useBoostSheet } from '../../components/boost/useBoostSheet';
 import { ChannelDetailShell, ChannelHeader, ChannelSettingsPane } from '../../components/channel';
 import {
@@ -79,6 +84,7 @@ import { HomeFeedRow } from '../home/HomeFeedRow';
 import type { QueueActionPosition } from '../home/useHomeRowPlayback';
 import { useHomeRowPlayback } from '../home/useHomeRowPlayback';
 import {
+  channelHasBoosts,
   channelHasFunding,
   channelHasPeople,
   channelHasPodroll,
@@ -151,6 +157,7 @@ function AlbumTrackRow({
 
 const SECTION_LABEL_KEYS: Record<AlbumTab, string> = {
   about: 'info.about',
+  boosts: 'value.boost',
   funding: 'info.funding',
   people: 'info.people.people',
   podroll: 'info.podroll',
@@ -216,6 +223,9 @@ export function AlbumDetailScreen({ navigation, route }: AlbumDetailScreenProps)
   );
   const [previewHasFunding, setPreviewHasFunding] = useState<boolean>(
     cachedChrome?.hasFunding === true
+  );
+  const [previewHasBoosts, setPreviewHasBoosts] = useState<boolean>(
+    cachedChrome?.hasBoosts === true
   );
   const [previewHasPeople, setPreviewHasPeople] = useState<boolean>(
     cachedChrome?.hasPeople === true
@@ -306,6 +316,7 @@ export function AlbumDetailScreen({ navigation, route }: AlbumDetailScreenProps)
     setPreviewHasPodroll(nextChrome?.hasPodroll === true);
     setPreviewHasRemoteItems(nextChrome?.hasRemoteItems === true);
     setPreviewHasFunding(nextChrome?.hasFunding === true);
+    setPreviewHasBoosts(nextChrome?.hasBoosts === true);
     setPreviewHasPeople(nextChrome?.hasPeople === true);
     setIsSubscribed(resolveInitialSubscribed(albumId, previewIsSubscribed));
   }, [albumId, previewIsSubscribed]);
@@ -378,12 +389,15 @@ export function AlbumDetailScreen({ navigation, route }: AlbumDetailScreenProps)
         const hasPodroll = channelHasPodroll(response);
         const hasRemoteItems = channelHasRemoteItems(response);
         const hasFunding = channelHasFunding(response);
+        const hasBoosts = channelHasBoosts(response);
         const hasPeople = channelHasPeople(response);
         setPreviewHasPodroll(hasPodroll);
         setPreviewHasRemoteItems(hasRemoteItems);
         setPreviewHasFunding(hasFunding);
+        setPreviewHasBoosts(hasBoosts);
         setPreviewHasPeople(hasPeople);
         void sectionChromeFlagsRepository.mergeChannel(albumId, {
+          hasBoosts,
           hasFunding,
           hasPeople,
           hasPodroll,
@@ -583,6 +597,7 @@ export function AlbumDetailScreen({ navigation, route }: AlbumDetailScreenProps)
     const hasRemoteItems =
       channel !== null ? channelHasRemoteItems(channel) : previewHasRemoteItems;
     const hasFunding = channel !== null ? channelHasFunding(channel) : previewHasFunding;
+    const hasBoosts = channel !== null ? channelHasBoosts(channel) : previewHasBoosts;
     const hasPeople = channel !== null ? channelHasPeople(channel) : previewHasPeople;
     return ALBUM_TABS.filter((tab) => {
       if (tab === 'podroll') {
@@ -590,6 +605,9 @@ export function AlbumDetailScreen({ navigation, route }: AlbumDetailScreenProps)
       }
       if (tab === 'remote_items') {
         return hasRemoteItems;
+      }
+      if (tab === 'boosts') {
+        return hasBoosts;
       }
       if (tab === 'funding') {
         return hasFunding;
@@ -599,7 +617,14 @@ export function AlbumDetailScreen({ navigation, route }: AlbumDetailScreenProps)
       }
       return true;
     });
-  }, [channel, previewHasFunding, previewHasPeople, previewHasPodroll, previewHasRemoteItems]);
+  }, [
+    channel,
+    previewHasBoosts,
+    previewHasFunding,
+    previewHasPeople,
+    previewHasPodroll,
+    previewHasRemoteItems,
+  ]);
 
   useEffect(() => {
     if (availableSections.includes(section)) {
@@ -782,12 +807,9 @@ export function AlbumDetailScreen({ navigation, route }: AlbumDetailScreenProps)
       headerRight: () => (
         <HeaderBarActions>
           {canShowBoost && channel !== null ? (
-            <HeaderBarAction
-              accessibilityLabel={t('value.boost')}
-              icon="cash-outline"
-              iconColor={tokens.text.warning}
+            <BoostHeaderAction
               onPress={() => {
-                openBoost({ channel, item: null });
+                openBoost({ addByRss: null, channel, item: null });
               }}
               testID="album-detail-boost"
             />
@@ -801,7 +823,7 @@ export function AlbumDetailScreen({ navigation, route }: AlbumDetailScreenProps)
         </HeaderBarActions>
       ),
     });
-  }, [canShowBoost, channel, handleShare, navigation, openBoost, t, tokens.text.warning]);
+  }, [canShowBoost, channel, handleShare, navigation, openBoost, t]);
 
   const handleGoToChannel = useCallback(
     (nextRow: HomeFeedRowData) => {
@@ -1080,11 +1102,34 @@ export function AlbumDetailScreen({ navigation, route }: AlbumDetailScreenProps)
     />
   );
 
+  const openBoostDirectoryItem = useCallback(
+    (item: DTOItem) => {
+      const destination = directoryBoostItemRoute(item, channel?.medium_id);
+      if (destination.kind === 'track') {
+        navigation.navigate(CHANNEL_BROWSE_STACK_ROUTES.TrackDetail, destination.params);
+        return;
+      }
+      navigation.navigate(CHANNEL_BROWSE_STACK_ROUTES.EpisodeDetail, destination.params);
+    },
+    [channel?.medium_id, navigation]
+  );
+
   const fundingBody = (
     <FundingLinksSection
       fundings={channel?.channel_fundings ?? []}
       isLoading={isChannelLoading && channel === null}
       testIDPrefix="album-detail"
+    />
+  );
+
+  const boostsBody = (
+    <ReceivedBoostsSection
+      channel={channel}
+      directoryChannelIdText={channel?.id_text}
+      fetchAllowed={channel !== null}
+      onOpenDirectoryItem={openBoostDirectoryItem}
+      scopeType="album"
+      testIDPrefix="album-detail-boosts"
     />
   );
 
@@ -1152,7 +1197,9 @@ export function AlbumDetailScreen({ navigation, route }: AlbumDetailScreenProps)
             ? remoteItemsBody
             : section === 'funding'
               ? fundingBody
-              : peopleBody;
+              : section === 'boosts'
+                ? boostsBody
+                : peopleBody;
   const sectionBody = settingsOpen ? settingsBody : sectionListBody;
 
   const chipTrailing =

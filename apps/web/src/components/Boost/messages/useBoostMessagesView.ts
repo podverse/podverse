@@ -3,22 +3,24 @@
 import { useMemo } from 'react';
 
 import type { DTOChannel } from '@podverse/helpers';
-import { getBoostEligibilityForContent } from '@podverse/v4v-metaboost';
+import type {
+  PublicBoostMessagesPageFetcher,
+  PublicBoostMessagesScopeType,
+} from '@podverse/v4v-metaboost';
+import {
+  createPublicBoostMessagesPageFetcher,
+  getBoostEligibilityForContent,
+} from '@podverse/v4v-metaboost';
 
 import { useModals } from '../../../contexts/Modals';
 import { useMbrssV1BoostCapability } from '../hooks/useMbrssV1BoostCapability';
 import { createMbrssBoostBreadcrumbLinkResolver } from './createMbrssBoostBreadcrumbLinkResolver';
-import { createBoostMessagesPageFetcher } from './fetchPublicBoostMessages';
-import type { BoostBreadcrumbLinkResolver, BoostMessagesPageFetcher } from './types';
-
-type ChannelScopeType = 'channel' | 'artist' | 'album';
-type ItemScopeType = 'item' | 'track' | 'livestream';
-type ScopeType = ChannelScopeType | ItemScopeType;
+import type { BoostBreadcrumbLinkResolver } from './types';
 
 type UseBoostMessagesViewParams = {
   channel: DTOChannel | null;
   itemGuid?: string | null;
-  scopeType: ScopeType;
+  scopeType: PublicBoostMessagesScopeType;
   channelIdText: string | null;
   ssrCanShowBoosts?: boolean;
   resolveChannelHref?: (channelIdText: string) => string;
@@ -28,13 +30,10 @@ type UseBoostMessagesViewParams = {
 
 type UseBoostMessagesViewResult = {
   canShowBoostTab: boolean;
-  boostsPageFetcher: BoostMessagesPageFetcher | null;
+  boostsPageFetcher: PublicBoostMessagesPageFetcher | null;
   breadcrumbLinkResolver?: BoostBreadcrumbLinkResolver;
   refreshTrigger: number;
 };
-
-const isChannelScope = (scopeType: ScopeType): scopeType is ChannelScopeType =>
-  scopeType === 'channel' || scopeType === 'artist' || scopeType === 'album';
 
 export const useBoostMessagesView = ({
   channel,
@@ -64,52 +63,13 @@ export const useBoostMessagesView = ({
   );
 
   const boostsPageFetcher = useMemo(() => {
-    if (
-      !ssrCanShowBoosts ||
-      resolvedMetaBoost?.standard !== 'mbrss-v1' ||
-      mbrssMessagesScope === null ||
-      capabilityStatus !== 'success' ||
-      publicMessagesUrl === null
-    ) {
-      return null;
-    }
-
-    if (isChannelScope(scopeType)) {
-      if (mbrssMessagesScope.type !== 'channel') {
-        return null;
-      }
-
-      if (scopeType === 'channel') {
-        return createBoostMessagesPageFetcher({
-          type: 'mbrss-v1',
-          publicMessagesUrl,
-          scope: { type: 'channel', podcastGuid: mbrssMessagesScope.podcastGuid },
-        });
-      }
-
-      return createBoostMessagesPageFetcher({
-        type: 'mbrss-v1',
-        publicMessagesUrl,
-        scope: { type: scopeType, podcastGuid: mbrssMessagesScope.podcastGuid },
-      });
-    }
-
-    if (mbrssMessagesScope.type !== 'item') {
-      return null;
-    }
-
-    if (scopeType === 'item') {
-      return createBoostMessagesPageFetcher({
-        type: 'mbrss-v1',
-        publicMessagesUrl,
-        scope: { type: 'item', itemGuid: mbrssMessagesScope.itemGuid },
-      });
-    }
-
-    return createBoostMessagesPageFetcher({
-      type: 'mbrss-v1',
+    return createPublicBoostMessagesPageFetcher({
+      fetchAllowed: ssrCanShowBoosts,
+      metaBoost: resolvedMetaBoost,
+      messagesScope: mbrssMessagesScope,
+      capabilityStatus,
       publicMessagesUrl,
-      scope: { type: scopeType, itemGuid: mbrssMessagesScope.itemGuid },
+      scopeType,
     });
   }, [
     capabilityStatus,

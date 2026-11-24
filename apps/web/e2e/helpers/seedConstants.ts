@@ -39,6 +39,23 @@ export const E2E_LIVESTREAM_CHANNEL_TITLE = 'E2E Livestream Channel';
 export const E2E_LIVESTREAM_ITEM_ID_TEXT = 'e2eLiveStrm01';
 export const E2E_LIVESTREAM_ITEM_TITLE = 'E2E Livestream Item';
 
+/** Lightning channel with an mbrss-v1 MetaBoost tag. Sync with tools/web/seed-e2e.mjs. */
+export const E2E_BOOST_CHANNEL_ID_TEXT = 'e2eBstCh00001';
+/** Lightning node recipient and no MetaBoost tag. Sync with tools/web/seed-e2e.mjs. */
+export const E2E_BOOST_NODE_CHANNEL_ID_TEXT = 'e2eBstNd00001';
+/** PayPal recipient and no MetaBoost tag. Sync with tools/web/seed-e2e.mjs. */
+export const E2E_BOOST_PAYPAL_CHANNEL_ID_TEXT = 'e2eBstPp00001';
+
+/** Lightning channel and episode. Sync with tools/web/seed-e2e.mjs. */
+export const E2E_BOOST_EPISODE_CHANNEL_ID_TEXT = 'e2eBoostCh01';
+export const E2E_BOOST_EPISODE_CHANNEL_TITLE = 'E2E Boost Podcast';
+export const E2E_BOOST_EPISODE_ITEM_ID_TEXT = 'e2eBoostEp01';
+export const E2E_BOOST_EPISODE_ITEM_TITLE = 'E2E Boost Episode';
+export const E2E_BOOST_EPISODE_FEED_URL = 'https://e2e-seed-boost-episode.example/podcast.xml';
+export const E2E_BOOST_EPISODE_FEED_PI_ID = 876543247;
+export const E2E_BOOST_EPISODE_PODCAST_GUID = '11111111-2222-4333-8444-555555555506';
+export const E2E_BOOST_EPISODE_METABOOST_NODE = 'https://example.com/v1/s/mbrss-v1/boost/e2e/';
+
 /** Sync with tools/web/seed-e2e.mjs (SEO profile specs). */
 export const E2E_SEO_PUBLIC_PROFILE_ID_TEXT = 'e2eSeoPublic01';
 export const E2E_SEO_PRIVATE_PROFILE_PLACEHOLDER_ID_TEXT = 'e2e-seo-private-profile-placeholder';

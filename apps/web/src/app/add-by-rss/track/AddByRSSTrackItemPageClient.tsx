@@ -7,7 +7,7 @@ import React from 'react';
 
 import type { TranscriptRow } from '@podverse/helpers';
 import { isDescriptionTruncated } from '@podverse/helpers';
-import { buildAddByRssBoostChannel } from '@podverse/parser-mapping';
+import { buildAddByRssBoostChannel, buildAddByRssBoostItem } from '@podverse/parser-mapping';
 import type { ChipRowItem } from '@podverse/ui';
 import { MainColumnStack, MainSidebarLayout } from '@podverse/ui';
 
@@ -360,11 +360,12 @@ export const AddByRSSTrackItemPageClient: React.FC<AddByRSSTrackItemPageClientPr
   }
 
   const title = track.bundle.item.title ?? tInfo('track.track');
+  const boostItem = buildAddByRssBoostItem(track);
   const description = track.bundle.description?.value ?? null;
 
   return (
     <MainWrapper>
-      <AddByRSSAlbumHeader feed={feed} />
+      <AddByRSSAlbumHeader boostItem={boostItem} feed={feed} />
       <MainSidebarLayout>
         <MainColumnStack>
           <AddByRSSTrackDetailHeader

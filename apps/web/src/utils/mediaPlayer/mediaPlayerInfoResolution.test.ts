@@ -149,7 +149,6 @@ describe('getMediaPlayerInfoResolution', () => {
       title: 'Channel title',
       sortable_title: 'channel title',
       medium_id: MediumEnum.Podcast,
-      has_podcast_index_value: false,
       has_value_time_splits: false,
     } as DTOChannel;
 
@@ -341,7 +340,6 @@ describe('getMediaPlayerInfoResolution', () => {
       title: 'E2E Music Album',
       sortable_title: 'e2e music album',
       medium_id: MediumEnum.Music,
-      has_podcast_index_value: false,
       has_value_time_splits: false,
       verified_publishers: [
         {
@@ -402,7 +400,6 @@ describe('getMediaPlayerInfoResolution', () => {
       title: 'E2E Music Album',
       sortable_title: 'e2e music album',
       medium_id: MediumEnum.Music,
-      has_podcast_index_value: false,
       has_value_time_splits: false,
       verified_publishers: [
         {
@@ -467,7 +464,6 @@ describe('getMediaPlayerInfoResolution', () => {
       title: 'E2E Music Album',
       sortable_title: 'e2e music album',
       medium_id: MediumEnum.Music,
-      has_podcast_index_value: false,
       has_value_time_splits: false,
       verified_publishers: [
         {

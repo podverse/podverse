@@ -31,7 +31,6 @@ describe('buildChannelFromDownload', () => {
   it('returns a podcast channel from an audio download row', () => {
     expect(buildChannelFromDownload(record({}))).toEqual({
       feed_id: 0,
-      has_podcast_index_value: false,
       has_value_time_splits: false,
       id: 0,
       id_text: 'e2ePodChnl001',

@@ -81,9 +81,11 @@ it falls back to built-in fake data.
 - `@podverse/v4v-btc-ln` handles LNURLp lookups (LUD-16 only) and invoice requests for LNAddress payments.
 - Keysend is performed through WebLN `keysend` for `type="node"` recipients, not via any external HTTP API.
 - WebLN supports both `sendPayment` (invoice-based LNURL) and `keysend`; wallet support for keysend is required.
-- When RSS `method="keysend"` and a recipient uses `type="lnaddress"`, the app resolves
-  `/.well-known/keysend/<user>` and sends keysend via WebLN using the returned pubkey/custom data.
-- The app follows the RSS `method` exactly and does not fall back between keysend and LNURLp invoices.
+- `type="lnaddress"` is always a Lightning Address invoice (LUD-16, then `payInvoice`).
+  `type="node"` is always keysend to that recipient's address. The send path does not switch a
+  recipient from one method to the other, and it does not call `/.well-known/keysend/`.
+- Web pays with a `BoostPaymentProvider` adapter around WebLN (`sendPayment` for invoices,
+  `keysend` for nodes). A later provider implements the same two methods with its own client.
 
 ## Error handling and retries
 
@@ -148,7 +150,9 @@ When `<podcast:metaBoost standard="mbrss-v1">` is present:
 When metaBoost is **not** present for a keysend recipient (`type="node"`), the client sends a
 bLIP-0010 payload in the keysend TLV record **7629169**. The payload is a JSON object encoded
 as UTF-8, using the fields documented in bLIP-0010 (guid/episode, action, sender info, and
-value_msat_total/value_msat). The `message` field uses the user-entered message.
+value_msat_total/value_msat). A signed-in keysend with no MetaBoost post includes the typed
+message and the sender name on that record when each value is non-empty, and omits each one
+when it is empty. The record's `action` stays `boost`.
 
 ## Recipient split normalization
 
@@ -159,7 +163,8 @@ and rounded down to the nearest integer (e.g., 60 + 40 + 1 is valid and normaliz
 
 When metaBoost is **not** present for LNAddress recipients (`type="lnaddress"`), boost messages are
 disabled **for LNURL invoice flows**. The boost form shows a notice with a "More Info" link to
-`/v4v/metaboost`, and the payment proceeds **without** any message metadata.
+`/v4v/metaboost`, and the payment proceeds **without** any message metadata. A Lightning Address
+invoice carries no bLIP record, with or without MetaBoost.
 
 ## Manual test checklist
 
@@ -168,8 +173,10 @@ disabled **for LNURL invoice flows**. The boost form shows a notice with a "More
 - API responses that include V4V data expose `channel_meta_boost` on the channel when the feed had metaBoost.
 - Web UI shows per-recipient send status and amounts.
 - mbrss-v1 post happens only when the largest split recipient payment succeeds.
-- Keysend without metaBoost: bLIP-0010 record is attached (TLV 7629169).
-- LNAddress without metaBoost: notice shown; payments sent without message metadata.
+- Keysend without metaBoost: bLIP-0010 record is attached (TLV 7629169), including the typed
+  message and sender name when each is non-empty.
+- LNAddress without metaBoost: notice shown; payments sent without message metadata and with no
+  bLIP record.
 - `/v4v/metaboost` page loads and explains requirements.
 
 ## Future production hardening (not implemented)

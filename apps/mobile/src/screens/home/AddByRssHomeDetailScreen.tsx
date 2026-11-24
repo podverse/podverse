@@ -1,4 +1,8 @@
-import type { NativeStackScreenProps } from '@react-navigation/native-stack';
+import { useNavigation } from '@react-navigation/native';
+import type {
+  NativeStackNavigationProp,
+  NativeStackScreenProps,
+} from '@react-navigation/native-stack';
 import type { ComponentType, ReactNode } from 'react';
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -9,12 +13,14 @@ import { getBoostEligibilityForContent } from '@podverse/v4v-metaboost';
 
 import { requestWithMobileAuthRefresh } from '../../auth';
 import { useAuth } from '../../auth/AuthProvider';
+import { BoostHeaderAction } from '../../components/boost/BoostHeaderAction';
+import { ReceivedBoostsSection } from '../../components/boost/ReceivedBoostsSection';
 import { useBoostSheet } from '../../components/boost/useBoostSheet';
+import { usePublicBoostMessagesFetchState } from '../../components/boost/useMbrssPublicMessagesCapability';
 import { ChannelDetailShell, ChannelHeader } from '../../components/channel';
 import type { MenuSelectChipOption, SectionChipItem } from '../../components/form';
 import { ListFilterField, MenuSelectChip } from '../../components/form';
 import { Button } from '../../components/primitives/Button';
-import { HeaderBarAction } from '../../components/screen/HeaderBarAction';
 import { HeaderBarActions } from '../../components/screen/HeaderBarActions';
 import { ListError } from '../../components/state/ListError';
 import { LoadingSection } from '../../components/state/LoadingSection';
@@ -54,10 +60,12 @@ import { AddByRssArtistAlbumsSection } from './addByRss/AddByRssArtistAlbumsSect
 import { AddByRssArtistTracksSection } from './addByRss/AddByRssArtistTracksSection';
 import {
   ADD_BY_RSS_SECTION_LABEL_KEYS,
+  addByRssBoostScopeType,
   addByRssItemsTab,
   isAddByRssFilterableSection,
   isAddByRssMusicFeed,
   isAddByRssSortableSection,
+  resolveAddByRssBoostItemNavigation,
   resolveAddByRssInitialSection,
   resolveAddByRssSections,
 } from './addByRss/addByRssDetailSections';
@@ -95,9 +103,69 @@ const TRACK_SORT_LABEL_KEYS: Record<AddByRssTrackSort, string> = {
 };
 
 /** One component per section. Episodes and tracks share the items list; an artist's tracks do not. */
+function AddByRssHomeBoostsSection({ detail, listHeader }: AddByRssSectionPaneProps) {
+  const navigation = useNavigation<NativeStackNavigationProp<AddByRssDetailStackParamList>>();
+  const channel = useMemo(
+    () =>
+      buildAddByRssBoostChannel({
+        ...detail.feed,
+        mappedFeed: detail.mappedFeed ?? undefined,
+      }),
+    [detail.feed, detail.mappedFeed]
+  );
+  const musicFeed = isAddByRssMusicFeed(detail.feed.resourceType);
+  const openTarget = useCallback(
+    (itemGuid: string) => {
+      if (detail.mappedFeed === null) {
+        return null;
+      }
+      return resolveAddByRssBoostItemNavigation({
+        feedIdText: detail.feed.idText,
+        feedUrl: detail.feed.feedUrl,
+        isMusicFeed: musicFeed,
+        itemGuid,
+        mappedFeed: detail.mappedFeed,
+      });
+    },
+    [detail.feed.feedUrl, detail.feed.idText, detail.mappedFeed, musicFeed]
+  );
+  const openItem = useCallback(
+    (itemGuid: string) => {
+      const target = openTarget(itemGuid);
+      if (target === null) {
+        return;
+      }
+      if (target.screen === 'AddByRssLivestreamDetail') {
+        navigation.navigate(target.screen, target.params);
+        return;
+      }
+      if (target.screen === 'AddByRssTrackDetail') {
+        navigation.navigate(target.screen, target.params);
+        return;
+      }
+      navigation.navigate(target.screen, target.params);
+    },
+    [navigation, openTarget]
+  );
+
+  return (
+    <ReceivedBoostsSection
+      channel={channel}
+      fetchAllowed
+      isItemLink={(itemGuid) => openTarget(itemGuid) !== null}
+      listHeader={listHeader}
+      onOpenChannel={() => undefined}
+      onOpenItem={openItem}
+      scopeType={addByRssBoostScopeType(detail.feed.resourceType)}
+      testIDPrefix="add-by-rss-home-boosts"
+    />
+  );
+}
+
 const SECTION_COMPONENTS: Record<AddByRssDetailTab, ComponentType<AddByRssSectionPaneProps>> = {
   about: AddByRssAboutSection,
   albums: AddByRssArtistAlbumsSection,
+  boosts: AddByRssHomeBoostsSection,
   downloaded: AddByRssDownloadedSection,
   episodes: AddByRssEpisodesSection,
   funding: AddByRssFundingSection,
@@ -124,19 +192,19 @@ const isTrackSort = (sort: AddByRssDetailSort): sort is AddByRssTrackSort =>
  * People follow when the feed lists them. Music feeds never offer Downloaded. Podroll and
  * Remote Items list the feeds and items this feed points to, from the parsed bundle; entries
  * the device or the directory does not know are looked up when tapped. Clips and Official
- * Clips are server rows keyed to a server item id, so this screen does not offer them. Boosts
- * is a web-only tab, and the podcast screen has no Boosts chip either. Chips come from the
- * parsed bundle already on the device. Unsubscribe removes a feed that no Add by RSS artist
- * on the device lists. An album an artist lists stays on this screen, and Subscribe follows it
- * in every session. The page is not shareable, and
- * notifications need a server channel, so this screen has neither share nor a
- * bell. Settings holds the feed check and the username and password, which stay on this device.
- * Notifications and auto-download are keyed to a server channel, so Settings does not show them.
+ * Clips are server rows keyed to a server item id, so this screen does not offer them. The
+ * Boosts chip is offered when this feed's MetaBoost capability exposes a public message list.
+ * Chips come from the parsed bundle already on the device. Unsubscribe removes a feed that no
+ * Add by RSS artist on the device lists. An album an artist lists stays on this screen, and
+ * Subscribe follows it in every session. The page is not shareable, and notifications need a
+ * server channel, so this screen has neither share nor a bell. Settings holds the feed check and
+ * the username and password, which stay on this device. Notifications and auto-download are
+ * keyed to a server channel, so Settings does not show them.
  */
 export function AddByRssHomeDetailScreen({ navigation, route }: AddByRssHomeDetailScreenProps) {
   const { t } = useTranslation();
   const { enabled: offlineModeEnabled } = useOfflineMode();
-  const { styles: themeStyles, tokens } = useTheme();
+  const { styles: themeStyles } = useTheme();
   const { boostSheet, openBoost } = useBoostSheet();
   const { artistUnsubscribeDialog, unsubscribeArtist } = useArtistUnsubscribe();
   const { accessToken, clearSession, refreshToken, setTokens, status } = useAuth();
@@ -354,10 +422,28 @@ export function AddByRssHomeDetailScreen({ navigation, route }: AddByRssHomeDeta
   const isMusicFeed =
     detailForRoute !== null && isAddByRssMusicFeed(detailForRoute.feed.resourceType);
   const isArtistFeed = detailForRoute?.feed.resourceType === 'artists';
+  const boostChannel = useMemo(() => {
+    if (detailForRoute === null) {
+      return null;
+    }
+    return buildAddByRssBoostChannel({
+      ...detailForRoute.feed,
+      mappedFeed: detailForRoute.mappedFeed ?? undefined,
+    });
+  }, [detailForRoute]);
+  const boostMessages = usePublicBoostMessagesFetchState({
+    channel: boostChannel,
+    fetchAllowed: detailForRoute !== null,
+    scopeType:
+      detailForRoute === null
+        ? 'channel'
+        : addByRssBoostScopeType(detailForRoute.feed.resourceType),
+  });
 
   const availableSections = useMemo(
     () =>
       resolveAddByRssSections({
+        hasBoosts: boostMessages.fetcher !== null,
         hasFunding: (detailForRoute?.fundings.length ?? 0) > 0,
         hasPeople: (detailForRoute?.people.length ?? 0) > 0,
         hasPodroll: getAddByRssRemoteRefsForDetail(detailForRoute, 'podroll').length > 0,
@@ -365,7 +451,7 @@ export function AddByRssHomeDetailScreen({ navigation, route }: AddByRssHomeDeta
         isArtistFeed,
         isMusicFeed,
       }),
-    [detailForRoute, isArtistFeed, isMusicFeed]
+    [boostMessages.fetcher, detailForRoute, isArtistFeed, isMusicFeed]
   );
 
   /**
@@ -397,16 +483,6 @@ export function AddByRssHomeDetailScreen({ navigation, route }: AddByRssHomeDeta
     setSection('downloaded');
   }, [feedIdText, isMusicFeed, offlineModeEnabled]);
 
-  const boostChannel = useMemo(() => {
-    if (detailForRoute === null) {
-      return null;
-    }
-    return buildAddByRssBoostChannel({
-      ...detailForRoute.feed,
-      mappedFeed: detailForRoute.mappedFeed ?? undefined,
-    });
-  }, [detailForRoute]);
-
   const canShowBoost =
     boostChannel !== null &&
     getBoostEligibilityForContent({ channel: boostChannel }).canShowBoostAction;
@@ -414,18 +490,20 @@ export function AddByRssHomeDetailScreen({ navigation, route }: AddByRssHomeDeta
   useLayoutEffect(() => {
     navigation.setOptions({
       headerRight: () => {
-        if (boostChannel === null || !canShowBoost) {
+        if (detailForRoute === null || boostChannel === null || !canShowBoost) {
           return null;
         }
         const channel = boostChannel;
+        const { feedUrl, idText } = detailForRoute.feed;
         return (
           <HeaderBarActions>
-            <HeaderBarAction
-              accessibilityLabel={t('value.boost')}
-              icon="cash-outline"
-              iconColor={tokens.text.warning}
+            <BoostHeaderAction
               onPress={() => {
-                openBoost({ channel, item: null });
+                openBoost({
+                  addByRss: { feedIdText: idText, feedUrl, itemKey: null },
+                  channel,
+                  item: null,
+                });
               }}
               testID="add-by-rss-home-boost"
             />
@@ -433,7 +511,7 @@ export function AddByRssHomeDetailScreen({ navigation, route }: AddByRssHomeDeta
         );
       },
     });
-  }, [boostChannel, canShowBoost, navigation, openBoost, t, tokens.text.warning]);
+  }, [boostChannel, canShowBoost, detailForRoute, navigation, openBoost]);
 
   const handleRemove = useCallback(async () => {
     if (detailForRoute === null || isRemoving) {

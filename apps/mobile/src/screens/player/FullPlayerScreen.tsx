@@ -24,6 +24,7 @@ import {
   resolveChapterRowArtwork,
 } from '@podverse/helpers';
 import type {
+  AddByRSSResourceData,
   DTOChannel,
   DTOClip,
   DTOItem,
@@ -32,13 +33,16 @@ import type {
   TranscriptRow,
 } from '@podverse/helpers/dto';
 import { formatHHMMSS } from '@podverse/helpers/time';
+import type { AddByRSSMappedFeed } from '@podverse/parser-mapping';
 import type { PlaybackTarget } from '@podverse/playback-core';
 import { getBoostEligibilityForContent } from '@podverse/v4v-metaboost';
 
 import { requestWithMobileAuthRefresh, useAuth } from '../../auth';
 import { useAuthPrompt } from '../../auth/AuthPromptContext';
 import { nativePlaybackBridge } from '../../bridge/nativePlaybackBridge';
+import type { BoostSheetTarget } from '../../components/boost/BoostSheet';
 import { useBoostSheet } from '../../components/boost/useBoostSheet';
+import { useDirectoryBoostTarget } from '../../components/boost/useDirectoryBoostTarget';
 import {
   ArtistChooserSheet,
   ChapterListRow,
@@ -103,7 +107,11 @@ import { getReduceMotionSnapshot } from '../../hooks/useReduceMotion';
 import { useTranscriptFollowControls } from '../../hooks/useTranscriptFollowControls';
 import { useTranscriptListAutoscroll } from '../../hooks/useTranscriptListAutoscroll';
 import { resolveSupportedLocale } from '../../i18n/locale';
-import { resolveAddByRssLiveItemKey } from '../../lib/addByRss/liveItemDetail';
+import { boostTargetFromMappedFeed } from '../../lib/addByRss/boostTarget';
+import {
+  findAddByRssLiveItemDetail,
+  resolveAddByRssLiveItemKey,
+} from '../../lib/addByRss/liveItemDetail';
 import { addByRssEpisodeItemKey } from '../../lib/addByRss/localResourceData';
 import { isAddByRssLivestreamResourceData } from '../../lib/addByRss/resourceData';
 import { getChannelActionChrome } from '../../lib/channelActionChrome';
@@ -147,6 +155,7 @@ import { useNowPlayingChapters } from '../../playback/useNowPlayingChapters';
 import { usePlayingChapterIdText } from '../../playback/usePlayingChapterIdText';
 import { usePlayingTranscriptIndex } from '../../playback/usePlayingTranscriptIndex';
 import { isVideoFullscreenActive } from '../../playback/videoFullscreenStore';
+import type { MobileAddByRSSFeedRecord } from '../../prefs/addByRSSFeeds';
 import type { EpisodeClipSort, EpisodeTab } from '../../prefs/detailListPrefs';
 import { DEFAULT_EPISODE_TAB, EPISODE_CLIP_SORT_OPTIONS } from '../../prefs/detailListPrefs';
 import { useOfflineMode } from '../../prefs/offlineMode';
@@ -162,7 +171,7 @@ import {
 } from '../episode/episodeTabs';
 import { useEpisodeSectionPanes } from '../episode/useEpisodeSectionPanes';
 import { resolveAddByRssEpisodeTabs } from '../home/addByRss/addByRssEpisodeTabs';
-import { toAddByRssAboutPeople } from '../home/addByRssHomeDetailData';
+import { buildAddByRssHomeDetailData, toAddByRssAboutPeople } from '../home/addByRssHomeDetailData';
 import type { HomeFeedRowData } from '../home/homeFeedData';
 import { HomeFeedRow } from '../home/HomeFeedRow';
 import { useHomeRowPlayback } from '../home/useHomeRowPlayback';
@@ -305,6 +314,61 @@ const channelFromTarget = (target: PlaybackTarget | null): DTOChannel | null => 
   }
 };
 
+const addByRssPlaybackBoostTarget = (
+  record: MobileAddByRSSFeedRecord,
+  mappedFeed: AddByRSSMappedFeed,
+  resourceData: AddByRSSResourceData,
+  itemKey: string | null
+): BoostSheetTarget | null => {
+  if (itemKey === null) {
+    return boostTargetFromMappedFeed({
+      feed: record,
+      item: null,
+      itemKey: null,
+      liveItem: null,
+      mappedFeed,
+    });
+  }
+  if (isAddByRssLivestreamResourceData(resourceData)) {
+    const liveDetail = findAddByRssLiveItemDetail(mappedFeed, itemKey);
+    if (liveDetail === null) {
+      return boostTargetFromMappedFeed({
+        feed: record,
+        item: null,
+        itemKey: null,
+        liveItem: null,
+        mappedFeed,
+      });
+    }
+    return boostTargetFromMappedFeed({
+      feed: record,
+      item: null,
+      itemKey,
+      liveItem: liveDetail.liveBundle,
+      mappedFeed,
+    });
+  }
+  const row = buildAddByRssHomeDetailData(record, mappedFeed).episodeRows.find(
+    (episodeRow) => episodeRow.itemKey === itemKey
+  );
+  if (row === undefined) {
+    return boostTargetFromMappedFeed({
+      feed: record,
+      item: null,
+      itemKey: null,
+      liveItem: null,
+      mappedFeed,
+    });
+  }
+  return boostTargetFromMappedFeed({
+    feed: record,
+    item: row.itemBundle,
+    itemKey,
+    liveItem: null,
+    mappedFeed,
+  });
+};
+
 const hasSectionsForTarget = (target: PlaybackTarget | null): boolean => {
   if (target === null) {
     return false;
@@ -406,6 +470,7 @@ export function FullPlayerScreen({
   const [isMarkingPlayed, setIsMarkingPlayed] = useState(false);
   const [addByRssFeedIdText, setAddByRssFeedIdText] = useState<string | null>(null);
   const [addByRssItemKey, setAddByRssItemKey] = useState<string | null>(null);
+  const [addByRssBoostTarget, setAddByRssBoostTarget] = useState<BoostSheetTarget | null>(null);
 
   const isV4vEnabled = getMobileConfig().isV4vEnabled;
   const authContext = useMemo(
@@ -436,6 +501,11 @@ export function FullPlayerScreen({
   const previewFlags = episodeForPanes === null ? null : itemSectionFlagsFromDto(episodeForPanes);
   const channel = channelFromTarget(activeTarget);
   const onDescriptionClock = useItemDescriptionClock(currentItem, channel);
+  const directoryBoost = useDirectoryBoostTarget({
+    channel,
+    enabled: !isRemoteDisplay && activeTarget?.kind !== 'add-by-rss',
+    item: currentItem,
+  });
   const hasSections = !isRemoteDisplay && hasSectionsForTarget(activeTarget);
   const addByRssSections = useNowPlayingAddByRssSections(addByRssItemResourceData);
   const addByRssSource = addByRssSections.source;
@@ -456,10 +526,22 @@ export function FullPlayerScreen({
     [activeTarget]
   );
   const showV4v = shouldShowV4vAction(activeTarget, isV4vEnabled);
-  const canShowBoost = getBoostEligibilityForContent({
-    channel,
-    item: currentItem,
-  }).canShowBoostAction;
+  const addByRssPlayback = activeTarget?.kind === 'add-by-rss';
+  const addByRssCanShow =
+    addByRssBoostTarget !== null &&
+    getBoostEligibilityForContent({
+      channel: addByRssBoostTarget.channel,
+      item: addByRssBoostTarget.item,
+      itemValues: addByRssBoostTarget.item?.item_values,
+    }).canShowBoostAction;
+  const directoryCanShow =
+    directoryBoost.ready &&
+    directoryBoost.channel !== null &&
+    getBoostEligibilityForContent({
+      channel: directoryBoost.channel,
+      item: directoryBoost.item,
+      itemValues: directoryBoost.item?.item_values,
+    }).canShowBoostAction;
   const activePaneNoticeKey = actionNoticeKey ?? playbackNoticeKey;
   const summaryDescription = useItemDescription(currentItem);
   const summaryHtml = summaryDescription?.html ?? (summaryDescription?.preview || null);
@@ -518,11 +600,13 @@ export function FullPlayerScreen({
     if (resourceData === null) {
       setAddByRssFeedIdText(null);
       setAddByRssItemKey(null);
+      setAddByRssBoostTarget(null);
       return;
     }
     let isCurrent = true;
     setAddByRssFeedIdText(null);
     setAddByRssItemKey(null);
+    setAddByRssBoostTarget(null);
     void resolveLocalAddByRssFeedIdText(resourceData, {
       getFeedByIdText: (idText) => addByRssRepository.getFeedByIdText(idText),
       getFeedByUrl: (feedUrl) => addByRssRepository.getFeedByUrl(feedUrl),
@@ -547,11 +631,15 @@ export function FullPlayerScreen({
           ? resolveAddByRssLiveItemKey(mappedFeed, resourceData, feedIdText)
           : addByRssEpisodeItemKey(mappedFeed, resourceData);
         setAddByRssItemKey(itemKey);
+        setAddByRssBoostTarget(
+          addByRssPlaybackBoostTarget(record, mappedFeed, resourceData, itemKey)
+        );
       })
       .catch(() => {
         if (isCurrent) {
           setAddByRssFeedIdText(null);
           setAddByRssItemKey(null);
+          setAddByRssBoostTarget(null);
         }
       });
     return () => {
@@ -1910,15 +1998,26 @@ export function FullPlayerScreen({
           onOpenMakeClip({ mode: 'create' });
         }}
         onOpenBoost={() => {
-          if (channel === null) {
+          if (activeTarget?.kind === 'add-by-rss') {
+            if (addByRssBoostTarget === null) {
+              return;
+            }
+            openBoost(addByRssBoostTarget);
             return;
           }
-          openBoost({ channel, item: currentItem });
+          if (directoryBoost.channel === null) {
+            return;
+          }
+          openBoost({
+            addByRss: null,
+            channel: directoryBoost.channel,
+            item: directoryBoost.item,
+          });
         }}
         onOpenQueue={onOpenQueue}
         onOpenV4v={onOpenV4v}
         onShare={handleShare}
-        showBoost={!isRemoteDisplay && canShowBoost}
+        showBoost={!isRemoteDisplay && (addByRssPlayback ? addByRssCanShow : directoryCanShow)}
         showCreateClip={!isRemoteDisplay && !isMusicNowPlaying}
         showV4v={!isRemoteDisplay && showV4v}
       />

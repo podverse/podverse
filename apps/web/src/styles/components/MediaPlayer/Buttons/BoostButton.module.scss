@@ -1,0 +1,6 @@
+@use '../../../mixins/buttons.scss' as *;
+
+.boostButton {
+  @include mediaPlayerButton;
+  color: var(--button-highlight-bg);
+}

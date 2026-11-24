@@ -130,11 +130,14 @@ import { AddByRssRootScreen } from '../screens/rss/AddByRssRootScreen';
 import { PodcastIndexFeedPreviewScreen } from '../screens/search/PodcastIndexFeedPreviewScreen';
 import { SearchScreen } from '../screens/search/SearchScreen';
 import { TrackDetailScreen } from '../screens/track/TrackDetailScreen';
+import { AlbyProviderScreen } from '../screens/v4v/AlbyProviderScreen';
 import { V4vInfoScreen } from '../screens/v4v/V4vInfoScreen';
+import { ValueProvidersScreen } from '../screens/v4v/ValueProvidersScreen';
 import { BottomChromeOverlayHeightProvider } from '../theme/bottomChromeOverlayInset';
 import { useNavigationTheme } from '../theme/useNavigationTheme';
 import { useTheme } from '../theme/useTheme';
 import { useThemedNativeStackScreenOptions } from '../theme/useThemedNativeStackScreenOptions';
+import { isAlbyOAuthCallbackPath } from '../v4v/alby/albyProtocol';
 import type { AlbumDetailRouteParams } from './albumDetailParams';
 import { buildAlbumDetailParams } from './albumDetailParams';
 import type { ArtistDetailRouteParams } from './artistDetailParams';
@@ -279,6 +282,8 @@ export const MORE_STACK_ROUTES = {
   PodcastDetail: 'PodcastDetail',
   MoreRoot: 'MoreRoot',
   MoreSettings: 'MoreSettings',
+  MoreValueProviders: 'MoreValueProviders',
+  MoreValueProviderAlby: 'MoreValueProviderAlby',
   MoreSettingsAppearance: 'MoreSettingsAppearance',
   MoreSettingsAutoDownloadCatchUp: 'MoreSettingsAutoDownloadCatchUp',
   MoreSettingsChangePassword: 'MoreSettingsChangePassword',
@@ -364,6 +369,8 @@ const moreTabLinkScreens = {
   MoreProfile: `more${APP_ROUTES.PROFILE}`,
   MoreRoot: 'more',
   MoreSettings: `more${APP_ROUTES.SETTINGS}`,
+  MoreValueProviders: 'more/value-providers',
+  MoreValueProviderAlby: 'more/value-providers/alby',
   MoreSettingsAppearance: `more${APP_ROUTES.SETTINGS}/appearance`,
   MoreSettingsAutoDownloadCatchUp: `more${APP_ROUTES.SETTINGS}/downloads/catch-up`,
   MoreSettingsChangePassword: `more${APP_ROUTES.SETTINGS}/change-password`,
@@ -622,6 +629,8 @@ export type MoreStackParamList = {
   PodcastDetail: PodcastDetailRouteParams;
   MoreRoot: undefined;
   MoreSettings: undefined;
+  MoreValueProviders: undefined;
+  MoreValueProviderAlby: undefined;
   MoreSettingsAppearance: undefined;
   MoreSettingsAutoDownloadCatchUp: undefined;
   MoreSettingsChangePassword: undefined;
@@ -1143,6 +1152,20 @@ export function navigateToMembershipScreen(): void {
   rootNavigationRef.navigate(ROOT_STACK_ROUTES.MainTabs, {
     screen: 'More',
     params: { initial: false, screen: MORE_STACK_ROUTES.MoreMembership },
+  });
+}
+
+/**
+ * Open More › Alby from anywhere. `initial: false` keeps More's menu under the Alby screen
+ * when More mounts for this navigation. No-op until the navigation container is ready.
+ */
+export function navigateToAlbyProvider(): void {
+  if (!rootNavigationRef.isReady()) {
+    return;
+  }
+  rootNavigationRef.navigate(ROOT_STACK_ROUTES.MainTabs, {
+    screen: 'More',
+    params: { initial: false, screen: MORE_STACK_ROUTES.MoreValueProviderAlby },
   });
 }
 
@@ -1707,6 +1730,16 @@ function MoreStackNavigator({
         options={{ title: t('settings.settings') }}
       />
       <MoreStack.Screen
+        component={ValueProvidersScreen}
+        name={MORE_STACK_ROUTES.MoreValueProviders}
+        options={{ title: t('media_player.value_for_value') }}
+      />
+      <MoreStack.Screen
+        component={AlbyProviderScreen}
+        name={MORE_STACK_ROUTES.MoreValueProviderAlby}
+        options={{ title: t('v4v.provider.alby') }}
+      />
+      <MoreStack.Screen
         component={MoreSettingsAppearanceScreen}
         name={MORE_STACK_ROUTES.MoreSettingsAppearance}
         options={{ title: t('settings.groups.appearance') }}
@@ -2089,6 +2122,17 @@ function MoreRootScreen({
           testID: 'more-settings',
           title: t('settings.settings'),
         },
+        ...(getMobileConfig().isV4vEnabled
+          ? [
+              {
+                onPress: () => {
+                  navigation.navigate(MORE_STACK_ROUTES.MoreValueProviders);
+                },
+                testID: 'more-nav-value-providers',
+                title: t('media_player.value_for_value'),
+              },
+            ]
+          : []),
         {
           onPress: () => {
             navigation.navigate(MORE_STACK_ROUTES.MoreOpml);
@@ -2450,6 +2494,11 @@ export function MobileTabNavigator({
 
   useEffect(() => {
     if (pendingDeepLinkUrl === null || !rootNavigationRef.isReady()) {
+      return;
+    }
+
+    if (isAlbyOAuthCallbackPath(pendingDeepLinkUrl)) {
+      onConsumePendingDeepLink();
       return;
     }
 

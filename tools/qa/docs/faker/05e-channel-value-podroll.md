@@ -55,8 +55,8 @@ export class ChannelValueGenerator {
     value: GeneratedChannelValue | null;
     recipients: GeneratedChannelValueRecipient[];
   } {
-    // Only generate for channels with value enabled
-    if (!channel.has_podcast_index_value) {
+    const includeValue = faker.datatype.boolean({ probability: 0.3 });
+    if (!includeValue) {
       return { value: null, recipients: [] };
     }
 

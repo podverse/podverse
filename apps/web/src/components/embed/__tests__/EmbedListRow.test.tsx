@@ -67,7 +67,6 @@ function createRow(item: DTOItem): EmbedListRowData {
       title: null,
       sortable_title: null,
       medium_id: 1,
-      has_podcast_index_value: false,
       has_value_time_splits: false,
     },
     item,

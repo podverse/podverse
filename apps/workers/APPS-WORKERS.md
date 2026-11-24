@@ -62,7 +62,6 @@ npm run build -w apps/workers
 | `npm run dev_parser_rss_parse_artist_publisher_feeds`     | Committed artist publisher-music PI feeds → parse/save to DB                         |
 | `npm run dev_discover_artist_publisher_feeds`             | Maintainer: crawl PI for artist feeds and rewrite committed list (default -max 50)   |
 | `npm run podcast_index_trending_podcasts_get`             | Get trending podcasts (list only)                                                    |
-| `npm run podcast_index_value_update_all`                  | Update all value blocks                                                              |
 | `npm run scheduled_jobs_run_due`                          | Run due rows from `scheduled_job` (`-dry-run`, `-limit N`)                           |
 | `npm run notifications_platform_purge`                    | Purge expired `account_notification` rows and stale terminal `scheduled_job` rows    |
 | `npm run notifications_test_push`                         | List or send a test push when `NOTIFICATIONS_TEST_PUSH_ENABLED` is true              |

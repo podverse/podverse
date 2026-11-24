@@ -1,6 +1,6 @@
 import { Platform } from 'react-native';
 
-import { parseMobileDeepLinkSchemes } from './deepLinkSchemes';
+import { DEFAULT_MOBILE_DEEP_LINK_SCHEMES, parseMobileDeepLinkSchemes } from './deepLinkSchemes';
 
 export { getMobileBillingModeFromEnv } from './billingEnv';
 export type { MobileBillingMode } from './billingEnv';
@@ -127,4 +127,96 @@ export const getMobilePublicWebBaseUrlFromEnv = (): string | null => {
     return null;
   }
   return normalizeBaseUrl(value);
+};
+
+const ALBY_AUTHORIZE_URL_DEFAULT = 'https://getalby.com/oauth';
+const ALBY_API_BASE_URL_DEFAULT = 'https://api.getalby.com';
+
+export type MobileAlbyConfig = {
+  /** Null when this build has no public Alby OAuth client id. */
+  clientId: string | null;
+  authorizeUrl: string;
+  apiBaseUrl: string;
+  redirectUri: string;
+};
+
+/**
+ * An https URL with one trailing slash removed. Any other value is ignored so a bad override
+ * cannot replace the public Alby host.
+ */
+const httpsUrlWithoutTrailingSlash = (value: string | null): string | null => {
+  if (value === null) {
+    return null;
+  }
+  try {
+    const parsed = new URL(value);
+    if (parsed.protocol !== 'https:') {
+      return null;
+    }
+  } catch {
+    return null;
+  }
+  return value.endsWith('/') ? value.slice(0, -1) : value;
+};
+
+const redirectScheme = (value: string): string | null => {
+  try {
+    const parsed = new URL(value);
+    if (!parsed.protocol.endsWith(':')) {
+      return null;
+    }
+    const scheme = parsed.protocol.slice(0, -1);
+    return scheme.length > 0 ? scheme : null;
+  } catch {
+    return null;
+  }
+};
+
+/** Public OAuth client id. Empty and unset are null, so Connect stays hidden. */
+export const getAlbyOAuthClientIdFromEnv = (): string | null => {
+  return trimToNull(process.env.EXPO_PUBLIC_ALBY_OAUTH_CLIENT_ID);
+};
+
+/** Authorize endpoint. A non-https override is ignored. */
+export const getAlbyOAuthAuthorizeUrlFromEnv = (): string => {
+  return (
+    httpsUrlWithoutTrailingSlash(trimToNull(process.env.EXPO_PUBLIC_ALBY_OAUTH_AUTHORIZE_URL)) ??
+    ALBY_AUTHORIZE_URL_DEFAULT
+  );
+};
+
+/** Alby API origin. A non-https override is ignored. */
+export const getAlbyApiBaseUrlFromEnv = (): string => {
+  return (
+    httpsUrlWithoutTrailingSlash(trimToNull(process.env.EXPO_PUBLIC_ALBY_API_BASE_URL)) ??
+    ALBY_API_BASE_URL_DEFAULT
+  );
+};
+
+/**
+ * OAuth redirect for this build. Unset uses the first registered deep-link scheme.
+ * A redirect whose scheme is not registered is ignored.
+ */
+export const getAlbyOAuthRedirectUriFromEnv = (): string => {
+  const schemes = getMobileDeepLinkSchemesFromEnv();
+  const firstScheme = schemes[0] ?? DEFAULT_MOBILE_DEEP_LINK_SCHEMES[0];
+  const fallback = `${firstScheme}://alby/callback`;
+  const configured = trimToNull(process.env.EXPO_PUBLIC_ALBY_OAUTH_REDIRECT_URI);
+  if (configured === null) {
+    return fallback;
+  }
+  const scheme = redirectScheme(configured);
+  if (scheme === null || !schemes.includes(scheme)) {
+    return fallback;
+  }
+  return configured;
+};
+
+export const getMobileAlbyConfigFromEnv = (): MobileAlbyConfig => {
+  return {
+    clientId: getAlbyOAuthClientIdFromEnv(),
+    authorizeUrl: getAlbyOAuthAuthorizeUrlFromEnv(),
+    apiBaseUrl: getAlbyApiBaseUrlFromEnv(),
+    redirectUri: getAlbyOAuthRedirectUriFromEnv(),
+  };
 };

@@ -24,7 +24,6 @@ const emptyAbridged: QueueResourcesAbridgedIndex = {
 const channel = (mediumId: number): DTOChannel =>
   // The policy only reads `medium_id` through typed targets in future phases.
   ({
-    has_podcast_index_value: false,
     has_value_time_splits: false,
     id: 1,
     id_text: 'channel-1',

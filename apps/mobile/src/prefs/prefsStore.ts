@@ -28,6 +28,7 @@ export type PrefKey =
   | 'locale'
   | 'membership.expiry_dismissed_for'
   | 'playback.handoff_dismissed_state'
+  | 'boost.sender_name'
   | 'offline.mode'
   | 'pmt'
   | 'preferred_media_type'
@@ -55,6 +56,11 @@ export type PrefValueMap = {
   /** Declined remote handoff state (`<item-id>::<timestamp-ms>`) for playback prompt suppression. */
   'playback.handoff_dismissed_state': string;
   /**
+   * The boost sheet sender name typed on this phone. Empty when they cleared the field. Absent
+   * until they type one. Kept across Podverse sign-out.
+   */
+  'boost.sender_name': string;
+  /**
    * User-forced Offline Mode. Device-local only — parks network work and steers UI to downloaded
    * views. Distinct from NetInfo reachability.
    */
@@ -78,6 +84,7 @@ const PREF_KEYS: readonly PrefKey[] = [
   'downloads.auto_delete',
   'membership.expiry_dismissed_for',
   'playback.handoff_dismissed_state',
+  'boost.sender_name',
   'offline.mode',
 ];
 
@@ -111,6 +118,7 @@ const createEmptySnapshot = (): PrefSnapshot => ({
   locale: null,
   'membership.expiry_dismissed_for': null,
   'playback.handoff_dismissed_state': null,
+  'boost.sender_name': null,
   'offline.mode': null,
   pmt: null,
   preferred_media_type: null,
@@ -135,6 +143,7 @@ export function getPref(key: 'downloads.auto_delete'): Promise<boolean | null>;
 export function getPref(key: 'locale'): Promise<string | null>;
 export function getPref(key: 'membership.expiry_dismissed_for'): Promise<string | null>;
 export function getPref(key: 'playback.handoff_dismissed_state'): Promise<string | null>;
+export function getPref(key: 'boost.sender_name'): Promise<string | null>;
 export function getPref(key: 'offline.mode'): Promise<boolean | null>;
 export function getPref(key: 'pmt'): Promise<MediaTypePreference | null>;
 export function getPref(key: 'preferred_media_type'): Promise<HomeMediaType | null>;
@@ -154,7 +163,8 @@ export async function getPref(key: PrefKey): Promise<PrefValueMap[PrefKey] | nul
     key === 'auth.forced_logout_at' ||
     key === 'locale' ||
     key === 'membership.expiry_dismissed_for' ||
-    key === 'playback.handoff_dismissed_state'
+    key === 'playback.handoff_dismissed_state' ||
+    key === 'boost.sender_name'
   ) {
     return stored;
   }
@@ -193,6 +203,7 @@ export function setPref(key: 'downloads.auto_delete', value: boolean): Promise<v
 export function setPref(key: 'locale', value: string): Promise<void>;
 export function setPref(key: 'membership.expiry_dismissed_for', value: string): Promise<void>;
 export function setPref(key: 'playback.handoff_dismissed_state', value: string): Promise<void>;
+export function setPref(key: 'boost.sender_name', value: string): Promise<void>;
 export function setPref(key: 'offline.mode', value: boolean): Promise<void>;
 export function setPref(key: 'pmt', value: MediaTypePreference): Promise<void>;
 export function setPref(key: 'preferred_media_type', value: HomeMediaType): Promise<void>;
@@ -260,6 +271,10 @@ export const hydratePrefs = async (): Promise<PrefSnapshot> => {
         snapshot['playback.handoff_dismissed_state'] = await getPref(
           'playback.handoff_dismissed_state'
         );
+        return;
+      }
+      if (key === 'boost.sender_name') {
+        snapshot['boost.sender_name'] = await getPref('boost.sender_name');
         return;
       }
       if (key === 'pmt') {

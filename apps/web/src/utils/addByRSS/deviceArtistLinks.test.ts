@@ -87,7 +87,6 @@ const albumChannel = (verified: DTOChannel['verified_publishers']): DTOChannel =
   title: 'Directory Album',
   sortable_title: 'directory album',
   medium_id: MediumEnum.Music,
-  has_podcast_index_value: false,
   has_value_time_splits: false,
   ...(verified === undefined ? {} : { verified_publishers: verified }),
 });

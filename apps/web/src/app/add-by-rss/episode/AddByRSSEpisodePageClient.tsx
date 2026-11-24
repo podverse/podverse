@@ -8,7 +8,7 @@ import React from 'react';
 import type { DTOItemChapter } from '@podverse/helpers';
 import type { TranscriptRow } from '@podverse/helpers';
 import { isDescriptionTruncated } from '@podverse/helpers';
-import { buildAddByRssBoostChannel } from '@podverse/parser-mapping';
+import { buildAddByRssBoostChannel, buildAddByRssBoostItem } from '@podverse/parser-mapping';
 import type { ChipRowItem } from '@podverse/ui';
 import { MainColumnStack, MainSidebarLayout } from '@podverse/ui';
 
@@ -380,13 +380,14 @@ export const AddByRSSEpisodePageClient: React.FC<AddByRSSEpisodePageClientProps>
   }
 
   const title = episode.bundle.item.title ?? tInfo('episode.episode');
+  const boostItem = buildAddByRssBoostItem(episode);
   const description = episode.bundle.description?.value ?? null;
   const chaptersTotalPages = itemChapters.length > 0 ? 1 : 1;
 
   return (
     <MainWrapper>
       <ChannelVisitEngageItemOnMount itemIdText={episode.idText} />
-      <AddByRSSPodcastHeader feed={feed} />
+      <AddByRSSPodcastHeader boostItem={boostItem} feed={feed} />
       <MainSidebarLayout>
         <MainColumnStack>
           <AddByRSSEpisodeDetailHeader

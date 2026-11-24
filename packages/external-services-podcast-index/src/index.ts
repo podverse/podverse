@@ -12,7 +12,6 @@ import type {
   PodcastBatchByFeedGuidResponse,
   PodcastByGuidResponse,
   PodcastIndexSearchPodcastsResponse,
-  PodcastsByTagResponse,
 } from '@podverse/helpers';
 import { computeExponentialBackoffDelayMs, sleep } from '@podverse/helpers';
 import { type ILoggerLike, summarizeUpstreamHttpErrorForLog } from '@podverse/helpers-backend';
@@ -784,46 +783,6 @@ export class PodcastIndexService {
       );
       return null;
     }
-  };
-
-  // Value
-
-  valueGetByPodcastIds = async (): Promise<number[]> => {
-    const accumulatedPodcastIndexIds: number[] = [];
-    const nextStartAt = 1;
-    const podcast_index_ids = await this.valueGetByPodcastIdsRecursively(
-      accumulatedPodcastIndexIds,
-      nextStartAt
-    );
-
-    return podcast_index_ids;
-  };
-
-  valueGetByPodcastIdsRecursively = async (
-    accumulatedPodcastIndexIds: number[],
-    startAt = 1,
-    isFirstPage = true
-  ): Promise<number[]> => {
-    const url = `${this.baseUrl}/podcasts/bytag?podcast-valueTimeSplit=true&max=5000&start_at=${startAt}`;
-    const data = (await this.podcastIndexAPIRequest(
-      url,
-      undefined,
-      this.paginatedRequestExtraParams(isFirstPage)
-    )) as PodcastsByTagResponse;
-
-    for (const feed of data.feeds) {
-      accumulatedPodcastIndexIds.push(feed.id);
-    }
-
-    if (data.nextStartAt) {
-      return await this.valueGetByPodcastIdsRecursively(
-        accumulatedPodcastIndexIds,
-        data.nextStartAt,
-        false
-      );
-    }
-
-    return accumulatedPodcastIndexIds;
   };
 }
 

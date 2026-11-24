@@ -64,6 +64,9 @@ describe('add-by-RSS detail sections', () => {
       'funding',
       'people',
     ]);
+    expect(
+      resolveAddByRssSections({ ...podcast, hasBoosts: true, hasFunding: true, hasPeople: false })
+    ).toEqual(['episodes', 'downloaded', 'about', 'boosts', 'funding']);
   });
 
   it('orders album and track chips without downloaded', () => {

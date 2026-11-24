@@ -110,6 +110,35 @@ describe('resolvePodcastSections', () => {
       })
     ).toEqual(['episodes', 'downloaded', 'about', 'clips', 'remote_items']);
   });
+
+  it('places Boosts immediately before Funding when the channel publishes a public list', () => {
+    expect(
+      resolvePodcastSections({
+        channel: {
+          channel_fundings: [{ id: 1 }],
+          channel_meta_boost: {
+            node: 'https://api.example.com/v1/s/mbrss-v1/boost/abc/',
+            standard: 'mbrss-v1',
+          },
+          channel_podroll: {
+            channel_podroll_remote_items: [{ feed_guid: 'guid-1' }],
+          },
+          podcast_guid: 'pod-guid',
+        },
+        hasSoundbites: false,
+      })
+    ).toEqual(['episodes', 'downloaded', 'about', 'clips', 'podroll', 'boosts', 'funding']);
+  });
+
+  it('seeds Boosts from cache before the channel DTO arrives', () => {
+    expect(
+      resolvePodcastSections({
+        channel: null,
+        hasSoundbites: false,
+        previewHasBoosts: true,
+      })
+    ).toEqual(['episodes', 'downloaded', 'about', 'clips', 'boosts']);
+  });
 });
 
 describe('channelHasRemoteItems', () => {

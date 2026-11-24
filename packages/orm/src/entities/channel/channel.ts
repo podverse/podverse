@@ -87,9 +87,6 @@ export class Channel {
   medium_id!: number;
 
   @Column({ type: 'boolean', default: false })
-  has_podcast_index_value!: boolean;
-
-  @Column({ type: 'boolean', default: false })
   has_value_time_splits!: boolean;
 
   @Column({ type: 'boolean', default: false })

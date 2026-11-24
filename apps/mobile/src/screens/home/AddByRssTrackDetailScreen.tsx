@@ -1,14 +1,20 @@
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { ReactNode } from 'react';
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { FlatList } from 'react-native';
 import { StyleSheet, Text, View } from 'react-native';
 
 import type { TranscriptRow } from '@podverse/helpers/dto';
+import { buildAddByRssBoostChannel } from '@podverse/parser-mapping';
+import { getBoostEligibilityForContent } from '@podverse/v4v-metaboost';
 
 import { useAuthPrompt } from '../../auth/AuthPromptContext';
 import { useAuth } from '../../auth/AuthProvider';
+import { BoostHeaderAction } from '../../components/boost/BoostHeaderAction';
+import { ReceivedBoostsSection } from '../../components/boost/ReceivedBoostsSection';
+import { useBoostSheet } from '../../components/boost/useBoostSheet';
+import { usePublicBoostMessagesFetchState } from '../../components/boost/useMbrssPublicMessagesCapability';
 import { ChannelHeader } from '../../components/channel';
 import {
   ArtistChooserSheet,
@@ -21,6 +27,7 @@ import {
 import type { SectionChipItem } from '../../components/form';
 import { SectionChipRow } from '../../components/form';
 import { FillList } from '../../components/primitives';
+import { HeaderBarActions } from '../../components/screen/HeaderBarActions';
 import { CallToActionSection } from '../../components/state/CallToActionSection';
 import { ListEmpty } from '../../components/state/ListEmpty';
 import { ListError } from '../../components/state/ListError';
@@ -31,9 +38,11 @@ import { useAddByRssPlayback } from '../../hooks/useAddByRssPlayback';
 import { useTranscriptFollowControls } from '../../hooks/useTranscriptFollowControls';
 import { useTranscriptListAutoscroll } from '../../hooks/useTranscriptListAutoscroll';
 import { addByRssAlbumArtists } from '../../lib/addByRss/addByRssArtistIndex';
+import { boostTargetFromMappedFeed } from '../../lib/addByRss/boostTarget';
 import { toAddByRssItemPlaybackResourceData } from '../../lib/addByRss/domain';
 import { addByRssItemSectionUrls } from '../../lib/addByRss/itemSections';
 import { addByRssPlaybackMediaId } from '../../lib/addByRss/resourceData';
+import { insertBoostsChip } from '../../lib/boost/insertBoostsChip';
 import { OFFLINE_UNAVAILABLE_MESSAGE_KEY } from '../../lib/offlineModeViews';
 import type { LineArtist } from '../../lib/playback/lineArtist';
 import { joinLineArtistTitles } from '../../lib/playback/lineArtist';
@@ -45,6 +54,10 @@ import { listHeaderStackGap, screenBodyInsets } from '../../theme/screenLayout';
 import { typography } from '../../theme/typography';
 import { useTheme } from '../../theme/useTheme';
 import { TRACK_TAB_LABEL_KEYS } from '../track/trackTabs';
+import {
+  isAddByRssMusicFeed,
+  resolveAddByRssBoostItemNavigation,
+} from './addByRss/addByRssDetailSections';
 import type { AddByRssDetailStackParamList } from './addByRss/addByRssStackParams';
 import { AddByRssTrackHeader } from './addByRss/AddByRssTrackHeader';
 import type { AddByRssTrackTab } from './addByRss/addByRssTrackTabs';
@@ -54,6 +67,8 @@ import { useAddByRssItemDetail } from './addByRss/useAddByRssItemDetail';
 import { useAddByRssItemSections } from './addByRss/useAddByRssItemSections';
 import { addByRssFeedHeaderArtwork, toAddByRssAboutPeople } from './addByRssHomeDetailData';
 import type { QueueActionPosition } from './useHomeRowPlayback';
+
+type AddByRssTrackDetailTab = AddByRssTrackTab | 'boosts';
 
 type AddByRssTrackDetailScreenProps = NativeStackScreenProps<
   AddByRssDetailStackParamList & ChannelBrowseStackParamList,
@@ -87,7 +102,8 @@ export function AddByRssTrackDetailScreen({ navigation, route }: AddByRssTrackDe
   } = useAddByRssItemDetail(route.params);
   const { t } = useTranslation();
   const { styles: themeStyles, tokens } = useTheme();
-  const [tab, setTab] = useState<AddByRssTrackTab>('summary');
+  const { boostSheet, openBoost } = useBoostSheet();
+  const [tab, setTab] = useState<AddByRssTrackDetailTab>('summary');
   const [playbackNoticeKey, setPlaybackNoticeKey] = useState<string | null>(null);
   const listRef = useRef<FlatList<AddByRssTrackPaneRow>>(null);
   const routeKey = `${route.params.feedIdText}\n${route.params.itemKey}`;
@@ -152,16 +168,77 @@ export function AddByRssTrackDetailScreen({ navigation, route }: AddByRssTrackDe
     () => (track === null ? null : addByRssItemSectionUrls(track.itemBundle)),
     [track]
   );
+  const boostChannel = useMemo(() => {
+    if (feed === null) {
+      return null;
+    }
+    return buildAddByRssBoostChannel({
+      ...feed,
+      mappedFeed: mappedFeed ?? undefined,
+    });
+  }, [feed, mappedFeed]);
+  const boostTarget = useMemo(() => {
+    if (feed === null || mappedFeed === null || track === null) {
+      return null;
+    }
+    return boostTargetFromMappedFeed({
+      feed,
+      item: track.itemBundle,
+      itemKey: route.params.itemKey,
+      liveItem: null,
+      mappedFeed,
+    });
+  }, [feed, mappedFeed, route.params.itemKey, track]);
+  const canShowBoost =
+    boostTarget !== null &&
+    getBoostEligibilityForContent({
+      channel: boostTarget.channel,
+      item: boostTarget.item,
+      itemValues: boostTarget.item?.item_values,
+    }).canShowBoostAction;
+
+  useLayoutEffect(() => {
+    navigation.setOptions({
+      headerRight: () => {
+        if (boostTarget === null || !canShowBoost) {
+          return null;
+        }
+        const target = boostTarget;
+        return (
+          <HeaderBarActions>
+            <BoostHeaderAction
+              onPress={() => {
+                openBoost(target);
+              }}
+              testID="add-by-rss-track-detail-boost"
+            />
+          </HeaderBarActions>
+        );
+      },
+    });
+  }, [boostTarget, canShowBoost, navigation, openBoost]);
+  const itemGuid = track?.itemBundle.item.guid ?? null;
+  const boostMessages = usePublicBoostMessagesFetchState({
+    channel: boostChannel,
+    fetchAllowed: feed !== null && track !== null,
+    itemGuid,
+    scopeType: 'track',
+  });
+  const musicFeed = feed !== null && isAddByRssMusicFeed(feed.resourceType);
   const tabs = useMemo(
     () =>
-      resolveAddByRssTrackTabs({
-        hasPeople: people.length > 0,
-        hasTranscript: sectionUrls?.transcriptUrl !== undefined,
-      }),
-    [people.length, sectionUrls]
+      insertBoostsChip(
+        resolveAddByRssTrackTabs({
+          hasPeople: people.length > 0,
+          hasTranscript: sectionUrls?.transcriptUrl !== undefined,
+        }),
+        boostMessages.fetcher !== null,
+        'people'
+      ),
+    [boostMessages.fetcher, people.length, sectionUrls]
   );
   const sectionChips = useMemo(
-    (): SectionChipItem<AddByRssTrackTab>[] =>
+    (): SectionChipItem<AddByRssTrackDetailTab>[] =>
       tabs.map((key) => ({
         key,
         label: t(TRACK_TAB_LABEL_KEYS[key]),
@@ -169,7 +246,7 @@ export function AddByRssTrackDetailScreen({ navigation, route }: AddByRssTrackDe
       })),
     [t, tabs]
   );
-  const activeTab: AddByRssTrackTab = tabs.includes(tab) ? tab : 'summary';
+  const activeTab: AddByRssTrackDetailTab = tabs.includes(tab) ? tab : 'summary';
   const { status } = useAuth();
   const { onRequestLogin } = useAuthPrompt();
   const { enabled: offlineModeEnabled } = useOfflineMode();
@@ -316,6 +393,40 @@ export function AddByRssTrackDetailScreen({ navigation, route }: AddByRssTrackDe
     navigation.navigate('AddByRssPodcastDetail', { feedIdText: route.params.feedIdText });
   }, [navigation, route.params.feedIdText]);
 
+  const openBoostTarget = useCallback(
+    (guid: string) => {
+      if (feed === null || mappedFeed === null) {
+        return null;
+      }
+      return resolveAddByRssBoostItemNavigation({
+        feedIdText: route.params.feedIdText,
+        feedUrl: feed.feedUrl,
+        isMusicFeed: musicFeed,
+        itemGuid: guid,
+        mappedFeed,
+      });
+    },
+    [feed, mappedFeed, musicFeed, route.params.feedIdText]
+  );
+  const openBoostItem = useCallback(
+    (guid: string) => {
+      const target = openBoostTarget(guid);
+      if (target === null) {
+        return;
+      }
+      if (target.screen === 'AddByRssLivestreamDetail') {
+        navigation.navigate(target.screen, target.params);
+        return;
+      }
+      if (target.screen === 'AddByRssTrackDetail') {
+        navigation.navigate(target.screen, target.params);
+        return;
+      }
+      navigation.navigate(target.screen, target.params);
+    },
+    [navigation, openBoostTarget]
+  );
+
   const artistIndexVersion = useAddByRssArtistIndexVersion();
   const albumArtists = useMemo(
     () => (feed === null ? [] : addByRssAlbumArtists(feed.feedUrl)),
@@ -352,7 +463,7 @@ export function AddByRssTrackDetailScreen({ navigation, route }: AddByRssTrackDe
     }
   }, [albumArtists, openArtist]);
 
-  const handleTabPress = useCallback((nextTab: AddByRssTrackTab) => {
+  const handleTabPress = useCallback((nextTab: AddByRssTrackDetailTab) => {
     setTab(nextTab);
   }, []);
 
@@ -367,8 +478,76 @@ export function AddByRssTrackDetailScreen({ navigation, route }: AddByRssTrackDe
   const isReady =
     !isLoading && errorKey === null && feed !== null && mappedFeed !== null && track !== null;
 
+  const detailHeader =
+    feed === null || mappedFeed === null || track === null ? null : (
+      <View>
+        <ChannelHeader
+          artworkAddByRssFeedUrl={feed.feedUrl}
+          artworkHeaders={headerArtworkHeaders}
+          artworkUri={headerArtwork.listUrl}
+          onTitlePress={openFeed}
+          subtitle={
+            artistByline.length > 0 ? artistByline : (mappedFeed.channel.about?.author ?? null)
+          }
+          subtitleLink={
+            artistByline.length > 0
+              ? {
+                  accessibilityLabel: t('media_player.open_named_screen', {
+                    name: artistByline,
+                    screen: t(
+                      albumArtists.length > 1 ? 'media.music.artists' : 'media.music.artist'
+                    ),
+                  }),
+                  onPress: onArtistBylinePress,
+                  testID: 'add-by-rss-track-detail-artist-link',
+                }
+              : undefined
+          }
+          testID="add-by-rss-track-detail-album-header"
+          title={albumTitle}
+        />
+        <AddByRssTrackHeader
+          albumTitle={albumTitle}
+          feedUrl={feed.feedUrl}
+          onAddToPlaylistPress={handleAddToPlaylist}
+          onAlbumPress={openFeed}
+          onMarkAsPlayedPress={handleMarkAsPlayed}
+          onPlayPress={handlePlay}
+          onQueuePress={handleQueue}
+          track={track}
+        />
+        {noticeKey !== null ? (
+          <Text accessibilityLiveRegion="polite" style={styles.notice}>
+            {t(noticeKey)}
+          </Text>
+        ) : null}
+        <View style={styles.chipRow}>
+          <SectionChipRow
+            items={sectionChips}
+            onSelect={handleTabPress}
+            selectedKey={activeTab}
+            testID="add-by-rss-track-detail-sections"
+          />
+        </View>
+      </View>
+    );
+
   let listFooter: ReactNode = null;
-  if (activeTab === 'transcript' && offlineModeEnabled && sections === null) {
+  if (activeTab === 'boosts') {
+    listFooter = (
+      <ReceivedBoostsSection
+        channel={boostChannel}
+        fetchAllowed={feed !== null && track !== null}
+        isItemLink={(guid) => openBoostTarget(guid) !== null}
+        itemGuid={itemGuid}
+        listHeader={detailHeader}
+        onOpenChannel={openFeed}
+        onOpenItem={openBoostItem}
+        scopeType="track"
+        testIDPrefix="add-by-rss-track-detail-boosts"
+      />
+    );
+  } else if (activeTab === 'transcript' && offlineModeEnabled && sections === null) {
     listFooter = (
       <ListEmpty
         messageKey={OFFLINE_UNAVAILABLE_MESSAGE_KEY}
@@ -437,103 +616,61 @@ export function AddByRssTrackDetailScreen({ navigation, route }: AddByRssTrackDe
   }
 
   return (
-    <View style={styles.container} testID="add-by-rss-track-detail-screen">
-      {isLoading ? <LoadingSection testID="add-by-rss-track-detail-loading" /> : null}
-      {!isLoading && errorKey !== null ? (
-        <ListError messageKey={errorKey} onRetry={reload} testID="add-by-rss-track-detail-error" />
-      ) : null}
-      {isReady && feed !== null && mappedFeed !== null && track !== null ? (
-        <FillList
-          ListEmptyComponent={null}
-          ListFooterComponent={listFooter}
-          ListHeaderComponent={
-            <View>
-              <ChannelHeader
-                artworkAddByRssFeedUrl={feed.feedUrl}
-                artworkHeaders={headerArtworkHeaders}
-                artworkUri={headerArtwork.listUrl}
-                onTitlePress={openFeed}
-                subtitle={
-                  artistByline.length > 0
-                    ? artistByline
-                    : (mappedFeed.channel.about?.author ?? null)
-                }
-                subtitleLink={
-                  artistByline.length > 0
-                    ? {
-                        accessibilityLabel: t('media_player.open_named_screen', {
-                          name: artistByline,
-                          screen: t(
-                            albumArtists.length > 1 ? 'media.music.artists' : 'media.music.artist'
-                          ),
-                        }),
-                        onPress: onArtistBylinePress,
-                        testID: 'add-by-rss-track-detail-artist-link',
-                      }
-                    : undefined
-                }
-                testID="add-by-rss-track-detail-album-header"
-                title={albumTitle}
-              />
-              <AddByRssTrackHeader
-                albumTitle={albumTitle}
-                feedUrl={feed.feedUrl}
-                onAddToPlaylistPress={handleAddToPlaylist}
-                onAlbumPress={openFeed}
-                onMarkAsPlayedPress={handleMarkAsPlayed}
-                onPlayPress={handlePlay}
-                onQueuePress={handleQueue}
-                track={track}
-              />
-              {noticeKey !== null ? (
-                <Text accessibilityLiveRegion="polite" style={styles.notice}>
-                  {t(noticeKey)}
-                </Text>
-              ) : null}
-              <View style={styles.chipRow}>
-                <SectionChipRow
-                  items={sectionChips}
-                  onSelect={handleTabPress}
-                  selectedKey={activeTab}
-                  testID="add-by-rss-track-detail-sections"
-                />
-              </View>
-            </View>
-          }
-          contentContainerStyle={styles.content}
-          data={listRows}
-          extraData={`${activeTab}:${sections === null ? 'none' : 'loaded'}:${playingTranscriptIndex}:${autoScrollOn}:${filterTerm}`}
-          keyExtractor={addByRssTrackPaneKeyExtractor}
-          onScrollToIndexFailed={
-            activeTab === 'transcript' ? onTranscriptScrollToIndexFailed : undefined
-          }
-          onViewableItemsChanged={onTranscriptViewableItemsChanged}
-          ref={listRef}
-          renderItem={renderPaneRow}
-          stickyHeaderIndices={
-            transcriptStickyOffset > 0 ? [TRANSCRIPT_FOLLOW_BAR_STICKY_INDEX] : undefined
-          }
-          testID={
-            activeTab === 'transcript'
-              ? 'add-by-rss-track-detail-transcript-list'
-              : 'add-by-rss-track-detail-list'
-          }
-          viewabilityConfig={transcriptViewabilityConfig}
+    <>
+      <View style={styles.container} testID="add-by-rss-track-detail-screen">
+        {isLoading ? <LoadingSection testID="add-by-rss-track-detail-loading" /> : null}
+        {!isLoading && errorKey !== null ? (
+          <ListError
+            messageKey={errorKey}
+            onRetry={reload}
+            testID="add-by-rss-track-detail-error"
+          />
+        ) : null}
+        {isReady && feed !== null && mappedFeed !== null && track !== null ? (
+          activeTab === 'boosts' ? (
+            <View style={styles.container}>{listFooter}</View>
+          ) : (
+            <FillList
+              ListEmptyComponent={null}
+              ListFooterComponent={listFooter}
+              ListHeaderComponent={detailHeader}
+              contentContainerStyle={styles.content}
+              data={listRows}
+              extraData={`${activeTab}:${sections === null ? 'none' : 'loaded'}:${playingTranscriptIndex}:${autoScrollOn}:${filterTerm}`}
+              keyExtractor={addByRssTrackPaneKeyExtractor}
+              onScrollToIndexFailed={
+                activeTab === 'transcript' ? onTranscriptScrollToIndexFailed : undefined
+              }
+              onViewableItemsChanged={onTranscriptViewableItemsChanged}
+              ref={listRef}
+              renderItem={renderPaneRow}
+              stickyHeaderIndices={
+                transcriptStickyOffset > 0 ? [TRANSCRIPT_FOLLOW_BAR_STICKY_INDEX] : undefined
+              }
+              testID={
+                activeTab === 'transcript'
+                  ? 'add-by-rss-track-detail-transcript-list'
+                  : 'add-by-rss-track-detail-list'
+              }
+              viewabilityConfig={transcriptViewabilityConfig}
+            />
+          )
+        ) : null}
+        {addToPlaylistSheet}
+        <ArtistChooserSheet
+          artists={albumArtists}
+          onCancel={() => {
+            setIsArtistChooserOpen(false);
+          }}
+          onSelect={(artist) => {
+            setIsArtistChooserOpen(false);
+            openArtist(artist);
+          }}
+          testID="add-by-rss-track-detail-artist-chooser"
+          visible={isArtistChooserOpen}
         />
-      ) : null}
-      {addToPlaylistSheet}
-      <ArtistChooserSheet
-        artists={albumArtists}
-        onCancel={() => {
-          setIsArtistChooserOpen(false);
-        }}
-        onSelect={(artist) => {
-          setIsArtistChooserOpen(false);
-          openArtist(artist);
-        }}
-        testID="add-by-rss-track-detail-artist-chooser"
-        visible={isArtistChooserOpen}
-      />
-    </View>
+      </View>
+      {boostSheet}
+    </>
   );
 }

@@ -1,24 +1,14 @@
 import { attachProviderFailure, buildProviderErrorMessage } from '@podverse/v4v-helpers';
 
+import type { BoostPaymentProvider } from './boostPaymentProvider.js';
 import type { LnurlpDetailsResponse } from './lnurlp.js';
 import { fetchLnurlDetails, fetchLnurlInvoice } from './lnurlp.js';
-
-export type WeblnKeysendOptions = {
-  destination: string;
-  amount: number;
-  customRecords?: Record<string, string>;
-};
-
-export type WeblnProvider = {
-  sendPayment: (invoice: string) => Promise<unknown>;
-  keysend?: (options: WeblnKeysendOptions) => Promise<unknown>;
-};
 
 export type SendLnaddressPaymentParams = {
   recipientAddress: string;
   amountMsat: number;
   desc: string | null;
-  provider: WeblnProvider;
+  provider: BoostPaymentProvider;
   /** Called after each failed invoice attempt (1-based) with the error message for that attempt. */
   onAttemptFailed?: (attemptNumber: number, message: string) => void;
 };
@@ -27,7 +17,7 @@ export type SendKeysendPaymentParams = {
   destination: string;
   amountSats: number;
   customRecords?: Record<string, string>;
-  provider: WeblnProvider;
+  provider: BoostPaymentProvider;
 };
 
 export const getLnurlComment = (
@@ -79,7 +69,7 @@ export const sendLnaddressPayment = async ({
   if (!invoice?.pr) {
     throw new Error('Unable to fetch LNURL invoice.');
   }
-  await provider.sendPayment(invoice.pr);
+  await provider.payInvoice(invoice.pr);
 };
 
 export const sendKeysendPayment = async ({
@@ -88,12 +78,9 @@ export const sendKeysendPayment = async ({
   customRecords,
   provider,
 }: SendKeysendPaymentParams): Promise<void> => {
-  if (!provider.keysend) {
-    throw new Error('WebLN keysend is not available.');
-  }
   await provider.keysend({
     destination,
-    amount: amountSats,
+    amountSats,
     customRecords,
   });
 };

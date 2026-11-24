@@ -2,14 +2,13 @@
 
 import React from 'react';
 
+import type { PublicBoostMessagesPageFetcher } from '@podverse/v4v-metaboost';
+
 import { AddByRSSTrackNodes } from '../../../components/AddByRSS/Artist/Album/Track/AddByRSSTrackNodes';
 import { AddByRSSNeedsCredentialsSection } from '../../../components/AddByRSS/List/AddByRSSNeedsCredentialsSection';
 import { AddByRSSLivestreamNodes } from '../../../components/AddByRSS/Livestream/AddByRSSLivestreamNodes';
 import { BoostMessagesSection } from '../../../components/Boost/messages/BoostMessagesSection';
-import type {
-  BoostBreadcrumbLinkResolver,
-  BoostMessagesPageFetcher,
-} from '../../../components/Boost/messages/types';
+import type { BoostBreadcrumbLinkResolver } from '../../../components/Boost/messages/types';
 import { CommonAlbumListNodes } from '../../../components/Common/Artist/Album/CommonAlbumNodes';
 import type { AlbumListItem } from '../../../components/Common/Artist/Album/types';
 import { ContentAbout } from '../../../components/Content/About/ContentAbout';
@@ -35,7 +34,7 @@ type AddByRSSArtistPageListProps = {
   descriptionIsTruncated: boolean;
   fullDescriptionUrl: string | null;
   viewSelected: ViewSelectedOption;
-  boostsPageFetcher: BoostMessagesPageFetcher | null;
+  boostsPageFetcher: PublicBoostMessagesPageFetcher | null;
   breadcrumbLinkResolver?: BoostBreadcrumbLinkResolver;
   refreshTrigger: number;
   boostsHeading: string;

@@ -3,6 +3,7 @@
 import type { DTOItem } from '@podverse/helpers';
 import { buildEpisodePath, buildPodcastPath } from '@podverse/helpers';
 import type { PublicBoostMessage } from '@podverse/v4v-metaboost';
+import { resolvePublicBoostBreadcrumbTarget } from '@podverse/v4v-metaboost';
 
 import { getApiRequestService } from '../../../factories/apiRequestService';
 import type { BoostBreadcrumbLinkResolver } from './types';
@@ -59,47 +60,37 @@ export const createMbrssBoostBreadcrumbLinkResolver = ({
   const itemPendingMap = new Map<string, Promise<string | null>>();
 
   return async (message: PublicBoostMessage): Promise<string | null> => {
-    const context = message.breadcrumbContext;
-    if (context?.isSubBucket !== true) {
+    const target = resolvePublicBoostBreadcrumbTarget(message, podcastGuid);
+    if (target.kind === 'none') {
       return null;
     }
 
-    const contextItemGuid = context.itemGuid;
-    if (contextItemGuid !== null && contextItemGuid !== '') {
-      const cached = itemHrefCache.get(contextItemGuid);
-      if (cached !== undefined) {
-        return cached;
-      }
-      const pending = itemPendingMap.get(contextItemGuid);
-      if (pending !== undefined) {
-        return pending;
-      }
-
-      const pendingRequest = (async () => {
-        const resolvedItemIdText = resolveItemIdTextByGuid
-          ? await resolveItemIdTextByGuid(contextItemGuid)
-          : await findItemIdTextByGuid(channelIdText, contextItemGuid);
-        const idText = resolvedItemIdText ?? null;
-        const href = idText ? resolveItemHref(idText) : null;
-        itemHrefCache.set(contextItemGuid, href);
-        itemPendingMap.delete(contextItemGuid);
-        return href;
-      })();
-
-      itemPendingMap.set(contextItemGuid, pendingRequest);
-      return pendingRequest;
-    }
-
-    const contextPodcastGuid = context.podcastGuid;
-    if (
-      contextPodcastGuid !== null &&
-      contextPodcastGuid !== '' &&
-      podcastGuid !== null &&
-      contextPodcastGuid === podcastGuid
-    ) {
+    if (target.kind === 'channel') {
       return resolveChannelHref(channelIdText);
     }
 
-    return null;
+    const contextItemGuid = target.itemGuid;
+    const cached = itemHrefCache.get(contextItemGuid);
+    if (cached !== undefined) {
+      return cached;
+    }
+    const pending = itemPendingMap.get(contextItemGuid);
+    if (pending !== undefined) {
+      return pending;
+    }
+
+    const pendingRequest = (async () => {
+      const resolvedItemIdText = resolveItemIdTextByGuid
+        ? await resolveItemIdTextByGuid(contextItemGuid)
+        : await findItemIdTextByGuid(channelIdText, contextItemGuid);
+      const idText = resolvedItemIdText ?? null;
+      const href = idText ? resolveItemHref(idText) : null;
+      itemHrefCache.set(contextItemGuid, href);
+      itemPendingMap.delete(contextItemGuid);
+      return href;
+    })();
+
+    itemPendingMap.set(contextItemGuid, pendingRequest);
+    return pendingRequest;
   };
 };
