@@ -7,6 +7,8 @@ import {
   judgeCustomApiHealthResponse,
   normalizeCustomApiBaseUrl,
   planCustomApiCommit,
+  readWebOriginFromHealthBody,
+  resolvePublicWebBaseUrl,
 } from './customApiUrl';
 
 const BUILT_IN = 'http://localhost:4230/api/v2';
@@ -91,6 +93,14 @@ describe('judgeCustomApiHealthResponse', () => {
     ).toEqual({
       kind: 'ok',
     });
+    expect(
+      judgeCustomApiHealthResponse(200, { status: 'ok', webOrigin: 'https://pv.example' })
+    ).toEqual({
+      kind: 'ok',
+    });
+    expect(judgeCustomApiHealthResponse(200, { status: 'ok', webOrigin: null })).toEqual({
+      kind: 'ok',
+    });
   });
 
   it('rejects a 200 that is not the health body', () => {
@@ -115,5 +125,43 @@ describe('judgeCustomApiHealthResponse', () => {
 describe('customApiHealthUrl', () => {
   it('appends /health to the versioned base', () => {
     expect(customApiHealthUrl(CUSTOM)).toBe('https://example.com/api/v2/health');
+  });
+});
+
+describe('readWebOriginFromHealthBody', () => {
+  it('reads an http or https origin and drops a trailing slash', () => {
+    expect(readWebOriginFromHealthBody({ status: 'ok', webOrigin: 'https://pv.example/' })).toBe(
+      'https://pv.example'
+    );
+    expect(readWebOriginFromHealthBody({ webOrigin: 'http://localhost:3000' })).toBe(
+      'http://localhost:3000'
+    );
+  });
+
+  it('returns null when the field is missing, null, or not an origin', () => {
+    expect(readWebOriginFromHealthBody({ status: 'ok' })).toBeNull();
+    expect(readWebOriginFromHealthBody({ webOrigin: null })).toBeNull();
+    expect(readWebOriginFromHealthBody({ webOrigin: 'https://pv.example/episode' })).toBeNull();
+    expect(readWebOriginFromHealthBody(null)).toBeNull();
+  });
+});
+
+describe('resolvePublicWebBaseUrl', () => {
+  it('uses the build origin when no custom API is saved', () => {
+    expect(resolvePublicWebBaseUrl('https://example.test/', null, null)).toBe(
+      'https://example.test'
+    );
+    expect(resolvePublicWebBaseUrl(null, null, 'https://pv.example')).toBeNull();
+  });
+
+  it('uses the stored origin while a custom API is saved', () => {
+    expect(resolvePublicWebBaseUrl('https://example.test', CUSTOM, 'https://pv.example/')).toBe(
+      'https://pv.example'
+    );
+  });
+
+  it('returns null when a custom API saved no website origin', () => {
+    expect(resolvePublicWebBaseUrl('https://example.test', CUSTOM, null)).toBeNull();
+    expect(resolvePublicWebBaseUrl('https://example.test', CUSTOM, 'not-a-url')).toBeNull();
   });
 });

@@ -184,6 +184,7 @@ components:
         - status
         - message
         - fixturesEnabled
+        - webOrigin
       properties:
         status:
           type: string
@@ -194,6 +195,13 @@ components:
         fixturesEnabled:
           type: boolean
           description: True when this server is serving end-to-end fixtures.
+        webOrigin:
+          type: string
+          nullable: true
+          description: >-
+            Public website origin from WEB_PROTOCOL and WEB_DOMAIN, with no trailing slash.
+            Null when that pair is not an http or https origin.
+          example: https://example.com
     ApiGetHealthReadyResponse:
       type: object
       required:

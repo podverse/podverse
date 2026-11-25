@@ -1,4 +1,5 @@
 import { getMobileConfig } from '../config';
+import { resolvePublicWebBaseUrl } from '../config/customApiUrl';
 
 /**
  * Pure (RN-free) URL building for the membership purchase hand-off. Kept separate from
@@ -14,14 +15,15 @@ const CHECKOUT_WEB_PATHS: Record<CheckoutMode, string> = {
 };
 
 const webOrigin = (): string | null => {
-  const webBaseUrl = getMobileConfig().webBaseUrl;
-  if (webBaseUrl === null || webBaseUrl.trim() === '') {
-    return null;
-  }
-  return webBaseUrl.replace(/\/+$/, '');
+  const config = getMobileConfig();
+  return resolvePublicWebBaseUrl(
+    config.webBaseUrl,
+    config.customApiBaseUrl,
+    config.customApiWebOrigin
+  );
 };
 
-/** Absolute web URL for a checkout mode, or null when this build has no web host. */
+/** Absolute web URL for a checkout mode, or null when there is no website to open. */
 export const buildCheckoutUrl = (mode: CheckoutMode): string | null => {
   const origin = webOrigin();
   if (origin === null) {
@@ -30,7 +32,7 @@ export const buildCheckoutUrl = (mode: CheckoutMode): string | null => {
   return `${origin}${CHECKOUT_WEB_PATHS[mode]}`;
 };
 
-/** Absolute URL for a path on the public web origin, or null when this build has no web host. */
+/** Absolute URL for a path on the website origin, or null when there is no website to open. */
 export const buildWebPathUrl = (path: string): string | null => {
   const origin = webOrigin();
   if (origin === null) {

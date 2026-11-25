@@ -650,7 +650,7 @@ export type MoreStackParamList = {
   MoreSmoke: undefined;
   MoreAdvanced: undefined;
   MoreCustomApi: undefined;
-  MoreCustomApiClear: { baseUrl: string | null };
+  MoreCustomApiClear: { baseUrl: string | null; webOrigin: string | null };
   MoreErrorLog: undefined;
   MoreErrorLogDetail: { entryId: number };
   MoreRemovedContent: undefined;

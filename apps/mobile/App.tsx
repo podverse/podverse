@@ -14,7 +14,10 @@ import { ForcedLogoutNotice } from './src/components/feedback/ForcedLogoutNotice
 import { OverlayA11yShield, OverlayHostProvider, OverlayOutlet } from './src/components/overlay';
 import { VideoPlaybackChromeBridge } from './src/components/player/VideoPlaybackChromeBridge';
 import { ShareSheetPassthroughOverlay } from './src/components/share/ShareSheetPassthroughOverlay';
-import { hydrateCustomApiEndpoint } from './src/config/customApiEndpoint';
+import {
+  hydrateCustomApiEndpoint,
+  refreshSavedCustomApiWebOrigin,
+} from './src/config/customApiEndpoint';
 import { AutoQueueProvider } from './src/contexts/AutoQueueProvider';
 import { QueuesProvider } from './src/contexts/QueuesProvider';
 import { initializeDatabase } from './src/data/db';
@@ -108,6 +111,9 @@ export default function App() {
       })
       .finally(() => {
         setIsCustomApiReady(true);
+        void refreshSavedCustomApiWebOrigin().catch((error: unknown) => {
+          console.warn('[custom-api] website origin refresh failed', error);
+        });
       });
   }, []);
 

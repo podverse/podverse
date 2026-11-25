@@ -5,6 +5,7 @@ import {
   isUnknownRecord,
   judgeCustomApiHealthResponse,
   normalizeCustomApiBaseUrl,
+  readWebOriginFromHealthBody,
 } from './customApiUrl';
 
 /** Long enough for a cold TLS handshake, short enough that Save does not look stuck. */
@@ -17,7 +18,8 @@ export type CustomApiProbeFailure =
   | { kind: 'unexpected_body' };
 
 export type CustomApiProbeResult =
-  { ok: true; baseUrl: string } | { ok: false; failure: CustomApiProbeFailure };
+  | { ok: true; baseUrl: string; webOrigin: string | null }
+  | { ok: false; failure: CustomApiProbeFailure };
 
 const readHttpStatus = (error: unknown): number | null => {
   if (!isUnknownRecord(error)) {
@@ -58,7 +60,7 @@ export const probeCustomApiBaseUrl = async (raw: string): Promise<CustomApiProbe
     );
     const verdict = judgeCustomApiHealthResponse(status, data);
     if (verdict.kind === 'ok') {
-      return { ok: true, baseUrl };
+      return { ok: true, baseUrl, webOrigin: readWebOriginFromHealthBody(data) };
     }
     return { ok: false, failure: verdict };
   } catch (error: unknown) {

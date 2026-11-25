@@ -401,7 +401,9 @@
     "unexpected_status": "Ese servidor respondió con el estado {status}. Se esperaba 200. No se guardó nada.",
     "unexpected_body": "Ese servidor respondió con el estado 200, pero la comprobación de salud no informó ok. No se guardó nada.",
     "notice_label": "API personalizada",
-    "notice_body": "El inicio de sesión, el registro, las contraseñas de feeds y las compras en la tienda dentro de esta app van a este servidor. Una página abierta en el navegador usa el sitio público, que no lo hace.",
+    "notice_body": "El inicio de sesión, el registro, las contraseñas de feeds y las compras en la tienda dentro de esta app van a este servidor.",
+    "notice_website": "Los enlaces para compartir y las demás páginas abiertas en el navegador usan el sitio web de este servidor.",
+    "notice_website_missing": "Este servidor no informó un sitio web, así que esos enlaces no están disponibles.",
     "clear": {
       "title": "Borrar datos locales",
       "intro": "Se borrará la copia de este teléfono del servidor anterior. Una cuenta en ese servidor se deja como está.",

@@ -401,7 +401,9 @@
     "unexpected_status": "Ce serveur a répondu avec le statut {status}. 200 était attendu. Rien n'a été enregistré.",
     "unexpected_body": "Ce serveur a répondu avec le statut 200, mais le contrôle de santé n'a pas indiqué ok. Rien n'a été enregistré.",
     "notice_label": "API personnalisée",
-    "notice_body": "La connexion, l'inscription, les mots de passe de flux et les achats en boutique dans cette app vont vers ce serveur. Une page ouverte dans le navigateur utilise le site public, qui ne le fait pas.",
+    "notice_body": "La connexion, l'inscription, les mots de passe de flux et les achats en boutique dans cette app vont vers ce serveur.",
+    "notice_website": "Les liens de partage et les autres pages ouvertes dans le navigateur utilisent le site web de ce serveur.",
+    "notice_website_missing": "Ce serveur n'a pas indiqué de site web, donc ces liens ne sont pas disponibles.",
     "clear": {
       "title": "Effacer les données locales",
       "intro": "La copie de ce téléphone du serveur précédent sera effacée. Un compte sur ce serveur reste tel quel.",

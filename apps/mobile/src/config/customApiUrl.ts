@@ -144,3 +144,88 @@ export const judgeCustomApiHealthResponse = (
 };
 
 export const customApiHealthUrl = (baseUrl: string): string => `${baseUrl}/health`;
+
+/**
+ * `http(s)` origin with no userinfo, query, hash, or path. A trailing slash is dropped.
+ * Null when the text is not that kind of origin.
+ */
+export const normalizePublicWebOrigin = (raw: string | null): string | null => {
+  if (raw === null) {
+    return null;
+  }
+
+  const trimmed = raw.trim();
+  if (trimmed === '') {
+    return null;
+  }
+
+  let parsed: URL;
+  try {
+    parsed = new URL(trimmed);
+  } catch {
+    return null;
+  }
+
+  if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') {
+    return null;
+  }
+
+  if (parsed.username !== '' || parsed.password !== '') {
+    return null;
+  }
+
+  if (parsed.search !== '' || parsed.hash !== '') {
+    return null;
+  }
+
+  if (parsed.pathname !== '/' && parsed.pathname !== '') {
+    return null;
+  }
+
+  return parsed.origin;
+};
+
+/**
+ * Website origin from a health body. A missing key, null, or any other shape is null.
+ * The health verdict itself stays on `status: ok`.
+ */
+export const readWebOriginFromHealthBody = (data: unknown): string | null => {
+  if (!isUnknownRecord(data) || !('webOrigin' in data)) {
+    return null;
+  }
+
+  const value = data.webOrigin;
+  if (typeof value !== 'string') {
+    return null;
+  }
+
+  return normalizePublicWebOrigin(value);
+};
+
+const trimTrailingSlashes = (value: string): string => {
+  return value.replace(/\/+$/, '');
+};
+
+/**
+ * Website origin for share links and in-app browser pages.
+ * No custom API: the build's public website, including when that build has none.
+ * Custom API with a stored origin: that origin. Custom API with none: null.
+ */
+export const resolvePublicWebBaseUrl = (
+  builtInWebBaseUrl: string | null,
+  customApiBaseUrl: string | null,
+  customApiWebOrigin: string | null
+): string | null => {
+  if (customApiBaseUrl === null) {
+    if (builtInWebBaseUrl === null) {
+      return null;
+    }
+    const trimmed = trimTrailingSlashes(builtInWebBaseUrl.trim());
+    if (trimmed === '') {
+      return null;
+    }
+    return trimmed;
+  }
+
+  return normalizePublicWebOrigin(customApiWebOrigin);
+};

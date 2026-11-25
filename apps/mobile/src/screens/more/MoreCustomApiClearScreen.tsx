@@ -81,13 +81,15 @@ const readStackSnapshot = (value: unknown): StackSnapshot | undefined => {
   };
 };
 
-const clearScreenBaseUrl = (
+const clearScreenTarget = (
   params: MoreStackParamList['MoreCustomApiClear'] | undefined
-): { baseUrl: string | null } | undefined => {
+): { baseUrl: string | null; webOrigin: string | null } | undefined => {
   if (params === undefined || !('baseUrl' in params)) {
     return undefined;
   }
-  return { baseUrl: params.baseUrl };
+  const webOrigin =
+    params.webOrigin === null || typeof params.webOrigin === 'string' ? params.webOrigin : null;
+  return { baseUrl: params.baseUrl, webOrigin };
 };
 
 /**
@@ -219,7 +221,7 @@ export function MoreCustomApiClearScreen({ navigation, route }: Props) {
   const { logout, status } = useAuth();
   const { clearNowPlaying } = usePlaybackSession();
   const opmlExport = useOpmlExport();
-  const clearTarget = clearScreenBaseUrl(route.params);
+  const clearTarget = clearScreenTarget(route.params);
   const [failed, setFailed] = useState(false);
   const [isClearing, setIsClearing] = useState(false);
   const busyRef = useRef(false);
@@ -259,7 +261,7 @@ export function MoreCustomApiClearScreen({ navigation, route }: Props) {
           }
         }
         clearNowPlaying();
-        await clearLocalLibraryForApiSwitch(baseUrl);
+        await clearLocalLibraryForApiSwitch(baseUrl, clearTarget.webOrigin);
       } catch {
         setFailed(true);
         return;

@@ -5,6 +5,7 @@ import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
 import type { ORMContext } from '@podverse/orm';
 
 import { config } from '../config/index.js';
+import { publicWebOriginFromConfig } from '../lib/health/publicWebOrigin.js';
 import { startTestApp, stopTestApp } from './helpers/index.js';
 
 vi.mock('@podverse/orm', async (importOriginal) => {
@@ -50,6 +51,7 @@ describe('API health routes', () => {
       status: 'ok',
       message: 'The server is running.',
       fixturesEnabled: process.env.PODVERSE_E2E_FIXTURES === '1',
+      webOrigin: publicWebOriginFromConfig(process.env.WEB_PROTOCOL, process.env.WEB_DOMAIN),
     });
   });
 

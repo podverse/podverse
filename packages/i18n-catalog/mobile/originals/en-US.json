@@ -244,7 +244,9 @@
     "unexpected_status": "That server responded with status {status}. Expected 200. Nothing was saved.",
     "unexpected_body": "That server responded with status 200, but the health check did not report ok. Nothing was saved.",
     "notice_label": "Custom API",
-    "notice_body": "Sign-in, sign-up, feed passwords, and store purchases in this app go to this server. A page opened in the browser uses the public website, which does not.",
+    "notice_body": "Sign-in, sign-up, feed passwords, and store purchases in this app go to this server.",
+    "notice_website": "Share links and other pages opened in the browser use this server's website.",
+    "notice_website_missing": "This server did not report a website, so those links are unavailable.",
     "clear": {
       "title": "Clear Local Data",
       "intro": "This phone's copy of the previous server will be erased. An account on that server is left as it is.",

@@ -2,7 +2,7 @@ import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { StyleSheet, Text, View } from 'react-native';
 
-import { useCustomApiBaseUrl } from '../../config/customApiEndpoint';
+import { useCustomApiBaseUrl, useCustomApiWebOrigin } from '../../config/customApiEndpoint';
 import { typography } from '../../theme/typography';
 import { useTheme } from '../../theme/useTheme';
 
@@ -13,6 +13,7 @@ import { useTheme } from '../../theme/useTheme';
 export function CustomApiNotice() {
   const { t } = useTranslation();
   const apiUrl = useCustomApiBaseUrl();
+  const webOrigin = useCustomApiWebOrigin();
   const { styles: themeStyles, tokens } = useTheme();
 
   const styles = useMemo(
@@ -55,6 +56,11 @@ export function CustomApiNotice() {
         {apiUrl}
       </Text>
       <Text style={styles.body}>{t('custom_api.notice_body')}</Text>
+      <Text style={styles.body} testID="custom-api-notice-links">
+        {webOrigin === null
+          ? t('custom_api.notice_website_missing')
+          : t('custom_api.notice_website')}
+      </Text>
     </View>
   );
 }

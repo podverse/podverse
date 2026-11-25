@@ -276,3 +276,17 @@
   stored import as before.
 - Who notices: listeners importing OPML on narrowed instances
 - Operator steps: none beyond the catalog keys
+
+## Custom API share links use that server's website
+
+- Surfaces: api, mobile
+- Change: `GET /health` includes `webOrigin`, built from `WEB_PROTOCOL` and `WEB_DOMAIN`. Null when
+  that pair is not an http or https origin. The health check still returns 200. While the mobile
+  app has a custom API saved, share links and in-app browser pages (checkout, terms) use that
+  origin, including offline, and a later launch refreshes it. If the server omits it or sends
+  null, those links stay off instead of using the website baked into the app. With no custom API,
+  share links and universal links stay on `EXPO_PUBLIC_MOBILE_WEB_BASE_URL`.
+- Who notices: listeners who point the app at their own server and use Share or open a page in the
+  browser; operators whose `WEB_DOMAIN` is what those links should use
+- Operator steps: set `WEB_PROTOCOL` and `WEB_DOMAIN` on that API to the public website. No new
+  env var.

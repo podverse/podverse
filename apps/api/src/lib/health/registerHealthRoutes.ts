@@ -4,6 +4,7 @@ import type { IRouter, Request, Response } from 'express';
 import { getDataSourceRead } from '@podverse/orm';
 
 import { testKeyvaldbConnection } from '../keyvaldb/keyvaldb.js';
+import { publicWebOriginFromConfig } from './publicWebOrigin.js';
 
 /**
  * Registers versioned liveness and readiness routes (e.g. `/api/v2/health`).
@@ -15,6 +16,7 @@ export function registerHealthRoutes(router: IRouter, apiVersionBasePath: string
       message: 'The server is running.',
       /** True when apiMobileE2e (PODVERSE_E2E_FIXTURES=1); mobile E2E runner checks this. */
       fixturesEnabled: config.e2e.fixturesEnabled,
+      webOrigin: publicWebOriginFromConfig(config.web.protocol, config.web.domain),
     });
   });
 

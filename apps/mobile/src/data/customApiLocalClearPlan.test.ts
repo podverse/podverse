@@ -81,6 +81,7 @@ describe('selectAsyncStorageKeysForApiSwitch', () => {
       'clip.visibility',
       'clip.has_seen_make_clip_how_to',
       'api.custom_base_url',
+      'api.custom_web_origin',
     ];
 
     expect(selectAsyncStorageKeysForApiSwitch(keys)).toEqual([

@@ -61,7 +61,7 @@ These variables are **always required** regardless of configuration:
 ### Web
 
 - **`WEB_PROTOCOL`** (Required) - Web protocol (`http` or `https`)
-- **`WEB_DOMAIN`** (Required) - Web domain (e.g., `localhost:3000` or `podverse.fm`)
+- **`WEB_DOMAIN`** (Required) - Web domain (e.g., `localhost:3000` or `podverse.fm`). With `WEB_PROTOCOL`, this is `webOrigin` on `GET /health`. The mobile app uses it for share links when that server is the custom API.
 - **`WEB_ICON_IMAGE_PATH`** (Optional) - **Absolute** URL for the web app icon in notifications/push. When set, must start with `http://` or `https://`. If unset, the icon URL is left empty. For local dev, a typical value is `http://localhost:3002/favicon/web-app-manifest-192x192.png` (Next.js on port 3002). See `apps/workers/ENV.md` for the same variable.
 
 ### Message Queue

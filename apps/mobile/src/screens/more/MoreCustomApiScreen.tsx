@@ -139,7 +139,7 @@ export function MoreCustomApiScreen({ navigation }: Props) {
       return;
     }
     if (plan.action === 'clear') {
-      navigation.navigate(MORE_STACK_ROUTES.MoreCustomApiClear, { baseUrl: null });
+      navigation.navigate(MORE_STACK_ROUTES.MoreCustomApiClear, { baseUrl: null, webOrigin: null });
       return;
     }
 
@@ -152,7 +152,10 @@ export function MoreCustomApiScreen({ navigation }: Props) {
         setFeedback(result.failure);
         return;
       }
-      navigation.navigate(MORE_STACK_ROUTES.MoreCustomApiClear, { baseUrl: result.baseUrl });
+      navigation.navigate(MORE_STACK_ROUTES.MoreCustomApiClear, {
+        baseUrl: result.baseUrl,
+        webOrigin: result.webOrigin,
+      });
     } catch {
       setFeedback({ kind: 'unreachable' });
     } finally {
@@ -177,7 +180,7 @@ export function MoreCustomApiScreen({ navigation }: Props) {
       }
       return;
     }
-    navigation.navigate(MORE_STACK_ROUTES.MoreCustomApiClear, { baseUrl: null });
+    navigation.navigate(MORE_STACK_ROUTES.MoreCustomApiClear, { baseUrl: null, webOrigin: null });
   };
 
   return (

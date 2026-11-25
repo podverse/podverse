@@ -4,6 +4,7 @@ import type { DTOPlaybackResourceSummary } from '@podverse/helpers/accountPlayba
 import type { PlaybackTarget } from '@podverse/playback-core';
 
 import { getMobileConfig } from '../../config';
+import { resolvePublicWebBaseUrl } from '../../config/customApiUrl';
 import { presentShareSheet } from './shareSheetPassthrough';
 import type { ShareResource } from './shareUrl';
 import {
@@ -12,8 +13,17 @@ import {
   buildRemotePlaybackShareUrl as buildRemotePlaybackShareUrlFromWebBaseUrl,
 } from './shareUrl';
 
+const shareWebBaseUrl = (): string | null => {
+  const config = getMobileConfig();
+  return resolvePublicWebBaseUrl(
+    config.webBaseUrl,
+    config.customApiBaseUrl,
+    config.customApiWebOrigin
+  );
+};
+
 export const buildPublicShareUrl = (resource: ShareResource, idText: string): string | null => {
-  return buildPublicShareUrlFromWebBaseUrl(getMobileConfig().webBaseUrl, resource, idText);
+  return buildPublicShareUrlFromWebBaseUrl(shareWebBaseUrl(), resource, idText);
 };
 
 /**
@@ -34,7 +44,7 @@ export const shareResolvedUrl = (url: string | null): void => {
  * routes (`/episode`, `/clip`, `/podcast`).
  */
 export function buildNowPlayingShareUrl(target: PlaybackTarget): string | null {
-  return buildNowPlayingShareUrlFromWebBaseUrl(getMobileConfig().webBaseUrl, target);
+  return buildNowPlayingShareUrlFromWebBaseUrl(shareWebBaseUrl(), target);
 }
 
 /**
@@ -45,5 +55,5 @@ export function buildRemotePlaybackShareUrl(
   resource: DTOPlaybackResourceSummary,
   isLive: boolean
 ): string | null {
-  return buildRemotePlaybackShareUrlFromWebBaseUrl(getMobileConfig().webBaseUrl, resource, isLive);
+  return buildRemotePlaybackShareUrlFromWebBaseUrl(shareWebBaseUrl(), resource, isLive);
 }

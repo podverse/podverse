@@ -35,11 +35,14 @@ const LAST_PLAYBACK_KEY = 'pv_mobile_last_playback';
 const PUSH_REGISTRATION_KEYS = ['push.fcm.registeredToken', 'push.up.registeredEndpoint'] as const;
 
 /**
- * Erases this phone's copy of the previous server, then saves `baseUrl`.
- * `null` restores the built-in address. A throw before that write leaves the saved address alone.
- * Nothing here contacts a server.
+ * Erases this phone's copy of the previous server, then saves `baseUrl` and its website origin.
+ * `null` restores the built-in address and drops the stored origin. A throw before that write
+ * leaves the saved address alone. Nothing here contacts a server.
  */
-export const clearLocalLibraryForApiSwitch = async (baseUrl: string | null): Promise<void> => {
+export const clearLocalLibraryForApiSwitch = async (
+  baseUrl: string | null,
+  webOrigin: string | null
+): Promise<void> => {
   syncQueue.reset();
   advanceAuthSessionGeneration();
   await clearAllSecureTokens();
@@ -107,5 +110,5 @@ export const clearLocalLibraryForApiSwitch = async (baseUrl: string | null): Pro
   clearSectionChromeFlagsMemory();
   await reprojectCarCacheAll();
 
-  await writeCustomApiBaseUrl(baseUrl);
+  await writeCustomApiBaseUrl(baseUrl, webOrigin);
 };

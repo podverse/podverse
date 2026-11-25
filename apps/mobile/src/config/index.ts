@@ -1,7 +1,7 @@
 import type { AccountSignupMode } from '@podverse/helpers';
 
 import { getMobileAccountSignupModeFromEnv } from './accountSignupModeEnv';
-import { readCustomApiBaseUrlOverride } from './customApiEndpoint';
+import { readCustomApiBaseUrlOverride, readCustomApiWebOrigin } from './customApiEndpoint';
 import type { MobileAlbyConfig } from './env';
 import {
   getMobileAlbyConfigFromEnv,
@@ -36,6 +36,10 @@ export type MobileConfig = {
   billingMode: 'store' | 'unavailable';
   /** Address opened by the error-log email action. */
   contactEmail: string;
+  /** Saved custom API address, or null while this app uses the built-in API. */
+  customApiBaseUrl: string | null;
+  /** Website origin that custom API reported, or null when it did not. */
+  customApiWebOrigin: string | null;
   /** Custom URL schemes registered for deep links (e.g. `['podverse-next', 'podverse']`). */
   deepLinkSchemes: string[];
   isE2e: boolean;
@@ -44,7 +48,11 @@ export type MobileConfig = {
   unifiedPushEndpoint: string | null;
   /** Value-for-value boost entry enabled; hidden by default. */
   isV4vEnabled: boolean;
-  /** Public web origin, or null when this build has no web host. */
+  /**
+   * Public web origin baked into this build, or null when it has no web host.
+   * Universal links use this field. Share links and in-app browser pages use
+   * `resolvePublicWebBaseUrl`.
+   */
   webBaseUrl: string | null;
 };
 
@@ -54,7 +62,8 @@ export const getBuiltInMobileApiBaseUrl = (): string | null => selectMobileApiBa
 /**
  * Typed mobile app config. Sole consumer-facing entry for env-derived settings.
  * Outside `src/config/`, import `getMobileConfig()` — do not read `process.env.EXPO_PUBLIC_*`.
- * A saved custom API address replaces `api` until Reset. Other fields stay on the build.
+ * A saved custom API address replaces `api` until Reset. `webBaseUrl` stays on the build.
+ * `customApiBaseUrl` and `customApiWebOrigin` follow the saved override.
  */
 export const getMobileConfig = (): MobileConfig => {
   const selectedBaseUrl = selectMobileApiBaseUrl();
@@ -66,6 +75,8 @@ export const getMobileConfig = (): MobileConfig => {
   const unifiedPushAuthKey = getMobileUnifiedPushAuthKeyFromEnv();
   const isV4vEnabled = isMobileV4vEnabledFromEnv();
   const webBaseUrl = getMobilePublicWebBaseUrlFromEnv();
+  const customApiBaseUrl = readCustomApiBaseUrlOverride();
+  const customApiWebOrigin = readCustomApiWebOrigin();
   const contactEmail = getMobileContactEmailFromEnv();
   const accountSignupMode = getMobileAccountSignupModeFromEnv();
   const alby = getMobileAlbyConfigFromEnv();
@@ -75,6 +86,8 @@ export const getMobileConfig = (): MobileConfig => {
     alby,
     billingMode,
     contactEmail,
+    customApiBaseUrl,
+    customApiWebOrigin,
     deepLinkSchemes,
     isE2e,
     isV4vEnabled,
@@ -84,7 +97,7 @@ export const getMobileConfig = (): MobileConfig => {
     webBaseUrl,
   };
 
-  const override = readCustomApiBaseUrlOverride();
+  const override = customApiBaseUrl;
   if (override !== null) {
     const overrideApi = parseMobileApiConnection(override);
     if (overrideApi !== null) {
