@@ -8,8 +8,9 @@ alwaysApply: true
 These rules load when their files are read. Open the rule first when the task matches but no
 file of theirs is in context.
 
-- Store build or submit steps, EAS, store identity → `mobile-store-builds-on-demand`,
-  `mobile-next-store-identity`
+- Store build or submit steps, EAS, store identity, or an `apps/mobile` `@podverse/*`
+  dependency (including an EAS bundle that cannot resolve that package's `dist/index.js`) →
+  `mobile-store-builds-on-demand`, `mobile-next-store-identity`
 - About or Summary content → `about-summary-web-mobile-alignment`
 - Naming description, About, or Summary fields, sections, or catalog keys → `domain-terms`
 - Playlist versus HLS playlist (m3u8) naming or searches → `domain-terms`

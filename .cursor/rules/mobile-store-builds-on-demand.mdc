@@ -1,9 +1,12 @@
 ---
-description: Mobile store builds are on-demand only; never tie eas build/submit to staging or main merges.
+description: Mobile store builds are on-demand only. The EAS pre-install compile list must include every @podverse package apps/mobile reaches.
 globs:
   - "apps/mobile/eas.json"
   - "apps/mobile/app.config.ts"
+  - "apps/mobile/package.json"
   - "scripts/mobile/eas-store.sh"
+  - "scripts/mobile/eas-build-pre-install.sh"
+  - "scripts/mobile/check-eas-mobile-packages.mjs"
   - "makefiles/local/Makefile.local.mobile.mk"
   - ".github/workflows/**"
 alwaysApply: false
@@ -32,6 +35,25 @@ build or store submit for `apps/mobile`.
 - If a GitHub Actions path is added later, use **`workflow_dispatch` only**, behind an approval
   Environment that holds `EXPO_TOKEN`. No `push:` / `pull_request:` triggers for `eas build` or
   `eas submit`.
+
+## Shared package compile list
+
+`apps/mobile` sits outside the root npm workspace. Its `@podverse/*` dependencies are `file:`
+links whose `main` is `dist/index.js`, and `dist/` is not committed. iOS and Android EAS both run
+`scripts/mobile/eas-build-pre-install.sh` before Metro. `MOBILE_PACKAGES` in that script is the
+compile list, in dependency order.
+
+When adding or removing a `file:` `@podverse/*` dependency in `apps/mobile/package.json`, update
+`MOBILE_PACKAGES` in the same change. Include that package and every `@podverse/*` package it
+depends on. `scripts/mobile/check-eas-mobile-packages.mjs` runs at the start of the hook and fails
+the build when the list is missing a package, lists one mobile does not reach, or is out of
+dependency order.
+
+A missing entry fails later in the JavaScript bundle: Metro finds the package and reports
+`dist/index.js` unresolved. Android uses this same hook, so an iOS failure of this kind is an
+Android failure until the list is updated.
+
+Do not commit `dist/` to cover a missing entry.
 
 ## Prompt answers
 

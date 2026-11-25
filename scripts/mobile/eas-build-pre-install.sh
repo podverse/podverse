@@ -8,8 +8,8 @@
 # Mirrors the root install + package build half of scripts/dev/deps-init.sh, limited to the
 # packages mobile reaches.
 #
-# Keep MOBILE_PACKAGES in dependency order and in sync with the `@podverse/*` dependencies in
-# apps/mobile/package.json plus their own `@podverse/*` dependencies.
+# MOBILE_PACKAGES is the compile list, in dependency order. check-eas-mobile-packages.mjs
+# rejects a list that does not match the @podverse packages apps/mobile reaches.
 
 set -euo pipefail
 
@@ -26,9 +26,13 @@ MOBILE_PACKAGES=(
   packages/http-request-core
   packages/observability
   packages/helpers-requests
+  packages/v4v-helpers
+  packages/v4v-btc-ln
 )
 
 cd "$REPO_ROOT"
+
+node "$SCRIPT_DIR/check-eas-mobile-packages.mjs"
 
 echo "Installing root workspace dependencies..."
 npm ci --ignore-scripts
