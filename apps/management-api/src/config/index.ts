@@ -9,8 +9,8 @@ import {
   MS_PER_SECOND,
   readOptionalPositiveExpirationEnv,
 } from '@podverse/helpers';
-import type { BillingProcessorEnv } from '@podverse/helpers-config';
-import { readBillingProcessorEnv } from '@podverse/helpers-config';
+import type { BillingProcessorEnv, CatalogConfig } from '@podverse/helpers-config';
+import { buildCatalogConfigFromEnv, readBillingProcessorEnv } from '@podverse/helpers-config';
 import type { ObservabilityConfig } from '@podverse/observability/config';
 import { buildObservabilityConfigFromEnv } from '@podverse/observability/config';
 
@@ -98,6 +98,13 @@ type Config = {
     /** `BILLING_SANDBOX_GRANT_ALL`. Every sandbox purchase grants while `NODE_ENV` is production. */
     grantAllSandboxPurchases: boolean;
     processors: BillingProcessorEnv;
+  };
+  catalog: CatalogConfig;
+  /** Blank when the Podcast Index secret is not mounted. Directory search needs all three. */
+  podcastIndex: {
+    authKey: string | undefined;
+    baseUrl: string | undefined;
+    secretKey: string | undefined;
   };
 };
 
@@ -193,5 +200,11 @@ export const config: Config = {
     sandboxAllowedAccountIds: process.env.BILLING_SANDBOX_ALLOWED_ACCOUNT_IDS,
     grantAllSandboxPurchases: process.env.BILLING_SANDBOX_GRANT_ALL === 'true',
     processors: readBillingProcessorEnv(process.env),
+  },
+  catalog: buildCatalogConfigFromEnv(process.env, ''),
+  podcastIndex: {
+    authKey: process.env.PODCAST_INDEX_AUTH_KEY,
+    baseUrl: process.env.PODCAST_INDEX_BASE_URL,
+    secretKey: process.env.PODCAST_INDEX_SECRET_KEY,
   },
 };

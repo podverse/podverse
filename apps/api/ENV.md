@@ -340,8 +340,10 @@ served as before.
 - **`CATALOG_ADD_BY_RSS_DISABLED`** — `"true"` or `"false"` if set. `"true"` refuses Add by RSS
   parse requests and requests that create a new Add by RSS follow. Unfollow still works.
 - **`CATALOG_PODCAST_INDEX_ID_ALLOWLIST`** — comma-separated Podcast Index feed ids, no size
-  limit. When set, the API refuses the on-demand Podcast Index add, and the allowlist-only search
-  endpoint is available. Blank keeps the open directory and the Podcast Index search.
+  limit. When set, the API refuses the on-demand Podcast Index add. Requests for a listed id
+  that the directory moved follow the stored show. Blank keeps the open directory and the
+  Podcast Index search. Management can add more ids while this list is set; those ids stay
+  refused on the public add route.
 
 ### Add-by-RSS
 

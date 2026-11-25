@@ -3,7 +3,11 @@ import { validateBodyObject } from '@api/lib/validation/index.js';
 import type { Request, Response } from 'express';
 import Joi from 'joi';
 
-import { ChannelMergeRedirectService, IDENTITY_RESOLVE_MAX_IDS } from '@podverse/orm';
+import {
+  CatalogPodcastIndexAllowlistService,
+  ChannelMergeRedirectService,
+  IDENTITY_RESOLVE_MAX_IDS,
+} from '@podverse/orm';
 
 const idList = Joi.array().items(Joi.string().trim().min(1).max(64)).max(IDENTITY_RESOLVE_MAX_IDS);
 
@@ -47,6 +51,7 @@ function numberList(value: unknown): number[] {
 
 export class IdentityController {
   private static redirectService = new ChannelMergeRedirectService();
+  private static allowlist = new CatalogPodcastIndexAllowlistService();
 
   static async resolve(req: Request, res: Response): Promise<void> {
     validateBodyObject(resolveSchema, req, res, async () => {
@@ -64,7 +69,14 @@ export class IdentityController {
           itemIdTexts,
           podcastIndexIds,
         });
-        res.json(resolved);
+        const moved = new Set(resolved.podcast_index_ids.map((move) => move.from));
+        const remaining = podcastIndexIds.filter((id) => !moved.has(id));
+        const allowlistMoves =
+          await IdentityController.allowlist.channelMovesForListedIds(remaining);
+        res.json({
+          ...resolved,
+          podcast_index_ids: [...resolved.podcast_index_ids, ...allowlistMoves],
+        });
       } catch (error) {
         handleGenericErrorResponse(res, error);
       }

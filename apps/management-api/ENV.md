@@ -197,6 +197,12 @@ Required Missing: 0
 - **Startup abort**: If any required variable is missing or invalid, the application will abort startup with a clear error message.
 - **Validation file**: See `src/lib/startup/validation.ts` for the complete validation implementation.
 
+## Catalog allowlist
+
+Optional. Same keys as the API catalog ConfigMap. Blank `CATALOG_PODCAST_INDEX_ID_ALLOWLIST`
+hides the allowlist routes. Directory search also needs `PODCAST_INDEX_AUTH_KEY`,
+`PODCAST_INDEX_BASE_URL`, and `PODCAST_INDEX_SECRET_KEY`. Those three stay optional at startup.
+
 ## Adding New Environment Variables
 
 When adding a new environment variable to the application:

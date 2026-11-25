@@ -95,6 +95,10 @@ spec:
                 name: podverse-product-membership-config
             - configMapRef:
                 name: podverse-extensions-config
+            - configMapRef:
+                name: podverse-catalog-config
+            - secretRef:
+                name: podverse-api.podcastindex.org-opaque
           # Container security hardening
           securityContext:
             readOnlyRootFilesystem: true

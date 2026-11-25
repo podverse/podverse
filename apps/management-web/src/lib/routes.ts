@@ -5,6 +5,7 @@ export const ROUTES = {
   HOME: '/',
   DASHBOARD: '/dashboard',
   FEEDS: '/feeds',
+  FEEDS_ALLOWED: '/feeds/allowed',
   FEEDS_FLAG_STATUS: '/feeds/flag-status',
   FEEDS_MERGE_REVIEW: '/feeds/merge-review',
   FEEDS_REMOTE_STUBS: '/feeds/remote-stubs',

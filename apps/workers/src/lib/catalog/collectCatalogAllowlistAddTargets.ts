@@ -1,5 +1,5 @@
 import { resolveDeadFeedDuplicateChains } from '@podverse/external-services-podcast-index';
-import type { IndexProvider } from '@podverse/helpers';
+import type { IndexProvider, IndexProviderFeed } from '@podverse/helpers';
 
 export type CatalogAllowlistAddTarget = {
   podcastIndexId: number;
@@ -8,8 +8,17 @@ export type CatalogAllowlistAddTarget = {
   sourcePodcastIndexId: number;
 };
 
+export type CatalogAllowlistLookupRecord = {
+  listedPodcastIndexId: number;
+  /** Null when the listed id is the live directory id. */
+  resolvedPodcastIndexId: number | null;
+  title: string | null;
+  feedUrl: string | null;
+};
+
 export type CatalogAllowlistAddPlan = {
   targets: CatalogAllowlistAddTarget[];
+  records: CatalogAllowlistLookupRecord[];
   /** Listed ids whose lookup failed; a later run retries them. */
   unavailable: number[];
   /** Listed ids that are dead or unknown with no live surviving show. */
@@ -25,6 +34,14 @@ type CollectCatalogAllowlistAddTargetsParams = {
   sleepBetweenLookups: () => Promise<void>;
 };
 
+function reportedPodcastIndexId(feed: IndexProviderFeed): number | null {
+  if (!/^[1-9]\d*$/.test(feed.providerFeedId)) {
+    return null;
+  }
+  const id = Number(feed.providerFeedId);
+  return Number.isSafeInteger(id) ? id : null;
+}
+
 export async function collectCatalogAllowlistAddTargets({
   allowlist,
   storedPodcastIndexIds,
@@ -34,6 +51,7 @@ export async function collectCatalogAllowlistAddTargets({
 }: CollectCatalogAllowlistAddTargetsParams): Promise<CatalogAllowlistAddPlan> {
   const listed = new Set(allowlist);
   const targets: CatalogAllowlistAddTarget[] = [];
+  const records: CatalogAllowlistLookupRecord[] = [];
   const unavailable: number[] = [];
   const unresolved: number[] = [];
   const needsSurvivor: number[] = [];
@@ -56,19 +74,35 @@ export async function collectCatalogAllowlistAddTargets({
     if (lookup.status === 'unavailable') {
       unavailable.push(podcastIndexId);
     } else if (lookup.status === 'found' && !lookup.value.isDead) {
-      targets.push({
-        podcastIndexId,
+      const reported = reportedPodcastIndexId(lookup.value);
+      const liveId =
+        reported !== null && reported !== podcastIndexId ? reported : podcastIndexId;
+      const moved = liveId !== podcastIndexId;
+      records.push({
+        listedPodcastIndexId: podcastIndexId,
+        resolvedPodcastIndexId: moved ? liveId : null,
+        title: lookup.value.title,
         feedUrl: lookup.value.feedUrl,
-        sourcePodcastIndexId: podcastIndexId,
       });
-      queued.add(podcastIndexId);
+      const covered =
+        storedPodcastIndexIds.has(liveId) ||
+        queued.has(liveId) ||
+        (moved && listed.has(liveId));
+      if (!covered) {
+        targets.push({
+          podcastIndexId: liveId,
+          feedUrl: lookup.value.feedUrl,
+          sourcePodcastIndexId: podcastIndexId,
+        });
+        queued.add(liveId);
+      }
     } else {
       needsSurvivor.push(podcastIndexId);
     }
   }
 
   if (needsSurvivor.length === 0) {
-    return { targets, unavailable, unresolved };
+    return { targets, records, unavailable, unresolved };
   }
 
   const survivors = resolveDeadFeedDuplicateChains(await loadDeadFeedTargets());
@@ -78,23 +112,43 @@ export async function collectCatalogAllowlistAddTargets({
       unresolved.push(sourcePodcastIndexId);
       continue;
     }
-    if (storedPodcastIndexIds.has(survivorId) || listed.has(survivorId) || queued.has(survivorId)) {
+    if (
+      storedPodcastIndexIds.has(survivorId) ||
+      listed.has(survivorId) ||
+      queued.has(survivorId)
+    ) {
+      records.push({
+        listedPodcastIndexId: sourcePodcastIndexId,
+        resolvedPodcastIndexId: survivorId,
+        title: null,
+        feedUrl: null,
+      });
       continue;
     }
     const lookup = await lookUp(survivorId);
     if (lookup.status === 'unavailable') {
       unavailable.push(sourcePodcastIndexId);
     } else if (lookup.status === 'found' && !lookup.value.isDead) {
-      targets.push({
-        podcastIndexId: survivorId,
+      const reported = reportedPodcastIndexId(lookup.value);
+      const liveId = reported !== null && reported !== survivorId ? reported : survivorId;
+      records.push({
+        listedPodcastIndexId: sourcePodcastIndexId,
+        resolvedPodcastIndexId: liveId === sourcePodcastIndexId ? null : liveId,
+        title: lookup.value.title,
         feedUrl: lookup.value.feedUrl,
-        sourcePodcastIndexId,
       });
-      queued.add(survivorId);
+      if (!storedPodcastIndexIds.has(liveId) && !listed.has(liveId) && !queued.has(liveId)) {
+        targets.push({
+          podcastIndexId: liveId,
+          feedUrl: lookup.value.feedUrl,
+          sourcePodcastIndexId,
+        });
+        queued.add(liveId);
+      }
     } else {
       unresolved.push(sourcePodcastIndexId);
     }
   }
 
-  return { targets, unavailable, unresolved };
+  return { targets, records, unavailable, unresolved };
 }

@@ -1,14 +1,14 @@
-# Manual only: suspended CronJob. Create a one-off job from it to enqueue the catalog allowlist's unstored Podcast Index feeds to rss-normal.
-# kubectl create job --from=cronjob/mq-rss-add-catalog-allowlist mq-rss-add-catalog-allowlist-$(date +%s) -n <ns>
+# Enqueues unstored allowlisted Podcast Index feeds to rss-normal every 15 minutes.
+# A caught-up run compares stored ids and returns without directory lookups.
 apiVersion: batch/v1
 kind: CronJob
 metadata:
   name: mq-rss-add-catalog-allowlist
   labels:
-    podverse-schedule: manual
+    podverse-schedule: scheduled
 spec:
-  schedule: "* * * * *"
-  suspend: true
+  schedule: "*/15 * * * *"
+  suspend: false
   concurrencyPolicy: Forbid
   successfulJobsHistoryLimit: 5
   failedJobsHistoryLimit: 5

@@ -1,11 +1,13 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 const {
+  catalogAllowlistTableAdmitsMock,
   getAndParseRSSFeedMock,
   getOptionalCatalogAdmissionPolicyMock,
   getOptionalIndexProviderMock,
   loggerWarnMock,
 } = vi.hoisted(() => ({
+  catalogAllowlistTableAdmitsMock: vi.fn(async () => false),
   getAndParseRSSFeedMock: vi.fn(),
   getOptionalCatalogAdmissionPolicyMock: vi.fn(),
   getOptionalIndexProviderMock: vi.fn(),
@@ -25,6 +27,10 @@ vi.mock('@parser/factories/loggerService.js', () => ({
 
 vi.mock('../parser.js', () => ({
   getAndParseRSSFeed: getAndParseRSSFeedMock,
+}));
+
+vi.mock('@podverse/orm', () => ({
+  catalogAllowlistTableAdmits: catalogAllowlistTableAdmitsMock,
 }));
 
 import type { FeedNotInCatalogReason } from '../errors.js';
@@ -67,6 +73,8 @@ describe('assertCatalogAdmitsNewFeed', () => {
     getOptionalIndexProviderMock.mockReset();
     getAndParseRSSFeedMock.mockReset();
     loggerWarnMock.mockReset();
+    catalogAllowlistTableAdmitsMock.mockReset();
+    catalogAllowlistTableAdmitsMock.mockResolvedValue(false);
   });
 
   it('resolves without calling the index provider when no policy was passed', async () => {
@@ -97,6 +105,32 @@ describe('assertCatalogAdmitsNewFeed', () => {
     await expectRefused(3, 'not_on_allowlist');
 
     expect(getOptionalIndexProviderMock).not.toHaveBeenCalled();
+    expect(catalogAllowlistTableAdmitsMock).toHaveBeenCalledWith([3]);
+  });
+
+  it('admits an id that is only on the allowlist table', async () => {
+    getOptionalCatalogAdmissionPolicyMock.mockReturnValue({
+      musicEnabled: true,
+      podcastIndexIdAllowlist: [1],
+    });
+    catalogAllowlistTableAdmitsMock.mockResolvedValue(true);
+
+    await admit(9);
+
+    expect(catalogAllowlistTableAdmitsMock).toHaveBeenCalledWith([9]);
+    expect(getOptionalIndexProviderMock).not.toHaveBeenCalled();
+  });
+
+  it('admits a stored id that an allowlist row resolved to', async () => {
+    getOptionalCatalogAdmissionPolicyMock.mockReturnValue({
+      musicEnabled: true,
+      podcastIndexIdAllowlist: [1],
+    });
+    catalogAllowlistTableAdmitsMock.mockResolvedValue(true);
+
+    await admit(20, 10);
+
+    expect(catalogAllowlistTableAdmitsMock).toHaveBeenCalledWith([20, 10]);
   });
 
   it('admits the surviving show of a listed id that was merged', async () => {

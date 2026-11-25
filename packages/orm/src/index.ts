@@ -104,6 +104,7 @@ export * from './entities/channel/channelValueRecipient.js';
 export * from './entities/channel/itemMergeMap.js';
 export * from './entities/channel/podcastIndexDeadFeedSync.js';
 
+export * from './entities/feed/catalogPodcastIndexAllowlist.js';
 export * from './entities/feed/feed.js';
 export * from './entities/feed/feedCondition.js';
 export * from './entities/feed/feedConditionType.js';
@@ -316,6 +317,8 @@ export * from './services/channel/applyChannelMerge.js';
 export * from './services/embedDemoConfig.js';
 export * from './services/imageShrinkSource.js';
 
+export * from './services/feed/catalogPodcastIndexAllowlist.js';
+export * from './services/feed/catalogPodcastIndexAllowlistSync.js';
 export * from './services/feed/feed.js';
 export * from './services/feed/feedEntryBlock.js';
 export * from './services/feed/feedForceReparseScheduler.js';

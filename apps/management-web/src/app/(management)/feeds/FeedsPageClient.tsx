@@ -2,17 +2,36 @@
 
 import Link from 'next/link';
 import { useTranslations } from 'next-intl';
+import { useEffect, useState } from 'react';
 
 import type { NavCard } from '@podverse/ui';
 import { Breadcrumbs, ManagementPageShell, NavCardGrid } from '@podverse/ui';
 
 import { getConfig } from '../../../config';
+import { getCatalogAllowlist } from '../../../lib/requests/feeds';
 import { ROUTES } from '../../../lib/routes';
 
 export function FeedsPageClient() {
   const t = useTranslations('feedsHub');
   const tc = useTranslations('common');
   const tNav = useTranslations('nav');
+  const [showAllowed, setShowAllowed] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+    void getCatalogAllowlist()
+      .then(() => {
+        if (!cancelled) {
+          setShowAllowed(true);
+        }
+      })
+      .catch(() => {
+        // A 404 means this instance has no allowlist. The card stays hidden.
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const cards: NavCard[] = [
     {
@@ -33,6 +52,13 @@ export function FeedsPageClient() {
       }),
     },
   ];
+  if (showAllowed) {
+    cards.push({
+      href: ROUTES.FEEDS_ALLOWED,
+      title: t('allowedFeedsCardTitle'),
+      description: t('allowedFeedsCardDescription'),
+    });
+  }
 
   return (
     <ManagementPageShell

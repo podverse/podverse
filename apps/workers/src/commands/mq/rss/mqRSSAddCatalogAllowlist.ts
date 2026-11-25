@@ -11,7 +11,7 @@ import { extractDeadFeedCsvRow } from '@podverse/external-services-podcast-index
 import type { MQQueueNameParamKey } from '@podverse/helpers';
 import { MQ_QUEUES, validMQQueueNamesParamKeys } from '@podverse/helpers';
 import { mqRSSAdd as mqRSSAddFunction } from '@podverse/mq';
-import { FeedService } from '@podverse/orm';
+import { CatalogPodcastIndexAllowlistService, FeedService } from '@podverse/orm';
 
 const LOG_PREFIX = '[mqRSSAddCatalogAllowlist]';
 
@@ -39,14 +39,35 @@ export const mqRSSAddCatalogAllowlist = async (args: CommandLineArgs) => {
     return;
   }
 
+  const allowlistService = new CatalogPodcastIndexAllowlistService();
+  await allowlistService.syncDeployment(podcastIndexIdAllowlist);
+  const allowlistRows = await allowlistService.listRows();
+  const rowByListedId = new Map(allowlistRows.map((row) => [row.podcastIndexId, row]));
+  const effectiveAllowlist = new Set<number>(podcastIndexIdAllowlist);
+  for (const row of allowlistRows) {
+    effectiveAllowlist.add(row.podcastIndexId);
+  }
+
   const storedPodcastIndexIds = new Set(await new FeedService().listPodcastIndexIds());
-  const listedCount = podcastIndexIdAllowlist.length;
-  const alreadyStored = podcastIndexIdAllowlist.filter((id) =>
-    storedPodcastIndexIds.has(id)
-  ).length;
+  const listedIds = [...effectiveAllowlist];
+  const listedCount = listedIds.length;
+  const alreadyStored = listedIds.filter((id) => {
+    if (storedPodcastIndexIds.has(id)) {
+      return true;
+    }
+    const resolved = rowByListedId.get(id)?.resolvedPodcastIndexId;
+    return resolved !== null && resolved !== undefined && storedPodcastIndexIds.has(resolved);
+  }).length;
+  const pendingAllowlist = listedIds.filter((id) => {
+    if (storedPodcastIndexIds.has(id)) {
+      return false;
+    }
+    const resolved = rowByListedId.get(id)?.resolvedPodcastIndexId;
+    return resolved === null || resolved === undefined || !storedPodcastIndexIds.has(resolved);
+  });
 
   const plan = await collectCatalogAllowlistAddTargets({
-    allowlist: podcastIndexIdAllowlist,
+    allowlist: pendingAllowlist,
     storedPodcastIndexIds,
     indexProvider: getIndexProvider(),
     sleepBetweenLookups: sleepRateLimit,
@@ -61,6 +82,8 @@ export const mqRSSAddCatalogAllowlist = async (args: CommandLineArgs) => {
       return map;
     },
   });
+
+  await allowlistService.saveLookupRecords(plan.records);
 
   const mqConstantMessageOptions = MQ_QUEUES[key];
   let enqueued = 0;

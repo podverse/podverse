@@ -24,6 +24,7 @@ import {
   AccountFollowingChannelService,
   AccountPendingFollowingChannelService,
   AddByRssFeedLimitReachedError,
+  catalogAllowlistTableAdmits,
   FeedService,
   findBlockedFeed,
   FollowLimitReachedError,
@@ -179,12 +180,16 @@ export const processOpmlImportJob = async (
                 : typeof piFeed?.feedId === 'number'
                   ? piFeed.feedId
                   : null;
+            const allowlist = catalogPodcastIndexIdAllowlist ?? null;
+            const listedInEnv =
+              allowlist === null ||
+              (podcastIndexId !== null && allowlist.includes(podcastIndexId));
+            const listedInTable =
+              podcastIndexId !== null && allowlist !== null && !listedInEnv
+                ? await catalogAllowlistTableAdmits([podcastIndexId])
+                : false;
             const indexedPodcastIndexId =
-              podcastIndexId !== null &&
-              (catalogPodcastIndexIdAllowlist === null ||
-                catalogPodcastIndexIdAllowlist.includes(podcastIndexId))
-                ? podcastIndexId
-                : null;
+              podcastIndexId !== null && (listedInEnv || listedInTable) ? podcastIndexId : null;
 
             if (indexedPodcastIndexId !== null) {
               const blockedByIndex = await findBlockedFeed({

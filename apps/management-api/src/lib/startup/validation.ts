@@ -26,6 +26,7 @@ import {
   isPodverseStartupValidationSilent,
   validateAppleProcessorEnv,
   validateBillingSandboxAllowlistEnv,
+  validateCatalogEnv,
   validateGooglePlayProcessorEnv,
   validatePayPalProcessorEnv,
   validateStrikeProcessorEnv,
@@ -245,6 +246,21 @@ const validateAllEnvironmentVariables = (env: StartupEnv, command?: string): Val
   results.push(...validateAppleProcessorEnv(env));
   results.push(...validateGooglePlayProcessorEnv(env));
   results.push(...validateStrikeProcessorEnv(env));
+  results.push(...validateCatalogEnv(env, ''));
+  results.push(
+    validateOptional(env, 'PODCAST_INDEX_AUTH_KEY', 'Podcast Index', 'Blank: directory search is off')
+  );
+  results.push(
+    validateOptional(env, 'PODCAST_INDEX_BASE_URL', 'Podcast Index', 'Blank: directory search is off')
+  );
+  results.push(
+    validateOptional(
+      env,
+      'PODCAST_INDEX_SECRET_KEY',
+      'Podcast Index',
+      'Blank: directory search is off'
+    )
+  );
 
   // General
   results.push(validateRequired(env, 'NODE_ENV', 'General'));

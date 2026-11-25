@@ -7,6 +7,7 @@ import {
   MediumEnum,
   resolveParserMaxFeedBodyBytes,
 } from '@podverse/helpers';
+import { catalogAllowlistTableAdmits } from '@podverse/orm';
 import { detectDuckTypedPublisherMediumId } from '@podverse/parser-mapping';
 
 import type { FeedNotInCatalogReason } from '../errors.js';
@@ -36,12 +37,19 @@ export async function assertCatalogAdmitsNewFeed({
 
   const { podcastIndexIdAllowlist } = policy;
   if (podcastIndexIdAllowlist !== null) {
-    const listed =
+    const listedInEnv =
       podcastIndexIdAllowlist.includes(podcastIndexId) ||
       (catalogAllowlistSourcePodcastIndexId !== undefined &&
         podcastIndexIdAllowlist.includes(catalogAllowlistSourcePodcastIndexId));
-    if (!listed) {
-      throw new FeedNotInCatalogError(podcastIndexId, 'not_on_allowlist');
+    if (!listedInEnv) {
+      const ids = [podcastIndexId];
+      if (catalogAllowlistSourcePodcastIndexId !== undefined) {
+        ids.push(catalogAllowlistSourcePodcastIndexId);
+      }
+      const listedInTable = await catalogAllowlistTableAdmits(ids);
+      if (!listedInTable) {
+        throw new FeedNotInCatalogError(podcastIndexId, 'not_on_allowlist');
+      }
     }
   }
 

@@ -309,7 +309,7 @@ const WORKER_COMMAND_DEFS: readonly WorkerCommandDef[] = [
     name: 'mqRSSAddCatalogAllowlist',
     label: 'MQ: add catalog allowlist feeds',
     description:
-      'Enqueue each Podcast Index id in CATALOG_PODCAST_INDEX_ID_ALLOWLIST that is not stored yet. When a listed id was merged, enqueue the surviving show. A blank allowlist does nothing.',
+      'Syncs deployment allowlist rows, then enqueues each allowed Podcast Index id that is not stored yet, including ids added in management. When a listed id was merged, enqueue the surviving show and remember that id. A blank allowlist does nothing.',
     category: 'mq',
     risk: 'normal',
     example_cli: 'node apps/workers/dist/index.js mqRSSAddCatalogAllowlist -q rss-normal',

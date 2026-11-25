@@ -5908,6 +5908,230 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/InternalServerErrorResponse"
+  /feeds/catalog-allowlist:
+    get:
+      operationId: managementGetCatalogAllowlist
+      tags:
+        - feeds
+      summary: List the catalog allowlist
+      description: "Returns the effective Podcast Index allowlist while CATALOG_PODCAST_INDEX_ID_ALLOWLIST is set. 404 when that list is blank."
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+      responses:
+        "200":
+          description: Allowlist rows
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - feeds
+                properties:
+                  feeds:
+                    type: array
+                    items:
+                      type: object
+                      required:
+                        - podcast_index_id
+                        - origin
+                        - stored
+                        - removable
+                      properties:
+                        podcast_index_id:
+                          type: integer
+                          example: 920666
+                        resolved_podcast_index_id:
+                          type: integer
+                          nullable: true
+                          example: 920700
+                        origin:
+                          type: string
+                          enum:
+                            - deployment
+                            - admin
+                        title:
+                          type: string
+                          nullable: true
+                        feed_url:
+                          type: string
+                          nullable: true
+                        stored:
+                          type: boolean
+                        removable:
+                          type: boolean
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthenticationErrorResponse"
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthorizationErrorResponse"
+        "404":
+          description: Allowlist mode is off
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: string
+                    example: catalog_allowlist_disabled
+                  message:
+                    type: string
+                    example: Catalog allowlist is not enabled
+    post:
+      operationId: managementPostCatalogAllowlist
+      tags:
+        - feeds
+      summary: Add a Podcast Index id to the allowlist
+      description: "Writes an admin allowlist row. Does not enqueue a parse. The catch-up job stores the feed."
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - podcast_index_id
+              properties:
+                podcast_index_id:
+                  type: integer
+                  example: 75075
+                title:
+                  type: string
+                  nullable: true
+                feed_url:
+                  type: string
+                  nullable: true
+      responses:
+        "201":
+          description: Added
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  podcast_index_id:
+                    type: integer
+                  origin:
+                    type: string
+                    example: admin
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthenticationErrorResponse"
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthorizationErrorResponse"
+        "404":
+          description: Allowlist mode is off
+        "409":
+          description: Already allowed
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: string
+                    example: already_allowed
+                  message:
+                    type: string
+  /feeds/catalog-allowlist/directory-search:
+    get:
+      operationId: managementGetCatalogAllowlistDirectorySearch
+      tags:
+        - feeds
+      summary: Search the Podcast Index directory
+      description: "Directory search for adding an allowlist id. Not visitor title search."
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+      parameters:
+        - name: q
+          in: query
+          required: true
+          schema:
+            type: string
+            example: "Reply All"
+      responses:
+        "200":
+          description: Directory hits
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - feeds
+                properties:
+                  feeds:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        podcast_index_id:
+                          type: integer
+                        title:
+                          type: string
+                        feed_url:
+                          type: string
+                        author:
+                          type: string
+                        already_allowed:
+                          type: boolean
+        "401":
+          description: Unauthorized
+        "404":
+          description: Allowlist mode is off
+        "503":
+          description: Podcast Index is not configured or the search failed
+  /feeds/catalog-allowlist/{podcastIndexId}:
+    delete:
+      operationId: managementDeleteCatalogAllowlist
+      tags:
+        - feeds
+      summary: Remove an admin allowlist id
+      description: "Deletes an admin row that is not on the deployment list. Does not delete the stored show."
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+      parameters:
+        - name: podcastIndexId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Removed
+        "401":
+          description: Unauthorized
+        "404":
+          description: Missing, or the row came from the deployment list
+        "409":
+          description: The id is still on the deployment list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: string
+                    example: on_deployment_allowlist
   /feeds/lookup:
     get:
       operationId: managementGetFeedsLookup

@@ -7,6 +7,7 @@ import {
 } from '@podverse/helpers';
 
 const {
+  catalogAllowlistTableAdmitsMock,
   findBlockedFeedMock,
   feedGetByUrlMock,
   hasFollowedChannelMock,
@@ -32,6 +33,7 @@ const {
   }
 
   return {
+    catalogAllowlistTableAdmitsMock: vi.fn(async () => false),
     findBlockedFeedMock: vi.fn(),
     feedGetByUrlMock: vi.fn(),
     hasFollowedChannelMock: vi.fn(),
@@ -57,6 +59,7 @@ const {
 });
 
 vi.mock('@podverse/orm', () => ({
+  catalogAllowlistTableAdmits: catalogAllowlistTableAdmitsMock,
   findBlockedFeed: findBlockedFeedMock,
   FeedService: class {
     getByUrl = feedGetByUrlMock;
@@ -107,6 +110,8 @@ const createMemoryCache = () => {
 
 describe('processOpmlImportJob', () => {
   beforeEach(() => {
+    catalogAllowlistTableAdmitsMock.mockReset();
+    catalogAllowlistTableAdmitsMock.mockResolvedValue(false);
     findBlockedFeedMock.mockReset();
     feedGetByUrlMock.mockReset();
     hasFollowedChannelMock.mockReset();
@@ -290,6 +295,27 @@ describe('processOpmlImportJob', () => {
       feed_url: 'https://example.com/off-list.xml',
       title: 'Off List',
     });
+    expect(catalogAllowlistTableAdmitsMock).toHaveBeenCalledWith([12345]);
+  });
+
+  it('keeps the indexed path when the allowlist table admits the feed', async () => {
+    const { cacheGetJson, cacheSetJson } = createMemoryCache();
+    catalogAllowlistTableAdmitsMock.mockResolvedValue(true);
+
+    const result = await processOpmlImportJob({
+      accountId: 9,
+      requestId: 'req-table',
+      feeds: [{ feedUrl: 'https://example.com/table.xml', title: 'Table' }],
+      maxFeedsPerHour: 50,
+      cacheGetJson,
+      cacheSetJson,
+      activeMQArtemisService: {} as never,
+      podcastGetByFeedUrl: async () => ({ podcast_index_id: 12345 }),
+      catalogPodcastIndexIdAllowlist: [999],
+    });
+
+    expect(result.results[0]?.outcome).toBe('enqueued_indexed');
+    expect(catalogAllowlistTableAdmitsMock).toHaveBeenCalledWith([12345]);
   });
 
   it('keeps the indexed path for a listed Podcast Index feed', async () => {

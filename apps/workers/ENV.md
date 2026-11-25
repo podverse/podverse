@@ -340,13 +340,14 @@ shared `podverse-catalog-config` ConfigMap sets them together.
   feed it would save as Add by RSS as failed and save nothing. Stored follows stay. The API
   refuses Add by RSS parses and new follows.
 - **`CATALOG_PODCAST_INDEX_ID_ALLOWLIST`** — comma-separated Podcast Index feed ids, no size
-  limit. When set, workers add only these feeds; when a listed id was merged into another show,
-  workers add the surviving show. Stored shows stay and keep refreshing as the parser decides.
+  limit. When set, workers add only these feeds, plus ids an admin adds in management. When a
+  listed id was merged into another show, workers add the surviving show and remember that id.
+  Stored shows stay and keep refreshing as the parser decides. A blank list does nothing and
+  does not delete allowlist rows.
 
-After setting or changing the allowlist, run `mqRSSAddCatalogAllowlist` (k8s: create a Job from
-the suspended `mq-rss-add-catalog-allowlist` CronJob). It enqueues each listed id that is not
-stored yet, or the surviving show when Podcast Index merged a listed id, and logs ids it could
-not resolve. Running it again is safe.
+`mqRSSAddCatalogAllowlist` runs every 15 minutes from the `mq-rss-add-catalog-allowlist` CronJob.
+A run that is already caught up compares stored ids and returns without directory lookups.
+Running it again is safe.
 
 An invalid value fails startup for these commands.
 

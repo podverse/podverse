@@ -346,3 +346,19 @@
   Mobile load-more uses the same signal.
 - Who notices: website visitors paging Browse, Home, and the other directory lists
 - Operator steps: none
+
+## Allowlist catch-up and management directory adds
+
+- Surfaces: api, workers, management-api, management-web, k8s
+- Change: While `CATALOG_PODCAST_INDEX_ID_ALLOWLIST` is set, a job every 15 minutes adds any
+  allowed Podcast Index feed that is not stored yet, including ids an admin adds under Feeds →
+  Allowed Feeds. A listed id the directory moved is remembered, and later requests for that id
+  open the stored show. Removing an allowlist id does not delete the show. The public on-demand
+  add stays refused for the whole route. A blank allowlist keeps the open catalog and hides the
+  management page.
+- Who notices: operators of a restricted catalog, and admins adding a directory show that was
+  not on the deployment list
+- Operator steps: app migration `0021_catalog_podcast_index_allowlist.sql`.
+  `API_EXPECTED_MIGRATION_FILENAME` is that file. The management marker stays
+  `0002_nano_id_v2_min_7.sql`. CronJob `mq-rss-add-catalog-allowlist` is scheduled. management-api
+  mounts `podverse-catalog-config` and `podverse-api.podcastindex.org-opaque`.

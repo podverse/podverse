@@ -29,6 +29,7 @@ import express from 'express';
 
 import { FeedLifecycleStateKeyEnum, scheduleFeedForceReparse } from '@podverse/orm';
 
+import { registerFeedCatalogAllowlistRoutes } from './feedCatalogAllowlist.js';
 import { registerFeedMergeReviewRoutes } from './feedMergeReview.js';
 import { registerFeedRemoteStubRoutes } from './feedRemoteStubs.js';
 
@@ -160,7 +161,8 @@ router.get('/lookup', ensureAuthenticated, requireCrud('feeds', 'read'), async (
   }
 });
 
-// Static paths stay ahead of /:id so "merges" and "remote-stubs" are not parsed as a feed id.
+// Static paths stay ahead of /:id so these names are not parsed as a feed id.
+registerFeedCatalogAllowlistRoutes(router);
 registerFeedMergeReviewRoutes(router);
 registerFeedRemoteStubRoutes(router);
 

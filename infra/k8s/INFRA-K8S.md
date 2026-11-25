@@ -246,8 +246,10 @@ Use Kustomize to render overlays locally, matching what ArgoCD applies. Because 
   `base/common/source/catalog/catalog.env`, blank by default. Mounted on the API, on the workers
   that parse feeds or read Podcast Index, and on the web runtime-config sidecar with
   `prefix: NEXT_PUBLIC_`. To narrow an instance, merge the ConfigMap in your GitOps `common`
-  overlay (`behavior: merge`) and restart the API, web, and workers pods. Keys and behavior:
-  `apps/web/ENV.md`, `apps/api/ENV.md`, `apps/workers/ENV.md`.
+  overlay (`behavior: merge`) and restart the API, web, and workers pods. While the allowlist is
+  set, `mq-rss-add-catalog-allowlist` runs every 15 minutes and management-api mounts this
+  ConfigMap plus `podverse-api.podcastindex.org-opaque` so an admin can add directory ids.
+  Keys and behavior: `apps/web/ENV.md`, `apps/api/ENV.md`, `apps/workers/ENV.md`.
 - Prometheus extension sidecar: optional Kustomize **components** under `base/common/components/` (enable per workload overlay; see [docs/operations/platform/DOCS-OPERATIONS-PLATFORM.md](/docs/operations/platform/DOCS-OPERATIONS-PLATFORM.md)).
 
 ```bash

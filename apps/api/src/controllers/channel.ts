@@ -57,6 +57,7 @@ import type {
 } from '@podverse/orm';
 import {
   AccountFollowingChannelService,
+  CatalogPodcastIndexAllowlistService,
   ChannelAddByRSSDirectoryMatchService,
   channelGetManyRelations,
   channelGetOneRelations,
@@ -159,6 +160,7 @@ export class ChannelController {
   private static channelService = new ChannelService();
   private static directoryMatchService = new ChannelAddByRSSDirectoryMatchService();
   private static mergeRedirects = new ChannelMergeRedirectService();
+  private static allowlist = new CatalogPodcastIndexAllowlistService();
   private static statsPopularityChannelService = new StatsPopularityChannelService();
   private static tasteProfileAccountService = new TasteProfileAccountService();
 
@@ -295,13 +297,24 @@ export class ChannelController {
         }
         const survivorIdText =
           await ChannelController.mergeRedirects.survivorIdTextForPodcastIndexId(podcastIndexId);
-        const data: Channel | null = survivorIdText
+        let lookupId = podcastIndexId;
+        let lookupIdText = survivorIdText;
+        if (!lookupIdText) {
+          const aliasId =
+            await ChannelController.allowlist.storedPodcastIndexIdForAlias(podcastIndexId);
+          if (aliasId !== null) {
+            lookupId = aliasId;
+            lookupIdText =
+              await ChannelController.mergeRedirects.survivorIdTextForPodcastIndexId(aliasId);
+          }
+        }
+        const data: Channel | null = lookupIdText
           ? await ChannelController.channelService.getByIdText(
-              survivorIdText,
+              lookupIdText,
               channelGetOneRelations
             )
           : await ChannelController.channelService.getByPodcastIndexId(
-              podcastIndexId,
+              lookupId,
               channelGetOneRelations
             );
         const parsedReadyChannel = ChannelController.isParsedReadyChannel(data) ? data : null;

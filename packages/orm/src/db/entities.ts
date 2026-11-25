@@ -74,6 +74,7 @@ import { ChannelVerifiedPublisher } from '@orm/entities/channel/channelVerifiedP
 import { ItemMergeMap } from '@orm/entities/channel/itemMergeMap.js';
 import { PodcastIndexDeadFeedSync } from '@orm/entities/channel/podcastIndexDeadFeedSync.js';
 import { Clip } from '@orm/entities/clip.js';
+import { CatalogPodcastIndexAllowlist } from '@orm/entities/feed/catalogPodcastIndexAllowlist.js';
 import { Feed } from '@orm/entities/feed/feed.js';
 import { FeedCondition } from '@orm/entities/feed/feedCondition.js';
 import { FeedConditionType } from '@orm/entities/feed/feedConditionType.js';
@@ -233,6 +234,7 @@ export const entities = [
   ItemMergeMap,
   PodcastIndexDeadFeedSync,
   Clip,
+  CatalogPodcastIndexAllowlist,
   Feed,
   FeedCondition,
   FeedConditionType,
