@@ -23,6 +23,7 @@
     "@podverse/billing": "*",
     "@podverse/extension-metrics-sdk": "*",
     "@podverse/external-services-object-storage": "*",
+    "@podverse/external-services-podcast-index": "*",
     "@podverse/helpers": "*",
     "@podverse/helpers-backend": "*",
     "@podverse/helpers-config": "*",
