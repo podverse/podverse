@@ -44,6 +44,8 @@ import {
   ADD_BY_RSS_DIRECTORY_MATCH_MAX_ITEMS,
   fillTopPage,
   getCategoryEnumValue,
+  pageLookaheadTake,
+  resolvePageLookahead,
   TOP_STATS_PAD_MAX_RANKED,
 } from '@podverse/helpers';
 import type { ApiListResponse, QueryParamsStatsRange } from '@podverse/helpers-requests';
@@ -418,19 +420,22 @@ export class ChannelController {
         const recentConfig: FindManyOptions<Channel> = {
           order: { channel_about: { last_pub_date: 'DESC' } },
           skip: offset,
-          take: limit,
+          take: pageLookaheadTake(limit),
           relations: channelGetManyRelations,
         };
-        const channels = await ChannelController.channelService.getMany(
-          recentConfig,
-          medium,
-          category_id,
-          excludeIds ? { excludeIds } : undefined
-        );
+        const channels = (
+          await ChannelController.channelService.getMany(
+            recentConfig,
+            medium,
+            category_id,
+            excludeIds ? { excludeIds } : undefined
+          )
+        ).filter(Boolean);
+        const lookahead = resolvePageLookahead(channels, limit, offset);
 
         const response: ApiListResponse<Channel> = {
-          data: channels.filter(Boolean),
-          meta: { page, count: null, limit },
+          data: lookahead.rows,
+          meta: { page, count: lookahead.count, limit },
         };
         res.json(response);
       } catch (error) {
@@ -454,15 +459,16 @@ export class ChannelController {
         const channels = await ChannelController.loadRankedTopChannels({
           category_id,
           excludeIds,
-          limit,
+          limit: pageLookaheadTake(limit),
           medium,
           offset,
           orderField,
         });
+        const lookahead = resolvePageLookahead(channels, limit, offset);
 
         const response: ApiListResponse<Channel> = {
-          data: channels,
-          meta: { page, count: null, limit },
+          data: lookahead.rows,
+          meta: { page, count: lookahead.count, limit },
         };
         res.json(response);
       } catch (error) {
@@ -518,7 +524,7 @@ export class ChannelController {
         const recentConfig: FindManyOptions<Channel> = {
           order: { channel_about: { last_pub_date: 'DESC' } },
           skip: offset,
-          take: limit,
+          take: pageLookaheadTake(limit),
           relations: channelGetManyRelations,
         };
         const recentResults = await ChannelController.channelService.getMany(
@@ -527,11 +533,11 @@ export class ChannelController {
           category_id,
           excludeIds ? { excludeIds } : undefined
         );
-        const channels = recentResults.filter(Boolean);
+        const lookahead = resolvePageLookahead(recentResults.filter(Boolean), limit, offset);
 
         const response: ApiListResponse<Channel> = {
-          data: channels,
-          meta: { page, count: null, limit },
+          data: lookahead.rows,
+          meta: { page, count: lookahead.count, limit },
         };
         res.json(response);
       } catch (error) {
@@ -556,15 +562,16 @@ export class ChannelController {
         const channels = await ChannelController.loadRankedTopChannels({
           category_id,
           excludeIds,
-          limit,
+          limit: pageLookaheadTake(limit),
           medium,
           offset,
           orderField,
         });
+        const lookahead = resolvePageLookahead(channels, limit, offset);
 
         const response: ApiListResponse<Channel> = {
-          data: channels,
-          meta: { page, count: null, limit },
+          data: lookahead.rows,
+          meta: { page, count: lookahead.count, limit },
         };
         res.json(response);
       } catch (error) {

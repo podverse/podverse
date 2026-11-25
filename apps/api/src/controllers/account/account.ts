@@ -50,6 +50,8 @@ import {
   getAccountSignupModeCapabilities,
   getSharableStatusIdsForProfileType,
   MS_PER_SECOND,
+  pageLookaheadTake,
+  resolvePageLookahead,
   SharableStatusEnum,
 } from '@podverse/helpers';
 import type { QueryParamsStatsRange } from '@podverse/helpers-requests';
@@ -262,20 +264,18 @@ export class AccountController {
         const accounts = await AccountController.accountService.getManyPublic({
           order: { id: 'DESC' },
           skip: offset,
-          take: limit,
+          take: pageLookaheadTake(limit),
           relations: accountPublicRelations,
         });
-
-        // Remove private information from accounts before returning
-        const filteredAccounts = accounts.map((account) =>
-          AccountController.removePrivateInformation(account)
-        );
+        const lookahead = resolvePageLookahead(accounts, limit, offset);
 
         res.json({
-          data: filteredAccounts,
+          data: lookahead.rows.map((account) =>
+            AccountController.removePrivateInformation(account)
+          ),
           meta: {
             page,
-            count: null,
+            count: lookahead.count,
             limit,
           },
         });
@@ -467,7 +467,7 @@ export class AccountController {
         const topConfig: FindManyOptions<StatsPopularityAccount> = {
           order: { [orderField]: 'DESC', account_id: 'ASC' },
           skip: offset,
-          take: limit,
+          take: pageLookaheadTake(limit),
           relations: statsPopularityAccountRelations,
         };
         const statsResults = await AccountController.statsPopularityAccountService.getMany(
@@ -476,17 +476,15 @@ export class AccountController {
           orderField
         );
         const accounts = statsResults.map((s: { account: Account }) => s.account).filter(Boolean);
-
-        // Remove private information from accounts before returning
-        const filteredAccounts = accounts.map((account) =>
-          AccountController.removePrivateInformation(account)
-        );
+        const lookahead = resolvePageLookahead(accounts, limit, offset);
 
         res.json({
-          data: filteredAccounts,
+          data: lookahead.rows.map((account) =>
+            AccountController.removePrivateInformation(account)
+          ),
           meta: {
             page,
-            count: null,
+            count: lookahead.count,
             limit,
           },
         });

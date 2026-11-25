@@ -29,8 +29,10 @@ import {
   getAddByRSSHashIdsForResourceData,
   getQueueMediumIdFromType,
   MediumEnum,
+  pageLookaheadTake,
   PLAYLIST_LIKES_MEMBERSHIP_MAX_IDS,
   QUERY_PARAMS_QUEUE_MEDIUMS,
+  resolvePageLookahead,
   SharableStatusEnum,
 } from '@podverse/helpers';
 import type { ApiListResponse, QueryParamsStatsRange } from '@podverse/helpers-requests';
@@ -292,7 +294,7 @@ class PlaylistController {
         const config: FindManyOptions<StatsPopularityPlaylist> = {
           order: { [order]: 'DESC', playlist_id: 'ASC' },
           skip: offset,
-          take: limit,
+          take: pageLookaheadTake(limit),
         };
 
         const statsResults = await PlaylistController.statsPopularityPlaylistService.getManyPublic(
@@ -300,13 +302,14 @@ class PlaylistController {
           medium,
           order
         );
-        const playlists = preparePlaylistsForJson(
-          statsResults.map((stat: { playlist: Playlist }) => stat.playlist).filter(Boolean)
-        );
+        const playlists = statsResults
+          .map((stat: { playlist: Playlist }) => stat.playlist)
+          .filter(Boolean);
+        const lookahead = resolvePageLookahead(playlists, limit, offset);
 
         const response: ApiListResponse<PlaylistApiJson> = {
-          data: playlists,
-          meta: { page, count: null, limit },
+          data: preparePlaylistsForJson(lookahead.rows),
+          meta: { page, count: lookahead.count, limit },
         };
         res.status(200).json(response);
       } catch (err) {
@@ -326,11 +329,12 @@ class PlaylistController {
         const playlists = await playlistService.getManyPublicForList(medium, {
           order: { last_updated: 'DESC', id_text: 'ASC' },
           skip: offset,
-          take: limit,
+          take: pageLookaheadTake(limit),
         });
+        const lookahead = resolvePageLookahead(playlists, limit, offset);
         const response: ApiListResponse<PlaylistApiJson> = {
-          data: preparePlaylistsForJson(playlists),
-          meta: { page, count: null, limit },
+          data: preparePlaylistsForJson(lookahead.rows),
+          meta: { page, count: lookahead.count, limit },
         };
         res.status(200).json(response);
       } catch (err) {

@@ -14,6 +14,8 @@ import {
   isLiveItemEndedAndStale,
   isPendingLiveItemStale,
   LIVE_ITEM_STATUSES,
+  pageLookaheadTake,
+  resolvePageLookahead,
 } from '@podverse/helpers';
 import type { ApiListResponse } from '@podverse/helpers-requests';
 import { emptyApiListResponse } from '@podverse/helpers-requests';
@@ -135,17 +137,18 @@ export class LiveItemController {
       try {
         const { page, limit, offset } = getPaginationParams(req);
         const { medium } = req.query as { medium: QueryParamsMedium };
-        const data = await LiveItemController.itemService.getManyUpcomingLiveItems(
+        const loaded = await LiveItemController.itemService.getManyUpcomingLiveItems(
           {
             skip: offset,
-            take: limit,
+            take: pageLookaheadTake(limit),
             relations: itemGetManyRelationsWithChannel,
           },
           { channelIds: null, mediumType: medium }
         );
+        const lookahead = resolvePageLookahead(loaded, limit, offset);
         const response: ApiListResponse<Item> = {
-          data,
-          meta: { page, count: null, limit },
+          data: lookahead.rows,
+          meta: { page, count: lookahead.count, limit },
         };
         res.json(response);
       } catch (error) {
@@ -172,17 +175,18 @@ export class LiveItemController {
               return;
             }
 
-            const data = await LiveItemController.itemService.getManyUpcomingLiveItems(
+            const loaded = await LiveItemController.itemService.getManyUpcomingLiveItems(
               {
                 skip: offset,
-                take: limit,
+                take: pageLookaheadTake(limit),
                 relations: itemGetManyRelationsWithChannel,
               },
               { channelIds, mediumType: medium }
             );
+            const lookahead = resolvePageLookahead(loaded, limit, offset);
             const response: ApiListResponse<Item> = {
-              data,
-              meta: { page, count: null, limit },
+              data: lookahead.rows,
+              meta: { page, count: lookahead.count, limit },
             };
             res.json(response);
           } catch (error) {

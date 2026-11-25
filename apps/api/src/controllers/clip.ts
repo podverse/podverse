@@ -19,7 +19,12 @@ import type { NextFunction, Request, Response } from 'express';
 import Joi from 'joi';
 
 import type { CategoryMappingKeys, QueryParamsMedium } from '@podverse/helpers';
-import { getCategoryEnumValue, SharableStatusEnum } from '@podverse/helpers';
+import {
+  getCategoryEnumValue,
+  pageLookaheadTake,
+  resolvePageLookahead,
+  SharableStatusEnum,
+} from '@podverse/helpers';
 import type { ApiListResponse, QueryParamsStatsRange } from '@podverse/helpers-requests';
 import { emptyApiListResponse } from '@podverse/helpers-requests';
 import type {
@@ -304,13 +309,14 @@ class ClipController {
         const clips = await ClipController.clipService.getManyPublic(medium, category_id, {
           order: { created_at: 'DESC' },
           skip: offset,
-          take: limit,
+          take: pageLookaheadTake(limit),
           relations: clipPublicManyRelations,
         });
+        const lookahead = resolvePageLookahead(clips, limit, offset);
 
         const response: ApiListResponse<Clip> = {
-          data: clips,
-          meta: { page, count: null, limit },
+          data: lookahead.rows,
+          meta: { page, count: lookahead.count, limit },
         };
 
         res.status(200).json(response);
@@ -332,13 +338,14 @@ class ClipController {
         const clips = await ClipController.clipService.getManyPublic(medium, category_id, {
           order: { created_at: 'ASC' },
           skip: offset,
-          take: limit,
+          take: pageLookaheadTake(limit),
           relations: clipPublicManyRelations,
         });
+        const lookahead = resolvePageLookahead(clips, limit, offset);
 
         const response: ApiListResponse<Clip> = {
-          data: clips,
-          meta: { page, count: null, limit },
+          data: lookahead.rows,
+          meta: { page, count: lookahead.count, limit },
         };
 
         res.status(200).json(response);
@@ -363,7 +370,7 @@ class ClipController {
         const config: FindManyOptions<StatsPopularityClip> = {
           order: { [order]: 'DESC', clip_id: 'ASC' },
           skip: offset,
-          take: limit,
+          take: pageLookaheadTake(limit),
           relations: statsPopularityRelations,
         };
         const statsResults = await ClipController.statsPopularityClipService.getManyPublic(
@@ -373,10 +380,11 @@ class ClipController {
           order
         );
         const clips = statsResults.map((stat: { clip: Clip }) => stat.clip).filter(Boolean);
+        const lookahead = resolvePageLookahead(clips, limit, offset);
 
         const response: ApiListResponse<Clip> = {
-          data: clips,
-          meta: { page, count: null, limit },
+          data: lookahead.rows,
+          meta: { page, count: lookahead.count, limit },
         };
 
         res.status(200).json(response);
@@ -400,13 +408,14 @@ class ClipController {
         const clips = await ClipController.clipService.getManyPublic(medium, category_id, {
           order: { created_at: 'DESC' },
           skip: offset,
-          take: limit,
+          take: pageLookaheadTake(limit),
           relations: clipPublicManyRelations,
         });
+        const lookahead = resolvePageLookahead(clips, limit, offset);
 
         const response: ApiListResponse<Clip> = {
-          data: clips,
-          meta: { page, count: null, limit },
+          data: lookahead.rows,
+          meta: { page, count: lookahead.count, limit },
         };
 
         res.status(200).json(response);
@@ -430,13 +439,14 @@ class ClipController {
         const clips = await ClipController.clipService.getManyPublic(medium, category_id, {
           order: { created_at: 'ASC' },
           skip: offset,
-          take: limit,
+          take: pageLookaheadTake(limit),
           relations: clipPublicManyRelations,
         });
+        const lookahead = resolvePageLookahead(clips, limit, offset);
 
         const response: ApiListResponse<Clip> = {
-          data: clips,
-          meta: { page, count: null, limit },
+          data: lookahead.rows,
+          meta: { page, count: lookahead.count, limit },
         };
 
         res.status(200).json(response);

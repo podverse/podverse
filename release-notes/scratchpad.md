@@ -335,3 +335,14 @@
   controlling this one still sends the command here; only this device moves its own row.
 - Who notices: listeners skipping or stepping back through a queue on the website and in the app
 - Operator steps: none
+
+## Directory lists show the pages they have read
+
+- Surfaces: web, mobile
+- Change: Browse, Home, and other lists that have no stored total read five pages plus one row
+  and keep the first page. The page buttons match the pages that read reached, including a last
+  page of exactly 60 rows, which does not open onto an empty page. A longer list shows those
+  five buttons and extends the range as you move. Lists that already have a total are unchanged.
+  Mobile load-more uses the same signal.
+- Who notices: website visitors paging Browse, Home, and the other directory lists
+- Operator steps: none

@@ -41,6 +41,8 @@ import {
   fillTopPage,
   getCategoryEnumValue,
   LIVE_ITEM_STATUSES,
+  pageLookaheadTake,
+  resolvePageLookahead,
   TOP_STATS_PAD_MAX_RANKED,
 } from '@podverse/helpers';
 import type {
@@ -420,7 +422,7 @@ export class ItemController {
         const recentConfig: FindManyOptions<Item> = {
           order,
           skip: offset,
-          take: limit,
+          take: pageLookaheadTake(limit),
           relations: itemGetManyRelationsWithChannel,
         };
 
@@ -432,12 +434,12 @@ export class ItemController {
           liveItemType,
           excludeChannelIds ? { excludeChannelIds } : undefined
         );
-        const data = items.filter(Boolean);
-        await attachVerifiedPublishers({ items: data });
+        const lookahead = resolvePageLookahead(items.filter(Boolean), limit, offset);
+        await attachVerifiedPublishers({ items: lookahead.rows });
 
         const response: ApiListResponse<Item> = {
-          data,
-          meta: { page, count: null, limit },
+          data: lookahead.rows,
+          meta: { page, count: lookahead.count, limit },
         };
         res.json(response);
       } catch (error) {
@@ -472,13 +474,13 @@ export class ItemController {
         const excludeChannelIds = await ItemController.browseExcludeChannelIds(req);
 
         const orderField = getStatsOrder(range);
-        const items =
+        const loaded =
           itemType === 'live-item'
             ? await ItemController.loadFilledTopItems({
                 category_id,
                 excludeChannelIds,
                 itemType,
-                limit,
+                limit: pageLookaheadTake(limit),
                 liveItemType,
                 medium,
                 offset,
@@ -489,16 +491,17 @@ export class ItemController {
                 excludeChannelIds,
                 includeChannel: true,
                 itemType,
-                limit,
+                limit: pageLookaheadTake(limit),
                 liveItemType,
                 medium,
                 offset,
                 orderField,
               });
-        await attachVerifiedPublishers({ items });
+        const lookahead = resolvePageLookahead(loaded, limit, offset);
+        await attachVerifiedPublishers({ items: lookahead.rows });
         const response: ApiListResponse<Item> = {
-          data: items,
-          meta: { page, count: null, limit },
+          data: lookahead.rows,
+          meta: { page, count: lookahead.count, limit },
         };
         res.json(response);
       } catch (error) {
@@ -536,7 +539,7 @@ export class ItemController {
         const recentConfig: FindManyOptions<Item> = {
           order,
           skip: offset,
-          take: limit,
+          take: pageLookaheadTake(limit),
           relations: itemGetManyRelationsWithChannel,
         };
         const recentResults = await ItemController.itemService.getMany(
@@ -547,12 +550,12 @@ export class ItemController {
           liveItemType,
           excludeChannelIds ? { excludeChannelIds } : undefined
         );
-        const items = recentResults.filter(Boolean);
-        await attachVerifiedPublishers({ items });
+        const lookahead = resolvePageLookahead(recentResults.filter(Boolean), limit, offset);
+        await attachVerifiedPublishers({ items: lookahead.rows });
 
         const response: ApiListResponse<Item> = {
-          data: items,
-          meta: { page, count: null, limit },
+          data: lookahead.rows,
+          meta: { page, count: lookahead.count, limit },
         };
         res.json(response);
       } catch (error) {
@@ -589,13 +592,13 @@ export class ItemController {
         const excludeChannelIds = await ItemController.browseExcludeChannelIds(req);
 
         const orderField = getStatsOrder(range);
-        const items =
+        const loaded =
           itemType === 'live-item'
             ? await ItemController.loadFilledTopItems({
                 category_id,
                 excludeChannelIds,
                 itemType,
-                limit,
+                limit: pageLookaheadTake(limit),
                 liveItemType,
                 medium,
                 offset,
@@ -606,16 +609,17 @@ export class ItemController {
                 excludeChannelIds,
                 includeChannel: true,
                 itemType,
-                limit,
+                limit: pageLookaheadTake(limit),
                 liveItemType,
                 medium,
                 offset,
                 orderField,
               });
-        await attachVerifiedPublishers({ items });
+        const lookahead = resolvePageLookahead(loaded, limit, offset);
+        await attachVerifiedPublishers({ items: lookahead.rows });
         const response: ApiListResponse<Item> = {
-          data: items,
-          meta: { page, count: null, limit },
+          data: lookahead.rows,
+          meta: { page, count: lookahead.count, limit },
         };
         res.json(response);
       } catch (error) {
@@ -659,7 +663,7 @@ export class ItemController {
             const config: FindManyOptions<Item> = {
               order,
               skip: offset,
-              take: limit,
+              take: pageLookaheadTake(limit),
               relations: itemGetManyRelationsWithChannel,
             };
             const items = await ItemController.itemService.getManyByChannels(
@@ -668,11 +672,12 @@ export class ItemController {
               liveItemType,
               config
             );
-            await attachVerifiedPublishers({ items });
+            const lookahead = resolvePageLookahead(items, limit, offset);
+            await attachVerifiedPublishers({ items: lookahead.rows });
 
             const response: ApiListResponse<Item> = {
-              data: items,
-              meta: { page, count: null, limit },
+              data: lookahead.rows,
+              meta: { page, count: lookahead.count, limit },
             };
             res.json(response);
           } catch (error) {
@@ -727,17 +732,18 @@ export class ItemController {
               category_id: null,
               channelIds: channel_ids,
               itemType,
-              limit,
+              limit: pageLookaheadTake(limit),
               liveItemType,
               medium,
               offset,
               orderField: getStatsOrder(range),
             });
-            await attachVerifiedPublishers({ items });
+            const lookahead = resolvePageLookahead(items, limit, offset);
+            await attachVerifiedPublishers({ items: lookahead.rows });
 
             const response: ApiListResponse<Item> = {
-              data: items,
-              meta: { page, count: null, limit },
+              data: lookahead.rows,
+              meta: { page, count: lookahead.count, limit },
             };
             res.json(response);
           } catch (error) {

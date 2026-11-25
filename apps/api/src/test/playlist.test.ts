@@ -2,7 +2,11 @@ import type { Server } from 'http';
 import request from 'supertest';
 import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { PAGINATION, PLAYLIST_LIKES_MEMBERSHIP_MAX_IDS } from '@podverse/helpers';
+import {
+  pageLookaheadTake,
+  PAGINATION,
+  PLAYLIST_LIKES_MEMBERSHIP_MAX_IDS,
+} from '@podverse/helpers';
 import type { ORMContext } from '@podverse/orm';
 
 import {
@@ -818,13 +822,15 @@ describe('playlist routes', () => {
       expect(res.status).toBe(200);
       expect(res.body.meta).toEqual({
         page: 1,
-        count: null,
+        count: 0,
         limit: PAGINATION.DEFAULT_LIMIT,
       });
       expect(playlistGetManyPublicForListMock).toHaveBeenCalledWith(
         'av',
         expect.objectContaining({
           order: { last_updated: 'DESC', id_text: 'ASC' },
+          skip: 0,
+          take: pageLookaheadTake(PAGINATION.DEFAULT_LIMIT),
         })
       );
     });
@@ -850,8 +856,11 @@ describe('playlist routes', () => {
 
       expect(res.status).toBe(200);
       expect(res.body).toHaveProperty('data');
-      expect(res.body.meta.count).toBeNull();
+      expect(res.body.meta.count).toBe(1);
       expect(typeof res.body.meta.limit).toBe('number');
+      expect(statsPlGetManyPublicMock.mock.calls.at(-1)?.[0]).toEqual(
+        expect.objectContaining({ take: pageLookaheadTake(PAGINATION.DEFAULT_LIMIT) })
+      );
       expect(statsPlGetManyPublicMock.mock.calls.at(-1)?.[2]).toBe('day_count');
     });
   });

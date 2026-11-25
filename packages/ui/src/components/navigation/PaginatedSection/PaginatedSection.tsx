@@ -3,11 +3,13 @@
 import classNames from 'classnames';
 import type { ReactNode } from 'react';
 
+import { PAGINATION } from '@podverse/helpers';
+
 import { PaginationStrip } from '../PaginationStrip/PaginationStrip';
 
 import styles from './PaginatedSection.module.scss';
 
-export const PAGINATION_STRIP_DEFAULT_MAX_BUTTONS = 5;
+export const PAGINATION_STRIP_DEFAULT_MAX_BUTTONS = PAGINATION.PAGE_BUTTONS;
 
 export type PaginatedSectionProps = {
   children: ReactNode;
