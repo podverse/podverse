@@ -90,7 +90,7 @@ export const NavBar = () => {
       }}
       brand={{
         children: <NavBarBrand />,
-        href: '/',
+        href: loggedInAccount ? ROUTES.HOME : ROUTES.BROWSE,
         LinkComponent: NextLink,
         visibility: 'mobileOnly',
       }}

@@ -4,9 +4,11 @@ import {
   isChannelListViewModeType,
   pickSortPrefToken,
 } from '@podverse/helpers';
+import { listScreenSortToMobileHomeSort } from '@podverse/helpers/listScreenDefaults';
 import type { QueryParamsStatsRange } from '@podverse/helpers-requests';
 import { QUERY_PARAMS_STATS_RANGE_VALUES } from '@podverse/helpers-requests';
 
+import { getMobileConfig } from '../config';
 import type { HomeMediaType } from './preferredMediaType';
 import { readSortPref, subscribeSortPref, writeSortPref } from './sortPrefs';
 
@@ -46,7 +48,21 @@ export const homeSortOptionsFor = (mediaType: HomeMediaType): readonly HomeSortO
 
 /** The order this media type opens on when nothing usable is stored. */
 export const defaultHomeSortFor = (mediaType: HomeMediaType): HomeSortOption => {
-  return mediaType === 'clips' ? DEFAULT_HOME_CLIP_SORT : DEFAULT_HOME_SORT;
+  const chipDefault = mediaType === 'clips' ? DEFAULT_HOME_CLIP_SORT : DEFAULT_HOME_SORT;
+  const configured = getMobileConfig().listScreens.home.sort;
+  if (configured === null) {
+    return chipDefault;
+  }
+  return pickSortPrefToken(
+    listScreenSortToMobileHomeSort(configured),
+    homeSortOptionsFor(mediaType),
+    chipDefault
+  );
+};
+
+/** List or grid when this Home chip has no saved view. Blank stays on the list. */
+export const defaultHomeViewMode = (): HomeViewMode => {
+  return getMobileConfig().listScreens.home.view === 'grid' ? 'grid' : DEFAULT_HOME_VIEW_MODE;
 };
 
 /**
@@ -188,7 +204,7 @@ export const readHomeViewMode = async (mediaType: HomeMediaType): Promise<HomeVi
     return podcasts.viewMode;
   }
 
-  return DEFAULT_HOME_VIEW_MODE;
+  return defaultHomeViewMode();
 };
 
 /**

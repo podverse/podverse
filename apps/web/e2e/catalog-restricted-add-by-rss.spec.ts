@@ -84,7 +84,7 @@ test.describe('Add by RSS off', () => {
   test('When Add by RSS is off, the sidebar does not offer it.', async ({ page }, testInfo) => {
     await page.setViewportSize({ width: 1280, height: 720 });
     await page.goto('/');
-    await expect(page).toHaveURL('/');
+    await expect(page).toHaveURL('/browse');
 
     const sidebar = page.locator('#sidebar');
     await expect(sidebar.locator('a[href="/add-by-rss"]')).toHaveCount(0);

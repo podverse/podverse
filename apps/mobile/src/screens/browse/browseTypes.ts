@@ -1,6 +1,9 @@
+import { listScreenSortForOffered } from '@podverse/helpers/listScreenDefaults';
 import type { QueryParamsStatsRange } from '@podverse/helpers-requests';
 import { QUERY_PARAMS_STATS_RANGE_VALUES } from '@podverse/helpers-requests';
 
+import { getMobileConfig } from '../../config';
+import type { HomeViewMode } from '../../prefs/homeListPrefs';
 import type { HomeMediaType } from '../../prefs/preferredMediaType';
 
 export const HOME_MEDIA_TYPE_ORDER: HomeMediaType[] = [
@@ -105,8 +108,29 @@ export const BROWSE_SORT_OPTIONS = ['recent', 'top'] as const;
 
 export type BrowseSortOption = (typeof BROWSE_SORT_OPTIONS)[number];
 
-/** Every Browse list opens on Top for the past week until the listener changes that list. */
-export const DEFAULT_BROWSE_SORT: BrowseSortOption = 'top';
+/** Browse lists open on Recent until the listener changes that list. */
+export const DEFAULT_BROWSE_SORT: BrowseSortOption = 'recent';
+
+/** Chip Browse opens on when nothing is stored. */
+export const defaultBrowseMediaType = (): BrowseMediaType => {
+  const chip = getMobileConfig().listScreens.browse.chip;
+  return BROWSE_MEDIA_TYPE_ORDER.find((type) => type === chip) ?? DEFAULT_BROWSE_MEDIA_TYPE;
+};
+
+/** Sort a Browse list opens on when nothing usable is stored. */
+export const defaultBrowseSort = (): BrowseSortOption => {
+  return listScreenSortForOffered(
+    getMobileConfig().listScreens.browse.sort,
+    'browse',
+    BROWSE_SORT_OPTIONS,
+    DEFAULT_BROWSE_SORT
+  );
+};
+
+/** Grid or list when a Browse channel list has no saved view. Blank opens on the grid. */
+export const defaultBrowseViewMode = (): HomeViewMode => {
+  return getMobileConfig().listScreens.browse.view === 'list' ? 'list' : 'grid';
+};
 
 export const BROWSE_SORT_LABEL_KEYS: Record<BrowseSortOption, string> = {
   recent: 'filters.sort.recent',

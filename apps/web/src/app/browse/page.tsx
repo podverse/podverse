@@ -1,9 +1,9 @@
 import type { MediaListChipsConfig } from '../../components/MediaListChips/MediaListChips';
 import { getCatalogConfig } from '../../lib/catalog/catalogPolicy';
+import { mediaListPageDefaultChip } from '../../lib/listScreenDefaults';
 import { getCuratedStaticPageMetadata } from '../../lib/seo/curatedPageMetadata';
 import {
   BROWSE_CHIPS,
-  DEFAULT_MEDIA_LIST_CHIP,
   MEDIA_LIST_CHIP_QUERY_PARAM,
   mediaListChipsForCatalog,
   readStoredMediaListChip,
@@ -44,7 +44,7 @@ export default async function BrowsePage({ searchParams }: BrowsePageProps) {
     chips,
     urlValue: params[MEDIA_LIST_CHIP_QUERY_PARAM],
     storedValue: readStoredMediaListChip(ssr.localSettings, 'browse'),
-    defaultChip: DEFAULT_MEDIA_LIST_CHIP,
+    defaultChip: mediaListPageDefaultChip('browse', chips),
   });
   const chipsConfig: MediaListChipsConfig = {
     page: 'browse',

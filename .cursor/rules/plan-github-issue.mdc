@@ -1,0 +1,49 @@
+---
+description: Link a podverse feature plan to a GitHub issue before planning and implementation
+alwaysApply: true
+---
+
+# Feature plans and GitHub issues
+
+Use this when a distinct plan will change a feature or other functionality in the podverse
+repo (`podverse/podverse`). The link is how we know which open issue gets a comment and a
+close after that work is on `develop`.
+
+Skip plans that do not change functionality: agent guidance, dependency bumps, and refactors
+that leave behavior the same. A pasted issue (**abcissue**) is the issue for that work. Do
+not open a second one.
+
+## Search before the plan and again before implementation
+
+Before writing the plan, search open issues (`gh issue list`, then `gh issue view` on each
+match). Search again before the first product edit of implementation. Read the matches.
+
+One feature uses one issue, including a set of several plans for that feature. Features that
+could ship separately each get their own issue. Record every issue this plan will address
+under `## Issue` on the plan (URL and number). When the set has `00-REQUEST.md`, record it
+there too.
+
+## Create the issue without waiting for plan approval
+
+When no open issue covers the work, create one with `gh issue create`. Follow **github**
+§ Creating and updating issues for the title and body. Read enough of the code that those
+claims are true.
+
+Create it as the first part of doing the plan. In the turn that writes the plan, file it once
+the behavior to name is clear. When a saved plan has no issue, file it as the first
+implementation step, before product edits. Operator approval of the plan is not a gate. File
+the issue, then keep going.
+
+Open product questions stay questions. File once the behavior the issue should name is clear.
+
+`gh issue create` is the only GitHub write this rule allows. Comment, close, and edit stay
+with the operator. See **operator-only-git-operations**.
+
+## Recommend the comment and the close only after develop
+
+Name the issue in the implementation summary. A drafted reply may be saved with the plan
+(**abcissue** § Ticket reply). Saving that draft is not a prompt to post it.
+
+After the change is merged into `develop`, recommend that the operator post a short comment
+and close the issue. Give them the comment text. A few sentences on what the reporter can do
+now. No file lists or plan names. Do not run `gh issue comment` or `gh issue close`.

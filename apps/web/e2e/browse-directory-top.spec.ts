@@ -48,105 +48,108 @@ const chooseTopThenDay = async (page: Page): Promise<void> => {
 };
 
 test.describe('Browse directory Top', () => {
-  test('Each Browse list opens on Top for the past week, lists only rows counted that week, and keeps a sort the listener picks for that list', async ({
+  test('Each Browse list opens on Recent, and keeps a sort the listener picks for that list', async ({
     page,
   }, testInfo) => {
-    await test.step('Browse opens on Podcasts with Top for the past week, lists the seeded podcast, and omits the HLS channel', async () => {
+    await test.step('Browse opens on Podcasts sorted by Recent and lists the seeded podcast and the HLS channel', async () => {
       await page.goto('/browse');
       await expectAppPath(page, '/browse');
       await expectPressedChip(page, 'Podcasts');
-      await expect(sortChip(page)).toHaveAccessibleName('Sort: Week');
+      await expect(sortChip(page)).toHaveAccessibleName('Sort: Recent');
       const podcastTitle = visibleTitle(page, E2E_PODCAST_CHANNEL_TITLE);
       await expect(podcastTitle).toBeVisible();
-      await expect(page.getByText(E2E_HLS_CHANNEL_TITLE, { exact: true })).toHaveCount(0);
-
-      await capturePageLoad(
-        page,
-        testInfo,
-        'Browse Podcasts opens on Top for the week and lists the seeded podcast.',
-        podcastTitle
-      );
-    });
-
-    await test.step('Choosing Recent lists the seeded podcast and the HLS channel, and the URL stays on Browse', async () => {
-      await sortChip(page).click();
-      const sortMenu = page.getByRole('menu', { name: 'Sort' });
-      await expect(sortMenu).toBeVisible();
-      await sortMenu.getByRole('menuitemradio', { name: 'Recent', exact: true }).click();
-
-      await expectAppPath(page, '/browse');
-      await expect(sortChip(page)).toHaveAccessibleName('Sort: Recent');
-      await expect(visibleTitle(page, E2E_PODCAST_CHANNEL_TITLE)).toBeVisible();
       const hlsTitle = visibleTitle(page, E2E_HLS_CHANNEL_TITLE);
       await expect(hlsTitle).toBeVisible();
 
       await capturePageLoad(
         page,
         testInfo,
-        'Recent on Browse Podcasts lists the seeded podcast and the HLS channel.',
+        'Browse Podcasts opens on Recent and lists the seeded podcast and the HLS channel.',
         hlsTitle
       );
     });
 
-    await test.step('Browse Episodes keeps its own sort and opens on Top for the past week with the chaptered episode listed', async () => {
+    await test.step('Choosing Top for the week lists the seeded podcast and omits the HLS channel', async () => {
+      await sortChip(page).click();
+      const sortMenu = page.getByRole('menu', { name: 'Sort' });
+      await expect(sortMenu).toBeVisible();
+      await sortMenu.getByRole('menuitemradio', { name: 'Top', exact: true }).click();
+      const rangeMenu = page.getByRole('menu', { name: 'Range' });
+      await expect(rangeMenu).toBeVisible();
+      await rangeMenu.getByRole('menuitemradio', { name: 'Week', exact: true }).click();
+
+      await expectAppPath(page, '/browse');
+      await expect(sortChip(page)).toHaveAccessibleName('Sort: Week');
+      await expect(visibleTitle(page, E2E_PODCAST_CHANNEL_TITLE)).toBeVisible();
+      await expect(page.getByText(E2E_HLS_CHANNEL_TITLE, { exact: true })).toHaveCount(0);
+
+      await capturePageLoad(
+        page,
+        testInfo,
+        'Top for the week on Browse Podcasts lists the seeded podcast and omits the HLS channel.',
+        visibleTitle(page, E2E_PODCAST_CHANNEL_TITLE)
+      );
+    });
+
+    await test.step('Browse Episodes keeps its own sort and opens on Recent with the chaptered episode listed', async () => {
       await page.goto('/browse?tab=episodes');
       await expectAppPath(page, '/browse?tab=episodes');
       await expectPressedChip(page, 'Episodes');
-      await expect(sortChip(page)).toHaveAccessibleName('Sort: Week');
+      await expect(sortChip(page)).toHaveAccessibleName('Sort: Recent');
       const episodeTitle = visibleTitle(page, EPISODE_TITLE);
       await expect(episodeTitle).toBeVisible();
 
       await capturePageLoad(
         page,
         testInfo,
-        'Browse Episodes opens on Top for the week and lists the chaptered episode.',
+        'Browse Episodes opens on Recent and lists the chaptered episode.',
         episodeTitle
       );
     });
 
-    await test.step('Browse Artists opens on Top for the past week and lists the directory artist', async () => {
+    await test.step('Browse Artists opens on Recent and lists the directory artist', async () => {
       await page.goto('/browse?tab=artists');
       await expectAppPath(page, '/browse?tab=artists');
       await expectPressedChip(page, 'Artists');
-      await expect(sortChip(page)).toHaveAccessibleName('Sort: Week');
+      await expect(sortChip(page)).toHaveAccessibleName('Sort: Recent');
       const artistTitle = visibleTitle(page, E2E_DIRECTORY_ARTIST_TITLE);
       await expect(artistTitle).toBeVisible();
 
       await capturePageLoad(
         page,
         testInfo,
-        'Browse Artists opens on Top for the week and lists the directory artist.',
+        'Browse Artists opens on Recent and lists the directory artist.',
         artistTitle
       );
     });
 
-    await test.step('Browse Tracks opens on Top for the past week and lists the seeded track', async () => {
+    await test.step('Browse Tracks opens on Recent and lists the seeded track', async () => {
       await page.goto('/browse?tab=tracks');
       await expectAppPath(page, '/browse?tab=tracks');
       await expectPressedChip(page, 'Tracks');
-      await expect(sortChip(page)).toHaveAccessibleName('Sort: Week');
+      await expect(sortChip(page)).toHaveAccessibleName('Sort: Recent');
       const trackTitle = visibleTitle(page, TRACK_TITLE);
       await expect(trackTitle).toBeVisible();
 
       await capturePageLoad(
         page,
         testInfo,
-        'Browse Tracks opens on Top for the week and lists the seeded track.',
+        'Browse Tracks opens on Recent and lists the seeded track.',
         trackTitle
       );
     });
 
-    await test.step('Clicking Podcasts returns to Browse on Recent and shows the HLS channel', async () => {
+    await test.step('Clicking Podcasts returns to Browse on Top for the week and omits the HLS channel', async () => {
       await chipButton(page, 'Podcasts').click();
       await expectAppPath(page, '/browse');
       await expectPressedChip(page, 'Podcasts');
-      await expect(sortChip(page)).toHaveAccessibleName('Sort: Recent');
-      await expect(visibleTitle(page, E2E_HLS_CHANNEL_TITLE)).toBeVisible();
+      await expect(sortChip(page)).toHaveAccessibleName('Sort: Week');
+      await expect(page.getByText(E2E_HLS_CHANNEL_TITLE, { exact: true })).toHaveCount(0);
 
       await capturePageLoad(
         page,
         testInfo,
-        'Podcasts keeps Recent after the other Browse lists opened on Week.',
+        'Podcasts keeps Top for the week after the other Browse lists opened on Recent.',
         sortChip(page)
       );
     });
@@ -209,10 +212,18 @@ test.describe('Browse directory Top', () => {
       );
     });
 
-    await test.step('Browse Clips opens on Top for the week and says no clips were found', async () => {
+    await test.step('Browse Clips opens on Recent. Choosing Top for the week says no clips were found', async () => {
       await page.goto('/browse?tab=clips');
       await expectAppPath(page, '/browse?tab=clips');
       await expectPressedChip(page, 'Clips');
+      await expect(sortChip(page)).toHaveAccessibleName('Sort: Recent');
+      await sortChip(page).click();
+      const sortMenu = page.getByRole('menu', { name: 'Sort' });
+      await expect(sortMenu).toBeVisible();
+      await sortMenu.getByRole('menuitemradio', { name: 'Top', exact: true }).click();
+      const rangeMenu = page.getByRole('menu', { name: 'Range' });
+      await expect(rangeMenu).toBeVisible();
+      await rangeMenu.getByRole('menuitemradio', { name: 'Week', exact: true }).click();
       await expect(sortChip(page)).toHaveAccessibleName('Sort: Week');
       await expectNoNextPage(page);
       const message = emptyMessage(page, 'No Clips Found');
@@ -244,10 +255,18 @@ test.describe('Browse directory Top', () => {
       );
     });
 
-    await test.step('Browse Albums opens on Top for the week and says no albums were found', async () => {
+    await test.step('Browse Albums opens on Recent. Choosing Top for the week says no albums were found', async () => {
       await page.goto('/browse?tab=albums');
       await expectAppPath(page, '/browse?tab=albums');
       await expectPressedChip(page, 'Albums');
+      await expect(sortChip(page)).toHaveAccessibleName('Sort: Recent');
+      await sortChip(page).click();
+      const sortMenu = page.getByRole('menu', { name: 'Sort' });
+      await expect(sortMenu).toBeVisible();
+      await sortMenu.getByRole('menuitemradio', { name: 'Top', exact: true }).click();
+      const rangeMenu = page.getByRole('menu', { name: 'Range' });
+      await expect(rangeMenu).toBeVisible();
+      await rangeMenu.getByRole('menuitemradio', { name: 'Week', exact: true }).click();
       await expect(sortChip(page)).toHaveAccessibleName('Sort: Week');
       await expectNoNextPage(page);
       const message = emptyMessage(page, 'No Albums Found');
@@ -279,10 +298,18 @@ test.describe('Browse directory Top', () => {
       );
     });
 
-    await test.step('Browse Playlists opens on Top for the week and says no playlists were found', async () => {
+    await test.step('Browse Playlists opens on Recent. Choosing Top for the week says no playlists were found', async () => {
       await page.goto('/browse?tab=playlists');
       await expectAppPath(page, '/browse?tab=playlists');
       await expectPressedChip(page, 'Playlists');
+      await expect(sortChip(page)).toHaveAccessibleName('Sort: Recent');
+      await sortChip(page).click();
+      const sortMenu = page.getByRole('menu', { name: 'Sort' });
+      await expect(sortMenu).toBeVisible();
+      await sortMenu.getByRole('menuitemradio', { name: 'Top', exact: true }).click();
+      const rangeMenu = page.getByRole('menu', { name: 'Range' });
+      await expect(rangeMenu).toBeVisible();
+      await rangeMenu.getByRole('menuitemradio', { name: 'Week', exact: true }).click();
       await expect(sortChip(page)).toHaveAccessibleName('Sort: Week');
       await expectNoNextPage(page);
       const message = emptyMessage(page, 'No Playlists Found');
@@ -296,10 +323,18 @@ test.describe('Browse directory Top', () => {
       );
     });
 
-    await test.step('Browse Users opens on Top for the week and says no users were found', async () => {
+    await test.step('Browse Users opens on Recent. Choosing Top for the week says no users were found', async () => {
       await page.goto('/browse?tab=users');
       await expectAppPath(page, '/browse?tab=users');
       await expectPressedChip(page, 'Users');
+      await expect(sortChip(page)).toHaveAccessibleName('Sort: Recent');
+      await sortChip(page).click();
+      const sortMenu = page.getByRole('menu', { name: 'Sort' });
+      await expect(sortMenu).toBeVisible();
+      await sortMenu.getByRole('menuitemradio', { name: 'Top', exact: true }).click();
+      const rangeMenu = page.getByRole('menu', { name: 'Range' });
+      await expect(rangeMenu).toBeVisible();
+      await rangeMenu.getByRole('menuitemradio', { name: 'Week', exact: true }).click();
       await expect(sortChip(page)).toHaveAccessibleName('Sort: Week');
       await expectNoNextPage(page);
       const message = emptyMessage(page, 'No Users Found');

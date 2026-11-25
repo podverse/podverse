@@ -5,12 +5,15 @@ export function isListViewMode(value: string | undefined): value is ViewSelected
 }
 
 /**
- * Scoped `viewMode` wins. Otherwise rows. The cookie's global `vs` is not consulted — Home and
- * directory channel lists each keep their own list/grid.
+ * Scoped `viewMode` wins. Otherwise `fallback`. The cookie's global `vs` is not consulted — Home
+ * and directory channel lists each keep their own list/grid.
  */
-export function resolveListViewMode(storedViewMode: string | undefined): ViewSelectedOption {
+export function resolveListViewMode(
+  storedViewMode: string | undefined,
+  fallback: ViewSelectedOption = 'rows'
+): ViewSelectedOption {
   if (isListViewMode(storedViewMode)) {
     return storedViewMode;
   }
-  return 'rows';
+  return fallback;
 }

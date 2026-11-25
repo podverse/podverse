@@ -34,12 +34,12 @@ test.describe('Main layout navbar chrome', () => {
       'The wide home page shows Subscribed, Browse, and an expanded Library.',
       async () => {
         await page.goto('/');
-        await expect(page).toHaveURL(/\/$/);
+        await expect(page).toHaveURL(/\/browse$/);
         const sections = page.locator('#sidebar details');
         await expect(sections).toHaveCount(1);
         await expect(sections).toHaveJSProperty('open', true);
         await expect(
-          page.locator('#sidebar a[href="/"]').filter({ hasText: 'Subscribed' })
+          page.locator('#sidebar a[href="/subscribed"]').filter({ hasText: 'Subscribed' })
         ).toBeVisible();
         await expect(page.locator('#sidebar a[href="/browse"]')).toBeVisible();
         await expect(page.locator('#sidebar a[href="/add-by-rss"]')).toBeVisible();
@@ -55,17 +55,34 @@ test.describe('Main layout navbar chrome', () => {
     page,
   }, testInfo) => {
     await page.setViewportSize({ width: 1280, height: 720 });
-    const subscribed = page.locator('#sidebar a[href="/"]').filter({ hasText: 'Subscribed' });
+    const subscribed = page
+      .locator('#sidebar a[href="/subscribed"]')
+      .filter({ hasText: 'Subscribed' });
     const browse = page.locator('#sidebar a[href="/browse"]');
 
-    await test.step('The home page marks Subscribed as the current page.', async () => {
+    await test.step('A signed-out visit to the site lands on Browse and marks Browse as the current page.', async () => {
       await actionAndCapture(
         page,
         testInfo,
-        'The home page marks Subscribed in the sidebar as the current page.',
+        'A signed-out visit lands on Browse and marks Browse in the sidebar.',
         async () => {
           await page.goto('/');
-          await expect(page).toHaveURL(/\/$/);
+          await expect(page).toHaveURL(/\/browse$/);
+          await expect(browse).toHaveAttribute('aria-current', 'page');
+          await expect(subscribed).not.toHaveAttribute('aria-current', 'page');
+        },
+        browse
+      );
+    });
+
+    await test.step('Subscribed marks Subscribed as the current page.', async () => {
+      await actionAndCapture(
+        page,
+        testInfo,
+        'Subscribed marks Subscribed in the sidebar as the current page.',
+        async () => {
+          await page.goto('/subscribed');
+          await expect(page).toHaveURL(/\/subscribed$/);
           await expect(subscribed).toHaveAttribute('aria-current', 'page');
           await expect(browse).not.toHaveAttribute('aria-current', 'page');
         },

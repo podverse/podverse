@@ -2,7 +2,14 @@
 import http from 'node:http';
 import { URL } from 'node:url';
 
-import { DEFAULT_STATS_TRACK_EVENT_RETENTION_DAYS } from '@podverse/helpers';
+import {
+  BROWSE_LIST_SCREEN_CHIPS,
+  DEFAULT_STATS_TRACK_EVENT_RETENTION_DAYS,
+  HOME_LIST_SCREEN_CHIPS,
+  LIST_SCREEN_SORTS,
+  LIST_SCREEN_VIEWS,
+  parseListScreenDefaults,
+} from '@podverse/helpers';
 import type { ValidationResult, ValidationSummary } from '@podverse/helpers-config';
 import {
   displayValidationResults,
@@ -76,9 +83,15 @@ const optionalKeys = [
   'NEXT_PUBLIC_BRAND_NAME',
   'NEXT_PUBLIC_BRAND_RECTANGULAR_LOGO_DISABLE_HEIGHT_ENFORCEMENT',
   'NEXT_PUBLIC_BRAND_THEME_COLOR',
+  'NEXT_PUBLIC_BROWSE_DEFAULT_CHIP',
+  'NEXT_PUBLIC_BROWSE_DEFAULT_SORT',
+  'NEXT_PUBLIC_BROWSE_DEFAULT_VIEW',
   'NEXT_PUBLIC_CATALOG_ADD_BY_RSS_DISABLED',
   'NEXT_PUBLIC_CATALOG_MUSIC_DISABLED',
   'NEXT_PUBLIC_CATALOG_PODCAST_INDEX_ID_ALLOWLIST',
+  'NEXT_PUBLIC_HOME_DEFAULT_CHIP',
+  'NEXT_PUBLIC_HOME_DEFAULT_SORT',
+  'NEXT_PUBLIC_HOME_DEFAULT_VIEW',
   'NEXT_PUBLIC_CONTACT_EMAIL',
   'NEXT_PUBLIC_CUSTOM_THEMES_URL',
   'NEXT_PUBLIC_COOKIE_CONSENT_BANNER_ENABLED',
@@ -136,6 +149,64 @@ function validatePort(): ValidationResult {
     isRequired: true,
     message: `Set to ${value}`,
     category: 'Server',
+  };
+}
+
+const LIST_SCREEN_ENV_FIELDS = {
+  NEXT_PUBLIC_BROWSE_DEFAULT_CHIP: 'browseChip',
+  NEXT_PUBLIC_BROWSE_DEFAULT_SORT: 'browseSort',
+  NEXT_PUBLIC_BROWSE_DEFAULT_VIEW: 'browseView',
+  NEXT_PUBLIC_HOME_DEFAULT_CHIP: 'homeChip',
+  NEXT_PUBLIC_HOME_DEFAULT_SORT: 'homeSort',
+  NEXT_PUBLIC_HOME_DEFAULT_VIEW: 'homeView',
+} as const;
+
+type ListScreenEnvKey = keyof typeof LIST_SCREEN_ENV_FIELDS;
+
+function isListScreenEnvKey(key: string): key is ListScreenEnvKey {
+  return Object.prototype.hasOwnProperty.call(LIST_SCREEN_ENV_FIELDS, key);
+}
+
+function allowedListScreenValues(key: ListScreenEnvKey): readonly string[] {
+  if (key.endsWith('_SORT')) {
+    return LIST_SCREEN_SORTS;
+  }
+  if (key.endsWith('_VIEW')) {
+    return LIST_SCREEN_VIEWS;
+  }
+  return key.startsWith('NEXT_PUBLIC_HOME_') ? HOME_LIST_SCREEN_CHIPS : BROWSE_LIST_SCREEN_CHIPS;
+}
+
+function validateListScreenDefault(key: ListScreenEnvKey): ValidationResult {
+  const value = process.env[key] ?? '';
+  if (value.trim() === '') {
+    return {
+      name: key,
+      isSet: false,
+      isValid: true,
+      isRequired: false,
+      message: 'Skipped',
+      category: 'Lists',
+    };
+  }
+  const { issues } = parseListScreenDefaults({ [LIST_SCREEN_ENV_FIELDS[key]]: value });
+  if (issues.length > 0) {
+    return {
+      name: key,
+      isSet: true,
+      isValid: false,
+      isRequired: false,
+      message: `Invalid value: "${value.trim()}" - must be ${allowedListScreenValues(key).join(', ')}`,
+      category: 'Lists',
+    };
+  }
+  return {
+    name: key,
+    isSet: true,
+    isValid: true,
+    isRequired: false,
+    message: `Set to ${value.trim()}`,
+    category: 'Lists',
   };
 }
 
@@ -311,6 +382,9 @@ function validateOne(key: string, isRequired: boolean): ValidationResult {
     }
     return validatePositiveNumber(key, 'Stats', false, 1);
   }
+  if (isListScreenEnvKey(key)) {
+    return validateListScreenDefault(key);
+  }
   if (
     key === 'NEXT_PUBLIC_CATALOG_MUSIC_DISABLED' ||
     key === 'NEXT_PUBLIC_CATALOG_ADD_BY_RSS_DISABLED'
@@ -338,7 +412,13 @@ function getCategory(key: string): string {
     NEXT_PUBLIC_DEFAULT_THEME: 'Themes',
     NEXT_PUBLIC_FEATURES_DEFAULT_LOCALE: 'Features',
     NEXT_PUBLIC_FEATURES_SUPPORTED_LOCALES: 'Features',
+    NEXT_PUBLIC_BROWSE_DEFAULT_CHIP: 'Lists',
+    NEXT_PUBLIC_BROWSE_DEFAULT_SORT: 'Lists',
+    NEXT_PUBLIC_BROWSE_DEFAULT_VIEW: 'Lists',
     NEXT_PUBLIC_CATALOG_ADD_BY_RSS_DISABLED: 'Catalog',
+    NEXT_PUBLIC_HOME_DEFAULT_CHIP: 'Lists',
+    NEXT_PUBLIC_HOME_DEFAULT_SORT: 'Lists',
+    NEXT_PUBLIC_HOME_DEFAULT_VIEW: 'Lists',
     NEXT_PUBLIC_CATALOG_MUSIC_DISABLED: 'Catalog',
     NEXT_PUBLIC_CATALOG_PODCAST_INDEX_ID_ALLOWLIST: 'Catalog',
     NEXT_PUBLIC_COOKIE_CONSENT_BANNER_ENABLED: 'Legal',

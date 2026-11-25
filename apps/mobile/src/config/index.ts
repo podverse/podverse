@@ -1,4 +1,5 @@
-import type { AccountSignupMode } from '@podverse/helpers';
+import type { AccountSignupMode, ListScreenDefaults } from '@podverse/helpers';
+import { parseListScreenDefaults } from '@podverse/helpers/listScreenDefaults';
 
 import { getMobileAccountSignupModeFromEnv } from './accountSignupModeEnv';
 import { readCustomApiBaseUrlOverride, readCustomApiWebOrigin } from './customApiEndpoint';
@@ -8,6 +9,7 @@ import {
   getMobileBillingModeFromEnv,
   getMobileContactEmailFromEnv,
   getMobileDeepLinkSchemesFromEnv,
+  getMobileListScreenEnv,
   getMobilePublicWebBaseUrlFromEnv,
   getMobilePushProviderFromEnv,
   getMobileUnifiedPushAuthKeyFromEnv,
@@ -48,6 +50,8 @@ export type MobileConfig = {
   unifiedPushEndpoint: string | null;
   /** Value-for-value boost entry enabled; hidden by default. */
   isV4vEnabled: boolean;
+  /** Opening chip, sort, and view. Null fields keep that screen's own opening choice. */
+  listScreens: ListScreenDefaults;
   /**
    * Public web origin baked into this build, or null when it has no web host.
    * Universal links use this field. Share links and in-app browser pages use
@@ -65,7 +69,18 @@ export const getBuiltInMobileApiBaseUrl = (): string | null => selectMobileApiBa
  * A saved custom API address replaces `api` until Reset. `webBaseUrl` stays on the build.
  * `customApiBaseUrl` and `customApiWebOrigin` follow the saved override.
  */
+const mobileListScreens = (): ListScreenDefaults => {
+  const env = getMobileListScreenEnv();
+  const parsed = parseListScreenDefaults(env);
+  if (parsed.issues.length > 0) {
+    const details = parsed.issues.map((issue) => `${issue.field}=${issue.raw}`).join(', ');
+    throw new Error(`[mobile-env] Invalid list screen default: ${details}`);
+  }
+  return parsed.defaults;
+};
+
 export const getMobileConfig = (): MobileConfig => {
+  const listScreens = mobileListScreens();
   const selectedBaseUrl = selectMobileApiBaseUrl();
   const deepLinkSchemes = getMobileDeepLinkSchemesFromEnv();
   const billingMode = getMobileBillingModeFromEnv();
@@ -91,6 +106,7 @@ export const getMobileConfig = (): MobileConfig => {
     deepLinkSchemes,
     isE2e,
     isV4vEnabled,
+    listScreens,
     pushProvider,
     unifiedPushAuthKey,
     unifiedPushEndpoint,

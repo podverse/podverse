@@ -12,8 +12,8 @@ test.describe('Music off media list chips', () => {
   test('When Music is off, Home offers Podcasts, Episodes, Clips, and Livestreams.', async ({
     page,
   }, testInfo) => {
-    await page.goto('/');
-    await expect(page).toHaveURL('/');
+    await page.goto('/subscribed');
+    await expect(page).toHaveURL('/subscribed');
 
     const row = chipRow(page);
     await expect(row).toBeVisible();
@@ -38,8 +38,8 @@ test.describe('Music off media list chips', () => {
   test('When Music is off, a Home URL that names Artists opens Podcasts.', async ({
     page,
   }, testInfo) => {
-    await page.goto('/?tab=artists');
-    await expect(page).toHaveURL(/\/\?tab=artists$/);
+    await page.goto('/subscribed?tab=artists');
+    await expect(page).toHaveURL(/\/subscribed\?tab=artists$/);
 
     const podcasts = chipButton(page, 'Podcasts');
     await expect(podcasts).toBeVisible();

@@ -8,7 +8,7 @@ test.describe('Cookie consent banner (disabled)', () => {
   }, testInfo) => {
     await page.goto('/');
 
-    await expect(page).toHaveURL('/');
+    await expect(page).toHaveURL('/browse');
 
     const body = page.locator('body');
     await expect(body).toBeVisible();

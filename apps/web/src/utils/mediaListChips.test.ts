@@ -73,7 +73,11 @@ describe('resolveMediaListChip', () => {
 
 describe('buildMediaListChipPath', () => {
   it('omits the default chip and names every other chip in tab', () => {
-    expect(buildMediaListChipPath('subscribed', 'podcasts')).toBe('/');
+    expect(buildMediaListChipPath('subscribed', 'podcasts')).toBe('/subscribed');
+    expect(buildMediaListChipPath('subscribed', 'episodes', 'episodes')).toBe('/subscribed');
+    expect(buildMediaListChipPath('subscribed', 'podcasts', 'episodes')).toBe(
+      '/subscribed?tab=podcasts'
+    );
     expect(buildMediaListChipPath('browse', 'episodes')).toBe('/browse?tab=episodes');
     expect(buildMediaListChipPath('add-by-rss', 'podcasts')).toBe('/add-by-rss');
   });

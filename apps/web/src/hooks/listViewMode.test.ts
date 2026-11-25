@@ -19,6 +19,11 @@ describe('resolveListViewMode', () => {
     expect(resolveListViewMode(undefined)).toBe('rows');
     expect(resolveListViewMode('carousel')).toBe('rows');
   });
+
+  it('uses an explicit fallback when the scope has no usable viewMode', () => {
+    expect(resolveListViewMode(undefined, 'grid')).toBe('grid');
+    expect(resolveListViewMode('grid', 'rows')).toBe('grid');
+  });
 });
 
 describe('scoped viewMode writes', () => {

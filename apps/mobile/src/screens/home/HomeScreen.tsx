@@ -60,8 +60,8 @@ import type {
 } from '../../prefs/homeListPrefs';
 import {
   DEFAULT_HOME_RANGE,
-  DEFAULT_HOME_VIEW_MODE,
   defaultHomeSortFor,
+  defaultHomeViewMode,
   homeClipsPrefsChangeRefetches,
   homeClipsQueryFromPrefs,
   homeSortOptionsFor,
@@ -77,7 +77,7 @@ import {
 } from '../../prefs/homeListPrefs';
 import { useOfflineMode } from '../../prefs/offlineMode';
 import {
-  DEFAULT_HOME_MEDIA_TYPE,
+  defaultHomeMediaType,
   type HomeMediaType,
   readPreferredMediaType,
   writePreferredMediaType,
@@ -297,8 +297,7 @@ export function HomeScreen() {
   const { enabled: offlineModeEnabled } = useOfflineMode();
   const { requestSync, state: syncState } = useSync();
   const { styles: themeStyles, tokens } = useTheme();
-  const [selectedMediaType, setSelectedMediaType] =
-    useState<HomeMediaType>(DEFAULT_HOME_MEDIA_TYPE);
+  const [selectedMediaType, setSelectedMediaType] = useState<HomeMediaType>(defaultHomeMediaType());
   const [isMediaTypeHydrated, setIsMediaTypeHydrated] = useState<boolean>(false);
   // The chip the user just tapped, before the list switches. Drives the active chip and a spinner
   // over the still-mounted old list for one small commit; the switch itself runs a frame later.
@@ -363,7 +362,7 @@ export function HomeScreen() {
           mediaType: selectedMediaType,
           range: DEFAULT_HOME_RANGE,
           sort: defaultHomeSortFor(selectedMediaType),
-          viewMode: listPrefs?.viewMode ?? DEFAULT_HOME_VIEW_MODE,
+          viewMode: listPrefs?.viewMode ?? defaultHomeViewMode(),
         };
 
   const arePrefsHydrated = listPrefs !== null && listPrefs.mediaType === selectedMediaType;
@@ -397,7 +396,7 @@ export function HomeScreen() {
         if (!isMounted) {
           return;
         }
-        perfMark('home.chip.initial', storedMediaType ?? DEFAULT_HOME_MEDIA_TYPE);
+        perfMark('home.chip.initial', storedMediaType ?? defaultHomeMediaType());
 
         if (storedMediaType !== null) {
           setSelectedMediaType(storedMediaType);
@@ -405,10 +404,10 @@ export function HomeScreen() {
       } catch (error) {
         appendHomeFeedReadFailure({
           error,
-          mediaType: DEFAULT_HOME_MEDIA_TYPE,
+          mediaType: defaultHomeMediaType(),
           source: 'prefs',
         });
-        perfMark('home.chip.initial', DEFAULT_HOME_MEDIA_TYPE);
+        perfMark('home.chip.initial', defaultHomeMediaType());
       } finally {
         if (isMounted) {
           setIsMediaTypeHydrated(true);
@@ -487,7 +486,7 @@ export function HomeScreen() {
             mediaType: selectedMediaType,
             range: DEFAULT_HOME_RANGE,
             sort: defaultHomeSortFor(selectedMediaType),
-            viewMode: DEFAULT_HOME_VIEW_MODE,
+            viewMode: defaultHomeViewMode(),
           });
         }
       }

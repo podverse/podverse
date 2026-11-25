@@ -25,6 +25,11 @@ files.
    anything two readings of the request would build differently. Use `AskQuestion`. Look at the
    code only as far as the questions need. Questions a planning agent can answer from the code
    are left to that agent.
+1. Feature or functionality work follows **plan-github-issue**. Search open issues before
+   writing `00-REQUEST.md` or a small set. When the behavior to name is already clear and no
+   open issue covers it, create the issue in this chat before the run commands. Do not wait
+   for the operator to approve the plan. When the behavior is still open, the area step files
+   the issue once it is clear.
 1. Decide the size.
    - **Small**: the whole request fits one or two plans you can write from what is already in
      context. Write the set in this chat (**parallel-plan-execution**, one change per plan per
@@ -94,8 +99,12 @@ the invoking chat reaches it otherwise.
   RSS).
 - **Orientation**: files you already found that a planner should start from, with one line each.
   Only facts you checked.
+- **Issue**: the open issue URL and number when **plan-github-issue** already found or created
+  one. Area steps search again before writing plans.
 - **Ticket reply**: only when **abcissue** wrote the file. An operator deliverable for the last
   implementation step, not a product change. Keep it as a ledger row the last plan covers.
+  The draft is saved during implementation. Recommending that the operator post it and close
+  the issue waits until the change is merged into `develop`.
 
 ## Planning steps
 
@@ -108,7 +117,8 @@ the implementation run starts). Its steps come from
   `.artifacts/plan-runner/abcplan-<slug>/`. It reads a full final message or another area's plan
   only for the steps its own prompt names as dependencies, or for a plan it edits.
 - Changes no product, test, or guidance code and runs no tests. It writes only inside
-  `.llm/plans/active/<slug>/` and the planning set's `COPY-PASTA.md`.
+  `.llm/plans/active/<slug>/` and the planning set's `COPY-PASTA.md`. It may run
+  `gh issue create` when **plan-github-issue** says this feature has no open issue.
 - Does not run Prettier, align tables, or rewrap lines in plan files. Nothing checks formatting
   under `.llm/plans/`; tables need valid pipes, not padding.
 - Reports `RUNNER-STATUS: BLOCKED — <question>` only for a product decision the request and
@@ -176,6 +186,10 @@ free-form.
 - `## Release scratchpad` — the `release-notes/scratchpad.md` entry to append when it changes a
   shipped surface, or `none`.
 
+Record `## Issue` with the open issue URL and number, or `none` when **plan-github-issue**
+does not apply. Search again before writing the plan. Create the issue when none is open and
+the behavior is clear. Filing does not wait on plan approval.
+
 The plan also:
 
 - Names exact file paths and anchors (symbol, route, key prefix) for files listed in
@@ -238,8 +252,10 @@ the set, per **parallel-plan-execution** and **copy-pasta-recommend-model**:
 - The last prompt archives the set and carries the cumulative verification for the whole set
   (**response-ending-make-verify** § Plan sets).
 - When the request has a Ticket reply section, that last prompt also writes `proposed-reply.md`
-  in the set and repeats it in a fenced `text` block. It does not post the comment. The operator
-  pastes it after the change is on `develop`. See **abcissue**.
+  in the set and repeats it in a fenced `text` block. It does not post the comment, and it does
+  not recommend posting or closing yet. That recommendation waits until the change is merged
+  into `develop`, and then it includes closing the issue. See **abcissue** and
+  **plan-github-issue**.
 
 The final message lists, in this order: the phases with their prompts and models, the open
 questions, and the command `./scripts/abcplan/run.sh run <slug>`.
@@ -268,4 +284,7 @@ the first planning pass, and so on.
 `./scripts/abcplan/run.sh run <slug>` runs the set's `COPY-PASTA.md` with plan-runner, in
 parallel by phase. Its prompts are ordinary plan-set prompts: they follow the plans, do not run
 tests, and append release-note entries, except in a phase with several prompts (§ Assemble).
+The first action of a feature or functionality prompt is **plan-github-issue**: search again,
+and create the issue when the plan has none, before product edits. Do not recommend a comment
+or a close. That recommendation waits until the change is merged into `develop`.
 The script refuses while the planning run still has unticked steps.

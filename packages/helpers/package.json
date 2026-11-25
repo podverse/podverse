@@ -139,6 +139,10 @@
       "types": "./dist/lib/item/mediaSourceClassification.d.ts",
       "default": "./dist/lib/item/mediaSourceClassification.js"
     },
+    "./listScreenDefaults": {
+      "types": "./dist/lib/listScreenDefaults.d.ts",
+      "default": "./dist/lib/listScreenDefaults.js"
+    },
     "./sortPrefs": {
       "types": "./dist/lib/sortPrefs.d.ts",
       "default": "./dist/lib/sortPrefs.js"

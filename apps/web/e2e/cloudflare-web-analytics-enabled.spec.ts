@@ -8,7 +8,7 @@ test.describe('Cloudflare Web Analytics integration (enabled)', () => {
   }, testInfo) => {
     await page.goto('/');
 
-    await expect(page).toHaveURL('/');
+    await expect(page).toHaveURL('/browse');
 
     const body = page.locator('body');
     await expect(body).toBeVisible();

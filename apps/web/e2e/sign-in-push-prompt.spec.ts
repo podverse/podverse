@@ -62,7 +62,7 @@ async function readSignInPushPromptShownFlags(page: Page): Promise<string[]> {
 
 /** Confirms the Subscribed page loaded. The account button is site chrome, not this page. */
 async function expectSubscribedHome(page: Page): Promise<void> {
-  await expect(page).toHaveURL('/');
+  await expect(page).toHaveURL('/subscribed');
   await expect(page.getByRole('heading', { name: 'Subscribed', exact: true })).toBeVisible();
 }
 
@@ -86,7 +86,7 @@ async function openSubscribedReadyForSignIn(
     otherBrowserWebPushDevices: params.otherBrowserWebPushDevices,
     unifiedPushDevice: false,
   });
-  await page.goto('/');
+  await page.goto('/subscribed');
   await expectSubscribedHome(page);
   await expect(
     page.locator('[data-appearance="web"]').getByRole('button', { name: 'Account' })

@@ -2,16 +2,17 @@ import type { SortPrefScope, SortPrefValue } from '@podverse/helpers';
 import { browseListScope, isChannelListViewModeType, pickSortPrefToken } from '@podverse/helpers';
 
 import type { HomeViewMode } from '../../prefs/homeListPrefs';
-import { DEFAULT_HOME_VIEW_MODE, HOME_VIEW_MODES } from '../../prefs/homeListPrefs';
+import { HOME_VIEW_MODES } from '../../prefs/homeListPrefs';
 import { readSortPref, subscribeSortPref, writeSortPref } from '../../prefs/sortPrefs';
 import type { BrowseMediaType, BrowseRangeOption, BrowseSortOption } from './browseTypes';
 import {
   BROWSE_MEDIA_TYPE_ORDER,
   BROWSE_RANGE_OPTIONS,
   BROWSE_SORT_OPTIONS,
-  DEFAULT_BROWSE_MEDIA_TYPE,
   DEFAULT_BROWSE_RANGE,
-  DEFAULT_BROWSE_SORT,
+  defaultBrowseMediaType,
+  defaultBrowseSort,
+  defaultBrowseViewMode,
   isBrowseMediaType,
   isBrowseSortableMediaType,
 } from './browseTypes';
@@ -57,11 +58,15 @@ const resolveBrowseViewMode = (
     }
   }
 
+  if (!isChannelListViewModeType(mediaType)) {
+    return 'list';
+  }
+
   if (root?.viewMode !== undefined && isHomeViewMode(root.viewMode)) {
     return root.viewMode;
   }
 
-  return DEFAULT_HOME_VIEW_MODE;
+  return defaultBrowseViewMode();
 };
 
 export const readBrowseListPrefs = async (): Promise<BrowseListPrefs> => {
@@ -69,14 +74,14 @@ export const readBrowseListPrefs = async (): Promise<BrowseListPrefs> => {
   const mediaType =
     root?.mediaType !== undefined && isBrowseMediaType(root.mediaType)
       ? root.mediaType
-      : DEFAULT_BROWSE_MEDIA_TYPE;
+      : defaultBrowseMediaType();
   const entry = await readSortPref(browseListScope(mediaType));
 
   return {
     category: root?.category !== undefined ? root.category : null,
     mediaType,
     range: pickSortPrefToken(entry?.range, BROWSE_RANGE_OPTIONS, DEFAULT_BROWSE_RANGE),
-    sort: pickSortPrefToken(entry?.sort, BROWSE_SORT_OPTIONS, DEFAULT_BROWSE_SORT),
+    sort: pickSortPrefToken(entry?.sort, BROWSE_SORT_OPTIONS, defaultBrowseSort()),
     viewMode: resolveBrowseViewMode(mediaType, root, entry),
   };
 };

@@ -5,7 +5,8 @@ name: Browse Tab And Tab Bar Pref
 # Settings does not list Search. For Me is already on the bar.
 # Browse is one chip row: directory types in a stable order. Categories and the sort chip
 # (filter chrome) appear only when the current type can use them; the sort chip is last.
-# Every type opens on Top for the past week and keeps its own sort.
+# Every type opens on Recent and keeps its own sort. Podcasts, artists, and albums open
+# on a grid; this flow switches those chips to a list before it reads row ids.
 
 - runFlow: shared/launch-and-connect.yaml
 - runFlow: shared/login-seeded-user.yaml
@@ -31,8 +32,16 @@ name: Browse Tab And Tab Bar Pref
     visible:
       id: browse-sort-button
     timeout: ${TIMEOUT_SLOWER}
-# Podcasts opens on Top for the past week.
-- assertVisible: "Sort: Week"
+# Podcasts opens on Recent, drawn as a grid. The rest of this flow reads list rows.
+- assertVisible: "Sort: Recent"
+- extendedWaitUntil:
+    visible:
+      id: "home-feed-cell-.*"
+    timeout: ${TIMEOUT_SLOWER}
+- tapOn:
+    id: browse-overflow-trigger
+- tapOn:
+    id: browse-overflow-view-list
 - assertVisible:
     id: browse-media-type-selector
 - assertVisible:
@@ -70,28 +79,15 @@ name: Browse Tab And Tab Bar Pref
     id: browse-media-type-playlists
 - assertVisible:
     id: browse-media-type-users
-# Playlists and users are text-only catalog rows (no HomeFeedRow artwork). Both open on Top for
-# the past week, and the seed counts no playlist or profile listens, so each list is empty.
+# Playlists and users are text-only catalog rows (no HomeFeedRow artwork). Both open on Recent.
 - tapOn:
     id: browse-media-type-playlists
-- extendedWaitUntil:
-    visible:
-      id: browse-list-empty
-    timeout: ${TIMEOUT_SLOWER}
-- assertVisible:
-    id: browse-list-empty-action
-- assertNotVisible:
-    id: "browse-playlist-row-.*"
-- takeScreenshot: browse-screen-playlists
-# Browse by Most Recent lists the seeded public playlist. Only Playlists changes; Users keeps its own sort.
-- tapOn:
-    id: browse-list-empty-action
 - extendedWaitUntil:
     visible:
       id: "browse-playlist-row-.*"
     timeout: ${TIMEOUT_SLOWER}
 - assertVisible: "Sort: Recent"
-- takeScreenshot: browse-screen-playlists-recent
+- takeScreenshot: browse-screen-playlists
 - runFlow:
     file: shared/reveal-chip-row-leading.yaml
     env:
@@ -101,13 +97,9 @@ name: Browse Tab And Tab Bar Pref
     id: browse-media-type-users
 - extendedWaitUntil:
     visible:
-      id: browse-list-empty
+      id: browse-feed-list
     timeout: ${TIMEOUT_SLOWER}
-- assertVisible:
-    id: browse-list-empty-action
-- assertNotVisible:
-    id: "browse-user-row-.*"
-- assertVisible: "Sort: Week"
+- assertVisible: "Sort: Recent"
 - takeScreenshot: browse-screen-users
 # Livestreams is the chip before Playlists. The row is at its trailing edge here.
 - runFlow:
@@ -215,12 +207,12 @@ name: Browse Tab And Tab Bar Pref
     visible:
       id: browse-feed-list
     timeout: ${TIMEOUT_SLOWER}
-# Top for the week lists only shows with listens that week.
+# Recent lists the seeded podcast and the HLS channel.
 - extendedWaitUntil:
     visible:
       text: "E2E Podcast Seed Channel"
     timeout: ${TIMEOUT_SLOWER}
-- assertNotVisible:
+- assertVisible:
     text: "E2E HLS VOD Channel"
 - takeScreenshot: browse-screen-podcasts
 
@@ -246,13 +238,11 @@ name: Browse Tab And Tab Bar Pref
     visible:
       id: browse-feed-list
     timeout: ${TIMEOUT_SLOWER}
-# The seed counts no clip listens, so Clips opens on an empty Top week.
+# Clips open on Recent.
 - extendedWaitUntil:
     visible:
-      id: browse-list-empty
+      id: browse-feed-list
     timeout: ${TIMEOUT_SLOWER}
-- assertNotVisible:
-    id: "home-feed-row-.*"
 - takeScreenshot: browse-screen-clips
 - tapOn:
     id: browse-media-type-episodes
@@ -271,7 +261,7 @@ name: Browse Tab And Tab Bar Pref
     from:
       id: browse-media-type-selector
     direction: LEFT
-- assertVisible: "Sort: Week"
+- assertVisible: "Sort: Recent"
 - tapOn:
     id: browse-sort-button
 - assertVisible:
@@ -398,8 +388,12 @@ name: Browse Tab And Tab Bar Pref
     visible:
       id: browse-sort-button
     timeout: ${TIMEOUT_SLOWER}
-# Episodes is on Recent now; Artists keeps its own sort and still opens on Top for the week.
-- assertVisible: "Sort: Week"
+# Episodes is on Recent; Artists keeps its own sort and also opens on Recent, as a grid.
+- assertVisible: "Sort: Recent"
+- tapOn:
+    id: browse-overflow-trigger
+- tapOn:
+    id: browse-overflow-view-list
 - assertNotVisible:
     id: browse-category-button
 - assertNotVisible:

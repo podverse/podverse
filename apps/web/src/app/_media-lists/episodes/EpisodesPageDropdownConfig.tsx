@@ -9,6 +9,7 @@ import {
   QUERY_PARAMS_SUBSCRIBED_PARTIAL_SORT,
 } from '@podverse/helpers-requests';
 
+import { configuredSort } from '../../../lib/listScreenDefaults';
 import { buildSubscribedListFilterParams } from '../../../utils/dropdownMenuItems';
 import type { MediaListScope } from '../../../utils/mediaListChips';
 
@@ -44,8 +45,8 @@ export function getEpisodesPageFilterParams(
 ): EpisodesPageDropdownConfigCurrentParams {
   return buildSubscribedListFilterParams({
     ...params,
-    defaultGlobalSort: 'top',
-    defaultSubscribedSort: 'recent',
+    defaultGlobalSort: configuredSort('browse', QUERY_PARAMS_GLOBAL_SORT_VALUES, 'recent'),
+    defaultSubscribedSort: configuredSort('home', QUERY_PARAMS_SUBSCRIBED_PARTIAL_SORT, 'recent'),
     globalSortValues: QUERY_PARAMS_GLOBAL_SORT_VALUES,
     isValidAuthSession,
     scope,

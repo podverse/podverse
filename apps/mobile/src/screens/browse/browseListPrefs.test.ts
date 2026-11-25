@@ -33,9 +33,9 @@ describe('browseListPrefs', () => {
     inMemoryStore.clear();
   });
 
-  it('opens on the list when nothing has been chosen', async () => {
+  it('opens on the grid when nothing has been chosen', async () => {
     await expect(readBrowseListPrefs()).resolves.toMatchObject({
-      viewMode: DEFAULT_HOME_VIEW_MODE,
+      viewMode: 'grid',
     });
   });
 
@@ -60,7 +60,7 @@ describe('browseListPrefs', () => {
     await writeBrowseMediaType('podcasts');
     await expect(readBrowseListPrefs()).resolves.toMatchObject({
       mediaType: 'podcasts',
-      viewMode: DEFAULT_HOME_VIEW_MODE,
+      viewMode: 'grid',
     });
   });
 
@@ -103,18 +103,18 @@ describe('browseListPrefs', () => {
     });
   });
 
-  it('opens every media type on Top for the week when nothing has been chosen', async () => {
+  it('opens every media type on Recent for the week when nothing has been chosen', async () => {
     await expect(readBrowseListPrefs()).resolves.toMatchObject({
       mediaType: 'podcasts',
       range: 'week',
-      sort: 'top',
+      sort: 'recent',
     });
 
     await writeBrowseMediaType('playlists');
     await expect(readBrowseListPrefs()).resolves.toMatchObject({
       mediaType: 'playlists',
       range: 'week',
-      sort: 'top',
+      sort: 'recent',
     });
   });
 
@@ -126,7 +126,7 @@ describe('browseListPrefs', () => {
     await writeBrowseMediaType('clips');
     await expect(readBrowseListPrefs()).resolves.toMatchObject({
       range: 'week',
-      sort: 'top',
+      sort: 'recent',
     });
   });
 
@@ -141,7 +141,7 @@ describe('browseListPrefs', () => {
     await writeBrowseMediaType('artists');
     await expect(readBrowseListPrefs()).resolves.toMatchObject({
       range: 'week',
-      sort: 'top',
+      sort: 'recent',
     });
   });
 
@@ -166,14 +166,14 @@ describe('browseListPrefs', () => {
 
     await expect(readBrowseListPrefs()).resolves.toMatchObject({
       range: 'week',
-      sort: 'top',
+      sort: 'recent',
     });
   });
 
   it('ignores a stored sort Browse does not offer', async () => {
     inMemoryStore.set('sort.browse-podcasts', JSON.stringify({ sort: 'a_z' }));
 
-    await expect(readBrowseListPrefs()).resolves.toMatchObject({ sort: 'top' });
+    await expect(readBrowseListPrefs()).resolves.toMatchObject({ sort: 'recent' });
   });
 
   it('keeps sort and view mode in one entry per channel type', async () => {

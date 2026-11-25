@@ -10,6 +10,7 @@ import {
 } from '@podverse/helpers-requests';
 
 import { getCatalogConfig } from '../../lib/catalog/catalogPolicy';
+import { configuredSort } from '../../lib/listScreenDefaults';
 import { safeSsrListRequest } from '../../utils/filters/ssrFilterGuards';
 import type { PlaylistsFilterDefaults } from '../../utils/localSettings/localSettings';
 import { getFilterDefaultsForPage } from '../../utils/localSettings/localSettings';
@@ -163,19 +164,22 @@ function resolveBrowseParams(
     medium: firstMediaListSearchParam(searchParams, 'medium'),
   });
 
-  if (!parsed.success) {
-    return {
-      page: 1,
-      sort: cookieDefaults?.sort ?? 'top',
-      range: cookieDefaults?.range ?? 'week',
-      medium: cookieDefaults?.medium ?? DEFAULT_PLAYLISTS_PAGE_MEDIUM,
-    };
-  }
+  const sort =
+    (parsed.success ? parsed.data.sort : null) ??
+    cookieDefaults?.sort ??
+    configuredSort('browse', QUERY_PARAMS_SUBSCRIBED_FULL_SORT, 'recent');
+  const range =
+    (parsed.success ? parsed.data.range : null) ??
+    cookieDefaults?.range ??
+    (sort === 'top' ? 'week' : null);
 
   return {
-    page: parsed.data.page,
-    sort: parsed.data.sort ?? cookieDefaults?.sort ?? 'top',
-    range: parsed.data.range ?? cookieDefaults?.range ?? 'week',
-    medium: parsed.data.medium ?? cookieDefaults?.medium ?? DEFAULT_PLAYLISTS_PAGE_MEDIUM,
+    page: parsed.success ? parsed.data.page : 1,
+    sort,
+    range,
+    medium:
+      (parsed.success ? parsed.data.medium : null) ??
+      cookieDefaults?.medium ??
+      DEFAULT_PLAYLISTS_PAGE_MEDIUM,
   };
 }

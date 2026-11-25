@@ -290,3 +290,19 @@
   browser; operators whose `WEB_DOMAIN` is what those links should use
 - Operator steps: set `WEB_PROTOCOL` and `WEB_DOMAIN` on that API to the public website. No new
   env var.
+
+## Signed-out site opens on Browse
+
+- Surfaces: web, mobile
+- Change: a signed-out visit to `/` redirects to `/browse` (temporary). Browse opens on Podcasts,
+  sorted by Recent, in a grid. Subscribed stays in the sidebar at `/subscribed`, and a signed-in
+  visit to `/` still opens Subscribed. The logo goes to Browse while signed out and to Subscribed
+  while signed in. A saved choice on the device, and an explicit URL on the website, still win.
+  The app still launches on Home. Recommendations are unchanged.
+- Who notices: signed-out website visitors; operators who set the opening chip, sort, or view
+- Operator steps: the website reads six optional sidecar keys,
+  `NEXT_PUBLIC_BROWSE_DEFAULT_CHIP`, `NEXT_PUBLIC_BROWSE_DEFAULT_SORT`,
+  `NEXT_PUBLIC_BROWSE_DEFAULT_VIEW`, `NEXT_PUBLIC_HOME_DEFAULT_CHIP`,
+  `NEXT_PUBLIC_HOME_DEFAULT_SORT`, and `NEXT_PUBLIC_HOME_DEFAULT_VIEW`. Blank keeps the Browse
+  opening above and the Subscribed opening already in use. A set Home sort applies signed in and
+  signed out. The app reads the same names with the `EXPO_PUBLIC_` prefix and needs a new build.

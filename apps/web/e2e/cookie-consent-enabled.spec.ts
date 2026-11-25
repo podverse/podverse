@@ -14,7 +14,7 @@ test.describe('Cookie consent banner (enabled)', () => {
   }, testInfo) => {
     await page.goto('/');
 
-    await expect(page).toHaveURL('/');
+    await expect(page).toHaveURL('/browse');
 
     const bannerRegion = page.getByRole('region', { name: /cookie/i });
     await expect(bannerRegion).toBeVisible();
@@ -60,7 +60,7 @@ test.describe('Cookie consent banner (enabled)', () => {
 
     await page.goto('/');
 
-    await expect(page).toHaveURL('/');
+    await expect(page).toHaveURL('/browse');
 
     const bannerRegion = page.getByRole('region', { name: /cookie/i });
     await expect(bannerRegion).toBeVisible();
@@ -89,7 +89,7 @@ test.describe('Cookie consent banner (enabled)', () => {
 
     await page.goto('/');
 
-    await expect(page).toHaveURL('/');
+    await expect(page).toHaveURL('/browse');
 
     const bannerRegion = page.getByRole('region', { name: /cookie/i });
     await expect(bannerRegion).toBeVisible();

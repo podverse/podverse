@@ -1,6 +1,6 @@
 ---
 name: podverse-github-workflows
-description: GitHub workflows for podverse/podverse — gh policy, issue and PR lookup, and Dependabot updates. Use when asked to create or update a GitHub issue, or when working with gh, issues, or pull requests.
+description: GitHub workflows for podverse/podverse — gh policy, issue and PR lookup, and Dependabot updates. Use when asked to create or update a GitHub issue, when a feature plan needs an issue, or when working with gh, issues, or pull requests.
 version: 1.0.0
 ---
 
@@ -8,7 +8,15 @@ version: 1.0.0
 
 ## Agent policy: `gh` is a git operation
 
-For agents, **`gh` counts as git** — same operator-only policy as `git`. Read-only `gh` is fine (`gh pr view`, `gh issue list`, `gh run list`). Do **not** run write `gh` commands (`gh pr create`, `gh pr merge`, `gh release create`, mutating `gh api`, etc.) unless the user explicitly requests that exact command in that message.
+For agents, **`gh` counts as git** — same operator-only policy as `git`. Read-only `gh` is
+fine (`gh pr view`, `gh issue list`, `gh run list`). Do **not** run write `gh` commands
+(`gh pr create`, `gh pr merge`, `gh release create`, `gh issue comment`, `gh issue close`,
+mutating `gh api`, and the rest) unless the user explicitly requests that exact command in
+that message.
+
+**Exception:** `gh issue create` when **plan-github-issue** says a feature or functionality
+plan has no open issue. File it in that turn. Plan approval comes after the issue exists.
+Commenting and closing stay operator-only.
 
 After implementation, give the operator fenced `bash` commands (`git` and `gh`) for commit, push, PR, and merge. See **operator-only-git-operations** rule.
 
@@ -133,6 +141,8 @@ git branch -vv
 
 When the operator asks for a GitHub issue, new or edited, use the shape of
 [#398](https://github.com/podverse/podverse/issues/398). That is the usual level of detail.
+**plan-github-issue** uses this same shape when it creates an issue for a feature plan. That
+create does not need a separate request in the message.
 
 Read the code before writing. A claim that something already exists, or that a flow gets a
 case wrong, has to come from that reading.
@@ -174,6 +184,10 @@ Skip restating an inventory the product already shows, except to say that invent
 
 A pasted issue that should be planned follows **abcissue**. This skill does not plan or implement
 it, and it does not post the reply.
+
+A feature plan that did not start from an issue follows **plan-github-issue**: search first,
+create when no open issue covers the work, and recommend a comment and a close only after the
+change is merged into `develop`. The operator posts that comment and closes the issue.
 
 ## Related Documentation
 

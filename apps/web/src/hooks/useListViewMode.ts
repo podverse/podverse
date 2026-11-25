@@ -5,6 +5,7 @@ import { buildSortPrefScopeKey } from '@podverse/helpers';
 
 import type { ViewSelectedOption } from '../components/ViewSelector/ViewSelector';
 import { useLocalSettings } from '../contexts/LocalSettings';
+import { webViewFallback } from '../lib/listScreenDefaults';
 import {
   getParsedLocalSettings,
   getStoredSortPref,
@@ -27,6 +28,19 @@ const notifyListViewMode = (): void => {
   for (const listener of listViewModeListeners) {
     listener();
   }
+};
+
+const fallbackForScope = (scope: SortPrefScope): ViewSelectedOption => {
+  if (scope.kind !== 'list') {
+    return 'rows';
+  }
+  if (scope.name.startsWith('browse-')) {
+    return webViewFallback('browse');
+  }
+  if (scope.name.startsWith('home-')) {
+    return webViewFallback('home');
+  }
+  return 'rows';
 };
 
 const readScopedViewMode = (scope: SortPrefScope): ViewSelectedOption | null => {
@@ -88,6 +102,6 @@ export function useListViewMode(scope: SortPrefScope | null): {
 
   return {
     setViewSelected: setScopedViewSelected,
-    viewSelected: resolveListViewMode(scopedView ?? undefined),
+    viewSelected: resolveListViewMode(scopedView ?? undefined, fallbackForScope(scope)),
   };
 }

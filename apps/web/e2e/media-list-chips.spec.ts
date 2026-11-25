@@ -480,12 +480,12 @@ test.describe('Subscribed, Browse, and Add by RSS chips pages', () => {
     let releaseEpisodes: () => void = () => undefined;
 
     await test.step('While the Episodes list is held, Episodes is pressed and a spinner covers the page', async () => {
-      await page.goto('/');
-      await expectAppPath(page, '/');
+      await page.goto('/subscribed');
+      await expectAppPath(page, '/subscribed');
       await expect(gettingStarted).toBeVisible();
       await expectPressedChip(page, 'Podcasts');
       podcastsBefore = await chipBox(page, 'Podcasts');
-      releaseEpisodes = await holdChipRender(page, '/', 'episodes');
+      releaseEpisodes = await holdChipRender(page, '/subscribed', 'episodes');
       await chipButton(page, 'Episodes').click();
       await expectPressedChip(page, 'Episodes');
       await expect(listLoading(page)).toBeVisible();
@@ -501,7 +501,7 @@ test.describe('Subscribed, Browse, and Add by RSS chips pages', () => {
 
     await test.step('When the Episodes list arrives, the URL names episodes and the spinner is gone', async () => {
       releaseEpisodes();
-      await expectAppPath(page, '/?tab=episodes');
+      await expectAppPath(page, '/subscribed?tab=episodes');
       await expectPressedChip(page, 'Episodes');
       await expect(listLoading(page)).toHaveCount(0);
       await expectChipStill(page, 'Podcasts', podcastsBefore);
@@ -529,8 +529,8 @@ test.describe('Subscribed, Browse, and Add by RSS chips pages', () => {
       await expect(
         chipTrailing(page).getByRole('button', { name: 'Filter: All', exact: true })
       ).toBeVisible();
-      await expect(sortChip(page)).toHaveAccessibleName('Sort: Week');
-      await expect(page.getByText('No Playlists Found', { exact: true })).toBeVisible();
+      await expect(sortChip(page)).toHaveAccessibleName('Sort: Recent');
+      await expect(page.getByText(E2E_REMOVED_PLAYLIST_TITLE, { exact: true })).toBeVisible();
       await sortChip(page).click();
       const sortMenu = page.getByRole('menu', { name: 'Sort' });
       await expect(sortMenu).toBeVisible();
@@ -600,7 +600,7 @@ test.describe('Subscribed, Browse, and Add by RSS chips pages', () => {
       await expectAppPath(page, '/browse?tab=users');
       await expectPressedChip(page, 'Users');
       await expect(page.locator('header').getByText('Global', { exact: true })).toHaveCount(0);
-      await expect(sortChip(page)).toHaveAccessibleName('Sort: Week');
+      await expect(sortChip(page)).toHaveAccessibleName('Sort: Recent');
 
       await capturePageLoad(
         page,
@@ -731,7 +731,7 @@ test.describe('Subscribed, Browse, and Add by RSS chips pages', () => {
     page,
   }, testInfo) => {
     await test.step('Signed-out Subscribed Episodes has a plain title, no Categories chip, Sort on Recent, and the gear', async () => {
-      await page.goto('/?tab=episodes&category=arts');
+      await page.goto('/subscribed?tab=episodes&category=arts');
       await expect(page.getByRole('heading', { name: 'Subscribed', exact: true })).toBeVisible();
       await expect(page.getByRole('heading', { name: /Subscribed >/ })).toHaveCount(0);
       await expect(categoryChip(page)).toHaveCount(0);
@@ -786,13 +786,13 @@ test.describe('Subscribed, Browse, and Add by RSS chips pages', () => {
     });
   });
 
-  test('Clip lists sort by Recent or Top, never A-Z, and a saved A-Z for Browse Clips opens on Top for the week', async ({
+  test('Clip lists sort by Recent or Top, never A-Z, and a saved A-Z for Browse Clips opens on Recent', async ({
     page,
   }, testInfo) => {
-    await test.step('Browse Clips opens on Top for the week and its Sort menu offers Recent and Top but not A-Z', async () => {
+    await test.step('Browse Clips opens on Recent and its Sort menu offers Recent and Top but not A-Z', async () => {
       await page.goto('/browse?tab=clips');
       await expectAppPath(page, '/browse?tab=clips');
-      await expect(sortChip(page)).toHaveAccessibleName('Sort: Week');
+      await expect(sortChip(page)).toHaveAccessibleName('Sort: Recent');
       await sortChip(page).click();
       const sortMenu = page.getByRole('menu', { name: 'Sort' });
       await expect(sortMenu).toBeVisible();
@@ -815,8 +815,8 @@ test.describe('Subscribed, Browse, and Add by RSS chips pages', () => {
     });
 
     await test.step('Signed-out Subscribed Clips also offers Recent and Top but not A-Z', async () => {
-      await page.goto('/?tab=clips');
-      await expectAppPath(page, '/?tab=clips');
+      await page.goto('/subscribed?tab=clips');
+      await expectAppPath(page, '/subscribed?tab=clips');
       await expect(sortChip(page)).toHaveAccessibleName('Sort: Recent');
       await sortChip(page).click();
       const sortMenu = page.getByRole('menu', { name: 'Sort' });
@@ -832,7 +832,7 @@ test.describe('Subscribed, Browse, and Add by RSS chips pages', () => {
       await expect(sortMenu).toHaveCount(0);
     });
 
-    await test.step('A saved A-Z for Browse Clips in this browser opens on Top for the week', async () => {
+    await test.step('A saved A-Z for Browse Clips in this browser opens on Recent', async () => {
       const baseURL =
         typeof testInfo.project.use.baseURL === 'string'
           ? testInfo.project.use.baseURL
@@ -855,12 +855,12 @@ test.describe('Subscribed, Browse, and Add by RSS chips pages', () => {
 
       await page.goto('/browse?tab=clips');
       await expectAppPath(page, '/browse?tab=clips');
-      await expect(sortChip(page)).toHaveAccessibleName('Sort: Week');
+      await expect(sortChip(page)).toHaveAccessibleName('Sort: Recent');
 
       await capturePageLoad(
         page,
         testInfo,
-        'Browse Clips reads Week even when this browser saved A-Z for clips.',
+        'Browse Clips reads Recent even when this browser saved A-Z for clips.',
         sortChip(page)
       );
     });
@@ -950,8 +950,8 @@ test.describe('Subscribed, Browse, and Add by RSS chips pages', () => {
     const browse = page.getByRole('main').getByRole('link', { name: 'Browse', exact: true });
 
     await test.step('The subscriptions sentence ends with Login, and Search sits above Browse', async () => {
-      await page.goto('/');
-      await expectAppPath(page, '/');
+      await page.goto('/subscribed');
+      await expectAppPath(page, '/subscribed');
       await expect(page.getByRole('heading', { name: 'Subscribed', exact: true })).toBeVisible();
       await expectChipOrder(page, SUBSCRIBED_CHIP_LABELS);
       await expect(message).toBeVisible();
@@ -1011,7 +1011,7 @@ test.describe('Subscribed, Browse, and Add by RSS chips pages', () => {
     });
 
     await test.step('Browse opens the browse page', async () => {
-      await page.goto('/');
+      await page.goto('/subscribed');
       await expect(browse).toBeVisible();
       await browse.click();
       await expect(page).toHaveURL(/\/browse\/?$/);
@@ -1088,7 +1088,7 @@ test.describe('Subscribed, Browse, and Add by RSS chips pages', () => {
 
       await test.step('Clicking Episodes shows the parsed Add by RSS episode', async () => {
         await chipButton(page, 'Episodes').click();
-        await expectAppPath(page, '/?tab=episodes');
+        await expectAppPath(page, '/subscribed?tab=episodes');
         await expectPressedChip(page, 'Episodes');
         const episodeHeading = page.getByRole('heading', { name: EPISODE_TITLE }).first();
         await expect(episodeHeading).toBeVisible({ timeout: 15_000 });
@@ -1108,7 +1108,7 @@ test.describe('Subscribed, Browse, and Add by RSS chips pages', () => {
 
       await test.step('Clicking Clips shows no Add by RSS row in the main column', async () => {
         await chipButton(page, 'Clips').click();
-        await expectAppPath(page, '/?tab=clips');
+        await expectAppPath(page, '/subscribed?tab=clips');
         await expectPressedChip(page, 'Clips');
         await expect(page.locator('#mainOuterWrapper a[href*="/add-by-rss/"]')).toHaveCount(0);
 

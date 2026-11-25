@@ -32,7 +32,6 @@ import {
   buildTrackDetailParams,
 } from '../../navigation';
 import type { HomeViewMode } from '../../prefs/homeListPrefs';
-import { DEFAULT_HOME_VIEW_MODE } from '../../prefs/homeListPrefs';
 import { useOfflineMode } from '../../prefs/offlineMode';
 import { screenBodyInsets } from '../../theme/screenLayout';
 import { useFeedListColumns } from '../../theme/useFeedListColumns';
@@ -71,9 +70,10 @@ import type { BrowseMediaType, BrowseRangeOption, BrowseSortOption } from './bro
 import {
   BROWSE_MEDIA_TYPE_ORDER,
   browseEmptyMessageKey,
-  DEFAULT_BROWSE_MEDIA_TYPE,
   DEFAULT_BROWSE_RANGE,
-  DEFAULT_BROWSE_SORT,
+  defaultBrowseMediaType,
+  defaultBrowseSort,
+  defaultBrowseViewMode,
   isBrowseMediaType,
   MEDIA_TYPE_LABEL_KEYS,
   shouldShowBrowseCategoryChip,
@@ -263,7 +263,7 @@ export function BrowseScreen() {
   const { enabled: offlineModeEnabled } = useOfflineMode();
   const { styles: themeStyles, tokens } = useTheme();
   const [selectedMediaType, setSelectedMediaType] =
-    useState<BrowseMediaType>(DEFAULT_BROWSE_MEDIA_TYPE);
+    useState<BrowseMediaType>(defaultBrowseMediaType());
   const [isHydrated, setIsHydrated] = useState<boolean>(false);
   // The chip the user just tapped, before the list switches. Drives the active chip and a spinner
   // over the still-mounted old list for one small commit; the switch itself runs a frame later.
@@ -303,7 +303,7 @@ export function BrowseScreen() {
       ? listPrefs
       : null;
   const selectedCategory = isHydrated ? (listPrefs?.category ?? null) : null;
-  const viewMode = activePrefs?.viewMode ?? DEFAULT_HOME_VIEW_MODE;
+  const viewMode = activePrefs?.viewMode ?? defaultBrowseViewMode();
   const viewModeEligible = !isCategoryView && isBrowseViewModeMediaType(selectedMediaType);
   const isGridView = viewModeEligible && viewMode === 'grid';
   const { cellWidth, columns, onListLayout } = useFeedListColumns({
@@ -1074,7 +1074,7 @@ export function BrowseScreen() {
   );
 
   const showBrowseByRecent =
-    showEmptyDirectory && (activePrefs?.sort ?? DEFAULT_BROWSE_SORT) === 'top';
+    showEmptyDirectory && (activePrefs?.sort ?? defaultBrowseSort()) === 'top';
 
   const handleBrowseByRecent = useCallback(() => {
     handleSortChange('recent');
@@ -1347,7 +1347,7 @@ export function BrowseScreen() {
                     onRangeChange={handleRangeChange}
                     onSortChange={handleSortChange}
                     range={sortChipPrefs?.range ?? DEFAULT_BROWSE_RANGE}
-                    sort={sortChipPrefs?.sort ?? DEFAULT_BROWSE_SORT}
+                    sort={sortChipPrefs?.sort ?? defaultBrowseSort()}
                   />
                 ) : null}
               </>

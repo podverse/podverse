@@ -12,8 +12,11 @@ Agents implement code and manifest changes locally. **Git operations are operato
 **`gh` writes** (same rule — `gh` is a git operation here):
 
 - `gh pr create`, `gh pr merge`, `gh pr close`, `gh pr reopen`, `gh pr edit`
+- `gh issue comment`, `gh issue close`, `gh issue edit`
 - `gh release create`, `gh api` calls that mutate refs, issues, or releases
 - Any `gh` subcommand that opens, merges, closes, or updates PRs/branches/tags/releases
+
+`gh issue create` is allowed only under the **plan-github-issue** exception below.
 
 Also prohibited without explicit user request: admin merges to protected branches (`staging`, `main`, `develop`) and anything that triggers **Publish (staging)** / release workflows.
 
@@ -34,6 +37,13 @@ prepared (`Merge remote-tracking branch 'origin/<branch>' into <branch>`), as a 
 `git commit -m '...'`.
 
 ## Exception
+
+**plan-github-issue** is the standing request to run `gh issue create` on `podverse/podverse`
+when a feature or functionality plan has no open issue. File it in the turn that writes the
+plan, or as the first implementation step when the plan has none. Plan approval comes after
+the issue exists. It does not authorize `gh issue comment`, `gh issue close`,
+`gh issue edit`, or any other `gh` write. See
+[.cursor/rules/plan-github-issue.mdc](/.cursor/rules/plan-github-issue.mdc).
 
 **abcbranchesmerge** is the explicit request to merge the named branches into a new
 `feature/merge-YYYY-MM-DD` branch, commit on that branch, and push that branch with no force.
@@ -62,5 +72,6 @@ Protected branches and publish pipelines are operator-controlled. Agent-driven p
 ## Related
 
 - User rule: commit only when explicitly requested
-- **github** skill — read-only `gh` examples; no agent merges
+- **github** skill — issue shape; `gh issue create` only under **plan-github-issue**; no agent
+  merges, comments, or closes
 - **argocd-gitops-push** — operator pushes GitOps repos for cluster sync

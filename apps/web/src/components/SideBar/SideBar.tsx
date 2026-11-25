@@ -44,7 +44,7 @@ export const SideBar: React.FC = () => {
       </div>
       <div className={styles.scrollable} tabIndex={-1}>
         <SideBarDivider noMarginTop />
-        <SideBarLink href={ROUTES.HOME}>{tSubscriptions('subscribed')}</SideBarLink>
+        <SideBarLink href={ROUTES.SUBSCRIBED}>{tSubscriptions('subscribed')}</SideBarLink>
         <SideBarLink href={ROUTES.BROWSE}>{tFeatures('browse.browse')}</SideBarLink>
         <SideBarLink href={ROUTES.RECOMMENDATIONS}>
           {tFeatures('recommendations.title')}

@@ -28,7 +28,7 @@ interface PodcastsPagePathParams {
 }
 
 /**
- * The chips-page URL for the list currently on screen. `basePath` is `/` or `/browse`.
+ * The chips-page URL for the list currently on screen. `basePath` is `/`, `/subscribed`, or `/browse`.
  *
  * One place decides what belongs in the query string, so writing a filter term cannot drop the
  * category and clearing a category cannot drop the term.

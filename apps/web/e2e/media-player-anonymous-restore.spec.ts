@@ -183,7 +183,7 @@ test.describe('Media player anonymous playback restore', () => {
     });
 
     await page.goto('/');
-    await expect(page).toHaveURL('/');
+    await expect(page).toHaveURL('/browse');
 
     await expect.poll(async () => readAnonymousSnapshotFromPage(page)).toBeNull();
     await expectMediaPlayerTitleAbsent(page, E2E_LIVE_AV_ENDED_ITEM_TITLE);
@@ -202,7 +202,7 @@ test.describe('Media player anonymous playback restore', () => {
     });
 
     await page.goto('/');
-    await expect(page).toHaveURL('/');
+    await expect(page).toHaveURL('/browse');
 
     await expectMediaPlayerTitleVisible(page, E2E_LIVE_AV_AUDIO_ITEM_TITLE);
     await expect(liveStreamMediaElement(page, 'audio')).toHaveCount(1);
@@ -245,7 +245,7 @@ test.describe('Media player anonymous playback restore', () => {
     });
 
     await page.goto('/');
-    await expect(page).toHaveURL('/');
+    await expect(page).toHaveURL('/browse');
 
     await expectMediaPlayerTitleVisible(page, E2E_LIVE_AV_AUDIO_ITEM_TITLE);
     await expect(liveStreamMediaElement(page, 'audio')).toHaveCount(1);

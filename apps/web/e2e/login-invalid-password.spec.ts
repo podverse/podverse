@@ -19,15 +19,15 @@ test.describe('Login invalid password', () => {
     page,
   }, testInfo) => {
     await test.step('Open the Subscribed page signed out.', async () => {
-      await page.goto('/');
-      await expect(page).toHaveURL(/\/$/);
+      await page.goto('/browse');
+      await expect(page).toHaveURL(/\/browse$/);
       await expect(
         page.locator('[data-appearance="web"]').getByRole('button', { name: 'Account' })
       ).toBeVisible();
       await capturePageLoad(
         page,
         testInfo,
-        'Signed-out Subscribed page is ready for login.',
+        'The signed-out site is ready for login.',
         page.locator('[data-appearance="web"]').getByRole('button', { name: 'Account' })
       );
     });

@@ -144,7 +144,7 @@ test.describe('Background activity overlay', () => {
 
   test('A signed-out visitor never sees the overlay', async ({ page }, testInfo) => {
     await page.goto('/');
-    await expect(page).toHaveURL(/\/$/);
+    await expect(page).toHaveURL(/\/browse$/);
     const main = page.getByRole('main');
     await expect(main).toBeVisible();
     await expect(page.getByTestId('background-activity-overlay')).toHaveCount(0);

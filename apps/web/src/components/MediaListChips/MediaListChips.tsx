@@ -8,9 +8,11 @@ import { useEffect, useOptimistic, useTransition } from 'react';
 
 import { ChipRow, ChipRowWithActions } from '@podverse/ui';
 
+import { mediaListPageDefaultChip } from '../../lib/listScreenDefaults';
 import type { MediaListChip, MediaListChipsPage } from '../../utils/mediaListChips';
 import {
   buildMediaListChipPath,
+  DEFAULT_MEDIA_LIST_CHIP,
   MEDIA_LIST_CHIP_LABEL_KEYS,
   writeMediaListChip,
 } from '../../utils/mediaListChips';
@@ -60,13 +62,17 @@ export function MediaListChips({
 }: MediaListChipsProps) {
   const t = useTranslations();
   const router = useRouter();
+  const defaultChip =
+    page === 'subscribed' || page === 'browse'
+      ? mediaListPageDefaultChip(page, chips)
+      : DEFAULT_MEDIA_LIST_CHIP;
   const [isPending, startTransition] = useTransition();
   const [shownChip, setShownChip] = useOptimistic(selected);
 
   useEffect(() => {
     // A chip named in the URL is remembered once, when this row mounts.
     if (urlChip !== null) {
-      writeMediaListChip(page, urlChip);
+      writeMediaListChip(page, urlChip, defaultChip);
     }
   }, []);
 
@@ -74,8 +80,8 @@ export function MediaListChips({
     if (chip === shownChip) {
       return;
     }
-    writeMediaListChip(page, chip);
-    const path = buildMediaListChipPath(page, chip);
+    writeMediaListChip(page, chip, defaultChip);
+    const path = buildMediaListChipPath(page, chip, defaultChip);
     const current = `${window.location.pathname}${window.location.search}`;
     startTransition(() => {
       setShownChip(chip);

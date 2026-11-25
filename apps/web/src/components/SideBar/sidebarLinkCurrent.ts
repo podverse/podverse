@@ -14,7 +14,11 @@ export const isSidebarLinkCurrent = (href: string, pathname: string, search: str
   const currentPath = normalizePath(pathname);
 
   const pathMatches =
-    path === '/' ? currentPath === '/' : currentPath === path || currentPath.startsWith(`${path}/`);
+    path === '/subscribed'
+      ? currentPath === '/subscribed' || currentPath === '/'
+      : path === '/'
+        ? currentPath === '/'
+        : currentPath === path || currentPath.startsWith(`${path}/`);
 
   if (!pathMatches) {
     return false;

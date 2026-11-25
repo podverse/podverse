@@ -8,7 +8,7 @@ test.describe('Catalog-restricted lane runtime config', () => {
     page,
   }, testInfo) => {
     await page.goto('/');
-    await expect(page).toHaveURL('/');
+    await expect(page).toHaveURL('/browse');
 
     const catalogRuntime = await page.evaluate(() => {
       const readRuntimeString = (record: object, key: string): string => {

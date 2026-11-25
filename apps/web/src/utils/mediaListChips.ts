@@ -131,16 +131,20 @@ export const MEDIA_LIST_CHIP_SCOPES: Record<MediaListChipsPage, SortPrefScope> =
 
 /** Base path for each chips page. */
 export const MEDIA_LIST_CHIP_BASE_PATHS: Record<MediaListChipsPage, string> = {
-  subscribed: ROUTES.HOME,
+  subscribed: ROUTES.SUBSCRIBED,
   browse: ROUTES.BROWSE,
   'add-by-rss': ROUTES.ADD_BY_RSS,
   recommendations: ROUTES.RECOMMENDATIONS,
 };
 
 /** URL for a chip. The default chip is the base path with no query. */
-export function buildMediaListChipPath(page: MediaListChipsPage, chip: MediaListChip): string {
+export function buildMediaListChipPath(
+  page: MediaListChipsPage,
+  chip: MediaListChip,
+  defaultChip: MediaListChip = DEFAULT_MEDIA_LIST_CHIP
+): string {
   const base = MEDIA_LIST_CHIP_BASE_PATHS[page];
-  if (chip === DEFAULT_MEDIA_LIST_CHIP) {
+  if (chip === defaultChip) {
     return base;
   }
   return `${base}?${MEDIA_LIST_CHIP_QUERY_PARAM}=${chip}`;
@@ -173,8 +177,12 @@ export function readStoredMediaListChip(
 }
 
 /** Remember a chip. The default chip clears the stored token. */
-export function writeMediaListChip(page: MediaListChipsPage, chip: MediaListChip): void {
-  const mediaType = chip === DEFAULT_MEDIA_LIST_CHIP ? undefined : chip;
+export function writeMediaListChip(
+  page: MediaListChipsPage,
+  chip: MediaListChip,
+  defaultChip: MediaListChip = DEFAULT_MEDIA_LIST_CHIP
+): void {
+  const mediaType = chip === defaultChip ? undefined : chip;
   updateStoredSortPref(MEDIA_LIST_CHIP_SCOPES[page], { mediaType });
 }
 

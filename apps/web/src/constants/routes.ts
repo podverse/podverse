@@ -31,6 +31,7 @@ export const ROUTES = {
   PROFILES: '/profiles',
   QUEUES: '/queues',
   SEARCH: '/search',
+  SUBSCRIBED: '/subscribed',
   SIGN_UP: '/sign-up',
   TERMS: '/terms',
   VIDEOS: '/videos',

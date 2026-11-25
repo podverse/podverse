@@ -212,6 +212,29 @@ export const getAlbyOAuthRedirectUriFromEnv = (): string => {
   return configured;
 };
 
+export type MobileListScreenEnv = {
+  browseChip: string;
+  browseSort: string;
+  browseView: string;
+  homeChip: string;
+  homeSort: string;
+  homeView: string;
+};
+
+const listScreenEnvValue = (value: string | undefined): string => value?.trim() ?? '';
+
+/** Opening chip, sort, and view. Blank is unset. Read only from this module. */
+export const getMobileListScreenEnv = (): MobileListScreenEnv => {
+  return {
+    browseChip: listScreenEnvValue(process.env.EXPO_PUBLIC_BROWSE_DEFAULT_CHIP),
+    browseSort: listScreenEnvValue(process.env.EXPO_PUBLIC_BROWSE_DEFAULT_SORT),
+    browseView: listScreenEnvValue(process.env.EXPO_PUBLIC_BROWSE_DEFAULT_VIEW),
+    homeChip: listScreenEnvValue(process.env.EXPO_PUBLIC_HOME_DEFAULT_CHIP),
+    homeSort: listScreenEnvValue(process.env.EXPO_PUBLIC_HOME_DEFAULT_SORT),
+    homeView: listScreenEnvValue(process.env.EXPO_PUBLIC_HOME_DEFAULT_VIEW),
+  };
+};
+
 export const getMobileAlbyConfigFromEnv = (): MobileAlbyConfig => {
   return {
     clientId: getAlbyOAuthClientIdFromEnv(),

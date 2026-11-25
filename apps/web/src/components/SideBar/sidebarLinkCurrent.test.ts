@@ -5,6 +5,9 @@ import { isSidebarLinkCurrent } from './sidebarLinkCurrent';
 describe('isSidebarLinkCurrent', () => {
   it('marks home only on the home path', () => {
     expect(isSidebarLinkCurrent('/', '/', '')).toBe(true);
+    expect(isSidebarLinkCurrent('/subscribed', '/', '')).toBe(true);
+    expect(isSidebarLinkCurrent('/subscribed', '/subscribed', '')).toBe(true);
+    expect(isSidebarLinkCurrent('/subscribed', '/browse', '')).toBe(false);
     expect(isSidebarLinkCurrent('/', '/browse', '')).toBe(false);
     expect(isSidebarLinkCurrent('/', '/podcast/abc', '')).toBe(false);
   });

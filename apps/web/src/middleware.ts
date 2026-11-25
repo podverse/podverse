@@ -8,6 +8,7 @@ import type { WebSessionRenewal } from './lib/auth/webSessionRenewal';
 import {
   fetchWebSessionRenewal,
   isWebSessionRenewalDue,
+  readSetCookieValue,
   replaceCookieInHeader,
 } from './lib/auth/webSessionRenewal';
 import { CLIP_REMOVED_REQUEST_HEADER } from './lib/clip/removedClip';
@@ -142,6 +143,22 @@ async function visitorClipRemoved(request: NextRequest, cookie: string | null): 
   }
 }
 
+/** Signed in when a renewal issued a token, or the request still carries one that was not cleared. */
+function authCookiePresent(request: NextRequest, renewal: WebSessionRenewal | null): boolean {
+  if (renewal?.renewedToken) {
+    return true;
+  }
+  const cleared =
+    renewal !== null &&
+    renewal.setCookies.some((cookie) => cookie.startsWith(`${AuthCookieName}=`)) &&
+    readSetCookieValue(renewal.setCookies, AuthCookieName) === null;
+  if (cleared) {
+    return false;
+  }
+  const value = request.cookies.get(AuthCookieName)?.value;
+  return value !== undefined && value.length > 0;
+}
+
 function passThrough(requestHeaders: Headers): NextResponse {
   const headers = new Headers(requestHeaders);
   headers.set(MERGE_REDIRECT_CHECKED_HEADER, '1');
@@ -187,6 +204,10 @@ export async function middleware(request: NextRequest): Promise<NextResponse> {
     }
     return response;
   };
+
+  if (request.nextUrl.pathname === '/' && !authCookiePresent(request, renewal)) {
+    return withRenewal(NextResponse.redirect(new URL('/browse', request.url), 307));
+  }
 
   if (await visitorClipRemoved(request, requestHeaders.get('cookie'))) {
     const clipRemovedHeaders = new Headers(requestHeaders);

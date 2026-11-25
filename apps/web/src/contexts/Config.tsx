@@ -4,6 +4,7 @@ import type { ReactNode } from 'react';
 import { createContext, useContext } from 'react';
 
 import type { WebConfig } from '../config';
+import { bindWebListScreenDefaults } from '../lib/listScreenDefaults';
 
 export const ConfigContext = createContext<WebConfig | null>(null);
 
@@ -13,6 +14,7 @@ type ConfigProviderProps = {
 };
 
 export const ConfigProvider = ({ children, config }: ConfigProviderProps) => {
+  bindWebListScreenDefaults(config.public.listScreens);
   return <ConfigContext.Provider value={config}>{children}</ConfigContext.Provider>;
 };
 

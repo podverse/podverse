@@ -8,6 +8,7 @@ import {
   QUERY_PARAMS_SUBSCRIBED_FULL_SORT,
 } from '@podverse/helpers-requests';
 
+import { configuredSort } from '../../lib/listScreenDefaults';
 import { buildSubscribedListFilterParams } from '../../utils/dropdownMenuItems';
 
 export function getProfilesPageSortOptions({
@@ -47,7 +48,10 @@ export function getProfilesPageFilterParams(
 ): ProfilesPageDropdownConfigCurrentParams {
   return buildSubscribedListFilterParams({
     ...params,
-    defaultGlobalSort: listScope === 'browse' ? 'top' : 'recent',
+    defaultGlobalSort:
+      listScope === 'browse'
+        ? configuredSort('browse', QUERY_PARAMS_GLOBAL_SORT_VALUES, 'recent')
+        : 'recent',
     defaultSubscribedSort: 'a_z',
     globalSortValues: QUERY_PARAMS_GLOBAL_SORT_VALUES,
     isValidAuthSession,

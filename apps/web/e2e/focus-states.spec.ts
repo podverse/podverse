@@ -95,7 +95,7 @@ test.describe('Focus state consistency', () => {
     await test.step('Tab-focused account button shows --box-shadow-focus ring', async () => {
       // The account trigger is the top-bar button. Keyboard focus uses the shared focus ring.
       await page.goto('/');
-      await expect(page).toHaveURL(/\/$/);
+      await expect(page).toHaveURL(/\/browse$/);
       await expect(topChromeNav(page)).toBeVisible({ timeout: 15_000 });
 
       const accountButton = topChromeNav(page).getByRole('button', { name: 'Account' });

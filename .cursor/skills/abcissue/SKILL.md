@@ -60,10 +60,12 @@ is the first segment after that prefix.
 ## Small set
 
 - One numbered plan per change. One change per plan. Use the **abcplan** § Area plan headings
-  (model line, `## Files`, `## Tests`) plus `## Ticket reply` as specified below.
+  (model line, `## Files`, `## Tests`, `## Issue` with this issue's URL) plus `## Ticket reply`
+  as specified below.
 - `COPY-PASTA.md`, one prompt per plan, for pasting into a chat on this branch. Each prompt
   starts with `Read and execute .llm/plans/active/<slug>/<plan>.md`, then: if a product choice
-  is still open, stop and ask; draft the ticket reply; do not post it; do not run tests. The
+  is still open, stop and ask; draft the ticket reply; do not post it; do not recommend posting
+  or closing until the change is merged into `develop`; do not run tests. The
   prompt ends with the operator verify commands (**response-ending-make-verify**). The plan's
   `## Tests` names the specs and has no command block.
 
@@ -78,8 +80,9 @@ Paste the next after any prompt it shares files with has finished.
 `00-REQUEST.md` follows **abcplan** § Request file. Quote the issue and include its URL. Add a
 **Ticket reply** section that says: this is an operator deliverable, not a product change; the
 last implementation step writes `proposed-reply.md` in the set and repeats it in a fenced `text`
-block; the operator pastes it after the pull request is on `develop`; do not post it; a few
-sentences for the people in the thread, with no file names or plan names.
+block; do not post it; do not recommend posting or closing until the change is merged into
+`develop`; then recommend the comment and the close; a few sentences for the people in the
+thread, with no file names or plan names.
 
 Give this command for the **Root** tab of this window. Do not create a worktree first.
 
@@ -92,15 +95,17 @@ describes, still in this checkout.
 
 ## Ticket reply
 
-The last step of the work drafts the comment. The operator edits it if needed and pastes it on
-the issue after the change is merged to `develop`.
+The last step of the work drafts the comment. Write `proposed-reply.md` in the set, and put the
+same text in a fenced `text` block in the final message. Saving the draft is not a prompt to
+post it.
+
+Recommend that the operator post the comment and close the issue only after the change is
+merged into `develop`. Until then, leave the recommendation unsaid. The operator edits the
+comment if needed. Do not run `gh issue comment` or `gh issue close`.
 
 - A few sentences. What the reporter or the thread can do now, or what we will not do.
 - Name a pull request only when it helps them.
 - No file lists, plan numbers, or refactors.
-- Write `proposed-reply.md` in the set, and put the same text in a fenced `text` block in the
-  final message.
-- Do not run `gh issue comment` or any other write.
 
 A decline, with no plan set, is the reply in the chat only.
 
@@ -138,4 +143,6 @@ describes.
 - **abcplan** — large issues, and the plan headings a small set still uses. Its worktree step
   applies only when the operator asked for a worktree.
 - **git-worktree-sibling** — the two command blocks, only after the operator asks for a worktree
-- **github** — read-only `gh`. The operator posts the reply
+- **github** — issue shape. The operator posts the reply and closes the issue after the change
+  is on `develop`
+- **plan-github-issue** — plans that did not start from a pasted issue

@@ -1,7 +1,10 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion -- env vars validated by the runtime-config sidecar (sidecar/src/server.ts) */
 
 import type { AccountSignupMode } from '@podverse/helpers';
-import { DEFAULT_STATS_TRACK_EVENT_RETENTION_DAYS } from '@podverse/helpers';
+import {
+  DEFAULT_STATS_TRACK_EVENT_RETENTION_DAYS,
+  parseListScreenDefaults,
+} from '@podverse/helpers';
 import { buildCatalogConfigFromEnv, optionalEnvString } from '@podverse/helpers-config';
 import { buildObservabilityConfigFromEnv } from '@podverse/observability/config';
 
@@ -86,6 +89,14 @@ const buildConfig = () => {
         },
       },
       catalog: buildCatalogConfigFromEnv(env, 'NEXT_PUBLIC_'),
+      listScreens: parseListScreenDefaults({
+        browseChip: env.NEXT_PUBLIC_BROWSE_DEFAULT_CHIP,
+        browseSort: env.NEXT_PUBLIC_BROWSE_DEFAULT_SORT,
+        browseView: env.NEXT_PUBLIC_BROWSE_DEFAULT_VIEW,
+        homeChip: env.NEXT_PUBLIC_HOME_DEFAULT_CHIP,
+        homeSort: env.NEXT_PUBLIC_HOME_DEFAULT_SORT,
+        homeView: env.NEXT_PUBLIC_HOME_DEFAULT_VIEW,
+      }).defaults,
       theme: {
         customThemes: runtimeConfig.customThemes,
         customThemesUrl: optionalEnvString(env.NEXT_PUBLIC_CUSTOM_THEMES_URL),

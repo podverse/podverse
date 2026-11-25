@@ -110,7 +110,7 @@ function parseSearchParams(
       {
         page: parsed.success ? parsed.data.page : 1,
         type: data?.type ?? cookieDefaults?.type ?? (isAuthenticated ? 'subscribed' : 'global'),
-        sort: data?.sort ?? cookieDefaults?.sort ?? 'recent',
+        sort: data?.sort ?? cookieDefaults?.sort ?? null,
         range: data?.range ?? cookieDefaults?.range ?? null,
       },
       isAuthenticated,

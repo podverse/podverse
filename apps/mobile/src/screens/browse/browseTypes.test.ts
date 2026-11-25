@@ -49,9 +49,9 @@ describe('browseTypes', () => {
     expect(shouldShowBrowseCategoryChip('playlists')).toBe(false);
   });
 
-  it('offers Recent and Top and opens on Top', () => {
+  it('offers Recent and Top and opens on Recent', () => {
     expect(BROWSE_SORT_OPTIONS).toEqual(['recent', 'top']);
-    expect(DEFAULT_BROWSE_SORT).toBe('top');
+    expect(DEFAULT_BROWSE_SORT).toBe('recent');
     expect(DEFAULT_BROWSE_RANGE).toBe('week');
   });
 
