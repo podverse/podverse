@@ -273,6 +273,11 @@ import { useAutoQueueFill } from './useAutoQueueFill';
 import { useMediaPlayerResourceUpdate } from './useMediaPlayerResourceUpdate';
 import { useNativeAdvanceWindow } from './useNativeAdvanceWindow';
 import { resolveNowPlayingChapters } from './useNowPlayingChapters';
+import {
+  OPTIMISTIC_QUEUE_HEAD_IDLE_MS,
+  playbackTargetContentId,
+  useOptimisticQueueLeave,
+} from './useOptimisticQueueLeave';
 
 export type PlaybackNowPlaying = {
   title: string;
@@ -696,6 +701,8 @@ export function PlaybackProvider({ children }: PropsWithChildren) {
   const { t } = useTranslation();
   const { accessToken, account, clearSession, refreshToken, setTokens, status } = useAuth();
   const { activeQueue, queues, setActiveQueue, activeQueueUpcomingResources } = useQueues();
+  const { tryNext: tryOptimisticNext, tryPrevious: tryOptimisticPrevious } =
+    useOptimisticQueueLeave();
   const loadActive = useQueueResourcesLoadActive();
   const queueDataRevision = useQueueDataRevision();
   const { moveNowPlayingToHistory } = useQueueMutations();
@@ -732,6 +739,12 @@ export function PlaybackProvider({ children }: PropsWithChildren) {
   const pendingSeekSecondsRef = useRef<number | null>(null);
   const pendingSeekTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const advancingRef = useRef<boolean>(false);
+  const queuedFallbackAdvancesRef = useRef<Array<'complete' | 'skip'>>([]);
+  const runQueuedFallbackAdvanceRef = useRef<(kind: 'complete' | 'skip') => void>(() => {});
+  /** A skip cut the engine on purpose. The following paused sample is not a listener pause. */
+  const suppressEnginePauseSideEffectsRef = useRef<boolean>(false);
+  const activeQueueUpcomingResourcesRef = useRef(activeQueueUpcomingResources);
+  activeQueueUpcomingResourcesRef.current = activeQueueUpcomingResources;
   const isPlayingRef = useRef<boolean>(false);
   const lastSourceUrlRef = useRef<string | null>(null);
   /** Identity of the item the native engine last loaded (`meta.idText`), if any. */
@@ -2490,6 +2503,64 @@ export function PlaybackProvider({ children }: PropsWithChildren) {
     [loadActive, resolveHasAutoQueueRow]
   );
 
+  const localHeadLoadRef = useRef<{ resource: DTOQueueResource; wasPlaying: boolean } | null>(null);
+  const localHeadLoadRunningRef = useRef(false);
+  const localHeadLoadTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const pumpLocalHeadLoad = useCallback(async () => {
+    if (localHeadLoadRunningRef.current) {
+      return;
+    }
+    localHeadLoadRunningRef.current = true;
+    advancingRef.current = true;
+    try {
+      while (localHeadLoadRef.current !== null) {
+        const job = localHeadLoadRef.current;
+        localHeadLoadRef.current = null;
+        await playQueueResource(job.resource, 'fresh_transition', {
+          autoPlayOverride: job.wasPlaying,
+        });
+      }
+    } finally {
+      localHeadLoadRunningRef.current = false;
+      advancingRef.current = false;
+      if (localHeadLoadRef.current !== null) {
+        void pumpLocalHeadLoad();
+      } else {
+        const nextKind = queuedFallbackAdvancesRef.current.shift();
+        if (nextKind !== undefined) {
+          runQueuedFallbackAdvanceRef.current(nextKind);
+        }
+      }
+    }
+  }, [playQueueResource]);
+
+  const beginLocalQueueHead = useCallback(
+    (resource: DTOQueueResource, wasPlaying: boolean) => {
+      if (wasPlaying) {
+        suppressEnginePauseSideEffectsRef.current = true;
+        armPendingStart();
+        setPlaybackPlaying(true);
+      }
+      void nativePlaybackBridge.pause();
+      setNowPlaying((current) => ({
+        title: queueResourceTitle(resource) ?? current?.title ?? '',
+        imageUrl: current?.imageUrl ?? null,
+        viewerImageUrl: current?.viewerImageUrl ?? null,
+        channelTitle: current?.channelTitle ?? null,
+      }));
+      localHeadLoadRef.current = { resource, wasPlaying };
+      if (localHeadLoadTimerRef.current !== null) {
+        clearTimeout(localHeadLoadTimerRef.current);
+      }
+      localHeadLoadTimerRef.current = setTimeout(() => {
+        localHeadLoadTimerRef.current = null;
+        void pumpLocalHeadLoad();
+      }, OPTIMISTIC_QUEUE_HEAD_IDLE_MS);
+    },
+    [armPendingStart, pumpLocalHeadLoad, setPlaybackPlaying]
+  );
+
   const advance = useCallback(
     async (transitionKind: 'complete' | 'skip'): Promise<void> => {
       // Only advance when this provider owns the current playback. Product playback, add-by-RSS
@@ -2498,22 +2569,60 @@ export function PlaybackProvider({ children }: PropsWithChildren) {
       if (activeTargetRef.current === null) {
         return;
       }
+      // Clip authoring holds the item where it is: pause and leave it now-playing. This is settled
+      // before anything else because the rest of this function writes the item out of the queue,
+      // which is exactly what a hold must not do.
+      if (transitionKind === 'complete' && authoringHoldRef.current) {
+        nativePlaybackBridge.pause();
+        releasePendingStart();
+        setPlaybackPlaying(false);
+        setTransportState('paused');
+        return;
+      }
+      const playingTarget = activeTargetRef.current;
+      if (
+        playingTarget !== null &&
+        playingTarget.kind !== 'livestream' &&
+        playingTarget.kind !== 'add-by-rss'
+      ) {
+        const playingId = playbackTargetContentId(playingTarget);
+        if (playingId !== null) {
+          const nextStep = tryOptimisticNext(playingId, {
+            completed: transitionKind === 'complete',
+            playbackPosition: String(positionRef.current),
+          });
+          if (nextStep.kind === 'settled') {
+            return;
+          }
+          if (nextStep.kind === 'advanced') {
+            if (transitionKind === 'complete') {
+              void clearLastPlaybackSnapshot();
+            }
+            if (nextStep.engineLeft) {
+              void writePlaybackEvent({
+                completed: transitionKind === 'complete',
+                eventKind: playbackEventFromDiscreteSignal(transitionKind),
+                forceNetwork: true,
+                isPlaying: false,
+                mediaFileDurationSeconds: durationRef.current > 0 ? durationRef.current : undefined,
+                playbackPositionSeconds: positionRef.current,
+              });
+            }
+            beginLocalQueueHead(
+              nextStep.resource,
+              transitionKind === 'complete' ? true : isPlayingRef.current
+            );
+            return;
+          }
+        }
+      }
       if (advancingRef.current) {
+        queuedFallbackAdvancesRef.current.push(transitionKind);
         return;
       }
       advancingRef.current = true;
       try {
         const target = activeTargetRef.current;
-        // Clip authoring holds the item where it is: pause and leave it now-playing. This is settled
-        // before anything else because the rest of this function writes the item out of the queue,
-        // which is exactly what a hold must not do.
-        if (transitionKind === 'complete' && authoringHoldRef.current) {
-          nativePlaybackBridge.pause();
-          releasePendingStart();
-          setPlaybackPlaying(false);
-          setTransportState('paused');
-          return;
-        }
         // An Add by RSS item that ends right after it starts still advances once its walk lands.
         const isAddByRssTarget = target !== null && target.kind === 'add-by-rss';
         if (isAddByRssTarget) {
@@ -2607,11 +2716,16 @@ export function PlaybackProvider({ children }: PropsWithChildren) {
         }
       } finally {
         advancingRef.current = false;
+        const nextKind = queuedFallbackAdvancesRef.current.shift();
+        if (nextKind !== undefined) {
+          void advance(nextKind);
+        }
       }
     },
     [
       advanceAddByRssFeed,
       advanceAutoQueue,
+      beginLocalQueueHead,
       clearNowPlaying,
       computeHasAutoQueueNext,
       ensureAddByRssFeedWalk,
@@ -2619,9 +2733,13 @@ export function PlaybackProvider({ children }: PropsWithChildren) {
       moveNowPlayingToHistory,
       playQueueResource,
       releasePendingStart,
+      tryOptimisticNext,
       writePlaybackEvent,
     ]
   );
+  runQueuedFallbackAdvanceRef.current = (kind) => {
+    void advance(kind);
+  };
 
   /**
    * Whether a restored item loads, and which copy. Only the item read fresh from the server on
@@ -3590,7 +3708,7 @@ export function PlaybackProvider({ children }: PropsWithChildren) {
         }
       }
       latestEngineStateRef.current = event.state;
-      if (event.state === 'paused') {
+      if (event.state === 'paused' && !suppressEnginePauseSideEffectsRef.current) {
         getListenSession().recordPause();
       }
       const pendingStart = pendingStartRef.current;
@@ -3615,6 +3733,7 @@ export function PlaybackProvider({ children }: PropsWithChildren) {
         setTransportState(nextTransport);
       }
       if (event.state === 'playing') {
+        suppressEnginePauseSideEffectsRef.current = false;
         lastLoggedPlaybackErrorRef.current = null;
         setLastPlaybackError(null);
         setPlaybackPlaying(true);
@@ -4189,8 +4308,19 @@ export function PlaybackProvider({ children }: PropsWithChildren) {
       seekTo(action.seekSeconds);
       return;
     }
+    const restored = tryOptimisticPrevious();
+    if (restored !== null) {
+      beginLocalQueueHead(restored, isPlayingRef.current);
+      return;
+    }
     await runPreviousTrack();
-  }, [resolveChaptersForTarget, runPreviousTrack, seekTo]);
+  }, [
+    beginLocalQueueHead,
+    resolveChaptersForTarget,
+    runPreviousTrack,
+    seekTo,
+    tryOptimisticPrevious,
+  ]);
 
   /**
    * The hold gesture and the remote Previous command while JS owns advance. Neither applies the
@@ -4202,8 +4332,13 @@ export function PlaybackProvider({ children }: PropsWithChildren) {
     if (target === null || target.kind === 'livestream') {
       return;
     }
+    const restored = tryOptimisticPrevious();
+    if (restored !== null) {
+      beginLocalQueueHead(restored, isPlayingRef.current);
+      return;
+    }
     await runPreviousTrack();
-  }, [runPreviousTrack]);
+  }, [beginLocalQueueHead, runPreviousTrack, tryOptimisticPrevious]);
 
   const setRate = useCallback(
     (rate: number) => {
@@ -4232,7 +4367,8 @@ export function PlaybackProvider({ children }: PropsWithChildren) {
     if (action.kind === 'none') {
       return;
     }
-    if (!(await probeHasQueueAhead(target))) {
+    const localAhead = activeQueueUpcomingResourcesRef.current.length >= 2;
+    if (!localAhead && !(await probeHasQueueAhead(target))) {
       return;
     }
     await advance('skip');
@@ -4240,7 +4376,11 @@ export function PlaybackProvider({ children }: PropsWithChildren) {
 
   const skipToNextTrack = useCallback(async (): Promise<void> => {
     const target = activeTargetRef.current;
-    if (target === null || !(await probeHasQueueAhead(target))) {
+    if (target === null) {
+      return;
+    }
+    const localAhead = activeQueueUpcomingResourcesRef.current.length >= 2;
+    if (!localAhead && !(await probeHasQueueAhead(target))) {
       return;
     }
     await advance('skip');

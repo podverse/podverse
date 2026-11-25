@@ -54,6 +54,7 @@ import {
   listenSessionTargetForClip,
   selectItemChapterForTime,
 } from '../../../lib/playback';
+import { tryOptimisticQueueNext } from '../../../lib/queue/optimisticQueueLeave';
 import {
   decideBlockedHostPlayback,
   resolvedPlaybackUrlForIdentity,
@@ -900,6 +901,26 @@ export const NonLiveMediaOrchestrator: React.FC<NonLiveMediaOrchestratorProps> =
             clearNowPlayingRef.current?.();
           }
           return;
+        }
+        const playingId =
+          mpClipRef.current?.id_text ??
+          mpItemSoundbiteRef.current?.id_text ??
+          mpItemRef.current?.id_text ??
+          null;
+        if (playingId !== null) {
+          const outcome = tryOptimisticQueueNext({
+            completed: true,
+            playbackPosition: '0',
+            playingId,
+            shouldPlay: true,
+          });
+          if (outcome === 'started' || outcome === 'settled') {
+            if (outcome === 'started') {
+              pendingMusicQueueLoadIntentRef.current = 'fresh_transition';
+              setMPShouldPlay(true);
+            }
+            return;
+          }
         }
         await moveNowPlayingToHistory({
           completed: true,

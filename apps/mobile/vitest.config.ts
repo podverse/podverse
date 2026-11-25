@@ -311,6 +311,7 @@ export default defineConfig({
       'src/playback/playbackProgressStore.test.ts',
       'src/playback/playbackScrubPreviewStore.test.ts',
       'src/playback/previousAction.test.ts',
+      'src/playback/optimisticQueueLeave.test.ts',
       'src/playback/playbackTransport.test.ts',
       'src/playback/playingChapter.test.ts',
       'src/prefs/bannerNotificationPrefs.test.ts',

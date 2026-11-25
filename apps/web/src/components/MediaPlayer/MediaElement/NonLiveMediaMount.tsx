@@ -9,6 +9,7 @@ import { useMediaPlayerVideo } from '../../../contexts/MediaPlayerVideo';
 import { useAddByRSSPositionSave } from '../../../hooks/useAddByRSSPositionSave';
 import { useMediaPlayerClearNowPlaying } from '../../../hooks/useMediaPlayerClearNowPlaying';
 import { useNonLivePlaybackAvProps } from '../../../hooks/useNonLivePlaybackAvProps';
+import { useOptimisticQueueLeave } from '../../../hooks/useOptimisticQueueLeave';
 import { useQueueResourcesMoveNowPlayingToHistory } from '../../../hooks/useQueueResourceMoveNowPlayingToHistory';
 import { isNonLiveVideoPlaying } from '../../../utils/mediaPlayer/isNonLiveVideoPlaying';
 import { resolveVideoTeleportTarget } from '../../../utils/mediaPlayer/resolveVideoTeleportTarget';
@@ -40,6 +41,7 @@ export function NonLiveMediaMount() {
   } = useMediaPlayer();
   const { mpCurrentTime } = useMediaPlayerCurrentTime();
   const moveNowPlayingToHistory = useQueueResourcesMoveNowPlayingToHistory();
+  useOptimisticQueueLeave();
   const { handleClose: handleAddByRSSClose } = useAddByRSSPositionSave();
   const clearNowPlaying = useMediaPlayerClearNowPlaying();
 

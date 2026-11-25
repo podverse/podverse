@@ -4,12 +4,15 @@ import { useCallback } from 'react';
 
 import { useAddByRSSListContext } from '../contexts/AddByRSSListContext';
 import { useMediaPlayer } from '../contexts/MediaPlayer';
+import { useMediaPlayerCurrentTime } from '../contexts/MediaPlayerCurrentTime';
 import { crossDevicePlaybackStore } from '../lib/crossDevicePlayback/crossDevicePlaybackStore';
 import { sendPlaybackCommand } from '../lib/crossDevicePlayback/sendPlaybackCommand';
+import { tryOptimisticQueueNext } from '../lib/queue/optimisticQueueLeave';
 import { resolveAddByRSSListContextFromCurrentItem } from '../utils/addByRSS/resolveListContextFromCurrentItem';
 import { useAddByRSSPlayNext } from './useAddByRSSPlayNext';
 import { useEpisodeChapterNavigation } from './useEpisodeChapterNavigation';
 import { useLongPress } from './useLongPress';
+import { useOptimisticQueueLeave } from './useOptimisticQueueLeave';
 import { useQueueResourcesMoveNowPlayingToHistory } from './useQueueResourceMoveNowPlayingToHistory';
 import { useQueueResourcesLoadActive } from './useQueueResourcesLoadActive';
 
@@ -34,6 +37,8 @@ export function useTrackNextButtonActions(): {
     mpIsPlaying,
     mpAddByRSS,
   } = useMediaPlayer();
+  const { mpCurrentTime } = useMediaPlayerCurrentTime();
+  useOptimisticQueueLeave();
   const { listContext } = useAddByRSSListContext();
   const moveNowPlayingToHistory = useQueueResourcesMoveNowPlayingToHistory();
   const queueResourcesLoadActive = useQueueResourcesLoadActive();
@@ -54,6 +59,22 @@ export function useTrackNextButtonActions(): {
       await addByRSSPlayNext(fallbackContext ?? undefined);
       return;
     }
+    const playingId = mpClip?.id_text ?? mpItemSoundbite?.id_text ?? mpItem?.id_text ?? null;
+    if (playingId !== null) {
+      const outcome = tryOptimisticQueueNext({
+        completed: false,
+        playbackPosition: String(mpCurrentTime),
+        playingId,
+        shouldPlay: mpIsPlaying,
+      });
+      if (outcome === 'started' || outcome === 'settled') {
+        if (outcome === 'started') {
+          setMPShouldPlay(mpIsPlaying);
+          pendingMusicQueueLoadIntentRef.current = 'fresh_transition';
+        }
+        return;
+      }
+    }
     await moveNowPlayingToHistory({
       completed: false,
       mpClip: mpClip,
@@ -69,6 +90,7 @@ export function useTrackNextButtonActions(): {
     addByRSSPlayNext,
     moveNowPlayingToHistory,
     mpClip,
+    mpCurrentTime,
     mpItem,
     mpItemSoundbite,
     setMPShouldPlay,

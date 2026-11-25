@@ -27,6 +27,7 @@ import {
   playbackTargetLivestream,
 } from '../lib/playback';
 import { fetchFreshRestoredItem } from '../lib/playback/fetchFreshRestoredItem';
+import { isOptimisticQueueHeadPending } from '../lib/queue/optimisticQueueLeave';
 import {
   getAddByRSSResourceDataFeedUrl,
   resolveAddByRSSIndexItemFromResourceData,
@@ -882,6 +883,9 @@ export function useMediaPlayerControllerQueueHeadLoading(): QueueHeadLoadingStat
       return;
     }
     if (hasDeferredExplicitPlay()) {
+      return;
+    }
+    if (isOptimisticQueueHeadPending()) {
       return;
     }
     if (!activeQueueUpcomingResources || activeQueueUpcomingResources.length === 0) {

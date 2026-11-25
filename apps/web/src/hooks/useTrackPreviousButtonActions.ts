@@ -15,11 +15,13 @@ import { createWebAutoQueueSourceFetchers } from '../lib/autoQueue/webAutoQueueS
 import { crossDevicePlaybackStore } from '../lib/crossDevicePlayback/crossDevicePlaybackStore';
 import { sendPlaybackCommand } from '../lib/crossDevicePlayback/sendPlaybackCommand';
 import { playbackTargetFromStandardLoad } from '../lib/playback';
+import { tryOptimisticQueuePrevious } from '../lib/queue/optimisticQueueLeave';
 import { resolveAddByRSSListContextFromCurrentItem } from '../utils/addByRSS/resolveListContextFromCurrentItem';
 import { useAddByRSSPlayPrevious } from './useAddByRSSPlayPrevious';
 import { useEpisodeChapterNavigation } from './useEpisodeChapterNavigation';
 import { useLongPress } from './useLongPress';
 import { useMediaPlayerResourceUpdate } from './useMediaPlayerResourceUpdate';
+import { useOptimisticQueueLeave } from './useOptimisticQueueLeave';
 
 export function useTrackPreviousButtonActions(): {
   hasEpisodeChaptersForTrackButtons: boolean;
@@ -37,6 +39,7 @@ export function useTrackPreviousButtonActions(): {
     useMediaPlayer();
   const { seek } = useMediaPlayerControls();
   const { mpCurrentTime, setMPCurrentTime } = useMediaPlayerCurrentTime();
+  useOptimisticQueueLeave();
   const { listContext } = useAddByRSSListContext();
   const mediaPlayerResourceUpdate = useMediaPlayerResourceUpdate();
   const { autoQueueConfig, autoQueueActiveRow, setAutoQueueActiveRow } = useAutoQueue();
@@ -68,6 +71,13 @@ export function useTrackPreviousButtonActions(): {
   }, [mpAddByRSS, listContext, addByRSSPlayPrevious, seekToStart]);
 
   const runCorePreviousTrack = useCallback(async () => {
+    const outcome = tryOptimisticQueuePrevious({ shouldPlay: mpIsPlaying });
+    if (outcome === 'started' || outcome === 'settled') {
+      if (outcome === 'started') {
+        setMPShouldPlay(mpIsPlaying);
+      }
+      return;
+    }
     if (!mpChannel || !mpItem) {
       return;
     }

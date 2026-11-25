@@ -8,6 +8,7 @@ import type {
   QueueExtraParams,
 } from '@podverse/helpers/dto';
 import { isMusicMediumId } from '@podverse/helpers/medium';
+import { queueResourceContentId } from '@podverse/playback-core';
 
 // Import from the request module (not the auth barrel) to keep the React AuthProvider out of the
 // data-layer module graph.
@@ -332,6 +333,82 @@ const addResourceToHistory = async (
   }
 
   return refreshQueueViewsAfterMutation(context, queueIdText, generation);
+};
+
+const HISTORY_LIST_POSITION_STEP = 0.00000001;
+
+const historyListPosition = (index: number): string =>
+  (-(index + 1) * HISTORY_LIST_POSITION_STEP).toFixed(8);
+
+export type QueueResourceZone = 'history' | 'now-playing' | 'upcoming-front';
+
+/**
+ * Posts one zone move and leaves the local cache alone. A burst of skips writes the cache itself
+ * and must not reload the queue between taps.
+ */
+const postQueueResourceZone = async (
+  context: MobileAuthRequestContext,
+  queueIdText: string,
+  zone: QueueResourceZone,
+  resource: DTOQueueResource,
+  params: QueueExtraParams
+): Promise<void> => {
+  const clipId = resource.clip?.id_text;
+  const soundbiteId = resource.item_soundbite?.id_text;
+  const itemId = resource.item?.id_text;
+  const addByRss = resource.add_by_rss_resource_data;
+  await requestWithMobileAuthRefresh(context, async (api) => {
+    if (typeof clipId === 'string' && clipId.length > 0) {
+      if (zone === 'history') {
+        return api.reqQueueResourceClipAddHistory(queueIdText, clipId, params);
+      }
+      if (zone === 'now-playing') {
+        return api.reqQueueResourceClipAddNowPlaying(queueIdText, clipId, params);
+      }
+      return api.reqQueueResourceClipAddNext(queueIdText, clipId);
+    }
+    if (typeof soundbiteId === 'string' && soundbiteId.length > 0) {
+      if (zone === 'history') {
+        return api.reqQueueResourceItemSoundbiteAddHistory(queueIdText, soundbiteId, params);
+      }
+      if (zone === 'now-playing') {
+        return api.reqQueueResourceItemSoundbiteAddNowPlaying(queueIdText, soundbiteId, params);
+      }
+      return api.reqQueueResourceItemSoundbiteAddNext(queueIdText, soundbiteId);
+    }
+    if (
+      (typeof itemId !== 'string' || itemId.length === 0) &&
+      addByRss !== null &&
+      addByRss !== undefined
+    ) {
+      const resourceData = withCanonicalAddByRssFeedUrl(addByRss);
+      if (zone === 'history') {
+        return api.reqQueueResourceItemAddByRSSAddHistory(queueIdText, {
+          ...params,
+          add_by_rss_resource_data: resourceData,
+        });
+      }
+      if (zone === 'now-playing') {
+        return api.reqQueueResourceItemAddByRSSAddNowPlaying(queueIdText, {
+          ...params,
+          add_by_rss_resource_data: resourceData,
+        });
+      }
+      return api.reqQueueResourceItemAddByRSSAddNext(queueIdText, {
+        add_by_rss_resource_data: resourceData,
+      });
+    }
+    if (typeof itemId !== 'string' || itemId.length === 0) {
+      return undefined;
+    }
+    if (zone === 'history') {
+      return api.reqQueueResourceItemAddHistory(queueIdText, itemId, params);
+    }
+    if (zone === 'now-playing') {
+      return api.reqQueueResourceItemAddNowPlaying(queueIdText, itemId, params);
+    }
+    return api.reqQueueResourceItemAddNext(queueIdText, itemId);
+  });
 };
 
 /**
@@ -829,6 +906,62 @@ export const queueRepository = {
       ]);
       await projectQueueIfCurrent(queueIdText, generation);
     }
+  },
+
+  /** One zone post. Does not refresh now-playing, upcoming, or history. */
+  postQueueResourceZone: async (
+    context: MobileAuthRequestContext,
+    queueIdText: string,
+    zone: QueueResourceZone,
+    resource: DTOQueueResource,
+    params: QueueExtraParams = {}
+  ): Promise<void> => {
+    await postQueueResourceZone(context, queueIdText, zone, resource, params);
+  },
+
+  /**
+   * Rewrites the local now-playing, upcoming, and first history page to match a skip that already
+   * happened on device. History rows passed in are newest first and sit in front of the cached page.
+   */
+  applyLocalQueueOrder: async (
+    queueIdText: string,
+    snapshot: {
+      nowPlaying: DTOQueueResource | null;
+      upcoming: DTOQueueResource[];
+      historyNewestFirst: DTOQueueResource[];
+    }
+  ): Promise<void> => {
+    const generation = queueCacheGeneration;
+    const nowPlaying =
+      snapshot.nowPlaying === null ? null : { ...snapshot.nowPlaying, list_position: '0' };
+    const upcoming = snapshot.upcoming.map((row, index) => ({
+      ...row,
+      list_position: String(index + 1),
+    }));
+    if (nowPlaying !== null) {
+      await writeQueueCache(nowPlayingCacheKey(queueIdText), nowPlaying, generation);
+    }
+    await writeQueueCache(upcomingCacheKey(queueIdText), upcoming, generation);
+    if (snapshot.historyNewestFirst.length > 0) {
+      const cacheKey = historyCacheKey(queueIdText, 1);
+      const cached = (await readQueueCache<DTOQueueResource[]>(cacheKey))?.value ?? [];
+      const prefixIds = new Set(
+        snapshot.historyNewestFirst
+          .map((row) => queueResourceContentId(row))
+          .filter((id): id is string => typeof id === 'string' && id.length > 0)
+      );
+      const rest = cached.filter((row) => {
+        const id = queueResourceContentId(row);
+        return id === null || !prefixIds.has(id);
+      });
+      const page = [...snapshot.historyNewestFirst, ...rest].map((row, index) => ({
+        ...row,
+        list_position: historyListPosition(index),
+      }));
+      await writeQueueCache(cacheKey, page, generation);
+    }
+    publishQueueDataChanged();
+    void projectQueueForQueue(queueIdText);
   },
 
   /**

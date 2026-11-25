@@ -6,6 +6,22 @@ export {
 } from './clampNearEndSeconds.js';
 export { combineQueueNowPlayingAndUpcoming } from './combineQueueNowPlayingAndUpcoming.js';
 export {
+  emptyQueueZoneWriteQueue,
+  enqueueNextLeave,
+  enqueuePreviousRestore,
+  noteQueueZoneWritePosted,
+  resolveLocalPrevious,
+  stepLocalQueueNext,
+  stepLocalQueuePrevious,
+  type LocalQueueLists,
+  type LocalQueueNextStep,
+  type LocalQueuePreviousResolution,
+  type LocalQueuePreviousStep,
+  type LocalQueueRow,
+  type QueueZoneWrite,
+  type QueueZoneWriteQueue,
+} from './localQueueLeave.js';
+export {
   isNowPlayingListPosition,
   queueResourceContentId,
   splitQueueScreenResources,

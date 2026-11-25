@@ -321,3 +321,17 @@
 - Operator steps: app migrations run through `0020_account_queue_history_limit_notice_limit.sql`.
   `API_EXPECTED_MIGRATION_FILENAME` is that file. The management marker stays
   `0002_nano_id_v2_min_7.sql`.
+
+## Next and Previous move on the tap
+
+- Surfaces: web, mobile
+- Change: Next and Previous each move one queue row as soon as they are tapped. Six rapid Next
+  taps move six rows, and every row that is left is kept in history, including a row whose audio
+  never started. The row that was playing is cut immediately. While playback is already going, the
+  play/pause control keeps showing pause and the next row starts when it is ready. While playback
+  is paused, the next row stays paused until Play. Previous inside the opening moment of a row steps back through the rows this session left, one at a time, and puts the row that was
+  current at the front of upcoming. Previous after that moment restarts the current row. A track
+  that ends on its own continues into the next row when one is queued. Another device that is only
+  controlling this one still sends the command here; only this device moves its own row.
+- Who notices: listeners skipping or stepping back through a queue on the website and in the app
+- Operator steps: none
