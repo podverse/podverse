@@ -1,5 +1,5 @@
 import type { CommandLineArgs } from '@workers/commands/index.js';
-import { getOpmlImportConfig } from '@workers/config/index.js';
+import { getCatalogConfig, getOpmlImportConfig } from '@workers/config/index.js';
 import { getActiveMQArtemisService } from '@workers/factories/activeMQArtemisService.js';
 import { getLoggerService } from '@workers/factories/loggerService.js';
 import { getPodcastIndexService } from '@workers/factories/podcastIndexService.js';
@@ -83,6 +83,8 @@ export const handleOpmlImportMessage = async (
       activeMQArtemisService,
       podcastGetByFeedUrl,
       enqueueDownstreamJobs: true,
+      addByRSSEnabled: getCatalogConfig().addByRSSEnabled,
+      catalogPodcastIndexIdAllowlist: getCatalogConfig().podcastIndexIdAllowlist,
     });
 
     if (isDev) {

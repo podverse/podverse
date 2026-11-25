@@ -99,3 +99,180 @@
 - Change: Clear Local Data opens while the person is still signed in. Export OPML on that screen saves subscriptions before this phone is erased. Signed in, the file is the current server's account subscriptions. Signed out, it is the subscriptions on this phone. Skipping the export, dismissing the share sheet, or a failed export leaves the address and local data as they are. Clear and Switch signs out of the current server, erases this phone, then saves the new address. Cancel leaves the session, the address, and local data.
 - Who notices: listeners who point the app at a different API or reset to the built-in API
 - Operator steps: none
+
+## Instance catalog settings (web)
+
+- Surfaces: web, web runtime-config sidecar
+- Change: three optional runtime keys on the web sidecar.
+  `NEXT_PUBLIC_CATALOG_MUSIC_DISABLED=true` turns Music off,
+  `NEXT_PUBLIC_CATALOG_ADD_BY_RSS_DISABLED=true` turns Add by RSS off, and
+  `NEXT_PUBLIC_CATALOG_PODCAST_INDEX_ID_ALLOWLIST` takes comma-separated Podcast Index feed ids
+  (no size limit). They limit what gets added from now on; stored content keeps its pages. Blank
+  keeps today's full site. The sidecar validates them and refuses to start on an invalid value.
+  They reach the app through runtime config, so a change needs a restart, not a rebuild. The
+  parsing lives in `@podverse/helpers-config` so the API and workers read the same values.
+- Who notices: self-hosters building a branded or single-interest instance
+- Operator steps: none for existing deployments (blank keys)
+
+## Instance catalog settings (API and workers)
+
+- Surfaces: api, workers
+- Change: the API and workers read optional `CATALOG_MUSIC_DISABLED`,
+  `CATALOG_ADD_BY_RSS_DISABLED`, and `CATALOG_PODCAST_INDEX_ID_ALLOWLIST`, the same settings the
+  web sidecar reads as `NEXT_PUBLIC_CATALOG_*`. Blank keeps today's behavior. An invalid value
+  fails API startup, and fails startup for every workers command that parses feeds or reads
+  Podcast Index. No route or job changes behavior from this entry alone.
+- Who notices: operators of narrowed self-hosted instances
+- Operator steps: none for existing deployments (blank keys)
+
+## Instance catalog settings: one ConfigMap and one local override
+
+- Surfaces: k8s base env, ops, local env overrides
+- Change: new shared ConfigMap `podverse-catalog-config` in `infra/k8s/base/common` with blank
+  `CATALOG_MUSIC_DISABLED`, `CATALOG_ADD_BY_RSS_DISABLED`, and
+  `CATALOG_PODCAST_INDEX_ID_ALLOWLIST`. The API and the workers that parse feeds or read Podcast
+  Index mount it; the web runtime-config sidecar mounts it with `prefix: NEXT_PUBLIC_`, so all
+  three read the same values. Local dev sets all of them from one `catalog.env` override.
+- Who notices: operators of self-hosted and GitOps deployments
+- Operator steps: GitOps repos that pin `base/common` pick up the new ConfigMap on the next sync,
+  with nothing to set. To narrow an instance, merge `podverse-catalog-config` in the `common`
+  overlay and restart the API, web, and workers pods.
+
+## Title search for instances with a Podcast Index id allowlist (API)
+
+- Surfaces: api
+- Change: new public `GET /channel/search/title?q=&medium=all|music&page=`. It matches the term against the titles of every stored directory channel in Postgres, case-insensitive. Titles that start with the term come first, then titles that contain it, with the newest last publish date first in each group. Pages are cut in the query, and `meta.count` is the total. `all` searches podcasts and videos; `music` searches music. It makes no Podcast Index request and adds no index. It answers only while `CATALOG_PODCAST_INDEX_ID_ALLOWLIST` is set and returns 404 otherwise. The Podcast Index search route is unchanged.
+- Who notices: operators of narrowed instances; web Search uses it on those instances
+- Operator steps: none
+
+## Search lists stored shows on instances with a Podcast Index id allowlist (web)
+
+- Surfaces: web
+- Change: with `NEXT_PUBLIC_CATALOG_PODCAST_INDEX_ID_ALLOWLIST` set, the Search page no longer queries the Podcast Index. It matches the typed term against the titles of every show already stored on the instance, including stored shows off the list. Titles that start with the term come first, then the newest. Results are paged, and each row opens the show page; no result offers to add a feed. With the allowlist blank, Search is unchanged.
+- Who notices: visitors to an instance that sets the allowlist
+- Operator steps: none (keep the web and API catalog settings equal, as the shared config already does)
+
+## Music chips hidden when Music is off
+
+- Surfaces: web
+- Change: with `NEXT_PUBLIC_CATALOG_MUSIC_DISABLED=true`, Home, Browse, Recommendations, and
+  Add by RSS no longer show Artists, Albums, or Tracks. Clips, Livestreams, Playlists, and Users
+  stay. Opening a URL for a hidden chip shows Podcasts.
+- Who notices: visitors on an instance with Music turned off
+- Operator steps: none beyond the catalog setting from the catalog-settings plan
+
+## Search drops the Music facet when Music is off
+
+- Surfaces: web
+- Change: with Music turned off, Search no longer shows All and Music. The field searches
+  podcasts, which is what All already did. A saved Music facet opens that podcast search.
+- Who notices: visitors on an instance with Music turned off
+- Operator steps: none
+
+## Library medium controls follow stored music when Music is off
+
+- Surfaces: web
+- Change: with Music turned off, Queues show Podcasts and Music only when the active queue is
+  music or the music queue has rows, and otherwise list the podcast queue with no tabs. History
+  shows those tabs only when music is in history. The playlists filter shows Music only when
+  that list has a music playlist, and a saved Music filter with nothing to show opens All.
+  Playlist pages stay.
+- Who notices: visitors on an instance with Music turned off
+- Operator steps: none
+
+## Embed demo page omits album and track when Music is off
+
+- Surfaces: web
+- Change: with Music turned off, the embed demo page no longer lists album or track players.
+  Episode, clip, chapter, and podcast demos stay.
+- Who notices: visitors who open the embed page on an instance with Music turned off
+- Operator steps: none
+
+## Add by RSS can be turned off (web)
+
+- Surfaces: web
+- Change: with `NEXT_PUBLIC_CATALOG_ADD_BY_RSS_DISABLED=true`, the sidebar has no Add by RSS
+  link and every `/add-by-rss` URL is a not-found page, so there is no way to add a feed. Saved
+  Add by RSS rows still show on Home, queue, history, and playlist pages, and queue and playlist
+  rows keep Remove. A saved row that links into `/add-by-rss` opens the not-found page. A playing
+  Add by RSS item keeps playing; the full-size player shows its title without a link and omits
+  artist links into `/add-by-rss`. The browser stops background refresh and first parses of
+  saved feeds. Blank keeps Add by RSS.
+- Who notices: self-hosters who turn Add by RSS off on a branded instance, and listeners on that
+  instance who saved Add by RSS feeds earlier
+- Operator steps: set the key in the web runtime-config env, set `CATALOG_ADD_BY_RSS_DISABLED`
+  to the same value on the API, and restart both
+
+## API refuses Add by RSS parses and new follows when Add by RSS is off
+
+- Surfaces: api
+- Change: with `CATALOG_ADD_BY_RSS_DISABLED=true`, `POST /account/follow/add-by-rss-channel`,
+  `POST /account/add-by-rss/parse`, and `POST /account/add-by-rss/parse/all` return 403 with
+  code `add_by_rss_disabled`, before authentication. Unfollow, the followed list, parse status,
+  convert-to-channel, remote-item lookup and resolve, chapters and transcripts, and the queue and
+  playlist Add by RSS routes stay open, so saved rows keep playing and can be removed. Blank
+  keeps today's behavior.
+- Who notices: mobile users on an instance with Add by RSS off see the add-failed message when
+  they add a feed while signed in; their saved feeds keep playing from the parse on the phone
+- Operator steps: set the key on the API with the same value as the web sidecar's
+  `NEXT_PUBLIC_CATALOG_ADD_BY_RSS_DISABLED`
+
+## OPML import saves no Add by RSS feed when Add by RSS is off
+
+- Surfaces: workers, api
+- Change: with `CATALOG_ADD_BY_RSS_DISABLED=true`, OPML import reports a feed that is not stored
+  and not in Podcast Index as failed, with "Add by RSS is turned off on this server.", and saves
+  no Add by RSS follow. Stored and Podcast Index feeds import as before. Blank keeps today's
+  behavior.
+- Who notices: listeners importing OPML on an instance with Add by RSS off
+- Operator steps: set the key on the workers that run `mqOpmlImportRun` with the same value as
+  the API
+
+## Workers add only allowlisted feeds, and no music while Music is off
+
+- Surfaces: workers
+- Change: before the parser creates a feed row it has never stored, it checks the instance
+  catalog settings. With `CATALOG_PODCAST_INDEX_ID_ALLOWLIST` set, only listed Podcast Index ids
+  (or the surviving show of a listed id that Podcast Index merged) are added. With
+  `CATALOG_MUSIC_DISABLED=true`, feeds whose Podcast Index medium is music, or publisher feeds
+  that list mostly music, are not added; when the medium cannot be read the feed is skipped and
+  retried on a later run. Feeds already stored are never checked: they keep refreshing, and no
+  stored row is removed or hidden. A skipped feed is logged at info level and its queue message is
+  accepted. Applies to every worker add path: MQ add, trending, the parser commands, remote
+  items, the on-demand add, OPML import, and the dev seeders. v4 migration commands are not
+  affected.
+- Who notices: operators of narrowed instances; blank settings keep today's behavior
+- Operator steps: none beyond the catalog keys
+
+## Command to add the allowlisted Podcast Index feeds
+
+- Surfaces: workers, k8s
+- Change: new workers command `mqRSSAddCatalogAllowlist` and suspended ops CronJob
+  `mq-rss-add-catalog-allowlist`. It enqueues every id in `CATALOG_PODCAST_INDEX_ID_ALLOWLIST`
+  that is not stored yet. When Podcast Index merged a listed id into another show (read from the
+  dead-feed CSV), it enqueues the surviving show instead, and the parser admits it on behalf of
+  the listed id. Ids it cannot resolve are logged. Blank allowlist: it does nothing.
+- Who notices: operators of narrowed instances
+- Operator steps: after setting or changing the allowlist, create a Job from the
+  `mq-rss-add-catalog-allowlist` CronJob (or run `mqRSSAddCatalogAllowlist` locally)
+
+## Podcast Index Add Feed is off while the allowlist is set
+
+- Surfaces: api, web
+- Change: while `CATALOG_PODCAST_INDEX_ID_ALLOWLIST` is set, `POST /mq/rss/add/on-demand` returns
+  403 with code `catalog_add_disabled` and enqueues nothing, and the web Podcast Index feed page
+  shows the feed with "This feed is not in our directory." and no Add Feed button. On-demand
+  refresh is unchanged. With the allowlist blank the button and route behave as before, whether
+  or not Add by RSS or Music is off.
+- Who notices: visitors and API clients of narrowed instances
+- Operator steps: none beyond the catalog keys
+
+## OPML import follows the catalog allowlist
+
+- Surfaces: workers, api
+- Change: while `CATALOG_PODCAST_INDEX_ID_ALLOWLIST` is set, an OPML import treats an unstored
+  feed whose Podcast Index id is not listed as unindexed: no directory add and no pending follow;
+  it goes through the same Add by RSS path as any unindexed feed. Listed feeds and feeds already
+  stored import as before.
+- Who notices: listeners importing OPML on narrowed instances
+- Operator steps: none beyond the catalog keys

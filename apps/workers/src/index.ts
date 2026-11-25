@@ -93,6 +93,7 @@ const run = async () => {
   const { parseArgs } = await import('@workers/commands/parseArgs.js');
   const {
     getBaseConfig,
+    getCatalogConfig,
     getMQConfig,
     getPodcastIndexConfig,
     getExternalServicesConfig,
@@ -303,6 +304,7 @@ const run = async () => {
           config: parserConfig,
           notificationsContext,
           firebaseContext,
+          getCatalogAdmissionPolicy: getCatalogConfig,
         });
       }
 

@@ -2,6 +2,7 @@ import type { ActiveMQArtemisService } from '@queue/services/activeMQArtemis/ind
 import type { MQOpmlImportFeed } from '@queue/types/mq.js';
 
 import {
+  ADD_BY_RSS_DISABLED_MESSAGE,
   addByRssFeedLimitReachedMessage,
   buildOpmlImportHourlyKey,
   type CacheGetJson,
@@ -48,6 +49,10 @@ export type ProcessOpmlImportJobParams = {
   contactEmail?: string;
   /** When false, a new Add by RSS feed is saved even at the tier. Fixture stacks use this. */
   enforceAddByRssLimit?: boolean;
+  /** When false, a feed that would be saved as Add by RSS is reported failed and nothing is saved. Default true. */
+  addByRSSEnabled?: boolean;
+  /** When set, an unstored feed whose Podcast Index id is not listed is treated as unindexed. */
+  catalogPodcastIndexIdAllowlist?: readonly number[] | null;
 };
 
 type HourlyCounter = { count: number };
@@ -100,6 +105,8 @@ export const processOpmlImportJob = async (
   const enqueueDownstreamJobs = params.enqueueDownstreamJobs !== false;
   const contactEmail = params.contactEmail ?? '';
   const enforceAddByRssLimit = params.enforceAddByRssLimit !== false;
+  const addByRSSEnabled = params.addByRSSEnabled !== false;
+  const catalogPodcastIndexIdAllowlist = params.catalogPodcastIndexIdAllowlist ?? null;
 
   const feedService = new FeedService();
   const followingChannelService = new AccountFollowingChannelService();
@@ -172,17 +179,23 @@ export const processOpmlImportJob = async (
                 : typeof piFeed?.feedId === 'number'
                   ? piFeed.feedId
                   : null;
+            const indexedPodcastIndexId =
+              podcastIndexId !== null &&
+              (catalogPodcastIndexIdAllowlist === null ||
+                catalogPodcastIndexIdAllowlist.includes(podcastIndexId))
+                ? podcastIndexId
+                : null;
 
-            if (podcastIndexId !== null) {
+            if (indexedPodcastIndexId !== null) {
               const blockedByIndex = await findBlockedFeed({
                 url: feed.feedUrl,
-                podcastIndexId,
+                podcastIndexId: indexedPodcastIndexId,
               });
               if (blockedByIndex !== null) {
                 outcome = 'blocked';
               } else {
                 await pendingFollowingChannelService.addPendingFollow(accountId, {
-                  podcast_index_id: podcastIndexId,
+                  podcast_index_id: indexedPodcastIndexId,
                   feed_url: feed.feedUrl,
                 });
                 if (enqueueDownstreamJobs) {
@@ -191,7 +204,7 @@ export const processOpmlImportJob = async (
                     {
                       ...MQ_QUEUES['rss-on-demand'],
                       feedUrl: feed.feedUrl,
-                      podcast_index_id: podcastIndexId,
+                      podcast_index_id: indexedPodcastIndexId,
                       closeAfterSend: false,
                     },
                     {
@@ -208,6 +221,9 @@ export const processOpmlImportJob = async (
                 remainingBudget -= 1;
                 await incrementHourlyCount(cacheGetJson, cacheSetJson, accountId, nowMs);
               }
+            } else if (!addByRSSEnabled) {
+              outcome = 'failed';
+              error = ADD_BY_RSS_DISABLED_MESSAGE;
             } else if (reachedAddByRssLimit !== null) {
               outcome = 'feed_limit_reached';
               feedLimit = reachedAddByRssLimit;

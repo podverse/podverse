@@ -107,6 +107,10 @@ const apiTestEnvBase = (): Record<string, string> => ({
   BILLING_APPLE_IAP_ENABLED: '',
   BILLING_GOOGLE_PLAY_ENABLED: '',
   BILLING_STRIKE_ENABLED: '',
+  // Blank in every test profile so a developer .env cannot narrow the catalog during tests.
+  CATALOG_MUSIC_DISABLED: '',
+  CATALOG_ADD_BY_RSS_DISABLED: '',
+  CATALOG_PODCAST_INDEX_ID_ALLOWLIST: '',
 });
 
 const apiProfileOverrides: Record<PodverseApiTestEnvProfile, Record<string, string>> = {

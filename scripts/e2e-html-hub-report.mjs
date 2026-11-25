@@ -25,6 +25,7 @@ const KNOWN_SLOTS = [
   { id: 'web-custom-themes-native', label: 'Web (custom themes native)' },
   { id: 'web-custom-themes-remote', label: 'Web (custom themes remote)' },
   { id: 'web-custom-themes-combo', label: 'Web (custom themes combo)' },
+  { id: 'web-catalog-restricted', label: 'Web (catalog restricted)' },
   { id: 'web-admin-only-email', label: 'Web (admin-only email)' },
   { id: 'management-web', label: 'Management-web' },
   { id: 'management-web-cloudflare-enabled', label: 'Management-web (Cloudflare enabled)' },

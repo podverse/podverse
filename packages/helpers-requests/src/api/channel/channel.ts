@@ -3,6 +3,7 @@ import type {
   DTOAddByRSSMatchResponse,
   DTOChannel,
   DTOChannelDirectoryMatch,
+  QueryParamsPodcastIndexSearchMedium,
 } from '@podverse/helpers';
 
 import type { ApiRequestService } from '../_request.js';
@@ -87,6 +88,22 @@ export async function reqChannelGetManyGlobalTop(
 ) {
   return api.apiRequest<ApiListResponse<DTOChannel>>({
     path: '/channel/global/top',
+    method: 'GET',
+    config: {
+      params,
+    },
+  });
+}
+
+/**
+ * Title search over stored channels. Only an instance with a Podcast Index id allowlist answers.
+ */
+export async function reqChannelSearchByTitle(
+  api: ApiRequestService,
+  params: { q: string; medium: QueryParamsPodcastIndexSearchMedium; page: number }
+) {
+  return api.apiRequest<ApiListResponse<DTOChannel>>({
+    path: '/channel/search/title',
     method: 'GET',
     config: {
       params,

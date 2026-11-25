@@ -1,6 +1,6 @@
 'use client';
 
-import type { DTOPlaylist } from '@podverse/helpers';
+import type { DTOPlaylist, QueryParamsQueueMedium } from '@podverse/helpers';
 import type { QueryParamsPlaylists } from '@podverse/helpers-requests';
 import { MainColumnStack, MainSidebarLayout } from '@podverse/ui';
 
@@ -15,6 +15,8 @@ interface PlaylistsPageClientProps {
   chipsConfig?: MediaListChipsConfig;
   initialQueryParams: QueryParamsPlaylists;
   listScope?: 'page' | 'browse';
+  musicFilterVisible: boolean;
+  rememberedMedium?: QueryParamsQueueMedium;
   ssrPlaylists: DTOPlaylist[];
   ssrTotalPages: number;
 }
@@ -26,6 +28,8 @@ export function PlaylistsPageClient(props: PlaylistsPageClientProps) {
     chipsConfig,
     initialQueryParams,
     listScope = 'page',
+    musicFilterVisible,
+    rememberedMedium,
     ssrPlaylists,
     ssrTotalPages,
   } = props;
@@ -34,6 +38,8 @@ export function PlaylistsPageClient(props: PlaylistsPageClientProps) {
     <PlaylistsPageContextProvider
       initialQueryParams={initialQueryParams}
       listScope={listScope}
+      musicFilterVisible={musicFilterVisible}
+      rememberedMedium={rememberedMedium}
       ssrPlaylists={ssrPlaylists}
       ssrTotalPages={ssrTotalPages}
     >

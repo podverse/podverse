@@ -1,13 +1,15 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 
 import { useAccount } from '../contexts/Account';
+import { useConfig } from '../contexts/Config';
 import { useMediaPlayer } from '../contexts/MediaPlayer';
 import type { ArtistLineLink } from '../lib/artistPublishers';
 import type { DeviceArtistLinksInput } from '../utils/addByRSS/deviceArtistLinks';
 import { resolveDeviceArtistLinks } from '../utils/addByRSS/deviceArtistLinks';
 import { onAddByRSSFeedChanged } from '../utils/addByRSS/feedChangedEvent';
+import { withoutAddByRSSArtistLinks } from '../utils/addByRSS/publisherLinks';
 
 const EMPTY_DEVICE_ARTIST_LINKS: readonly ArtistLineLink[] = [];
 
@@ -71,6 +73,7 @@ const playbackArtistLinksKey = (input: {
 export const useDeviceArtistLinks = (): readonly ArtistLineLink[] => {
   const { mpAddByRSS, mpChannel, mpItem } = useMediaPlayer();
   const { loggedInAccount } = useAccount();
+  const addByRSSEnabled = useConfig().public.catalog.addByRSSEnabled;
   const feedUrl =
     typeof mpAddByRSS?.resourceData?.feed_url === 'string'
       ? mpAddByRSS.resourceData.feed_url
@@ -125,5 +128,9 @@ export const useDeviceArtistLinks = (): readonly ArtistLineLink[] => {
     };
   }, [key, reloadKey]);
 
-  return links.length === 0 ? EMPTY_DEVICE_ARTIST_LINKS : links;
+  const visible = useMemo(
+    () => (addByRSSEnabled ? links : withoutAddByRSSArtistLinks(links)),
+    [addByRSSEnabled, links]
+  );
+  return visible.length === 0 ? EMPTY_DEVICE_ARTIST_LINKS : visible;
 };

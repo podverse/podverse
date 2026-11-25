@@ -1,9 +1,11 @@
 import type { MediaListChipsConfig } from '../../components/MediaListChips/MediaListChips';
+import { getCatalogConfig } from '../../lib/catalog/catalogPolicy';
 import { getCuratedStaticPageMetadata } from '../../lib/seo/curatedPageMetadata';
 import {
   BROWSE_CHIPS,
   DEFAULT_MEDIA_LIST_CHIP,
   MEDIA_LIST_CHIP_QUERY_PARAM,
+  mediaListChipsForCatalog,
   readStoredMediaListChip,
   resolveMediaListChip,
 } from '../../utils/mediaListChips';
@@ -37,15 +39,16 @@ export async function generateMetadata() {
 export default async function BrowsePage({ searchParams }: BrowsePageProps) {
   const params = await searchParams;
   const ssr = await getMediaListSsr();
+  const chips = mediaListChipsForCatalog(BROWSE_CHIPS, getCatalogConfig().musicEnabled);
   const { chip, urlChip } = resolveMediaListChip({
-    chips: BROWSE_CHIPS,
+    chips,
     urlValue: params[MEDIA_LIST_CHIP_QUERY_PARAM],
     storedValue: readStoredMediaListChip(ssr.localSettings, 'browse'),
     defaultChip: DEFAULT_MEDIA_LIST_CHIP,
   });
   const chipsConfig: MediaListChipsConfig = {
     page: 'browse',
-    chips: BROWSE_CHIPS,
+    chips,
     selected: chip,
     urlChip,
   };

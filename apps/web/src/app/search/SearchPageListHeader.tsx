@@ -5,12 +5,14 @@ import { useCallback } from 'react';
 
 import { ButtonTabs, SearchInput } from '@podverse/ui';
 
+import { useConfig } from '../../contexts/Config';
 import { useSearchPageContext } from './SearchPageContext';
 
 import styles from './SearchPageListHeader.module.scss';
 
 export function SearchPageListHeader() {
   const { searchParams, setSearchParams } = useSearchPageContext();
+  const musicEnabled = useConfig().public.catalog.musicEnabled;
   const tFeatures = useTranslations('features');
   const tFilters = useTranslations('filters');
   const tMedia = useTranslations('media');
@@ -46,11 +48,13 @@ export function SearchPageListHeader() {
         onSearch={handleSearch}
         placeholder={tFeatures('search.search_by_title')}
       />
-      <ButtonTabs
-        buttonTabs={mediumTabs}
-        className={styles.mediumChips}
-        selectedKey={searchParams.medium}
-      />
+      {musicEnabled ? (
+        <ButtonTabs
+          buttonTabs={mediumTabs}
+          className={styles.mediumChips}
+          selectedKey={searchParams.medium}
+        />
+      ) : null}
     </div>
   );
 }

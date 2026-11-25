@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from 'react';
 
 import { useAccount } from '../contexts/Account';
+import { useConfig } from '../contexts/Config';
 import { partitionAddByRSSFeedsByCredentials } from '../utils/addByRSS/credentialsStatus';
 import { listFeedsWithCredentials } from '../utils/addByRSS/credentialStore';
 import { onAddByRSSFeedChanged } from '../utils/addByRSS/feedChangedEvent';
@@ -76,6 +77,7 @@ export function useReadyAddByRSSFeeds(
   resourceTypes: readonly AddByRSSResourceType[]
 ): ReadyAddByRSSFeeds {
   const { loggedInAccount } = useAccount();
+  const addByRSSEnabled = useConfig().public.catalog.addByRSSEnabled;
   const accountId = loggedInAccount?.id_text ?? null;
   const hasFollows = (loggedInAccount?.account_following_add_by_rss_channels?.length ?? 0) > 0;
   const resourceTypeKey = resourceTypes.join('|');
@@ -207,7 +209,9 @@ export function useReadyAddByRSSFeeds(
       if (cancelled) {
         return;
       }
-      void enqueueAddByRSSFirstParses({ accountId });
+      if (addByRSSEnabled) {
+        void enqueueAddByRSSFirstParses({ accountId });
+      }
     })();
 
     return () => {
@@ -217,7 +221,7 @@ export function useReadyAddByRSSFeeds(
         clearTimeout(refreshTimer);
       }
     };
-  }, [accountId, activeKey]);
+  }, [accountId, activeKey, addByRSSEnabled]);
 
   if (activeKey === '') {
     return INACTIVE_RESULT;

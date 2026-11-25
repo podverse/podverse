@@ -3,11 +3,14 @@
 import { useTranslations } from 'next-intl';
 import { useMemo, useState } from 'react';
 
+import type { QueryParamsQueueMedium } from '@podverse/helpers';
 import type { MenuChipOption } from '@podverse/ui';
 import { MenuChip } from '@podverse/ui';
 
 import { useAccount } from '../../contexts/Account';
+import { useConfig } from '../../contexts/Config';
 import { useListViewMode } from '../../hooks/useListViewMode';
+import { playlistMediumForCatalog } from '../../lib/catalog/catalogListMedium';
 import type { MediaListChip, MediaListChipsPage } from '../../utils/mediaListChips';
 import { mediaListChipChrome } from '../../utils/mediaListChips';
 import { CategoriesChip } from '../Category/CategoriesChip';
@@ -27,6 +30,7 @@ type MediaListPendingTrailingChipsProps = {
 export function MediaListPendingTrailingChips({ page, chip }: MediaListPendingTrailingChipsProps) {
   const chrome = useMemo(() => mediaListChipChrome(page, chip), [page, chip]);
   const { loggedInAccount } = useAccount();
+  const musicEnabled = useConfig().public.catalog.musicEnabled;
   const isValidAuthSession = loggedInAccount !== null;
   const tFilters = useTranslations('filters');
   const tMedia = useTranslations('media');
@@ -53,17 +57,21 @@ export function MediaListPendingTrailingChips({ page, chip }: MediaListPendingTr
     return null;
   }
 
-  const mediumOptions: MenuChipOption<'all' | 'av' | 'music'>[] = [
+  const mediumOptions: MenuChipOption<QueryParamsQueueMedium>[] = [
     { value: 'all', label: tFilters('type.all') },
     { value: 'av', label: tMedia('podcast.podcasts') },
-    { value: 'music', label: tMedia('music.music') },
   ];
+  if (musicEnabled) {
+    mediumOptions.push({ value: 'music', label: tMedia('music.music') });
+  }
+  const displayedMedium =
+    resolved.medium === null ? null : playlistMediumForCatalog(resolved.medium.value, musicEnabled);
   const mediumLabel =
-    resolved.medium === null
+    displayedMedium === null
       ? ''
-      : resolved.medium.value === 'music'
+      : displayedMedium === 'music'
         ? tMedia('music.music')
-        : resolved.medium.value === 'av'
+        : displayedMedium === 'av'
           ? tMedia('podcast.podcasts')
           : tFilters('type.all');
 
@@ -87,7 +95,7 @@ export function MediaListPendingTrailingChips({ page, chip }: MediaListPendingTr
           options={mediumOptions}
           selected
           testId="playlists-medium"
-          value={resolved.medium.value}
+          value={displayedMedium ?? resolved.medium.value}
         />
       ) : null}
       {chrome.showSort && resolved.sort !== null ? (

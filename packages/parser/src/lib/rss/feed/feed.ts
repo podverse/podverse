@@ -13,10 +13,19 @@ import {
 } from '../errors.js';
 import { getParsedFeedMd5Hash } from '../hash/parsedFeed.js';
 import { getAndParseRSSFeed } from '../parser.js';
+import { assertCatalogAdmitsNewFeed } from './catalogAdmission.js';
 import { classifyFeedParseFailure, readFeedParseHttpStatus } from './classifyFeedParseFailure.js';
 import { recordFeedParseFailure } from './recordFeedParseFailure.js';
 
-export const handleGetRSSFeed = async (url: string, podcast_index_id: number): Promise<Feed> => {
+export type HandleGetRSSFeedOptions = {
+  catalogAllowlistSourcePodcastIndexId?: number;
+};
+
+export const handleGetRSSFeed = async (
+  url: string,
+  podcast_index_id: number,
+  options: HandleGetRSSFeedOptions = {}
+): Promise<Feed> => {
   timerManager.start('handleGetRSSFeed');
 
   const feedService = new FeedService();
@@ -40,6 +49,15 @@ export const handleGetRSSFeed = async (url: string, podcast_index_id: number): P
     }
 
     if (!feed) {
+      feed = await feedService.getByUrl({ url });
+    }
+
+    if (!feed) {
+      await assertCatalogAdmitsNewFeed({
+        url,
+        podcastIndexId: podcast_index_id,
+        catalogAllowlistSourcePodcastIndexId: options.catalogAllowlistSourcePodcastIndexId,
+      });
       feed = await feedService.getOrCreate({ url, podcast_index_id });
     }
   }

@@ -7,12 +7,12 @@ import { joiFeedUrl, validateBodyObject } from '@api/lib/validation/index.js';
 import type { Request, Response } from 'express';
 import Joi from 'joi';
 
-import type { OnDemandParserEventType } from '@podverse/helpers';
 import {
   ACCOUNT_ENTITLEMENT_CAPABILITY,
   APP_ROUTES,
   getDedupeTTLSeconds,
   MQ_QUEUES,
+  OnDemandParserEventType,
 } from '@podverse/helpers';
 import { mqRSSAdd } from '@podverse/mq';
 import { findBlockedFeed } from '@podverse/orm';
@@ -55,6 +55,17 @@ export class MQController {
                 url: dto.url,
                 podcast_index_id: dto.podcast_index_id,
               };
+
+              if (
+                type === OnDemandParserEventType.ADD &&
+                config.catalog.podcastIndexIdAllowlist !== null
+              ) {
+                res.status(403).json({
+                  message: 'This instance does not add feeds on request.',
+                  code: 'catalog_add_disabled',
+                });
+                return;
+              }
 
               try {
                 const blockedFeed = await findBlockedFeed({

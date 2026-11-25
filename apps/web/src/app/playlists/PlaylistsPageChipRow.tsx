@@ -10,6 +10,7 @@ import { Button, ChipRow, ChipRowWithActions, MenuChip } from '@podverse/ui';
 import type { MediaListChipsConfig } from '../../components/MediaListChips/MediaListChips';
 import { MediaListChips } from '../../components/MediaListChips/MediaListChips';
 import { MediaListTrailingChips } from '../../components/MediaListChips/MediaListTrailingChips';
+import { playlistMediumForCatalog } from '../../lib/catalog/catalogListMedium';
 import { usePlaylistsPageContext } from './PlaylistsPageContext';
 import { getPlaylistsPageSortOptions } from './PlaylistsPageDropdownConfig';
 
@@ -18,7 +19,8 @@ import chipRowStyles from '../../styles/components/MediaListChips/MediaListChips
 type PlaylistsTypeKey = 'private' | 'private_followed' | 'public';
 
 export function PlaylistsPageChipRow({ chipsConfig }: { chipsConfig?: MediaListChipsConfig }) {
-  const { filterParams, listScope, setFilterParams } = usePlaylistsPageContext();
+  const { filterParams, listScope, musicFilterVisible, setFilterParams } =
+    usePlaylistsPageContext();
   const router = useRouter();
   const tFeatures = useTranslations('features');
   const tFilters = useTranslations('filters');
@@ -35,8 +37,9 @@ export function PlaylistsPageChipRow({ chipsConfig }: { chipsConfig?: MediaListC
     setFilterParams({ ...filterParams, type, sort: 'a_z', range: null, page: 1 });
   }
 
-  const medium: QueryParamsQueueMedium =
+  const selectedMedium: QueryParamsQueueMedium =
     filterParams.medium === 'av' || filterParams.medium === 'music' ? filterParams.medium : 'all';
+  const medium = playlistMediumForCatalog(selectedMedium, musicFilterVisible);
   const mediumLabel =
     medium === 'music'
       ? tMedia('music.music')
@@ -46,8 +49,10 @@ export function PlaylistsPageChipRow({ chipsConfig }: { chipsConfig?: MediaListC
   const mediumOptions: MenuChipOption<QueryParamsQueueMedium>[] = [
     { value: 'all', label: tFilters('type.all') },
     { value: 'av', label: tMedia('podcast.podcasts') },
-    { value: 'music', label: tMedia('music.music') },
   ];
+  if (musicFilterVisible) {
+    mediumOptions.push({ value: 'music', label: tMedia('music.music') });
+  }
   const typeItems: ChipRowItem<PlaylistsTypeKey>[] = [
     { key: 'private', label: tFeatures('playlist.my_playlists') },
     { key: 'private_followed', label: tFilters('type.subscribed') },

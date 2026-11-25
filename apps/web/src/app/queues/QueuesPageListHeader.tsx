@@ -9,8 +9,12 @@ import { ListHeader } from '../../components/List/ListHeader';
 import { useQueuesPageContext } from './QueuesPageContext';
 
 export const QueuesPageListHeader: React.FC = () => {
-  const { filterParams, setFilterParams } = useQueuesPageContext();
+  const { filterParams, mediumTabsVisible, setFilterParams } = useQueuesPageContext();
   const tMedia = useTranslations('media');
+
+  if (!mediumTabsVisible) {
+    return <ListHeader />;
+  }
 
   const belowButtons = [
     {

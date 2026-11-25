@@ -47,6 +47,7 @@ export * from './lib/opml/generateOpml.js';
 export * from './lib/opml/opmlImportErrors.js';
 export * from './lib/addByRSS/credentialScope.js';
 export * from './lib/addByRSS/enclosure.js';
+export * from './lib/addByRSS/addByRSSDisabled.js';
 export * from './lib/addByRSS/feedLimitTier.js';
 export * from './lib/follow/followLimitTier.js';
 export * from './lib/addByRSS/hostRequestSpacing.js';

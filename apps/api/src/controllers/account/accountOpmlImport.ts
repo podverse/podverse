@@ -144,6 +144,8 @@ class AccountOpmlImportController {
                   enqueueDownstreamJobs: false,
                   contactEmail: config.terms.contactEmail,
                   enforceAddByRssLimit: false,
+                  addByRSSEnabled: config.catalog.addByRSSEnabled,
+                  catalogPodcastIndexIdAllowlist: config.catalog.podcastIndexIdAllowlist,
                 });
                 res.status(201).json({ request_id: requestId });
                 return;

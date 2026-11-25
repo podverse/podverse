@@ -73,6 +73,7 @@
     "add_feed": {
       "add_feed": "",
       "add_feed_explanation": "",
+      "not_in_directory": "",
       "add_feed_timed_out": "",
       "rss_link": "",
       "blocked_feed_banner": "",

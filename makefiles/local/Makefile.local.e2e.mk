@@ -88,6 +88,7 @@ e2e_test_playwright: e2e_deps e2e_seed
 	npm run test:e2e:cloudflare-enabled -w @podverse/web -- --reporter=list || exit_code=$$?; \
 	npm run test:e2e:cookie-consent-enabled -w @podverse/web -- --reporter=list || exit_code=$$?; \
 	npm run test:e2e:signup-enabled -w @podverse/web -- --reporter=list || exit_code=$$?; \
+	npm run test:e2e:catalog-restricted -w @podverse/web -- --reporter=list || exit_code=$$?; \
 	npm run test:e2e:cloudflare-enabled -w @podverse/management-web -- --reporter=list || exit_code=$$?; \
 	exit $$exit_code
 
@@ -120,6 +121,7 @@ e2e_test: e2e_deps e2e_seed
 	npm run test:e2e:cloudflare-enabled -w @podverse/web -- --reporter=list || exit_code=$$?; \
 	npm run test:e2e:cookie-consent-enabled -w @podverse/web -- --reporter=list || exit_code=$$?; \
 	npm run test:e2e:signup-enabled -w @podverse/web -- --reporter=list || exit_code=$$?; \
+	npm run test:e2e:catalog-restricted -w @podverse/web -- --reporter=list || exit_code=$$?; \
 	npm run test:e2e:cloudflare-enabled -w @podverse/management-web -- --reporter=list || exit_code=$$?; \
 	exit $$exit_code
 
@@ -138,10 +140,12 @@ e2e_test_report: e2e_build_packages e2e_deps e2e_seed
 	WEB_CUSTOM_THEMES_NATIVE_REPORT="$$REPORT_BASE/web-custom-themes-native"; \
 	WEB_CUSTOM_THEMES_REMOTE_REPORT="$$REPORT_BASE/web-custom-themes-remote"; \
 	WEB_CUSTOM_THEMES_COMBO_REPORT="$$REPORT_BASE/web-custom-themes-combo"; \
+	WEB_CATALOG_RESTRICTED_REPORT="$$REPORT_BASE/web-catalog-restricted"; \
 	MGMT_REPORT="$$REPORT_BASE/management-web"; \
 	MGMT_CF_REPORT="$$REPORT_BASE/management-web-cloudflare-enabled"; \
 	mkdir -p "$$WEB_REPORT" "$$WEB_CF_REPORT" "$$WEB_COOKIE_REPORT" "$$WEB_SIGNUP_REPORT" \
 		"$$WEB_CUSTOM_THEMES_NATIVE_REPORT" "$$WEB_CUSTOM_THEMES_REMOTE_REPORT" "$$WEB_CUSTOM_THEMES_COMBO_REPORT" \
+		"$$WEB_CATALOG_RESTRICTED_REPORT" \
 		"$$MGMT_REPORT" "$$MGMT_CF_REPORT"; \
 	rm -f "$$ROOT_DIR/.artifacts/e2e-reports/latest"; \
 	ln -s "$$TS" "$$ROOT_DIR/.artifacts/e2e-reports/latest"; \
@@ -188,6 +192,11 @@ e2e_test_report: e2e_build_packages e2e_deps e2e_seed
 	E2E_STEP_SCREENSHOTS=true \
 	PLAYWRIGHT_HTML_OPEN=never \
 	npm run test:e2e:custom-themes-combo -w @podverse/web -- --reporter=../../scripts/e2e-html-steps-reporter.ts || exit_code=$$?; \
+	echo "--- Web catalog-restricted E2E report ---"; \
+	PLAYWRIGHT_HTML_OUTPUT_DIR="$$WEB_CATALOG_RESTRICTED_REPORT" \
+	E2E_STEP_SCREENSHOTS=true \
+	PLAYWRIGHT_HTML_OPEN=never \
+	npm run test:e2e:catalog-restricted -w @podverse/web -- --reporter=../../scripts/e2e-html-steps-reporter.ts || exit_code=$$?; \
 	echo "--- Management-web E2E report ---"; \
 	E2E_SPEC_ORDER="$(E2E_SPEC_ORDER_MANAGEMENT_WEB)" \
 	PLAYWRIGHT_HTML_OUTPUT_DIR="$$MGMT_REPORT" \
@@ -209,6 +218,7 @@ e2e_test_report: e2e_build_packages e2e_deps e2e_seed
 	echo "  Web (custom themes native):  $$WEB_CUSTOM_THEMES_NATIVE_REPORT/index.html"; \
 	echo "  Web (custom themes remote):  $$WEB_CUSTOM_THEMES_REMOTE_REPORT/index.html"; \
 	echo "  Web (custom themes combo):   $$WEB_CUSTOM_THEMES_COMBO_REPORT/index.html"; \
+	echo "  Web (catalog restricted):    $$WEB_CATALOG_RESTRICTED_REPORT/index.html"; \
 	echo "  Management-web:              $$MGMT_REPORT/index.html"; \
 	echo "  Management-web (CF enabled): $$MGMT_CF_REPORT/index.html"; \
 	echo "  Latest symlink:              $$ROOT_DIR/.artifacts/e2e-reports/latest/"; \
@@ -248,6 +258,7 @@ e2e_test_web_report_spec: e2e_build_packages e2e_deps e2e_seed_web
 	  *custom-themes-native*) WEB_E2E_CMD="npm run test:e2e:custom-themes-native -w @podverse/web" ;; \
 	  *custom-themes-remote*) WEB_E2E_CMD="npm run test:e2e:custom-themes-remote -w @podverse/web" ;; \
 	  *custom-themes-combo*) WEB_E2E_CMD="npm run test:e2e:custom-themes-combo -w @podverse/web" ;; \
+	  *catalog-restricted-*) WEB_E2E_CMD="npm run test:e2e:catalog-restricted -w @podverse/web" ;; \
 	esac; \
 	PLAYWRIGHT_HTML_OUTPUT_DIR="$$WEB_REPORT" \
 	E2E_STEP_SCREENSHOTS=true \

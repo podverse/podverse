@@ -5,6 +5,7 @@ import {
   CATEGORY_ADD_BY_RSS,
   CATEGORY_BASE,
   CATEGORY_BILLING,
+  CATEGORY_CATALOG,
   CATEGORY_KEYVALDB,
   CATEGORY_MQ,
   CATEGORY_ORM,
@@ -31,6 +32,7 @@ describe('getCategoriesForCommand', () => {
           CATEGORY_PODCAST_INDEX,
           CATEGORY_WEB_NOTIFICATIONS,
           CATEGORY_KEYVALDB,
+          CATEGORY_CATALOG,
         ])
       )
     );
@@ -185,6 +187,7 @@ describe('getCategoriesForCommand', () => {
           CATEGORY_PODCAST_INDEX,
           CATEGORY_WEB_NOTIFICATIONS,
           CATEGORY_KEYVALDB,
+          CATEGORY_CATALOG,
         ])
       )
     );
@@ -192,7 +195,9 @@ describe('getCategoriesForCommand', () => {
 
   it('maps podcastIndexDeadFeedsFlagAndMerge to Base, ORM, and Podcast Index', () => {
     expect(sortCategories(getCategoriesForCommand('podcastIndexDeadFeedsFlagAndMerge'))).toEqual(
-      sortCategories(new Set([CATEGORY_BASE, CATEGORY_ORM, CATEGORY_PODCAST_INDEX]))
+      sortCategories(
+        new Set([CATEGORY_BASE, CATEGORY_ORM, CATEGORY_PODCAST_INDEX, CATEGORY_CATALOG])
+      )
     );
   });
 
@@ -207,6 +212,7 @@ describe('getCategoriesForCommand', () => {
           CATEGORY_PODCAST_INDEX,
           CATEGORY_WEB_NOTIFICATIONS,
           CATEGORY_KEYVALDB,
+          CATEGORY_CATALOG,
         ])
       )
     );
@@ -223,6 +229,7 @@ describe('getCategoriesForCommand', () => {
           CATEGORY_KEYVALDB,
           CATEGORY_PODCAST_INDEX,
           CATEGORY_ADD_BY_RSS,
+          CATEGORY_CATALOG,
         ])
       )
     );
@@ -239,6 +246,7 @@ describe('getCategoriesForCommand', () => {
           CATEGORY_PODCAST_INDEX,
           CATEGORY_WEB_NOTIFICATIONS,
           CATEGORY_KEYVALDB,
+          CATEGORY_CATALOG,
         ])
       )
     );
@@ -255,6 +263,7 @@ describe('getCategoriesForCommand', () => {
           CATEGORY_PODCAST_INDEX,
           CATEGORY_WEB_NOTIFICATIONS,
           CATEGORY_KEYVALDB,
+          CATEGORY_CATALOG,
         ])
       )
     );
@@ -273,6 +282,7 @@ describe('getCategoriesForCommand', () => {
           CATEGORY_PODCAST_INDEX,
           CATEGORY_WEB_NOTIFICATIONS,
           CATEGORY_KEYVALDB,
+          CATEGORY_CATALOG,
         ])
       )
     );
@@ -280,7 +290,47 @@ describe('getCategoriesForCommand', () => {
 
   it('maps devDiscoverArtistPublisherFeeds to Base and PodcastIndex', () => {
     expect(sortCategories(getCategoriesForCommand('devDiscoverArtistPublisherFeeds'))).toEqual(
-      sortCategories(new Set([CATEGORY_BASE, CATEGORY_PODCAST_INDEX]))
+      sortCategories(new Set([CATEGORY_BASE, CATEGORY_PODCAST_INDEX, CATEGORY_CATALOG]))
+    );
+  });
+
+  it('adds Catalog to commands that parse feeds or read Podcast Index', () => {
+    const readsCatalog = [
+      'mqRSSRunParser',
+      'mqAddByRSSRunParser',
+      'mqRSSAddTrendingPodcastsFromPodcastIndex',
+      'mqRSSAddCatalogAllowlist',
+      'podcastIndexDeadFeedsFlagAndMerge',
+      'mqOpmlImportRun',
+    ];
+    for (const commandName of readsCatalog) {
+      expect({
+        commandName,
+        hasCatalog: getCategoriesForCommand(commandName).has(CATEGORY_CATALOG),
+      }).toEqual({
+        commandName,
+        hasCatalog: true,
+      });
+    }
+
+    const skipsCatalog = [
+      'accountSessionPurge',
+      'mqRSSAddAll',
+      'mqRSSRunDlqConsumer',
+      'imageShrinkRunConsumer',
+    ];
+    for (const commandName of skipsCatalog) {
+      expect({
+        commandName,
+        hasCatalog: getCategoriesForCommand(commandName).has(CATEGORY_CATALOG),
+      }).toEqual({
+        commandName,
+        hasCatalog: false,
+      });
+    }
+
+    expect(sortCategories(getCategoriesForCommand('mqRSSAddCatalogAllowlist'))).toEqual(
+      sortCategories(getCategoriesForCommand('mqRSSAddTrendingPodcastsFromPodcastIndex'))
     );
   });
 

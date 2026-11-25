@@ -1,17 +1,19 @@
 'use client';
 
 import type { ReactNode } from 'react';
-import { createContext, useContext, useEffect, useRef, useState } from 'react';
+import { createContext, useCallback, useContext, useEffect, useRef, useState } from 'react';
 
 import type { DTOQueue, DTOQueueResource } from '@podverse/helpers';
 import { getQueueMediumIdFromType, getTotalPages } from '@podverse/helpers';
 import type { QueryParamsHistory } from '@podverse/helpers-requests';
 
 import { useAccount } from '../../contexts/Account';
+import { useConfig } from '../../contexts/Config';
 import { checkBackNavFlag } from '../../contexts/Navigation';
 import { getApiRequestService } from '../../factories/apiRequestService';
 import { useCommittedPaginationTotalPages } from '../../hooks/settledTotalPages';
 import { usePageStateCache } from '../../hooks/usePageStateCache';
+import { libraryMediumTabsVisible, musicHistoryHasRows } from '../../lib/catalog/catalogListMedium';
 import {
   QUEUE_DATA_CHANGED_EVENT,
   queueResourceIdFromChangeEvent,
@@ -27,6 +29,7 @@ interface HistoryCachedData {
 interface HistoryPageContextType {
   filterParams: QueryParamsHistory;
   setFilterParams: (params: QueryParamsHistory) => void;
+  mediumTabsVisible: boolean;
   queueResources: DTOQueueResource[];
   setQueueResources: (resources: DTOQueueResource[]) => void;
   isLoading: boolean;
@@ -42,6 +45,7 @@ const HistoryPageContext = createContext<HistoryPageContextType | undefined>(und
 interface HistoryPageContextProviderProps {
   children: ReactNode;
   initialQueryParams: QueryParamsHistory;
+  mediumTabsVisible: boolean;
   ssrQueues: DTOQueue[];
   ssrQueueResources?: DTOQueueResource[];
 }
@@ -49,9 +53,11 @@ interface HistoryPageContextProviderProps {
 export const HistoryPageContextProvider = ({
   children,
   initialQueryParams,
+  mediumTabsVisible: initialMediumTabsVisible,
   ssrQueues,
   ssrQueueResources,
 }: HistoryPageContextProviderProps) => {
+  const musicEnabled = useConfig().public.catalog.musicEnabled;
   // Use synchronous sessionStorage check instead of async React state
   const isBackNav = checkBackNavFlag();
 
@@ -63,6 +69,9 @@ export const HistoryPageContextProvider = ({
 
   const [filterParams, setFilterParams] = useState<QueryParamsHistory>(
     cachedState?.filterParams ?? initialQueryParams
+  );
+  const [mediumTabsVisible, setMediumTabsVisible] = useState(
+    () => musicEnabled || initialMediumTabsVisible
   );
   const [queueResources, setQueueResources] = useState<DTOQueueResource[]>(
     cachedState?.data?.queueResources ?? ssrQueueResources ?? []
@@ -80,6 +89,7 @@ export const HistoryPageContextProvider = ({
   const [queueDataRevision, setQueueDataRevision] = useState(0);
   const hasCompletedLoadRef = useRef(cachedState?.data !== undefined);
   const historyRequestIdRef = useRef(0);
+  const mediumTabsRequestRef = useRef(0);
   const { loggedInAccount } = useAccount();
 
   // Hook to save/restore page state for back navigation
@@ -95,6 +105,54 @@ export const HistoryPageContextProvider = ({
     ...definedProps({ cachedScrollPosition: cachedState?.scrollPosition }),
   });
 
+  const recomputeMediumTabs = useCallback(async () => {
+    if (musicEnabled || !loggedInAccount) {
+      return;
+    }
+
+    const requestId = mediumTabsRequestRef.current + 1;
+    mediumTabsRequestRef.current = requestId;
+    const api = getApiRequestService();
+    const queues = await api.reqQueueGetAllForAccountPrivate();
+    if (mediumTabsRequestRef.current !== requestId) {
+      return;
+    }
+
+    const musicMediumId = getQueueMediumIdFromType('music');
+    const musicQueue =
+      musicMediumId === null
+        ? undefined
+        : queues.find((queue) => queue.medium_id === musicMediumId);
+    let musicLibraryPresent = false;
+    if (musicQueue !== undefined) {
+      const response = await api.reqQueueResourcesGetHistoryByQueueIdTextPaginated(
+        musicQueue.id_text,
+        1
+      );
+      if (mediumTabsRequestRef.current !== requestId) {
+        return;
+      }
+      musicLibraryPresent = musicHistoryHasRows({
+        rowCount: response.data.length,
+        totalCount: response.meta.count,
+      });
+    }
+
+    if (mediumTabsRequestRef.current !== requestId) {
+      return;
+    }
+    setMediumTabsVisible(libraryMediumTabsVisible({ musicEnabled: false, musicLibraryPresent }));
+  }, [loggedInAccount, musicEnabled]);
+
+  useEffect(() => {
+    if (musicEnabled || mediumTabsVisible) {
+      return;
+    }
+    setFilterParams((current) =>
+      current.medium === 'music' ? { ...current, medium: 'av', page: 1 } : current
+    );
+  }, [mediumTabsVisible, musicEnabled]);
+
   useEffect(() => {
     const onQueueDataChanged = (event: Event) => {
       historyRequestIdRef.current += 1;
@@ -103,13 +161,16 @@ export const HistoryPageContextProvider = ({
         setQueueResources((current) => current.filter((row) => row.id !== queueResourceId));
       }
       setQueueDataRevision((current) => current + 1);
+      if (!musicEnabled) {
+        void recomputeMediumTabs();
+      }
     };
 
     window.addEventListener(QUEUE_DATA_CHANGED_EVENT, onQueueDataChanged);
     return () => {
       window.removeEventListener(QUEUE_DATA_CHANGED_EVENT, onQueueDataChanged);
     };
-  }, []);
+  }, [musicEnabled, recomputeMediumTabs]);
 
   useEffect(() => {
     // Skip fetch if we just restored from cache - data is already correct
@@ -167,16 +228,28 @@ export const HistoryPageContextProvider = ({
       setShowLoginMessage(false);
       hasCompletedLoadRef.current = true;
       setIsLoading(false);
+
+      if (!musicEnabled && filterParams.medium === 'music') {
+        void recomputeMediumTabs();
+      }
     }
 
     void fetchQueueResources();
-  }, [filterParams, loggedInAccount, queueDataRevision, ssrQueues]);
+  }, [
+    filterParams,
+    loggedInAccount,
+    musicEnabled,
+    queueDataRevision,
+    recomputeMediumTabs,
+    ssrQueues,
+  ]);
 
   return (
     <HistoryPageContext.Provider
       value={{
         filterParams,
         setFilterParams,
+        mediumTabsVisible,
         queueResources,
         setQueueResources,
         isLoading,

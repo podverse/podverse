@@ -8,7 +8,7 @@ import type { ILoggerLike } from '@podverse/helpers-backend';
 import { LoggerService, TimerManager } from '@podverse/helpers-backend';
 import type { NotificationsContext } from '@podverse/notifications';
 
-import type { ParserConfig } from './config/types.js';
+import type { ParserCatalogAdmissionPolicy, ParserConfig } from './config/types.js';
 import { setParserContext } from './context.js';
 import { createMockPodcastIndexService } from './lib/mockPodcastIndexService.js';
 
@@ -20,12 +20,14 @@ export type ParserContext = {
   timerManager: TimerManager;
   notificationsContext?: NotificationsContext;
   firebaseContext?: FirebaseContext;
+  getCatalogAdmissionPolicy?: () => ParserCatalogAdmissionPolicy;
 };
 
 export type CreateParserContextParams = {
   config: ParserConfig;
   notificationsContext?: NotificationsContext;
   firebaseContext?: FirebaseContext;
+  getCatalogAdmissionPolicy?: () => ParserCatalogAdmissionPolicy;
 };
 
 /**
@@ -39,7 +41,7 @@ export type CreateParserContextParams = {
  * @returns ParserContext with initialized services
  */
 export function createParserContext(params: CreateParserContextParams): ParserContext {
-  const { config, notificationsContext, firebaseContext } = params;
+  const { config, notificationsContext, firebaseContext, getCatalogAdmissionPolicy } = params;
 
   const loggerService = new LoggerService({
     logLevel: config.log.level,
@@ -78,6 +80,7 @@ export function createParserContext(params: CreateParserContextParams): ParserCo
     timerManager,
     notificationsContext,
     firebaseContext,
+    getCatalogAdmissionPolicy,
   };
 
   // Set the module-level context so services can access it

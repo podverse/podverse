@@ -9,6 +9,8 @@ import {
   displayValidationResultsSilent,
   isAllowedCustomThemesUrl,
   isPodverseStartupValidationSilent,
+  validateCatalogDisabledFlag,
+  validateCatalogPodcastIndexIdAllowlist,
   validateDefaultTheme,
   validateLocale,
   validateOptional,
@@ -74,6 +76,9 @@ const optionalKeys = [
   'NEXT_PUBLIC_BRAND_NAME',
   'NEXT_PUBLIC_BRAND_RECTANGULAR_LOGO_DISABLE_HEIGHT_ENFORCEMENT',
   'NEXT_PUBLIC_BRAND_THEME_COLOR',
+  'NEXT_PUBLIC_CATALOG_ADD_BY_RSS_DISABLED',
+  'NEXT_PUBLIC_CATALOG_MUSIC_DISABLED',
+  'NEXT_PUBLIC_CATALOG_PODCAST_INDEX_ID_ALLOWLIST',
   'NEXT_PUBLIC_CONTACT_EMAIL',
   'NEXT_PUBLIC_CUSTOM_THEMES_URL',
   'NEXT_PUBLIC_COOKIE_CONSENT_BANNER_ENABLED',
@@ -306,6 +311,15 @@ function validateOne(key: string, isRequired: boolean): ValidationResult {
     }
     return validatePositiveNumber(key, 'Stats', false, 1);
   }
+  if (
+    key === 'NEXT_PUBLIC_CATALOG_MUSIC_DISABLED' ||
+    key === 'NEXT_PUBLIC_CATALOG_ADD_BY_RSS_DISABLED'
+  ) {
+    return validateCatalogDisabledFlag(process.env, key);
+  }
+  if (key === 'NEXT_PUBLIC_CATALOG_PODCAST_INDEX_ID_ALLOWLIST') {
+    return validateCatalogPodcastIndexIdAllowlist(process.env, key);
+  }
   if (isRequired) {
     return validateRequired(key, category);
   }
@@ -324,6 +338,9 @@ function getCategory(key: string): string {
     NEXT_PUBLIC_DEFAULT_THEME: 'Themes',
     NEXT_PUBLIC_FEATURES_DEFAULT_LOCALE: 'Features',
     NEXT_PUBLIC_FEATURES_SUPPORTED_LOCALES: 'Features',
+    NEXT_PUBLIC_CATALOG_ADD_BY_RSS_DISABLED: 'Catalog',
+    NEXT_PUBLIC_CATALOG_MUSIC_DISABLED: 'Catalog',
+    NEXT_PUBLIC_CATALOG_PODCAST_INDEX_ID_ALLOWLIST: 'Catalog',
     NEXT_PUBLIC_COOKIE_CONSENT_BANNER_ENABLED: 'Legal',
     NEXT_PUBLIC_LEGAL_NAME: 'Legal',
     NEXT_PUBLIC_IMAGE_PROXY_ENABLED: 'Proxy',

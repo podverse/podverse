@@ -1,8 +1,8 @@
-/* eslint-disable @typescript-eslint/no-non-null-assertion -- env vars validated at build time in scripts/validate-env.ts */
+/* eslint-disable @typescript-eslint/no-non-null-assertion -- env vars validated by the runtime-config sidecar (sidecar/src/server.ts) */
 
 import type { AccountSignupMode } from '@podverse/helpers';
 import { DEFAULT_STATS_TRACK_EVENT_RETENTION_DAYS } from '@podverse/helpers';
-import { optionalEnvString } from '@podverse/helpers-config';
+import { buildCatalogConfigFromEnv, optionalEnvString } from '@podverse/helpers-config';
 import { buildObservabilityConfigFromEnv } from '@podverse/observability/config';
 
 import { ASSETS } from '../constants/assets';
@@ -85,6 +85,7 @@ const buildConfig = () => {
           default: env.NEXT_PUBLIC_FEATURES_DEFAULT_LOCALE!,
         },
       },
+      catalog: buildCatalogConfigFromEnv(env, 'NEXT_PUBLIC_'),
       theme: {
         customThemes: runtimeConfig.customThemes,
         customThemesUrl: optionalEnvString(env.NEXT_PUBLIC_CUSTOM_THEMES_URL),

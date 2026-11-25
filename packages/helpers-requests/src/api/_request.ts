@@ -200,6 +200,7 @@ import {
   reqChannelGetByPodcastIndexId,
   reqChannelGetDirectoryMatch,
   reqChannelGetMany,
+  reqChannelSearchByTitle,
 } from './channel/channel.js';
 import type { ReqClipCreateParams } from './clip/clip.js';
 import {
@@ -1176,6 +1177,14 @@ export class ApiRequestService {
 
   reqChannelGetMany(params: QueryParamsGetMany) {
     return reqChannelGetMany(this, params);
+  }
+
+  reqChannelSearchByTitle(params: {
+    q: string;
+    medium: QueryParamsPodcastIndexSearchMedium;
+    page: number;
+  }) {
+    return reqChannelSearchByTitle(this, params);
   }
 
   /* CLIP */

@@ -633,6 +633,19 @@ for v in NEXT_PUBLIC_IMAGE_PROXY_ENABLED NEXT_PUBLIC_NEXT_IMAGE_OPTIMIZATION_ENA
 	apply_override "$v" "${WEB_ENV_FILES_APP_AND_SIDECAR[@]}"
 done
 
+# From catalog.env: one value per setting for the API, workers, and web sidecars. A key the
+# override defines is authoritative, so a blank value there restores the full site.
+for v in CATALOG_MUSIC_DISABLED CATALOG_ADD_BY_RSS_DISABLED CATALOG_PODCAST_INDEX_ID_ALLOWLIST; do
+	if [ -n "${!v+set}" ]; then
+		for file in "${API_AND_WORKERS_ENV_FILES[@]}"; do
+			upsert_var "$file" "$v" "${!v}"
+		done
+		for file in "${WEB_ENV_FILES_APP_AND_SIDECAR[@]}"; do
+			upsert_var "$file" "NEXT_PUBLIC_$v" "${!v}"
+		done
+	fi
+done
+
 # From brand.env: api/web = BRAND_NAME; mgmt api/mgmt web = MANAGEMENT_BRAND_NAME. Do not set NEXT_PUBLIC_BRAND_NAME in overrides.
 apply_override "BRAND_NAME" "${API_AND_WORKERS_ENV_FILES[@]}"
 

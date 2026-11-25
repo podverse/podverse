@@ -5,6 +5,7 @@ import { fileURLToPath } from 'node:url';
 import { KNOWN_COMMANDS } from '@workers/commands/commandNames.js';
 import { describe, expect, it } from 'vitest';
 
+import { CATEGORY_CATALOG, getCategoriesForCommand } from './categoriesForCommand.js';
 import { getRequiredEnvKeysForCommand } from './validation.js';
 
 /**
@@ -436,5 +437,36 @@ describe('k8s env contract for workers commands', () => {
       return workloadFindings;
     });
     expect(findings).toEqual([]);
+  });
+
+  it('mounts the catalog settings on every workers command that reads them', () => {
+    const catalogKeys = [
+      'CATALOG_MUSIC_DISABLED',
+      'CATALOG_ADD_BY_RSS_DISABLED',
+      'CATALOG_PODCAST_INDEX_ID_ALLOWLIST',
+    ];
+    const findings = workloads.flatMap((workload) => {
+      if (!getCategoriesForCommand(workload.commandName).has(CATEGORY_CATALOG)) {
+        return [];
+      }
+      const { env } = readProvidedEnv(workload.container, configMaps, secrets);
+      const missing = catalogKeys.filter((key) => env[key] === undefined);
+      if (missing.length === 0) {
+        return [];
+      }
+      return [
+        `${workload.label} runs ${workload.commandName} and does not mount: ${missing.join(', ')}`,
+      ];
+    });
+    expect(findings).toEqual([]);
+
+    const sessionPurge = workloads.find((workload) =>
+      workload.label.includes(' worker-account-session-purge ')
+    );
+    if (sessionPurge === undefined) {
+      throw new Error('No worker workload named worker-account-session-purge');
+    }
+    const { env: sessionPurgeEnv } = readProvidedEnv(sessionPurge.container, configMaps, secrets);
+    expect(sessionPurgeEnv.CATALOG_MUSIC_DISABLED).toBeUndefined();
   });
 });

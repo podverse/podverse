@@ -20,8 +20,8 @@ import {
   readOptionalPositiveExpirationEnv,
   readRequiredPositiveExpirationEnv,
 } from '@podverse/helpers';
-import type { BillingProcessorEnv } from '@podverse/helpers-config';
-import { readBillingProcessorEnv } from '@podverse/helpers-config';
+import type { BillingProcessorEnv, CatalogConfig } from '@podverse/helpers-config';
+import { buildCatalogConfigFromEnv, readBillingProcessorEnv } from '@podverse/helpers-config';
 import type { ObservabilityConfig } from '@podverse/observability/config';
 import { buildObservabilityConfigFromEnv } from '@podverse/observability/config';
 
@@ -177,6 +177,8 @@ type Config = {
     searchMax: number;
     secretKey: string;
   };
+  /** Instance catalog settings. Blank keys keep today's behavior. */
+  catalog: CatalogConfig;
   activeMQArtemis: {
     protocol: string;
     host: string;
@@ -527,6 +529,7 @@ export const config: Config = {
       : 50,
     secretKey: process.env.PODCAST_INDEX_SECRET_KEY!,
   },
+  catalog: buildCatalogConfigFromEnv(process.env, ''),
   activeMQArtemis: {
     protocol: process.env.MESSAGE_QUEUE_PROTOCOL!,
     host: process.env.MESSAGE_QUEUE_HOST!,

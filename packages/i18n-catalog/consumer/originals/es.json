@@ -73,6 +73,7 @@
     "add_feed": {
       "add_feed": "Agregar feed",
       "add_feed_explanation": "Este feed no está en nuestro directorio. Si deseas agregarlo, presiona el botón \"Agregar feed\".",
+      "not_in_directory": "Este feed no está en nuestro directorio.",
       "add_feed_timed_out": "Aún se está procesando tras varios minutos. Actualiza esta página o vuelve a buscar en breve — añadir no te suscribe automáticamente.",
       "rss_link": "Enlace RSS",
       "blocked_feed_banner": "Este feed no se puede añadir actualmente en {brand_name} ({reason}). Si crees que es un error, contacta con",

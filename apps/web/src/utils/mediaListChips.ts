@@ -41,6 +41,20 @@ export const ADD_BY_RSS_CHIPS = [
 /** Recommendations chips. Taste Profile scores shows only. */
 export const RECOMMENDATION_CHIPS = ['podcasts', 'albums', 'artists'] as const;
 
+const isMusicMediaListChip = (chip: string): boolean =>
+  chip === 'artists' || chip === 'albums' || chip === 'tracks';
+
+/** Full chip list when Music is on. Artists, albums, and tracks left out when it is off. */
+export function mediaListChipsForCatalog<T extends string>(
+  chips: readonly T[],
+  musicEnabled: boolean
+): readonly T[] {
+  if (musicEnabled) {
+    return chips;
+  }
+  return chips.filter((chip) => !isMusicMediaListChip(chip));
+}
+
 /** One chip Subscribed can show. */
 export type SubscribedChip = (typeof SUBSCRIBED_CHIPS)[number];
 

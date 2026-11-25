@@ -328,6 +328,21 @@ Clients must send an **authenticated Podverse session** (cookie or `Authorizatio
 - **`METABOOST_SIGNING_KEY_PEM`** (Optional; required together with **`METABOOST_APP_ASSERTION_ISS`** to enable minting) – Ed25519 private key in PKCS#8 PEM format. Use `\n` in the env file for newlines when storing on one line. If either this or **`METABOOST_APP_ASSERTION_ISS`** is unset, `POST .../mint-app-assertion` returns **503** with a message that Metaboost is not configured.
 - **`METABOOST_APP_ASSERTION_ISS`** (Optional; required together with **`METABOOST_SIGNING_KEY_PEM`** to enable minting) – `iss` claim / registered `app_id`. **No default.** Leave unset when this Podverse deployment does not use Metaboost AppAssertion. Startup validation treats the pair as optional but **fails** if exactly one of the two is set (set both or neither).
 
+### Catalog
+
+Optional instance catalog settings. Each must match the web sidecar key of the same name with
+`NEXT_PUBLIC_` in front; one shared ConfigMap (`podverse-catalog-config`) or one local override
+(`catalog.env`) sets both. They limit what gets added from now on; content already stored is
+served as before.
+
+- **`CATALOG_MUSIC_DISABLED`** — `"true"` or `"false"` if set. Blank keeps Music. The API reads
+  it for any check a later change adds; workers stop adding music.
+- **`CATALOG_ADD_BY_RSS_DISABLED`** — `"true"` or `"false"` if set. `"true"` refuses Add by RSS
+  parse requests and requests that create a new Add by RSS follow. Unfollow still works.
+- **`CATALOG_PODCAST_INDEX_ID_ALLOWLIST`** — comma-separated Podcast Index feed ids, no size
+  limit. When set, the API refuses the on-demand Podcast Index add, and the allowlist-only search
+  endpoint is available. Blank keeps the open directory and the Podcast Index search.
+
 ### Add-by-RSS
 
 Add-by-RSS allows users to follow RSS feeds (podcasts, music) not in the main directory. Private feeds use HTTP Basic Auth credentials that devices hold and send with each parse or chapters request; the server never stores them.
@@ -365,6 +380,9 @@ Variables whose names end with `_EXPIRATION`, or that contain `PORT`, are automa
 - **UUID Format**: `AUTH_JWT_SECRET` must be a valid UUID
 - **User-Agent Format**: `USER_AGENT` must be set and follow `BrandName Bot Environment/AppName/Version` and include "Bot" in the first part
 - **CORS Origins**: `API_ALLOWED_CORS_ORIGINS` must contain at least one origin (comma-separated)
+- **Catalog**: `CATALOG_MUSIC_DISABLED` and `CATALOG_ADD_BY_RSS_DISABLED` must be `"true"` or
+  `"false"` if set; `CATALOG_PODCAST_INDEX_ID_ALLOWLIST` must be comma-separated positive integers.
+  An invalid value stops the API at startup.
 
 ## Validation Output
 

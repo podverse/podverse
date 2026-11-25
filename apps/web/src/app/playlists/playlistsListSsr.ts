@@ -1,13 +1,15 @@
 import { z } from 'zod';
 
-import type { DTOPlaylist } from '@podverse/helpers';
+import type { DTOPlaylist, QueryParamsQueueMedium } from '@podverse/helpers';
 import { getTotalPages, QUERY_PARAMS_QUEUE_MEDIUMS } from '@podverse/helpers';
+import type { ApiListResponse, QueryParamsPlaylists } from '@podverse/helpers-requests';
 import {
   QUERY_PARAMS_PLAYLISTS_TYPE_VALUES,
   QUERY_PARAMS_STATS_RANGE_VALUES,
   QUERY_PARAMS_SUBSCRIBED_FULL_SORT,
 } from '@podverse/helpers-requests';
 
+import { getCatalogConfig } from '../../lib/catalog/catalogPolicy';
 import { safeSsrListRequest } from '../../utils/filters/ssrFilterGuards';
 import type { PlaylistsFilterDefaults } from '../../utils/localSettings/localSettings';
 import { getFilterDefaultsForPage } from '../../utils/localSettings/localSettings';
@@ -33,6 +35,62 @@ export const searchParamsSchema = z.object({
 
 export type PlaylistsPageSearchParams = z.infer<typeof searchParamsSchema>;
 
+type FetchPlaylists = (params: QueryParamsPlaylists) => Promise<ApiListResponse<DTOPlaylist>>;
+
+export type LoadedPlaylistList = {
+  playlists: DTOPlaylist[];
+  totalPages: number;
+  page: number;
+  medium: QueryParamsQueueMedium;
+  musicFilterVisible: boolean;
+  /** Visitor medium kept in the cookie when an empty Music list opened All. */
+  rememberedMedium?: QueryParamsQueueMedium;
+};
+
+/**
+ * One playlist page for the visitor's type, sort, range, and medium.
+ * With Music off, an empty Music page loads All at page 1 and keeps the remembered medium.
+ * All and Podcasts also check page 1 of Music so the filter can include Music when that page has a row.
+ */
+export async function loadPlaylistsList(
+  fetchPlaylists: FetchPlaylists,
+  params: QueryParamsPlaylists
+): Promise<LoadedPlaylistList> {
+  const musicEnabled = getCatalogConfig().musicEnabled;
+  const requestPage = (medium: QueryParamsQueueMedium, page: number) =>
+    safeSsrListRequest<DTOPlaylist>(
+      () =>
+        fetchPlaylists({
+          page,
+          type: params.type,
+          sort: params.sort,
+          range: params.range,
+          medium,
+        }),
+      page
+    );
+
+  if (musicEnabled) {
+    const response = await requestPage(params.medium, params.page);
+    return toLoadedPlaylistList(response, params.page, params.medium, true);
+  }
+
+  if (params.medium === 'music') {
+    const response = await requestPage('music', params.page);
+    if (response.data.length > 0) {
+      return toLoadedPlaylistList(response, params.page, 'music', true);
+    }
+    const allResponse = await requestPage('all', 1);
+    return toLoadedPlaylistList(allResponse, 1, 'all', false, 'music');
+  }
+
+  const [response, musicProbe] = await Promise.all([
+    requestPage(params.medium, params.page),
+    requestPage('music', 1),
+  ]);
+  return toLoadedPlaylistList(response, params.page, params.medium, musicProbe.data.length > 0);
+}
+
 /** Public playlists for the Browse chip. Type stays public; sort, range, and medium are remembered. */
 export async function loadPlaylistsBrowseProps(
   searchParams: MediaListSearchParams,
@@ -50,35 +108,47 @@ export async function loadPlaylistsBrowseProps(
     },
     ssr.canLoadPrivateSsrData
   );
-
-  const response = await safeSsrListRequest<DTOPlaylist>(
-    () =>
-      ssr.ssrApiRequestService.reqPlaylistGetMany({
-        page: currentPage,
-        type: 'public',
-        sort: currentSort,
-        range: currentRange,
-        medium: currentMedium,
-      }),
-    currentPage
-  );
-
-  return {
-    listScope: 'browse',
-    initialQueryParams: {
+  const loaded = await loadPlaylistsList(
+    (request) => ssr.ssrApiRequestService.reqPlaylistGetMany(request),
+    {
       page: currentPage,
       type: 'public',
       sort: currentSort,
       range: currentRange,
       medium: currentMedium,
+    }
+  );
+
+  return {
+    listScope: 'browse',
+    initialQueryParams: {
+      page: loaded.page,
+      type: 'public',
+      sort: currentSort,
+      range: currentRange,
+      medium: loaded.medium,
     },
-    ssrPlaylists: response.data,
-    ssrTotalPages: getTotalPages(
-      response.meta.count,
-      response.meta.limit,
-      response.data.length,
-      currentPage
-    ),
+    musicFilterVisible: loaded.musicFilterVisible,
+    rememberedMedium: loaded.rememberedMedium,
+    ssrPlaylists: loaded.playlists,
+    ssrTotalPages: loaded.totalPages,
+  };
+}
+
+function toLoadedPlaylistList(
+  response: ApiListResponse<DTOPlaylist>,
+  page: number,
+  medium: QueryParamsQueueMedium,
+  musicFilterVisible: boolean,
+  rememberedMedium?: QueryParamsQueueMedium
+): LoadedPlaylistList {
+  return {
+    playlists: response.data,
+    totalPages: getTotalPages(response.meta.count, response.meta.limit, response.data.length, page),
+    page,
+    medium,
+    musicFilterVisible,
+    rememberedMedium,
   };
 }
 

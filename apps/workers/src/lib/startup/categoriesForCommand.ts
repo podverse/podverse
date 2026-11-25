@@ -16,6 +16,7 @@ export const CATEGORY_IMAGE_SHRINK = 'ImageShrink';
 export const CATEGORY_BILLING = 'Billing';
 /** Commands that open or seal Add by RSS credential envelopes. */
 export const CATEGORY_ADD_BY_RSS = 'AddByRSS';
+export const CATEGORY_CATALOG = 'Catalog';
 
 export type ConfigCategory =
   | typeof CATEGORY_BASE
@@ -27,7 +28,8 @@ export type ConfigCategory =
   | typeof CATEGORY_KEYVALDB
   | typeof CATEGORY_IMAGE_SHRINK
   | typeof CATEGORY_BILLING
-  | typeof CATEGORY_ADD_BY_RSS;
+  | typeof CATEGORY_ADD_BY_RSS
+  | typeof CATEGORY_CATALOG;
 
 const BASE_ORM_COMMANDS = [
   'billingCheckoutChannelEnable',
@@ -67,6 +69,7 @@ const BASE_ORM_PODCAST_INDEX_COMMANDS = ['podcastIndexDeadFeedsFlagAndMerge'] as
 const BASE_ORM_MQ_PODCAST_INDEX_COMMANDS = [
   'mqRSSAdd',
   'mqRSSAddTrendingPodcastsFromPodcastIndex',
+  'mqRSSAddCatalogAllowlist',
 ] as const;
 
 const BASE_ORM_MQ_COMMANDS = [
@@ -305,6 +308,10 @@ export function getCategoriesForCommand(commandName: string): Set<ConfigCategory
   }
   if (addByRssCredentialCommands.has(commandName)) {
     categories.add(CATEGORY_ADD_BY_RSS);
+  }
+  // Parsing a feed or reading Podcast Index can add a feed, so those commands read the catalog.
+  if (categories.has(CATEGORY_PARSER) || categories.has(CATEGORY_PODCAST_INDEX)) {
+    categories.add(CATEGORY_CATALOG);
   }
   return categories;
 }

@@ -18,11 +18,18 @@ export const E2E_CUSTOM_THEMES_MINIMAL_URL =
   'http://localhost:2111/themes/custom-themes.minimal.json';
 export const E2E_CUSTOM_THEMES_MULTI_URL = 'http://localhost:2111/themes/custom-themes.multi.json';
 
+export type E2eCatalogEnvOptions = {
+  musicDisabled?: boolean;
+  addByRSSDisabled?: boolean;
+  podcastIndexIdAllowlist?: readonly number[];
+};
+
 export type E2eWebSidecarEnvOptions = {
   cloudflareWebAnalyticsEnabled?: boolean;
   cookieConsentBannerEnabled?: boolean;
   userSignupEmail?: boolean;
   customThemesProfile?: E2eCustomThemesProfile;
+  catalog?: E2eCatalogEnvOptions;
 };
 
 /** Matches `TERMS_OF_SERVICE_VERSION` / `NEXT_PUBLIC_TERMS_OF_SERVICE_VERSION` in E2E env. */
@@ -92,6 +99,15 @@ function buildCustomThemesProfileEnv(
   };
 }
 
+/** Unprefixed catalog keys; blank unless the lane sets them. */
+function buildE2eCatalogEnv(catalog: E2eCatalogEnvOptions | undefined): Record<string, string> {
+  return {
+    CATALOG_MUSIC_DISABLED: catalog?.musicDisabled === true ? 'true' : '',
+    CATALOG_ADD_BY_RSS_DISABLED: catalog?.addByRSSDisabled === true ? 'true' : '',
+    CATALOG_PODCAST_INDEX_ID_ALLOWLIST: catalog?.podcastIndexIdAllowlist?.join(',') ?? '',
+  };
+}
+
 function buildE2eWebNextPublicEnv(options?: E2eWebSidecarEnvOptions): Record<string, string> {
   return {
     ...WEB_E2E_NEXT_PUBLIC_ENV_BASE,
@@ -100,6 +116,12 @@ function buildE2eWebNextPublicEnv(options?: E2eWebSidecarEnvOptions): Record<str
       options?.cookieConsentBannerEnabled === true ? 'true' : '',
     NEXT_PUBLIC_ACCOUNT_SIGNUP_MODE:
       options?.userSignupEmail === true ? 'user_signup_email' : 'admin_only_email',
+    ...Object.fromEntries(
+      Object.entries(buildE2eCatalogEnv(options?.catalog)).map(([key, value]) => [
+        `NEXT_PUBLIC_${key}`,
+        value,
+      ])
+    ),
   };
 }
 
@@ -117,6 +139,7 @@ export function buildE2eWebApiEnvPrefix(options?: E2eWebSidecarEnvOptions): stri
   const apiEnv = {
     ...buildPodverseApiTestEnv({ profile: 'apiWebE2e' }),
     ...(options?.userSignupEmail === true ? { ACCOUNT_SIGNUP_MODE: 'user_signup_email' } : {}),
+    ...buildE2eCatalogEnv(options?.catalog),
     ...PODVERSE_SKIP_DOTENV_ENV,
   };
   return toShellEnvPrefix(apiEnv);

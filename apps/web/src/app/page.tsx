@@ -1,8 +1,10 @@
 import type { MediaListChipsConfig } from '../components/MediaListChips/MediaListChips';
+import { getCatalogConfig } from '../lib/catalog/catalogPolicy';
 import { getCuratedStaticPageMetadata } from '../lib/seo/curatedPageMetadata';
 import {
   DEFAULT_MEDIA_LIST_CHIP,
   MEDIA_LIST_CHIP_QUERY_PARAM,
+  mediaListChipsForCatalog,
   readStoredMediaListChip,
   resolveMediaListChip,
   SUBSCRIBED_CHIPS,
@@ -33,15 +35,16 @@ export async function generateMetadata() {
 export default async function SubscribedPage({ searchParams }: SubscribedPageProps) {
   const params = await searchParams;
   const ssr = await getMediaListSsr();
+  const chips = mediaListChipsForCatalog(SUBSCRIBED_CHIPS, getCatalogConfig().musicEnabled);
   const { chip, urlChip } = resolveMediaListChip({
-    chips: SUBSCRIBED_CHIPS,
+    chips,
     urlValue: params[MEDIA_LIST_CHIP_QUERY_PARAM],
     storedValue: readStoredMediaListChip(ssr.localSettings, 'subscribed'),
     defaultChip: DEFAULT_MEDIA_LIST_CHIP,
   });
   const chipsConfig: MediaListChipsConfig = {
     page: 'subscribed',
-    chips: SUBSCRIBED_CHIPS,
+    chips,
     selected: chip,
     urlChip,
   };

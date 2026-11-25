@@ -54,6 +54,8 @@ spec:
               envFrom:
                 - configMapRef:
                     name: podverse-workers-config
+                - configMapRef:
+                    name: podverse-catalog-config
                 - secretRef:
                     name: podverse-db-opaque
                 - secretRef:

@@ -9,8 +9,12 @@ import { ListHeader } from '../../components/List/ListHeader';
 import { useHistoryPageContext } from './HistoryPageContext';
 
 export const HistoryPageListHeader: React.FC = () => {
-  const { filterParams, setFilterParams } = useHistoryPageContext();
+  const { filterParams, mediumTabsVisible, setFilterParams } = useHistoryPageContext();
   const tMedia = useTranslations('media');
+
+  if (!mediumTabsVisible) {
+    return <ListHeader />;
+  }
 
   const belowButtons = [
     {

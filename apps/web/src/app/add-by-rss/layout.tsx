@@ -1,4 +1,7 @@
 import type { Metadata } from 'next';
+import { notFound } from 'next/navigation';
+
+import { getCatalogConfig } from '../../lib/catalog/catalogPolicy';
 
 export const metadata: Metadata = {
   robots: {
@@ -7,6 +10,9 @@ export const metadata: Metadata = {
   },
 };
 
-export default function AddByRssLayout({ children }: { children: React.ReactNode }) {
+export default async function AddByRssLayout({ children }: { children: React.ReactNode }) {
+  if (!getCatalogConfig().addByRSSEnabled) {
+    notFound();
+  }
   return children;
 }

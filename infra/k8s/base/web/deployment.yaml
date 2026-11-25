@@ -115,6 +115,9 @@ spec:
                 name: podverse-web-runtime-config
             - configMapRef:
                 name: podverse-integrations-config
+            - prefix: NEXT_PUBLIC_
+              configMapRef:
+                name: podverse-catalog-config
           securityContext:
             readOnlyRootFilesystem: true
             allowPrivilegeEscalation: false

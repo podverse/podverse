@@ -35,7 +35,6 @@ import { useConfig } from '../../contexts/Config';
 import { useModals } from '../../contexts/Modals';
 import { getApiRequestService } from '../../factories/apiRequestService';
 import { useListViewMode } from '../../hooks/useListViewMode';
-import { RECOMMENDATION_CHIPS } from '../../utils/mediaListChips';
 
 import styles from './RecommendationsPage.module.scss';
 
@@ -48,6 +47,7 @@ type LoadState =
 type RecommendationsPageClientProps = {
   chip: RecommendationChip;
   urlChip: RecommendationChip | null;
+  chips: readonly RecommendationChip[];
 };
 
 function showPath(chip: RecommendationChip, idText: string): string {
@@ -95,7 +95,11 @@ function RecommendationNodes({
   );
 }
 
-export function RecommendationsPageClient({ chip, urlChip }: RecommendationsPageClientProps) {
+export function RecommendationsPageClient({
+  chip,
+  urlChip,
+  chips,
+}: RecommendationsPageClientProps) {
   const t = useTranslations('features.recommendations');
   const tAuth = useTranslations('authentication');
   const tMisc = useTranslations('misc');
@@ -190,7 +194,7 @@ export function RecommendationsPageClient({ chip, urlChip }: RecommendationsPage
                 ) : undefined
               }
               actionsTestId="recommendations-list-actions"
-              chips={RECOMMENDATION_CHIPS}
+              chips={chips}
               page="recommendations"
               selected={chip}
               trailing={

@@ -1,4 +1,4 @@
-# Shared ingress/TLS plus cross-component ConfigMaps (integrations, extensions).
+# Shared ingress/TLS plus cross-component ConfigMaps (integrations, extensions, catalog).
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 
@@ -15,6 +15,9 @@ configMapGenerator:
       - source/extensions/extensions.env
       - source/extensions/extension-sidecar-otel.env
       - source/extensions/extension-prometheus.env
+  - name: podverse-catalog-config
+    envs:
+      - source/catalog/catalog.env
 
 generatorOptions:
   disableNameSuffixHash: true

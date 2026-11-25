@@ -4,6 +4,7 @@ import { seedEmbedDemoShowcaseFeeds } from '@workers/commands/embedDemo/seedShow
 import { mqRSSAdd } from '@workers/commands/mq/rss/add.js';
 import { mqRSSAddAll } from '@workers/commands/mq/rss/addAll.js';
 import { devPiBulkFeedsAddFromFile } from '@workers/commands/mq/rss/devPiBulkFeedsAddFromFile.js';
+import { mqRSSAddCatalogAllowlist } from '@workers/commands/mq/rss/mqRSSAddCatalogAllowlist.js';
 import { mqRSSAddRecentlyUpdatedFeedsFromPodcastIndex } from '@workers/commands/mq/rss/mqRSSAddRecentlyUpdatedFeedsFromPodcastIndex.js';
 import { mqRSSAddTrendingPodcastsFromPodcastIndex } from '@workers/commands/mq/rss/mqRSSAddTrendingPodcastsFromPodcastIndex.js';
 import { mqRSSCatchUpFromPodcastIndex } from '@workers/commands/mq/rss/mqRSSCatchUpFromPodcastIndex.js';
@@ -78,6 +79,7 @@ export default {
   devPiBulkFeedsAddFromFile,
   mqRSSAddRecentlyUpdatedFeedsFromPodcastIndex,
   mqRSSAddTrendingPodcastsFromPodcastIndex,
+  mqRSSAddCatalogAllowlist,
   mqRSSCatchUpFromPodcastIndex,
   devSeedLocalUserContent,
   devStatsSeedSimulatedPopularity,

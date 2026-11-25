@@ -77,6 +77,8 @@ spec:
           envFrom:
             - configMapRef:
                 name: podverse-api-config
+            - configMapRef:
+                name: podverse-catalog-config
             - secretRef:
                 name: podverse-api-opaque
             - secretRef:

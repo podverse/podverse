@@ -17,6 +17,7 @@ router.post(
 
 router.get('/global/recent', asyncHandler(ChannelController.getManyGlobalRecent));
 router.get('/global/top', asyncHandler(ChannelController.getManyGlobalTop));
+router.get('/search/title', asyncHandler(ChannelController.searchByTitle));
 
 router.get('/category/recent', asyncHandler(ChannelController.getManyCategoryRecent));
 router.get('/category/top', asyncHandler(ChannelController.getManyCategoryTop));

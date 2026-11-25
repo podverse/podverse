@@ -60,6 +60,7 @@ import {
   displayValidationResults,
   validateAppleProcessorEnv,
   validateBillingSandboxAllowlistEnv,
+  validateCatalogEnv,
   validateGooglePlayProcessorEnv,
   validatePayPalProcessorEnv,
   validateStrikeProcessorEnv,
@@ -71,6 +72,7 @@ import {
   CATEGORY_ADD_BY_RSS,
   CATEGORY_BASE,
   CATEGORY_BILLING,
+  CATEGORY_CATALOG,
   CATEGORY_IMAGE_SHRINK,
   CATEGORY_KEYVALDB,
   CATEGORY_MQ,
@@ -857,6 +859,9 @@ function getValidationResultsForCommand(
   }
   if (categories.has(CATEGORY_PODCAST_INDEX)) {
     results.push(...validatePodcastIndex(env));
+  }
+  if (categories.has(CATEGORY_CATALOG)) {
+    results.push(...validateCatalogEnv(env, ''));
   }
   if (categories.has(CATEGORY_WEB_NOTIFICATIONS)) {
     results.push(...validateWebNotifications(env));

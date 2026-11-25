@@ -74,6 +74,7 @@ import {
   FeedIsParsingError,
   FeedNoChangesSinceLastParsedError,
   FeedNotAFeedError,
+  FeedNotInCatalogError,
 } from './errors.js';
 import {
   classifyFeedParseFailure,
@@ -85,8 +86,8 @@ import { createParsedItemStableKeySet } from './itemStableKey.js';
 import { installPartytimeResponseBodyLogFilter } from './partytimeLogFilter.js';
 
 /*
-  NOTE: All RSS feeds that have a podcast_index_id will be saved to the database.
-  RSS feeds without podcast_index_id (Add By RSS feeds) will NOT be saved to the database.
+  A directory feed is saved when it has a podcast_index_id and the catalog settings allow a new
+  row. A feed that is already stored keeps refreshing. Add by RSS feeds are not saved here.
 */
 
 export const getAndParseRSSFeed = async (url: string, maxFeedBodyBytes: number) => {
@@ -124,6 +125,11 @@ export type ParseRSSFeedAndSaveToDatabaseOptions = {
    * pub_date is missing or earlier than this instant.
    */
   suppressNewItemSideEffectsPublishedBeforeMs?: number;
+  /**
+   * A listed Podcast Index id that was merged into this feed's id. Lets the catalog allowlist
+   * admit the surviving show.
+   */
+  catalogAllowlistSourcePodcastIndexId?: number;
 };
 
 export type ParseRSSFeedAndSaveToDatabaseResult = {
@@ -263,7 +269,7 @@ export const parseRSSFeedAndSaveToDatabase = async (
   podcast_index_id: number,
   options: ParseRSSFeedAndSaveToDatabaseOptions
 ): Promise<ParseRSSFeedAndSaveToDatabaseResult> => {
-  const { onDemandParserEvent } = options;
+  const { onDemandParserEvent, catalogAllowlistSourcePodcastIndexId } = options;
   const onDemandParserEventService = new OnDemandParserEventService();
 
   if (onDemandParserEvent) {
@@ -325,7 +331,9 @@ export const parseRSSFeedAndSaveToDatabase = async (
     loggerService.info(
       `parseRSSFeedAndSaveToDatabase url: ${url} podcast_index_id: ${podcast_index_id}`
     );
-    feed = await handleGetRSSFeed(url, podcast_index_id);
+    feed = await handleGetRSSFeed(url, podcast_index_id, {
+      catalogAllowlistSourcePodcastIndexId,
+    });
     const policyBeforeFetch = await feedPolicyService.recomputePolicy(feed.id);
     assertLifecycleAndPolicyAllowParse(feed, policyBeforeFetch);
 
@@ -541,6 +549,9 @@ export const parseRSSFeedAndSaveToDatabase = async (
       // Lock loser must be a pure no-op: no parse writes, no feed-log writes, no on-demand event row.
       loggerService.warn(`Feed ${feed?.id} is already parsing.`);
       // return so the is_parsing flag is not reset
+      return { remoteItemsToParse: [], imageHints };
+    } else if (error instanceof FeedNotInCatalogError) {
+      loggerService.info(error.message);
       return { remoteItemsToParse: [], imageHints };
     } else if (error instanceof FeedNoChangesSinceLastParsedError) {
       parseSkippedNoChanges = true;

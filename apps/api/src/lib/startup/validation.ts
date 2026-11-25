@@ -21,6 +21,7 @@ import {
   validateAppleProcessorEnv,
   validateBillingSandboxAllowlistEnv,
   validateBoolean,
+  validateCatalogEnv,
   validateConditionalOptional,
   validateGooglePlayProcessorEnv,
   validateOptional,
@@ -284,6 +285,9 @@ const validateAllEnvironmentVariables = (): ValidationSummary => {
     )
   );
   results.push(validatePositiveNumber('PODCAST_INDEX_SEARCH_MAX', 'Podcast Index', false, 1));
+
+  // Catalog (optional; blank keeps the full directory, Music, and Add by RSS)
+  results.push(...validateCatalogEnv(process.env, ''));
 
   // Add-by-RSS (required: seals device-held Basic Auth credentials for the parse queue)
   results.push(validateRequired('ADD_BY_RSS_CREDENTIALS_ENCRYPTION_KEY', 'Add-by-RSS'));

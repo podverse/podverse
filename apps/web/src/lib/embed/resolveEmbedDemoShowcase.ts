@@ -2,7 +2,9 @@ import { getTranslations } from 'next-intl/server';
 
 import type { EmbedDemoShowcaseApiEntry } from '@podverse/helpers';
 
+import { getCatalogConfig } from '../../lib/catalog/catalogPolicy';
 import { getSSRAuthService } from '../../utils/auth/ssrAuth';
+import { embedDemoRouteOffered } from './embedDemoMusicRoutes';
 import {
   getEmbedDemoShowcaseLabelKey,
   getEmbedDemoShowcaseOrderIndex,
@@ -42,12 +44,18 @@ export async function resolveEmbedDemoShowcase(): Promise<EmbedDemoShowcaseEntry
     configured = [];
   }
 
+  const musicEnabled = getCatalogConfig().musicEnabled;
+
   const entries = configured.flatMap((entry) => {
     if (!isEmbedRouteKind(entry.routeKind)) {
       return [];
     }
 
     if (HIDDEN_DEMO_ROUTE_KINDS.has(entry.routeKind)) {
+      return [];
+    }
+
+    if (!embedDemoRouteOffered(entry.routeKind, musicEnabled)) {
       return [];
     }
 

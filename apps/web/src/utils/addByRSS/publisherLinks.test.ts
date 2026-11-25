@@ -7,11 +7,13 @@ import { convertParsedRSSFeedToCompat, Phase4Medium } from '@podverse/parser-map
 
 import {
   addByRSSAlbumsNamingPublisher,
+  addByRSSArtistPath,
   mergeAddByRSSAlbumSources,
   resolveAddByRSSAlbumArtists,
   resolveAddByRSSArtistAlbums,
   resolveAddByRSSArtistTrackRefs,
   resolveDirectoryAlbumAddByRSSArtists,
+  withoutAddByRSSArtistLinks,
 } from './publisherLinks';
 import type {
   AddByRSSFeedRecord,
@@ -560,5 +562,27 @@ describe('resolveDirectoryAlbumAddByRSSArtists', () => {
         href: '/add-by-rss/artist/by-guid',
       },
     ]);
+  });
+});
+
+describe('withoutAddByRSSArtistLinks', () => {
+  it('drops an Add by RSS artist link and keeps a directory artist link in input order', () => {
+    const directory = { idText: 'abc', title: 'Directory', href: '/artist/abc' };
+    const addByRss = { idText: 'rss', title: 'Saved artist', href: addByRSSArtistPath('abc') };
+    const laterDirectory = { idText: 'def', title: 'Later directory', href: '/artist/def' };
+
+    expect(withoutAddByRSSArtistLinks([directory, addByRss, laterDirectory])).toEqual([
+      directory,
+      laterDirectory,
+    ]);
+  });
+
+  it('returns an empty array when every link is an Add by RSS artist link', () => {
+    expect(
+      withoutAddByRSSArtistLinks([
+        { idText: 'abc', title: 'One', href: addByRSSArtistPath('abc') },
+        { idText: 'def', title: 'Two', href: addByRSSArtistPath('def') },
+      ])
+    ).toEqual([]);
   });
 });

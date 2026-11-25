@@ -8,6 +8,7 @@ import { FaMagnifyingGlass } from 'react-icons/fa6';
 import { Accordion } from '@podverse/ui';
 
 import { ROUTES } from '../../constants/routes';
+import { useConfig } from '../../contexts/Config';
 import { useLocalSettings } from '../../contexts/LocalSettings';
 import type { SidebarAccordionState } from '../../utils/localSettings/localSettings';
 import { SideBarBrand } from './SideBarBrand';
@@ -20,6 +21,7 @@ import styles from '../../styles/components/SideBar/SideBar.module.scss';
 export const SideBar: React.FC = () => {
   const tSubscriptions = useTranslations('subscriptions');
   const tFeatures = useTranslations('features');
+  const addByRSSEnabled = useConfig().public.catalog.addByRSSEnabled;
   const { mobileSidebarOpen, sidebarAccordion, setSidebarAccordion } = useLocalSettings();
   const accordionState: SidebarAccordionState = sidebarAccordion;
 
@@ -64,7 +66,9 @@ export const SideBar: React.FC = () => {
             <SideBarLink href={`${ROUTES.MY_PROFILE}?tab=clips`}>
               {tFeatures('my_clips')}
             </SideBarLink>
-            <SideBarLink href={ROUTES.ADD_BY_RSS}>{tFeatures('add_by_rss.label')}</SideBarLink>
+            {addByRSSEnabled ? (
+              <SideBarLink href={ROUTES.ADD_BY_RSS}>{tFeatures('add_by_rss.label')}</SideBarLink>
+            ) : null}
           </>
         </Accordion>
       </div>

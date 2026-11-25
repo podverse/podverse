@@ -10,6 +10,7 @@ import {
   MEDIA_PLAYER_MARQUEE_TURN_GROUP,
   MEDIA_PLAYER_MARQUEE_TURN_ORDER,
 } from '../../../constants/mediaPlayerMarquee';
+import { useConfig } from '../../../contexts/Config';
 import { useMediaPlayer } from '../../../contexts/MediaPlayer';
 import { useMediaPlayerCurrentTime } from '../../../contexts/MediaPlayerCurrentTime';
 import { useMediaPlayerVideo } from '../../../contexts/MediaPlayerVideo';
@@ -92,6 +93,7 @@ export const MediaPlayerInfoModal: React.FC = () => {
   } = useMediaPlayer();
   const deviceArtistLinks = useDeviceArtistLinks();
   const remoteInfo = useRemotePlayerInfo();
+  const addByRSSEnabled = useConfig().public.catalog.addByRSSEnabled;
   const { mpCurrentTime } = useMediaPlayerCurrentTime();
   const { videoLocation, setModalVideoTarget, modalVideoAspectRatio } = useMediaPlayerVideo();
   const tMediaPlayer = useTranslations('media_player');
@@ -136,6 +138,11 @@ export const MediaPlayerInfoModal: React.FC = () => {
     deviceArtistLinks,
   });
   const infoResolution = remoteInfo?.resolution ?? localResolution;
+  const showsAddByRSSItem =
+    remoteInfo !== null
+      ? remoteInfo.display.resource.ref.kind === 'add_by_rss'
+      : mpAddByRSS !== null;
+  const itemLinkUrl = !addByRSSEnabled && showsAddByRSSItem ? '' : infoResolution.itemLinkUrl;
   const artistLine = infoResolution.artistLine;
   const [chooserOpen, setChooserOpen] = useState(false);
   const chooserTriggerRef = useRef<HTMLButtonElement>(null);
@@ -213,7 +220,7 @@ export const MediaPlayerInfoModal: React.FC = () => {
     <div className={styles.titleSection} ref={titleRef}>
       <ClickableTitle
         title={infoResolution.itemTitle ?? undefined}
-        href={infoResolution.itemLinkUrl || undefined}
+        href={itemLinkUrl || undefined}
         className={styles.itemTitle}
         testId="media-player-modal-title"
         turnOrder={MEDIA_PLAYER_MARQUEE_TURN_ORDER.fullPlayer.title}

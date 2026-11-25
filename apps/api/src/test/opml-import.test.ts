@@ -1,11 +1,13 @@
 import { randomUUID } from 'node:crypto';
 
+import { config } from '@api/config/index.js';
 import type { Server } from 'http';
 import request from 'supertest';
 import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import {
   AccountMembershipEnum,
+  ADD_BY_RSS_DISABLED_MESSAGE,
   buildOpmlImportHourlyKey,
   getOpmlImportHourBucket,
 } from '@podverse/helpers';
@@ -349,6 +351,50 @@ ${outlines}
     expect(mqAddByRSSAddMock).not.toHaveBeenCalled();
     // Fixtures path must never touch the live Podcast Index service.
     expect(podcastGetByFeedUrlMock).not.toHaveBeenCalled();
+  });
+
+  it('reports the add-by-RSS feed as failed via the fixtures sync path when Add by RSS is off', async () => {
+    feedGetByUrlMock.mockImplementation(async ({ url }: { url: string }) => {
+      if (url.includes('db-sub')) {
+        return { channel: { id_text: 'ch-dir' } };
+      }
+      if (url.includes('boom')) {
+        throw new Error('lookup failed');
+      }
+      return null;
+    });
+
+    const opml = sampleOpml([
+      { title: 'Subscribed', url: 'https://example.com/db-sub.xml' },
+      { title: 'Indexed', url: 'https://example.com/e2e-directory.xml' },
+      { title: 'Unknown', url: 'https://example.com/unknown.xml' },
+    ]);
+
+    const previous = config.catalog;
+    config.catalog = { ...previous, addByRSSEnabled: false };
+    try {
+      const enqueue = await request(app)
+        .post(`${accountBase}/opml/import`)
+        .set(authHeaders(TEST_USER_ID))
+        .send({ opml });
+
+      expect(enqueue.status).toBe(201);
+
+      const status = await request(app)
+        .get(`${accountBase}/opml/import/status/${enqueue.body.request_id}`)
+        .set(authHeaders(TEST_USER_ID));
+
+      expect(status.status).toBe(200);
+      expect(status.body.results.map((row: { outcome: string }) => row.outcome)).toEqual([
+        'subscribed',
+        'enqueued_indexed',
+        'failed',
+      ]);
+      expect(status.body.results[2]?.error).toBe(ADD_BY_RSS_DISABLED_MESSAGE);
+      expect(addOrUpdateRSSChannelMock).not.toHaveBeenCalled();
+    } finally {
+      config.catalog = previous;
+    }
   });
 
   it('rate-limits new feeds beyond the hourly cap and reports rateLimited in the status', async () => {

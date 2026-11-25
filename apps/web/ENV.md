@@ -73,6 +73,28 @@ These variables are used for client-side API requests:
 - **`NEXT_PUBLIC_WEB_PROTOCOL`** (Required) - Web protocol (`http` or `https`)
 - **`NEXT_PUBLIC_WEB_DOMAIN`** (Required) - Web domain (e.g., `localhost:3002` or `podverse.fm`)
 
+The catalog keys below narrow what this instance adds and offers. Each is optional and works
+alone; leave all three blank for the full site. They limit what gets added from now on: content
+already stored keeps its pages, rows, embeds, and playback. Keep each value equal to the API and
+workers `CATALOG_*` key of the same name; one shared ConfigMap (`podverse-catalog-config`) or one
+local override (`catalog.env`) sets all of them. A change takes effect when the web server
+restarts, with no rebuild.
+
+- **`NEXT_PUBLIC_CATALOG_MUSIC_DISABLED`** (Optional) - `"true"` or `"false"` if set. Blank keeps
+  Music. `"true"` stops workers from adding music, and hides music from navigation, media chips,
+  and search facets. Stored artists, albums, tracks, and music livestreams keep their pages, rows,
+  embeds, and playback. Podcast clips and podcast livestreams are unaffected.
+- **`NEXT_PUBLIC_CATALOG_ADD_BY_RSS_DISABLED`** (Optional) - `"true"` or `"false"` if set. Blank
+  keeps Add by RSS. `"true"` hides every way to add an Add by RSS feed, every `/add-by-rss` URL
+  returns not found, and the API refuses Add by RSS parse requests and new Add by RSS follows.
+  Saved Add by RSS rows can still be removed.
+- **`NEXT_PUBLIC_CATALOG_PODCAST_INDEX_ID_ALLOWLIST`** (Optional) - comma-separated Podcast Index
+  feed ids (the numeric Podcast Index id, not the Podverse id in `/podcast/<id>`). Blank adds
+  from the full directory. When set, workers add only these feeds, search lists only stored shows
+  on the list, and the Podcast Index Add Feed button and its on-demand add are off. Shows already
+  stored keep their pages, episodes, clips, chapters, livestreams, and embeds. A feed with no
+  Podcast Index id is outside the list. There is no size limit. Example: `"920666,41504"`.
+
 ### App / General
 
 - **`NEXT_PUBLIC_SERVER_ENV`** (Required) - Server environment
@@ -205,6 +227,9 @@ Variables containing `PORT` or `INTERVAL` are validated to ensure they are valid
 - **Theme Default**: `NEXT_PUBLIC_DEFAULT_THEME` must be one of the valid themes
 - **Locale Validation**: `NEXT_PUBLIC_FEATURES_SUPPORTED_LOCALES` must be `"all-available"` or a comma-delimited list of valid locales
 - **Locale Default**: `NEXT_PUBLIC_FEATURES_DEFAULT_LOCALE` must be a valid locale
+- **Catalog**: the two `NEXT_PUBLIC_CATALOG_*_DISABLED` keys must be `"true"` or `"false"` if set,
+  and `NEXT_PUBLIC_CATALOG_PODCAST_INDEX_ID_ALLOWLIST` must be comma-separated positive integers.
+  An invalid catalog value stops the sidecar at startup.
 
 ## Validation Output
 
@@ -251,7 +276,7 @@ When adding a new environment variable to the application:
    - Update `src/config/runtime-config.ts` with the new key and required/optional classification
 
 2. **Update sidecar validation**:
-   - Add the key to `apps/web/sidecar/server.js`
+   - Add the key to `apps/web/sidecar/src/server.ts`
    - Add any format/type validation required for the new value
 
 3. **Update this file**:
@@ -259,4 +284,5 @@ When adding a new environment variable to the application:
    - Document any special requirements (format, type)
 
 4. **Update environment files**:
-   - Add the variable to all environment-specific files in `env/`
+   - Add the variable to `apps/web/sidecar/.env.example` and
+     `infra/k8s/base/web/source/web-sidecar.env`

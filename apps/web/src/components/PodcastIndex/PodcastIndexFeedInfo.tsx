@@ -27,6 +27,7 @@ type PodcastIndexFeedInfoProps = {
 
 export const PodcastIndexFeedInfo: React.FC<PodcastIndexFeedInfoProps> = ({ podcastIndexFeed }) => {
   const config = useConfig();
+  const directoryAddEnabled = config.public.catalog.podcastIndexIdAllowlist === null;
   const apiRequestService = getApiRequestService();
   const tFeatures = useTranslations('features');
   const tMedia = useTranslations('media');
@@ -139,13 +140,21 @@ export const PodcastIndexFeedInfo: React.FC<PodcastIndexFeedInfoProps> = ({ podc
 
   return (
     <SearchDetail
-      explanation={tFeatures('add_feed.add_feed_explanation')}
-      primaryAction={{
-        label: tFeatures('add_feed.add_feed'),
-        icon: <FaCirclePlus />,
-        isLoading,
-        onClick: addFeedOnClick,
-      }}
+      explanation={
+        directoryAddEnabled
+          ? tFeatures('add_feed.add_feed_explanation')
+          : tFeatures('add_feed.not_in_directory')
+      }
+      primaryAction={
+        directoryAddEnabled
+          ? {
+              label: tFeatures('add_feed.add_feed'),
+              icon: <FaCirclePlus />,
+              isLoading,
+              onClick: addFeedOnClick,
+            }
+          : null
+      }
       rssHref={podcastIndexFeed.url || null}
       statusMessage={pollTimedOut ? tFeatures('add_feed.add_feed_timed_out') : null}
       errorMessage={null}

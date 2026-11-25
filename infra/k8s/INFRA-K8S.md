@@ -236,9 +236,18 @@ Use Kustomize to render overlays locally, matching what ArgoCD applies. Because 
 
 - Keep `base/<component>/kustomization.yaml` self-contained: do not import sibling directories with `../`.
 - Compose shared cross-component resources (for example `base/product-membership`) in the **common** overlay (`alpha/common`, or your GitOps `common` equivalent) so one sync path owns namespace-wide ConfigMaps; workload overlays reference them only via Deployments.
-- **`base/common`** ships ingress/TLS plus `podverse-integrations-config` and `podverse-extensions-config` (`source/integrations/`, `source/extensions/`). GitOps `common` overlays merge overrides when enabling.
+- **`base/common`** ships ingress/TLS plus `podverse-integrations-config`,
+  `podverse-extensions-config`, and `podverse-catalog-config` (`source/integrations/`,
+  `source/extensions/`, `source/catalog/`). GitOps `common` overlays merge overrides when
+  enabling.
 - **Example `infra/k8s/alpha`:** integrations and extensions are **disabled by default** via remote `base/common`; workload overlays keep `prometheus-sidecar` and `extension-prometheus` image pins commented. Copy the pattern into your GitOps repo and enable via merge overrides + workload components.
 - Built-in web integrations: `podverse-integrations-config` from `base/common/source/integrations/integrations.env` — mounted on **runtime-config sidecars only** (web + management-web); see [docs/operations/integrations/INTEGRATIONS-WEB.md](/docs/operations/integrations/INTEGRATIONS-WEB.md).
+- Instance catalog settings: `podverse-catalog-config` from
+  `base/common/source/catalog/catalog.env`, blank by default. Mounted on the API, on the workers
+  that parse feeds or read Podcast Index, and on the web runtime-config sidecar with
+  `prefix: NEXT_PUBLIC_`. To narrow an instance, merge the ConfigMap in your GitOps `common`
+  overlay (`behavior: merge`) and restart the API, web, and workers pods. Keys and behavior:
+  `apps/web/ENV.md`, `apps/api/ENV.md`, `apps/workers/ENV.md`.
 - Prometheus extension sidecar: optional Kustomize **components** under `base/common/components/` (enable per workload overlay; see [docs/operations/platform/DOCS-OPERATIONS-PLATFORM.md](/docs/operations/platform/DOCS-OPERATIONS-PLATFORM.md)).
 
 ```bash

@@ -33,7 +33,11 @@ import { asyncHandler } from '@api/middleware/asyncHandler.js';
 import type { NextFunction, Request, Response } from 'express';
 import { Router } from 'express';
 
-import { getAccountSignupModeCapabilities } from '@podverse/helpers';
+import {
+  ADD_BY_RSS_DISABLED_CODE,
+  ADD_BY_RSS_DISABLED_MESSAGE,
+  getAccountSignupModeCapabilities,
+} from '@podverse/helpers';
 
 const requireEmailFlows = (_req: Request, res: Response, next: NextFunction): void => {
   const mode = config.premium.signupMode;
@@ -42,6 +46,17 @@ const requireEmailFlows = (_req: Request, res: Response, next: NextFunction): vo
     res
       .status(403)
       .json({ message: 'Email verification flows are not available in the current mode' });
+    return;
+  }
+  next();
+};
+
+const requireAddByRSSEnabled = (_req: Request, res: Response, next: NextFunction): void => {
+  if (!config.catalog.addByRSSEnabled) {
+    res.status(403).json({
+      message: ADD_BY_RSS_DISABLED_MESSAGE,
+      code: ADD_BY_RSS_DISABLED_CODE,
+    });
     return;
   }
   next();
@@ -185,6 +200,7 @@ router.post('/unfollow/account', asyncHandler(AccountFollowingAccountController.
 
 router.post(
   '/follow/add-by-rss-channel',
+  requireAddByRSSEnabled,
   asyncHandler(AccountFollowingAddByRSSChannelController.addOrUpdateRSSChannel)
 );
 router.get(
@@ -205,8 +221,16 @@ router.post(
   rateLimitEndpoint(config.rateLimits.accountAddByRssParseEnqueue),
   asyncHandler(AccountAddByRSSConvertController.convert)
 );
-router.post('/add-by-rss/parse', asyncHandler(AccountAddByRSSParseController.enqueueParse));
-router.post('/add-by-rss/parse/all', asyncHandler(AccountAddByRSSParseController.enqueueParseAll));
+router.post(
+  '/add-by-rss/parse',
+  requireAddByRSSEnabled,
+  asyncHandler(AccountAddByRSSParseController.enqueueParse)
+);
+router.post(
+  '/add-by-rss/parse/all',
+  requireAddByRSSEnabled,
+  asyncHandler(AccountAddByRSSParseController.enqueueParseAll)
+);
 router.get(
   '/add-by-rss/feed-limit',
   asyncHandler(AccountFollowingAddByRSSChannelController.getAddByRSSFeedLimit)

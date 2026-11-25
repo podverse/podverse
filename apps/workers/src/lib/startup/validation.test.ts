@@ -132,3 +132,64 @@ describe('Add by RSS credential key validation', () => {
     expect(consoleErrorText()).not.toContain(`${CREDENTIALS_KEY} (required)`);
   });
 });
+
+describe('Catalog validation', () => {
+  let envSnapshot: Record<string, string | undefined>;
+
+  beforeEach(() => {
+    envSnapshot = snapshotProcessEnv();
+    vi.spyOn(console, 'log').mockImplementation(() => undefined);
+    vi.spyOn(console, 'warn').mockImplementation(() => undefined);
+    vi.spyOn(console, 'error').mockImplementation(() => undefined);
+  });
+
+  afterEach(() => {
+    restoreProcessEnv(envSnapshot);
+    vi.restoreAllMocks();
+  });
+
+  it('accepts mqRSSRunParser when the catalog keys are blank', () => {
+    installEnv({
+      ...startupEnv(),
+      CATALOG_MUSIC_DISABLED: '',
+      CATALOG_ADD_BY_RSS_DISABLED: '',
+      CATALOG_PODCAST_INDEX_ID_ALLOWLIST: '',
+    });
+    expectStartupSucceeds('mqRSSRunParser');
+  });
+
+  it('accepts mqRSSRunParser when music is off and an allowlist is set', () => {
+    installEnv({
+      ...startupEnv(),
+      CATALOG_MUSIC_DISABLED: 'true',
+      CATALOG_PODCAST_INDEX_ID_ALLOWLIST: '920666,41504',
+    });
+    expectStartupSucceeds('mqRSSRunParser');
+  });
+
+  it('rejects mqRSSRunParser when CATALOG_MUSIC_DISABLED is not true or false', () => {
+    installEnv({
+      ...startupEnv(),
+      CATALOG_MUSIC_DISABLED: 'yes',
+    });
+    expect(() => validateStartupRequirements('mqRSSRunParser')).toThrow(missingRequiredMessage);
+    expect(consoleErrorText()).toContain('CATALOG_MUSIC_DISABLED');
+  });
+
+  it('rejects mqRSSRunParser when the allowlist has a non-numeric token', () => {
+    installEnv({
+      ...startupEnv(),
+      CATALOG_PODCAST_INDEX_ID_ALLOWLIST: '920666,abc',
+    });
+    expect(() => validateStartupRequirements('mqRSSRunParser')).toThrow(missingRequiredMessage);
+    expect(consoleErrorText()).toContain('CATALOG_PODCAST_INDEX_ID_ALLOWLIST');
+  });
+
+  it('accepts accountSessionPurge when catalog values are invalid', () => {
+    installEnv({
+      ...startupEnv(),
+      CATALOG_MUSIC_DISABLED: 'yes',
+    });
+    expectStartupSucceeds('accountSessionPurge');
+  });
+});

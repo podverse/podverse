@@ -46,3 +46,9 @@ export type ParserConfig = {
   /** When true, bypass Podcast Index (mock PI service) and use URL-only feed lookup. For test-assets and tools. */
   testAssetsMode?: boolean;
 };
+
+/** The catalog settings that decide whether the parser may store a feed it has no row for. */
+export type ParserCatalogAdmissionPolicy = {
+  musicEnabled: boolean;
+  podcastIndexIdAllowlist: readonly number[] | null;
+};

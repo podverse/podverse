@@ -7639,7 +7639,11 @@ paths:
       tags:
         - account
       summary: POST /account/add-by-rss/parse
-      description: Auto-generated from route matrix. Authenticated endpoint (cookieAuth or bearerAuth). An API key needs add_by_rss create.
+      description: >-
+        Auto-generated from route matrix. Authenticated endpoint (cookieAuth or bearerAuth). An
+        API key needs add_by_rss create. When Add by RSS is turned off on this server
+        (`CATALOG_ADD_BY_RSS_DISABLED`), returns 403 with code `add_by_rss_disabled` before
+        authentication.
       security:
         - bearerAuth: []
         - cookieAuth: []
@@ -7673,7 +7677,10 @@ paths:
               schema:
                 $ref: "#/components/schemas/AuthenticationErrorResponse"
         "403":
-          description: Forbidden
+          description: >-
+            Forbidden.
+            `add_by_rss_disabled` when Add by RSS is turned off on this server. Sent before
+            authentication, so a signed-out request gets it too.
           content:
             application/json:
               schema:
@@ -7696,7 +7703,11 @@ paths:
       tags:
         - account
       summary: POST /account/add-by-rss/parse/all
-      description: Auto-generated from route matrix. Authenticated endpoint (cookieAuth or bearerAuth). An API key needs add_by_rss create.
+      description: >-
+        Auto-generated from route matrix. Authenticated endpoint (cookieAuth or bearerAuth). An
+        API key needs add_by_rss create. When Add by RSS is turned off on this server
+        (`CATALOG_ADD_BY_RSS_DISABLED`), returns 403 with code `add_by_rss_disabled` before
+        authentication.
       security:
         - bearerAuth: []
         - cookieAuth: []
@@ -7730,7 +7741,10 @@ paths:
               schema:
                 $ref: "#/components/schemas/AuthenticationErrorResponse"
         "403":
-          description: Forbidden
+          description: >-
+            Forbidden.
+            `add_by_rss_disabled` when Add by RSS is turned off on this server. Sent before
+            authentication, so a signed-out request gets it too.
           content:
             application/json:
               schema:
@@ -8647,7 +8661,9 @@ paths:
         Authenticated endpoint (cookieAuth or bearerAuth). An API key needs add_by_rss create.
         A blocked feed returns 403 with code `feed_blocked` and is not followed.
         A URL that is already a parsed directory channel follows that channel and returns 200.
-        Any other feed is saved as Add by RSS and returns 201.
+        Any other feed is saved as Add by RSS and returns 201. When Add by RSS is turned off on
+        this server (`CATALOG_ADD_BY_RSS_DISABLED`), returns 403 with code `add_by_rss_disabled`
+        before authentication.
       security:
         - bearerAuth: []
         - cookieAuth: []
@@ -8691,6 +8707,8 @@ paths:
             Forbidden. `feed_blocked` when the feed's lifecycle or policy blocks adding it.
             That response does not follow the feed and does not match it to a directory channel.
             `add_by_rss_feed_limit_reached` when the account is at its Add by RSS cap.
+            `add_by_rss_disabled` when Add by RSS is turned off on this server. Sent before
+            authentication, so a signed-out request gets it too.
           content:
             application/json:
               schema:
@@ -14700,6 +14718,64 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/InternalServerErrorResponse"
+  /channel/search/title:
+    get:
+      operationId: apiGetChannelSearchTitle
+      tags:
+        - channel
+      summary: GET /channel/search/title
+      description: >-
+        Public title search over stored directory channels, available only while the instance sets
+        a Podcast Index id allowlist (`CATALOG_PODCAST_INDEX_ID_ALLOWLIST`). Titles that start with
+        the term come before titles that only contain it; within each group, the newest last
+        publish date comes first. `meta.count` is the total number of matches. With no allowlist
+        the route answers 404.
+      security: []
+      parameters:
+        - in: query
+          name: q
+          required: true
+          schema:
+            type: string
+            minLength: 1
+            maxLength: 255
+        - in: query
+          name: medium
+          required: false
+          description: >-
+            `all` searches podcasts and videos; `music` searches music.
+          schema:
+            type: string
+            enum:
+              - all
+              - music
+            default: all
+        - $ref: "#/components/parameters/PageQueryRequired"
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ChannelListResponse"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ValidationErrorResponse"
+        "404":
+          description: No Podcast Index id allowlist is set on this instance.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NotFoundErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InternalServerErrorResponse"
   /channel/podcast-index/{podcast_index_id}:
     get:
       operationId: apiGetChannelPodcastIndexPodcastIndexId
@@ -18585,7 +18661,8 @@ paths:
       description: >-
         Auto-generated from route matrix. Authenticated endpoint (cookieAuth or bearerAuth).
         An API key needs add_by_rss create. A blocked feed returns 403 with code `feed_blocked`
-        and is not enqueued.
+        and is not enqueued. While the instance's Podcast Index id allowlist is set, returns 403
+        with code `catalog_add_disabled` and does not enqueue.
       security:
         - bearerAuth: []
         - cookieAuth: []
@@ -18621,7 +18698,8 @@ paths:
         "403":
           description: >-
             Forbidden. `feed_blocked` when the feed's lifecycle or policy blocks parse or add.
-            That response does not enqueue a parse and does not spend the on-demand dedupe key.
+            `catalog_add_disabled` while the instance's Podcast Index id allowlist is set. Neither
+            response enqueues a parse or spends the on-demand dedupe key.
           content:
             application/json:
               schema:

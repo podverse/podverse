@@ -1,6 +1,10 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { addByRssFeedLimitReachedMessage, followLimitReachedMessage } from '@podverse/helpers';
+import {
+  ADD_BY_RSS_DISABLED_MESSAGE,
+  addByRssFeedLimitReachedMessage,
+  followLimitReachedMessage,
+} from '@podverse/helpers';
 
 const {
   findBlockedFeedMock,
@@ -215,6 +219,122 @@ describe('processOpmlImportJob', () => {
     });
     expect(mqAddByRSSAddMock).toHaveBeenCalled();
     expect(result.totals.addedByRss).toBe(1);
+  });
+
+  it('reports a feed Podcast Index does not know as failed when Add by RSS is off', async () => {
+    const { cacheGetJson, cacheSetJson } = createMemoryCache();
+
+    const result = await processOpmlImportJob({
+      accountId: 9,
+      requestId: 'req-add-by-rss-off',
+      feeds: [{ feedUrl: 'https://example.com/unknown.xml', title: 'Unknown' }],
+      maxFeedsPerHour: 50,
+      cacheGetJson,
+      cacheSetJson,
+      activeMQArtemisService: {} as never,
+      podcastGetByFeedUrl: async () => null,
+      enqueueDownstreamJobs: true,
+      addByRSSEnabled: false,
+    });
+
+    expect(result.results).toHaveLength(1);
+    expect(result.results[0]?.outcome).toBe('failed');
+    expect(result.results[0]?.error).toBe(ADD_BY_RSS_DISABLED_MESSAGE);
+    expect(result.totals.failed).toBe(1);
+    expect(addOrUpdateRSSChannelMock).not.toHaveBeenCalled();
+    expect(mqAddByRSSAddMock).not.toHaveBeenCalled();
+  });
+
+  it('still enqueues a feed Podcast Index knows when Add by RSS is off', async () => {
+    const { cacheGetJson, cacheSetJson } = createMemoryCache();
+
+    const result = await processOpmlImportJob({
+      accountId: 9,
+      requestId: 'req-3-add-by-rss-off',
+      feeds: [{ feedUrl: 'https://example.com/pi.xml', title: 'PI' }],
+      maxFeedsPerHour: 50,
+      cacheGetJson,
+      cacheSetJson,
+      activeMQArtemisService: {} as never,
+      podcastGetByFeedUrl: async () => ({ podcast_index_id: 12345 }),
+      addByRSSEnabled: false,
+    });
+
+    expect(result.results[0]?.outcome).toBe('enqueued_indexed');
+    expect(addPendingFollowMock).toHaveBeenCalled();
+    expect(addOrUpdateRSSChannelMock).not.toHaveBeenCalled();
+  });
+
+  it('treats an off-list Podcast Index feed as unindexed and adds it by RSS', async () => {
+    const { cacheGetJson, cacheSetJson } = createMemoryCache();
+
+    const result = await processOpmlImportJob({
+      accountId: 9,
+      requestId: 'req-off-list',
+      feeds: [{ feedUrl: 'https://example.com/off-list.xml', title: 'Off List' }],
+      maxFeedsPerHour: 50,
+      cacheGetJson,
+      cacheSetJson,
+      activeMQArtemisService: {} as never,
+      podcastGetByFeedUrl: async () => ({ podcast_index_id: 12345 }),
+      catalogPodcastIndexIdAllowlist: [999],
+    });
+
+    expect(result.results[0]?.outcome).toBe('added_by_rss');
+    expect(addPendingFollowMock).not.toHaveBeenCalled();
+    expect(mqRSSAddMock).not.toHaveBeenCalled();
+    expect(findBlockedFeedMock).not.toHaveBeenCalledWith(
+      expect.objectContaining({ podcastIndexId: 12345 })
+    );
+    expect(addOrUpdateRSSChannelMock).toHaveBeenCalledWith(9, {
+      feed_url: 'https://example.com/off-list.xml',
+      title: 'Off List',
+    });
+  });
+
+  it('keeps the indexed path for a listed Podcast Index feed', async () => {
+    const { cacheGetJson, cacheSetJson } = createMemoryCache();
+
+    const result = await processOpmlImportJob({
+      accountId: 9,
+      requestId: 'req-listed',
+      feeds: [{ feedUrl: 'https://example.com/listed.xml', title: 'Listed' }],
+      maxFeedsPerHour: 50,
+      cacheGetJson,
+      cacheSetJson,
+      activeMQArtemisService: {} as never,
+      podcastGetByFeedUrl: async () => ({ podcast_index_id: 12345 }),
+      catalogPodcastIndexIdAllowlist: [12345],
+    });
+
+    expect(result.results[0]?.outcome).toBe('enqueued_indexed');
+    expect(addPendingFollowMock).toHaveBeenCalledWith(9, {
+      podcast_index_id: 12345,
+      feed_url: 'https://example.com/listed.xml',
+    });
+  });
+
+  it('subscribes a stored feed whatever the allowlist', async () => {
+    const { cacheGetJson, cacheSetJson } = createMemoryCache();
+    feedGetByUrlMock.mockResolvedValueOnce({
+      channel: { id_text: 'ch-1' },
+    });
+    const podcastGetByFeedUrl = vi.fn(async () => ({ podcast_index_id: 12345 }));
+
+    const result = await processOpmlImportJob({
+      accountId: 9,
+      requestId: 'req-stored',
+      feeds: [{ feedUrl: 'https://example.com/stored.xml', title: 'Stored' }],
+      maxFeedsPerHour: 50,
+      cacheGetJson,
+      cacheSetJson,
+      activeMQArtemisService: {} as never,
+      podcastGetByFeedUrl,
+      catalogPodcastIndexIdAllowlist: [999],
+    });
+
+    expect(result.results[0]?.outcome).toBe('subscribed');
+    expect(podcastGetByFeedUrl).not.toHaveBeenCalled();
   });
 
   it('isolates per-feed failures and completes the run', async () => {

@@ -306,6 +306,15 @@ const WORKER_COMMAND_DEFS: readonly WorkerCommandDef[] = [
       'npm run mq_rss_add_trending_podcasts_from_podcast_index -w apps/workers -- -q rss-normal -n 50',
   },
   {
+    name: 'mqRSSAddCatalogAllowlist',
+    label: 'MQ: add catalog allowlist feeds',
+    description:
+      'Enqueue each Podcast Index id in CATALOG_PODCAST_INDEX_ID_ALLOWLIST that is not stored yet. When a listed id was merged, enqueue the surviving show. A blank allowlist does nothing.',
+    category: 'mq',
+    risk: 'normal',
+    example_cli: 'node apps/workers/dist/index.js mqRSSAddCatalogAllowlist -q rss-normal',
+  },
+  {
     name: 'mqRSSRunDlqConsumer',
     label: 'MQ: RSS DLQ consumer',
     description: 'Process failed RSS messages from the dead-letter queue.',

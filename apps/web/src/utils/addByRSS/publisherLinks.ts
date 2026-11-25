@@ -12,6 +12,14 @@ import type {
 
 export const addByRSSArtistPath = (idText: string): string => `/add-by-rss/artist/${idText}`;
 
+/** Artist links that stay when Add by RSS is off: the ones that do not open an Add by RSS page. */
+export const withoutAddByRSSArtistLinks = (
+  links: readonly ArtistLineLink[]
+): readonly ArtistLineLink[] => {
+  const addByRSSArtistPrefix = addByRSSArtistPath('');
+  return links.filter((link) => !link.href.startsWith(addByRSSArtistPrefix));
+};
+
 /** The album's own `podcast:guid`, normalized. */
 export const getAddByRSSFeedGuid = (feed: AddByRSSFeedRecord): string | null =>
   normalizeAddByRSSGuid(feed.mappedFeed?.channel?.channel?.podcast_guid);

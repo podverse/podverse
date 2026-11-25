@@ -6,6 +6,8 @@ import {
   buildMediaListChipPath,
   MEDIA_LIST_CHIP_LABEL_KEYS,
   mediaListChipChrome,
+  mediaListChipsForCatalog,
+  RECOMMENDATION_CHIPS,
   resolveMediaListChip,
   shouldShowBrowseByRecentAction,
   shouldShowBrowseEmptyMessage,
@@ -111,6 +113,38 @@ describe('chip lists', () => {
 
   it('labels Livestreams with the shared catalog key', () => {
     expect(MEDIA_LIST_CHIP_LABEL_KEYS.livestreams).toBe('media.livestream.livestreams');
+  });
+});
+
+describe('mediaListChipsForCatalog', () => {
+  it('returns the same array for each chip list when Music is on', () => {
+    expect(mediaListChipsForCatalog(SUBSCRIBED_CHIPS, true)).toBe(SUBSCRIBED_CHIPS);
+    expect(mediaListChipsForCatalog(BROWSE_CHIPS, true)).toBe(BROWSE_CHIPS);
+    expect(mediaListChipsForCatalog(ADD_BY_RSS_CHIPS, true)).toBe(ADD_BY_RSS_CHIPS);
+    expect(mediaListChipsForCatalog(RECOMMENDATION_CHIPS, true)).toBe(RECOMMENDATION_CHIPS);
+  });
+
+  it('drops artists, albums, and tracks and keeps order when Music is off', () => {
+    expect(mediaListChipsForCatalog(SUBSCRIBED_CHIPS, false)).toEqual([
+      'podcasts',
+      'episodes',
+      'clips',
+      'livestreams',
+    ]);
+    expect(mediaListChipsForCatalog(BROWSE_CHIPS, false)).toEqual([
+      'podcasts',
+      'episodes',
+      'clips',
+      'livestreams',
+      'playlists',
+      'users',
+    ]);
+    expect(mediaListChipsForCatalog(ADD_BY_RSS_CHIPS, false)).toEqual([
+      'podcasts',
+      'episodes',
+      'livestreams',
+    ]);
+    expect(mediaListChipsForCatalog(RECOMMENDATION_CHIPS, false)).toEqual(['podcasts']);
   });
 });
 

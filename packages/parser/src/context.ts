@@ -4,7 +4,7 @@ import type { IndexProvider } from '@podverse/helpers';
 import type { ILoggerLike, TimerManager } from '@podverse/helpers-backend';
 import type { NotificationsContext } from '@podverse/notifications';
 
-import type { ParserConfig } from './config/types.js';
+import type { ParserCatalogAdmissionPolicy, ParserConfig } from './config/types.js';
 
 /**
  * Module-level context holder for the parser.
@@ -18,6 +18,7 @@ let _context: {
   timerManager: TimerManager;
   notificationsContext?: NotificationsContext;
   firebaseContext?: FirebaseContext;
+  getCatalogAdmissionPolicy?: () => ParserCatalogAdmissionPolicy;
 } | null = null;
 
 export function setParserContext(context: {
@@ -28,6 +29,7 @@ export function setParserContext(context: {
   timerManager: TimerManager;
   notificationsContext?: NotificationsContext;
   firebaseContext?: FirebaseContext;
+  getCatalogAdmissionPolicy?: () => ParserCatalogAdmissionPolicy;
 }): void {
   _context = context;
 }
@@ -59,6 +61,12 @@ export function getPodcastIndexService(): PodcastIndexService {
 /** Null in test-assets mode and when the parser has no Podcast Index config. */
 export function getOptionalIndexProvider(): IndexProvider | null {
   return getParserContext().indexProvider ?? null;
+}
+
+/** Null when the app passed no catalog policy (API, test-assets). Read per call. */
+export function getOptionalCatalogAdmissionPolicy(): ParserCatalogAdmissionPolicy | null {
+  const read = getParserContext().getCatalogAdmissionPolicy;
+  return read ? read() : null;
 }
 
 export function getTimerManager(): TimerManager {

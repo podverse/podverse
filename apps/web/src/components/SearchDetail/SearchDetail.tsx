@@ -21,7 +21,8 @@ export type SearchDetailPrimaryAction = {
 export type SearchDetailProps = {
   /** Sentence under the header explaining what the action does. */
   explanation: string;
-  primaryAction: SearchDetailPrimaryAction;
+  /** Null hides the primary button. */
+  primaryAction: SearchDetailPrimaryAction | null;
   /** The feed URL for the RSS Link button; null hides the button. */
   rssHref: string | null;
   /** Shown with role="status" under the buttons (timed out, queued, and similar). */
@@ -66,15 +67,17 @@ export function SearchDetail({
       <div className={styles.header}>
         <div className={styles.explanation}>{explanation}</div>
         <div className={styles.buttonRow}>
-          <Button
-            variant="primary"
-            onClick={primaryAction.onClick}
-            className={styles.primaryActionButton}
-            isLoading={primaryAction.isLoading}
-            icon={primaryAction.icon}
-          >
-            {primaryAction.label}
-          </Button>
+          {primaryAction !== null ? (
+            <Button
+              variant="primary"
+              onClick={primaryAction.onClick}
+              className={styles.primaryActionButton}
+              isLoading={primaryAction.isLoading}
+              icon={primaryAction.icon}
+            >
+              {primaryAction.label}
+            </Button>
+          ) : null}
           {hasDisplayText(rssHref) ? (
             <Button
               variant="secondary"

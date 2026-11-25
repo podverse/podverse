@@ -6,6 +6,7 @@ import type { AddByRSSResourceData } from '@podverse/helpers';
 import { buildAddByRSSResourceData } from '@podverse/parser-mapping';
 
 import { useAccount } from '../contexts/Account';
+import { useConfig } from '../contexts/Config';
 import { useMediaPlayer } from '../contexts/MediaPlayer';
 import {
   onAddByRSSFeedChanged,
@@ -43,17 +44,24 @@ type ArmedUpgrade = {
  *
  * The feed must be one the account follows. A followed feed this browser never parsed gets its
  * first parse; an already parsed feed is not refreshed. Loading a different item stops the watch.
+ * With Add by RSS off on this server, no first parse is requested.
  */
 export function useAddByRSSMetadataUpgrade(): (target: AddByRSSMetadataUpgradeTarget) => void {
   const { mpAddByRSS, updateMPAddByRSSMetadata } = useMediaPlayer();
   const { loggedInAccount } = useAccount();
+  const addByRSSEnabled = useConfig().public.catalog.addByRSSEnabled;
   const accountIdTextRef = useRef<string | null>(loggedInAccount?.id_text ?? null);
+  const addByRSSEnabledRef = useRef(addByRSSEnabled);
   const armedRef = useRef<ArmedUpgrade | null>(null);
   const loadedIdentity = mpAddByRSS ? addByRSSPlaybackIdentity(mpAddByRSS.resourceData) : null;
 
   useEffect(() => {
     accountIdTextRef.current = loggedInAccount?.id_text ?? null;
   }, [loggedInAccount?.id_text]);
+
+  useEffect(() => {
+    addByRSSEnabledRef.current = addByRSSEnabled;
+  }, [addByRSSEnabled]);
 
   const disarm = useCallback(() => {
     armedRef.current?.unsubscribe();
@@ -125,7 +133,12 @@ export function useAddByRSSMetadataUpgrade(): (target: AddByRSSMetadataUpgradeTa
             disarm();
             return;
           }
-          if ((await tryUpgrade(target)) || accountIdText === null || !isArmed(target)) {
+          if (
+            (await tryUpgrade(target)) ||
+            accountIdText === null ||
+            !isArmed(target) ||
+            !addByRSSEnabledRef.current
+          ) {
             return;
           }
           await enqueueAddByRSSFirstParses({

@@ -4,10 +4,12 @@ import { AddByRSSListClient } from '../../components/AddByRSS/List/AddByRSSListC
 import { AddByRSSLivestreamsPageClient } from '../../components/AddByRSS/List/AddByRSSLivestreamsPageClient';
 import { AddByRSSTracksPageClient } from '../../components/AddByRSS/List/AddByRSSTracksPageClient';
 import type { MediaListChipsConfig } from '../../components/MediaListChips/MediaListChips';
+import { getCatalogConfig } from '../../lib/catalog/catalogPolicy';
 import {
   ADD_BY_RSS_CHIPS,
   DEFAULT_MEDIA_LIST_CHIP,
   MEDIA_LIST_CHIP_QUERY_PARAM,
+  mediaListChipsForCatalog,
   readStoredMediaListChip,
   resolveMediaListChip,
 } from '../../utils/mediaListChips';
@@ -19,15 +21,16 @@ type AddByRSSPageProps = { searchParams: Promise<MediaListSearchParams> };
 export default async function AddByRSSPage({ searchParams }: AddByRSSPageProps) {
   const params = await searchParams;
   const ssr = await getMediaListSsr();
+  const chips = mediaListChipsForCatalog(ADD_BY_RSS_CHIPS, getCatalogConfig().musicEnabled);
   const { chip, urlChip } = resolveMediaListChip({
-    chips: ADD_BY_RSS_CHIPS,
+    chips,
     urlValue: params[MEDIA_LIST_CHIP_QUERY_PARAM],
     storedValue: readStoredMediaListChip(ssr.localSettings, 'add-by-rss'),
     defaultChip: DEFAULT_MEDIA_LIST_CHIP,
   });
   const chipsConfig: MediaListChipsConfig = {
     page: 'add-by-rss',
-    chips: ADD_BY_RSS_CHIPS,
+    chips,
     selected: chip,
     urlChip,
   };

@@ -12,14 +12,19 @@ import { QueuesPageListHeader } from './QueuesPageListHeader';
 
 interface QueuesPageClientProps {
   initialQueryParams: QueryParamsQueues;
+  mediumTabsVisible: boolean;
   ssrQueues: DTOQueue[];
 }
 
 export function QueuesPageClient(props: QueuesPageClientProps) {
-  const { initialQueryParams, ssrQueues } = props;
+  const { initialQueryParams, mediumTabsVisible, ssrQueues } = props;
 
   return (
-    <QueuesPageContextProvider initialQueryParams={initialQueryParams} ssrQueues={ssrQueues}>
+    <QueuesPageContextProvider
+      initialQueryParams={initialQueryParams}
+      mediumTabsVisible={mediumTabsVisible}
+      ssrQueues={ssrQueues}
+    >
       <QueuesPageHeader />
       <MainWrapper>
         <MainSidebarLayout>

@@ -248,7 +248,7 @@ vi.mock('@podverse/orm', () => ({
 
 import type { DescriptionIngestContext } from './descriptionIngestContext.js';
 import { recordPreparedDescription } from './descriptionIngestContext.js';
-import { FeedNoChangesSinceLastParsedError } from './errors.js';
+import { FeedNoChangesSinceLastParsedError, FeedNotInCatalogError } from './errors.js';
 import { parseRSSFeedAndSaveToDatabase } from './parser.js';
 
 const baseFeed = {
@@ -689,6 +689,24 @@ describe('parseRSSFeedAndSaveToDatabase description telemetry', () => {
         dto.description_truncated_count !== undefined
     );
     expect(telemetryCall).toBeUndefined();
+  });
+
+  it('accepts the queue message when the catalog refuses a feed that has no stored row', async () => {
+    handleGetRSSFeedMock.mockRejectedValueOnce(new FeedNotInCatalogError(77, 'music'));
+
+    const result = await parseRSSFeedAndSaveToDatabase(baseFeed.url, baseFeed.podcast_index_id, {
+      ...parseOptions,
+      catalogAllowlistSourcePodcastIndexId: 12,
+    });
+
+    expect(result).toEqual({ remoteItemsToParse: [], imageHints: [] });
+    expect(handleGetRSSFeedMock).toHaveBeenCalledWith(baseFeed.url, baseFeed.podcast_index_id, {
+      catalogAllowlistSourcePodcastIndexId: 12,
+    });
+    expect(handleRequestRSSFeedMock).not.toHaveBeenCalled();
+    expect(feedServiceUpdateMock).not.toHaveBeenCalled();
+    expect(onDemandCreateMock).not.toHaveBeenCalled();
+    expect(logErrorMock).not.toHaveBeenCalled();
   });
 });
 

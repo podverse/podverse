@@ -86,6 +86,14 @@ export const channelGetOneRelations: FindOptionsRelations<Channel> = {
   feed: true,
 };
 
+/** Escapes `\`, `%`, and `_` so a search term matches literally inside a LIKE pattern. */
+const escapeLikePattern = (term: string): string => term.replace(/[\\%_]/g, (char) => `\\${char}`);
+
+export type ChannelTitleSearchPage = {
+  channels: Channel[];
+  count: number;
+};
+
 const getChannelOneToOneRelations = (relations: FindOptionsRelations<Channel>) => {
   const oneToOneRelations: FindOptionsRelations<Channel> = {
     ...(relations.channel_about ? { channel_about: { itunes_type: true } } : {}),
@@ -399,6 +407,68 @@ export class ChannelService {
       },
       ...config,
     });
+  }
+
+  /**
+   * Directory channels whose title contains the term, case-insensitive. Titles that start with
+   * the term come first, then the newest last publish date, then the highest id, so every page
+   * is disjoint. The title match has no index; expose it only where the stored set is small.
+   */
+  async searchByTitle(args: {
+    term: string;
+    mediumType: QueryParamsMedium;
+    offset: number;
+    limit: number;
+  }): Promise<ChannelTitleSearchPage> {
+    const term = args.term.trim();
+    if (term === '') {
+      return { channels: [], count: 0 };
+    }
+    const escaped = escapeLikePattern(term);
+    const medium_ids = getMediumIdArrayFromType(args.mediumType);
+
+    const matching = this.repositoryRead
+      .createQueryBuilder('channel')
+      .innerJoin('channel.channel_about', 'channel_about')
+      .innerJoin('channel.feed', 'feed')
+      .innerJoin('feed.feed_policy', 'feed_policy')
+      .where('feed_policy.public_visible = :publicVisible', { publicVisible: true })
+      .andWhere('channel.title ILIKE :contains', { contains: `%${escaped}%` });
+    if (medium_ids !== null) {
+      matching.andWhere('channel.medium_id IN (:...medium_ids)', { medium_ids });
+    }
+
+    const count = await matching.clone().getCount();
+    if (count === 0 || args.offset >= count) {
+      return { channels: [], count };
+    }
+
+    const rows = await matching
+      .clone()
+      .select('channel.id', 'id')
+      .addSelect('CASE WHEN channel.title ILIKE :prefix THEN 0 ELSE 1 END', 'title_rank')
+      .setParameter('prefix', `${escaped}%`)
+      .orderBy('title_rank', 'ASC')
+      .addOrderBy('channel_about.last_pub_date', 'DESC', 'NULLS LAST')
+      .addOrderBy('channel.id', 'DESC')
+      .offset(args.offset)
+      .limit(args.limit)
+      .getRawMany<{ id: number | string; title_rank: number | string }>();
+    const ids = rows.map((row) => Number(row.id));
+    if (ids.length === 0) {
+      return { channels: [], count };
+    }
+
+    const loaded = await this.repositoryRead.find({
+      where: { id: In(ids) },
+      relations: channelGetManyRelations,
+    });
+    const byId = new Map(loaded.map((channel) => [channel.id, channel]));
+    const channels = ids
+      .map((id) => byId.get(id))
+      .filter((channel): channel is Channel => channel !== undefined);
+
+    return { channels, count };
   }
 
   async getAllByPodcastGuids(

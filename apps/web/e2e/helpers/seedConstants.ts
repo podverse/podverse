@@ -13,6 +13,8 @@
 import { getAddByRSSHashId } from '@podverse/helpers';
 
 export const E2E_PODCAST_CHANNEL_ID_TEXT = 'e2ePodChnl001';
+/** Sync with tools/web/seed-e2e.mjs. */
+export const E2E_PODCAST_FEED_PI_ID = 876543211;
 export const E2E_PODCAST_CHANNEL_TITLE = 'E2E Podcast Seed Channel';
 
 /** Public directory channel an Add by RSS URL can match. Sync with tools/web/seed-e2e.mjs. */
@@ -35,6 +37,8 @@ export const E2E_MERGED_SURVIVOR_CHANNEL_ID_TEXT = 'e2eMrgSurCh01';
 export const E2E_MERGED_UNMATCHED_ITEM_ID_TEXT = 'e2eMrgUnmIt01';
 
 export const E2E_LIVESTREAM_CHANNEL_ID_TEXT = 'v5fCrIj9Io';
+/** Sync with tools/web/seed-e2e.mjs. */
+export const E2E_LIVESTREAM_FEED_PI_ID = 876543210;
 export const E2E_LIVESTREAM_CHANNEL_TITLE = 'E2E Livestream Channel';
 export const E2E_LIVESTREAM_ITEM_ID_TEXT = 'e2eLiveStrm01';
 export const E2E_LIVESTREAM_ITEM_TITLE = 'E2E Livestream Item';
@@ -127,12 +131,16 @@ export const E2E_SOUNDBITE_ID_TEXT = 'e2eSoundbite001';
 
 /** Publisher-feed artist channel. Mobile `artist.yaml` deep-links here. */
 export const E2E_MUSIC_CHANNEL_ID_TEXT = 'e2eMusicChnl01';
+/** Sync with tools/web/seed-e2e.mjs. */
+export const E2E_MUSIC_ARTIST_FEED_PI_ID = 876543218;
 
 /** Directory publisher-music artist (`e2eArtPub01` = 11 chars). Distinct from the music album fixture. */
 export const E2E_DIRECTORY_ARTIST_ID_TEXT = 'e2eArtPub01';
 export const E2E_DIRECTORY_ARTIST_TITLE = 'E2E Directory Artist';
 export const E2E_DIRECTORY_ARTIST_LAST_PUB_DATE_ISO = '2026-03-15T18:00:00.000Z';
 export const E2E_MUSIC_ALBUM_ID_TEXT = 'e2eMusicAlbm01';
+/** Sync with tools/web/seed-e2e.mjs. */
+export const E2E_MUSIC_FEED_PI_ID = 876543212;
 export const E2E_MUSIC_ALBUM_TITLE = 'E2E Music Album';
 export const E2E_MUSIC_ALBUM_UNCLAIMED_ID_TEXT = 'e2eMusicAlbm02';
 export const E2E_MUSIC_ALBUM_UNCLAIMED_TITLE = 'E2E Unclaimed Music Album';
@@ -311,6 +319,8 @@ export const EMBED_SAMPLE_EPISODE_AUDIO_ITEM_IMAGE_URL = `${E2E_IMAGE_ASSET_BASE
 export const EMBED_SAMPLE_SCROLL_ITEM_TITLE_PREFIX = 'Scroll Item';
 
 export const EMBED_FIXTURE_PODCAST_CHANNEL_ID_TEXT = 'embSmpPodAud1';
+/** Sync with tools/web/seed-embed-fixtures.mjs. */
+export const EMBED_SAMPLE_PODCAST_FEED_PI_ID = 876543220;
 export const EMBED_FIXTURE_PODCAST_EPISODE_AUDIO_ID_TEXT = 'embSmpEpAud1';
 export const EMBED_FIXTURE_PODCAST_EPISODE_NEAR_END_ID_TEXT = 'embSmpEpAud2';
 export const EMBED_FIXTURE_PODCAST_EPISODE_VIDEO_ONLY_ID_TEXT = 'embSmpEpVid1';

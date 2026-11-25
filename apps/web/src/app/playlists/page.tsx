@@ -1,7 +1,6 @@
 import { cookies } from 'next/headers';
 
-import type { DTOPlaylist, QueryParamsQueueMedium } from '@podverse/helpers';
-import { getTotalPages } from '@podverse/helpers';
+import type { QueryParamsQueueMedium } from '@podverse/helpers';
 import type {
   QueryParamsPlaylistsType,
   QueryParamsStatsRange,
@@ -10,14 +9,14 @@ import type {
 
 import { getCuratedStaticPageMetadata } from '../../lib/seo/curatedPageMetadata';
 import { getSSRAuthService } from '../../utils/auth/ssrAuth';
-import { guardSubscribedSsrFilter, safeSsrListRequest } from '../../utils/filters/ssrFilterGuards';
+import { guardSubscribedSsrFilter } from '../../utils/filters/ssrFilterGuards';
 import type { PlaylistsFilterDefaults } from '../../utils/localSettings/localSettings';
 import {
   getFilterDefaultsForPage,
   getParsedLocalSettings,
 } from '../../utils/localSettings/localSettings';
 import type { PlaylistsPageSearchParams } from './playlistsListSsr';
-import { searchParamsSchema } from './playlistsListSsr';
+import { loadPlaylistsList, searchParamsSchema } from './playlistsListSsr';
 import { PlaylistsPageClient } from './PlaylistsPageClient';
 import {
   DEFAULT_PLAYLISTS_PAGE_MEDIUM,
@@ -45,37 +44,30 @@ export default async function PlaylistsPage({ searchParams }: PlaylistsPageProps
   const { currentType, currentSort, currentRange, currentMedium, currentPage } =
     await parseSearchParams(queryParams, canLoadPrivateSsrData, ssrFilterDefaults);
 
-  const response = await safeSsrListRequest<DTOPlaylist>(
-    () =>
-      ssrApiRequestService.reqPlaylistGetMany({
-        page: currentPage,
-        type: currentType,
-        sort: currentSort,
-        range: currentRange,
-        medium: currentMedium,
-      }),
-    currentPage
-  );
-
-  const ssrPlaylists: DTOPlaylist[] = response.data;
-  const ssrTotalPages = getTotalPages(
-    response.meta.count,
-    response.meta.limit,
-    response.data.length,
-    currentPage
+  const loaded = await loadPlaylistsList(
+    (request) => ssrApiRequestService.reqPlaylistGetMany(request),
+    {
+      page: currentPage,
+      type: currentType,
+      sort: currentSort,
+      range: currentRange,
+      medium: currentMedium,
+    }
   );
 
   return (
     <PlaylistsPageClient
       initialQueryParams={{
-        page: currentPage,
+        page: loaded.page,
         type: currentType,
         sort: currentSort,
         range: currentRange,
-        medium: currentMedium,
+        medium: loaded.medium,
       }}
-      ssrPlaylists={ssrPlaylists}
-      ssrTotalPages={ssrTotalPages}
+      musicFilterVisible={loaded.musicFilterVisible}
+      rememberedMedium={loaded.rememberedMedium}
+      ssrPlaylists={loaded.playlists}
+      ssrTotalPages={loaded.totalPages}
     />
   );
 }

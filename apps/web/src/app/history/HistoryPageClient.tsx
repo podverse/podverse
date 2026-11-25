@@ -12,14 +12,19 @@ import { HistoryPageListHeader } from './HistoryPageListHeader';
 
 interface HistoryPageClientProps {
   initialQueryParams: QueryParamsHistory;
+  mediumTabsVisible: boolean;
   ssrQueues: DTOQueue[];
 }
 
 export function HistoryPageClient(props: HistoryPageClientProps) {
-  const { initialQueryParams, ssrQueues } = props;
+  const { initialQueryParams, mediumTabsVisible, ssrQueues } = props;
 
   return (
-    <HistoryPageContextProvider initialQueryParams={initialQueryParams} ssrQueues={ssrQueues}>
+    <HistoryPageContextProvider
+      initialQueryParams={initialQueryParams}
+      mediumTabsVisible={mediumTabsVisible}
+      ssrQueues={ssrQueues}
+    >
       <HistoryPageHeader />
       <MainWrapper>
         <MainSidebarLayout>

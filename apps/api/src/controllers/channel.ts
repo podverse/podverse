@@ -14,6 +14,7 @@ import { getParamRequired } from '@api/lib/params.js';
 import { rateLimitOptionalAuthEndpoint } from '@api/lib/rateLimiter.js';
 import { getStatsOrder } from '@api/lib/stats.js';
 import {
+  channelTitleSearchQuerySchema,
   idOrIdTextParamSchema,
   mediumCategoryPageQuerySchema,
   mediumCategoryPageRangeQuerySchema,
@@ -35,6 +36,7 @@ import type {
   DTOAddByRSSMatchResponse,
   DTOChannelDirectoryMatch,
   QueryParamsMedium,
+  QueryParamsPodcastIndexSearchMedium,
   StatsPopularityCountField,
 } from '@podverse/helpers';
 import {
@@ -461,6 +463,39 @@ export class ChannelController {
         const response: ApiListResponse<Channel> = {
           data: channels,
           meta: { page, count: null, limit },
+        };
+        res.json(response);
+      } catch (error) {
+        handleGenericErrorResponse(res, error);
+      }
+    });
+  }
+
+  /**
+   * Title search over stored directory channels. Answers only while the Podcast Index id
+   * allowlist is set; the title match is unindexed, so an open instance never runs it.
+   */
+  static async searchByTitle(req: Request, res: Response): Promise<void> {
+    if (config.catalog.podcastIndexIdAllowlist === null) {
+      res.status(404).json({ message: 'Not found' });
+      return;
+    }
+    validateQueryObject(Joi.object(channelTitleSearchQuerySchema), req, res, async () => {
+      try {
+        const { page, limit, offset } = getPaginationParams(req);
+        const { q, medium } = req.query as {
+          q: string;
+          medium: QueryParamsPodcastIndexSearchMedium;
+        };
+        const { channels, count } = await ChannelController.channelService.searchByTitle({
+          term: q,
+          mediumType: medium === 'music' ? 'music' : 'av',
+          offset,
+          limit,
+        });
+        const response: ApiListResponse<Channel> = {
+          data: channels,
+          meta: { page, count, limit },
         };
         res.json(response);
       } catch (error) {

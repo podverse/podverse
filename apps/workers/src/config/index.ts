@@ -21,6 +21,8 @@ import {
   readOptionalPositiveExpirationEnv,
   readRequiredPositiveExpirationEnv,
 } from '@podverse/helpers';
+import type { CatalogConfig } from '@podverse/helpers-config';
+import { buildCatalogConfigFromEnv } from '@podverse/helpers-config';
 import type { ObservabilityConfig } from '@podverse/observability/config';
 import { buildObservabilityConfigFromEnv } from '@podverse/observability/config';
 
@@ -349,6 +351,11 @@ export function getPodcastIndexConfig(): PodcastIndexConfig {
       Number.isFinite(retryBaseDelayMs) &&
       retryBaseDelayMs > 0 && { retryBaseDelayMs }),
   };
+}
+
+/** Catalog settings for commands in the Catalog category. Blank keys keep today's behavior. */
+export function getCatalogConfig(): CatalogConfig {
+  return buildCatalogConfigFromEnv(process.env, '');
 }
 
 export type ExternalServicesConfig = {
