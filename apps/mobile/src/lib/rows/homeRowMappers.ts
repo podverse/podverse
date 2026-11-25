@@ -18,6 +18,8 @@ import { formatHHMMSS } from '@podverse/helpers/time';
 
 import { getItemPrimaryImageUrl } from '../../data/repositories/channelItemWindow';
 import type { HomeFeedRowData, HomeRowContentTarget } from '../../screens/home/homeFeedData';
+import { isAddByRssResourceData } from '../addByRss/playbackUrl';
+import { addByRssPlaybackMediaId } from '../addByRss/resourceData';
 
 export type ItemHomeRow = HomeFeedRowData & {
   mediaType: 'episodes' | 'tracks';
@@ -648,15 +650,18 @@ const resolveQueueResourceContentTarget = (
   return { idText: item.id_text, kind: 'item' };
 };
 
+const addByRssPlaybackMediaIdForResource = (resourceData: unknown): string | undefined => {
+  if (!isAddByRssResourceData(resourceData)) {
+    return undefined;
+  }
+  return addByRssPlaybackMediaId(resourceData);
+};
+
 const addByRssToHomeRow = (
   resource: DTOQueueResource,
   idPrefix: 'history' | 'queue',
   options?: QueueResourceHomeRowOptions
 ): QueueResourceHomeRow | null => {
-  if (idPrefix === 'history') {
-    return null;
-  }
-
   const addByRssHashId =
     typeof resource.add_by_rss_hash_id === 'string' && resource.add_by_rss_hash_id.length > 0
       ? resource.add_by_rss_hash_id
@@ -673,6 +678,7 @@ const addByRssToHomeRow = (
       id: `${idPrefix}-${resource.id}`,
       imageUrl: null,
       mediaType: 'episodes',
+      ...(idPrefix === 'history' ? { playable: false } : {}),
       queueResourceId: resource.id,
       subtitle: null,
       title: redactedTitle,
@@ -688,6 +694,7 @@ const addByRssToHomeRow = (
       id: `${idPrefix}-${resource.id}`,
       imageUrl: null,
       mediaType: 'episodes',
+      ...(idPrefix === 'history' ? { playable: false } : {}),
       queueResourceId: resource.id,
       subtitle: null,
       title: addByRssHashId,
@@ -729,6 +736,7 @@ const addByRssToHomeRow = (
       toAddByRssImages(resourceData.channel_images)
     ),
     mediaType,
+    playbackMediaId: addByRssPlaybackMediaIdForResource(resourceData),
     queueResourceId: resource.id,
     subtitle: getNonEmptyTrimmedStringProperty(resourceData, 'channel_title'),
     title,

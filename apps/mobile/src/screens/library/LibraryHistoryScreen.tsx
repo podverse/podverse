@@ -4,7 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { StyleSheet, Text, View } from 'react-native';
 
-import type { DTOQueueResource } from '@podverse/helpers/dto';
+import type { AddByRSSResourceData, DTOQueueResource } from '@podverse/helpers/dto';
 import type { QueueListMedium } from '@podverse/helpers/medium';
 import { DEFAULT_QUEUE_LIST_MEDIUM, getQueueMediumIdFromType } from '@podverse/helpers/medium';
 
@@ -20,7 +20,10 @@ import { LoadingSection } from '../../components/state/LoadingSection';
 import { useLoadMoreOnEndReached } from '../../hooks/useLoadMoreOnEndReached';
 import { usePrimaryQueue } from '../../hooks/usePrimaryQueue';
 import { useQueueDataRevision } from '../../hooks/useQueueDataRevision';
+import { useQueueMutations } from '../../hooks/useQueueMutations';
 import { useQueueResources } from '../../hooks/useQueueResources';
+import { isAddByRssResourceData } from '../../lib/addByRss/playbackUrl';
+import { isAddByRssLivestreamResourceData } from '../../lib/addByRss/resourceData';
 import { resolveListFill } from '../../lib/listFill';
 import {
   appendUniqueBy,
@@ -30,13 +33,16 @@ import {
 } from '../../lib/pagination/pagedList';
 import type { QueueResourceHomeRow } from '../../lib/rows/homeRowMappers';
 import { queueResourceToHomeRow } from '../../lib/rows/homeRowMappers';
+import { useMembershipGate } from '../../membership/MembershipGateProvider';
 import type { LibraryStackParamList } from '../../navigation';
+import { usePlaybackRowDisplay } from '../../playback/crossDevice/useCrossDevicePlayerDisplay';
+import { usePlaybackSession } from '../../playback/PlaybackProvider';
 import { listChipRowBottomGap, screenBodyInsets } from '../../theme/screenLayout';
 import { useTheme } from '../../theme/useTheme';
 import type { HomeFeedRowData } from '../home/homeFeedData';
 import { HomeFeedRow } from '../home/HomeFeedRow';
 import type { QueueActionPosition } from '../home/useHomeRowPlayback';
-import { useHomeRowPlayback } from '../home/useHomeRowPlayback';
+import { useHomeRowPlayback, useQueueHistoryGate } from '../home/useHomeRowPlayback';
 import { readHistoryPages } from './historyPages';
 
 type LibraryHistoryScreenProps = NativeStackScreenProps<LibraryStackParamList, 'LibraryHistory'>;
@@ -49,9 +55,45 @@ const noopPress = (): void => undefined;
 
 const historyRowKeyExtractor = (row: HistoryRow): string => row.id;
 
-const historyResourceToRows = (resource: DTOQueueResource): HistoryRow[] => {
-  const row = queueResourceToHomeRow(resource, 'history');
+const historyResourceToRows = (
+  resource: DTOQueueResource,
+  addByRssPrivateTitle: string
+): HistoryRow[] => {
+  const row = queueResourceToHomeRow(resource, 'history', { addByRssPrivateTitle });
   return row === null ? [] : [row];
+};
+
+/** Episode or track payload a history row can play or put back on the queue. */
+const playableHistoryAddByRssData = (
+  resource: DTOQueueResource | undefined
+): AddByRSSResourceData | null => {
+  if (resource === undefined || resource.is_add_by_rss_redacted === true) {
+    return null;
+  }
+  const resourceData = resource.add_by_rss_resource_data;
+  if (!isAddByRssResourceData(resourceData) || isAddByRssLivestreamResourceData(resourceData)) {
+    return null;
+  }
+  return resourceData;
+};
+
+const rememberHistoryResources = (
+  store: Map<number, DTOQueueResource>,
+  resources: readonly DTOQueueResource[],
+  mode: 'append' | 'replace'
+): void => {
+  if (mode === 'replace') {
+    store.clear();
+  }
+  for (const resource of resources) {
+    store.set(resource.id, resource);
+  }
+};
+
+type HistoryQueueNoticeKey = 'features.queue.added_to_queue' | 'features.queue.add_error';
+
+const isHistoryRow = (row: HomeFeedRowData): row is HistoryRow => {
+  return 'queueResourceId' in row && typeof row.queueResourceId === 'number';
 };
 
 type HistoryFeedRowProps = {
@@ -78,12 +120,14 @@ function HistoryFeedRow({ onPlay, onQueue, row }: HistoryFeedRowProps) {
     [onQueue, row.mediaType]
   );
 
+  const suppressActions = row.playable === false;
+
   return (
     <HomeFeedRow
       mediaType={row.mediaType}
-      onPlayPress={handlePlayPress}
-      onPress={noopPress}
-      onQueuePress={handleQueuePress}
+      onPlayPress={suppressActions ? noopPress : handlePlayPress}
+      onPress={row.mediaType === 'tracks' && !suppressActions ? handlePlayPress : noopPress}
+      onQueuePress={suppressActions ? undefined : handleQueuePress}
       row={row}
     />
   );
@@ -113,6 +157,15 @@ export function LibraryHistoryScreen(_props: LibraryHistoryScreenProps) {
   const historyQueueIdTextRef = useRef<string | null>(null);
   const settledMediumRef = useRef<QueueListMedium | null>(null);
   const { playbackNoticeKey, runPlayAction, runQueueAction } = useHomeRowPlayback();
+  const { handleGateError } = useMembershipGate();
+  const didOpenQueueHistoryGate = useQueueHistoryGate();
+  const { addAddByRssToQueueLast, addAddByRssToQueueNext } = useQueueMutations();
+  const { pause, playQueueResourceFromQueue, resume } = usePlaybackSession();
+  const { activeMediaId, isPlaying } = usePlaybackRowDisplay();
+  const [addByRssNoticeKey, setAddByRssNoticeKey] = useState<HistoryQueueNoticeKey | null>(null);
+  /** Queue rows behind the visible list, so play and queue use the saved Add by RSS payload. */
+  const historyResourcesRef = useRef(new Map<number, DTOQueueResource>());
+  const addByRssPrivateTitle = t('features.add_by_rss.private_item_placeholder');
 
   settledMediumRef.current = settledMedium;
 
@@ -130,6 +183,7 @@ export function LibraryHistoryScreen(_props: LibraryHistoryScreenProps) {
             historyRequestIdRef.current += 1;
             loadedPageCountRef.current = 0;
             historyQueueIdTextRef.current = null;
+            historyResourcesRef.current.clear();
             setHistoryRows([]);
             setIsInitialLoading(true);
             setErrorKey(null);
@@ -196,6 +250,7 @@ export function LibraryHistoryScreen(_props: LibraryHistoryScreenProps) {
     const resetPaging = () => {
       loadedPageCountRef.current = 0;
       historyQueueIdTextRef.current = null;
+      historyResourcesRef.current.clear();
       setHasMore(false);
     };
 
@@ -251,7 +306,10 @@ export function LibraryHistoryScreen(_props: LibraryHistoryScreenProps) {
         return;
       }
 
-      setHistoryRows(read.resources.flatMap(historyResourceToRows));
+      rememberHistoryResources(historyResourcesRef.current, read.resources, 'replace');
+      setHistoryRows(
+        read.resources.flatMap((resource) => historyResourceToRows(resource, addByRssPrivateTitle))
+      );
       loadedPageCountRef.current = read.pagesRead;
       historyQueueIdTextRef.current = selectedQueue.id_text;
       setHasMore(read.hasMore);
@@ -264,6 +322,7 @@ export function LibraryHistoryScreen(_props: LibraryHistoryScreenProps) {
       if (!isSoftReload) {
         setErrorKey('errors.generic');
         setHistoryRows([]);
+        historyResourcesRef.current.clear();
         setHasMore(false);
       }
       setSettledMedium(selectedMedium);
@@ -272,7 +331,14 @@ export function LibraryHistoryScreen(_props: LibraryHistoryScreenProps) {
         setIsInitialLoading(false);
       }
     }
-  }, [fetchHistoryPage, fetchQueueForMedium, isMediumReady, selectedMedium, status]);
+  }, [
+    addByRssPrivateTitle,
+    fetchHistoryPage,
+    fetchQueueForMedium,
+    isMediumReady,
+    selectedMedium,
+    status,
+  ]);
 
   // The revision counter moves when queue data changes, including a history row moved back into
   // the queue and a listen that reaches the server after the network returns. A successful queue
@@ -301,7 +367,10 @@ export function LibraryHistoryScreen(_props: LibraryHistoryScreenProps) {
       if (!isCurrent()) {
         return;
       }
-      const mapped = resources.flatMap(historyResourceToRows);
+      rememberHistoryResources(historyResourcesRef.current, resources, 'append');
+      const mapped = resources.flatMap((resource) =>
+        historyResourceToRows(resource, addByRssPrivateTitle)
+      );
       setHistoryRows((rows) => appendUniqueBy(rows, mapped, historyRowKeyExtractor));
       loadedPageCountRef.current = nextPage;
       setHasMore(fullPageHasMore(resources.length));
@@ -314,7 +383,7 @@ export function LibraryHistoryScreen(_props: LibraryHistoryScreenProps) {
         setIsLoadingMore(false);
       }
     }
-  }, [fetchHistoryPage, status]);
+  }, [addByRssPrivateTitle, fetchHistoryPage, status]);
 
   const handleMediumChange = useCallback(
     (nextMedium: QueueListMedium) => {
@@ -327,6 +396,7 @@ export function LibraryHistoryScreen(_props: LibraryHistoryScreenProps) {
       historyRequestIdRef.current += 1;
       loadedPageCountRef.current = 0;
       historyQueueIdTextRef.current = null;
+      historyResourcesRef.current.clear();
       setSelectedMedium(nextMedium);
       setHistoryRows([]);
       setIsInitialLoading(true);
@@ -338,11 +408,35 @@ export function LibraryHistoryScreen(_props: LibraryHistoryScreenProps) {
     [selectedMedium]
   );
 
+  const dropHistoryRow = useCallback((nextRow: HistoryRow) => {
+    historyResourcesRef.current.delete(nextRow.queueResourceId);
+    historyRequestIdRef.current += 1;
+    setIsLoadingMore(false);
+    setHistoryRows((rows) => rows.filter((row) => row.id !== nextRow.id));
+  }, []);
+
   const handlePlayPress = useCallback(
     (nextRow: HomeFeedRowData, mediaType: HistoryRow['mediaType']) => {
+      setAddByRssNoticeKey(null);
+      if (isHistoryRow(nextRow)) {
+        const resource = historyResourcesRef.current.get(nextRow.queueResourceId);
+        const resourceData = playableHistoryAddByRssData(resource);
+        if (resource !== undefined && resourceData !== null) {
+          if (nextRow.playbackMediaId !== undefined && activeMediaId === nextRow.playbackMediaId) {
+            if (isPlaying) {
+              pause();
+            } else {
+              void resume();
+            }
+            return;
+          }
+          void playQueueResourceFromQueue(resource);
+          return;
+        }
+      }
       runPlayAction(nextRow, mediaType);
     },
-    [runPlayAction]
+    [activeMediaId, isPlaying, pause, playQueueResourceFromQueue, resume, runPlayAction]
   );
   const handleQueuePress = useCallback(
     (
@@ -350,17 +444,53 @@ export function LibraryHistoryScreen(_props: LibraryHistoryScreenProps) {
       mediaType: HistoryRow['mediaType'],
       position: QueueActionPosition
     ) => {
-      void (async () => {
-        const added = await runQueueAction(nextRow, mediaType, position);
-        if (!added) {
+      if (isHistoryRow(nextRow)) {
+        const resource = historyResourcesRef.current.get(nextRow.queueResourceId);
+        const resourceData = playableHistoryAddByRssData(resource);
+        if (resourceData !== null) {
+          if (didOpenQueueHistoryGate()) {
+            return;
+          }
+          const medium = nextRow.mediaType === 'tracks' ? 'music' : 'av';
+          void (async () => {
+            try {
+              const added = await (position === 'next'
+                ? addAddByRssToQueueNext(resourceData, medium)
+                : addAddByRssToQueueLast(resourceData, medium));
+              setAddByRssNoticeKey(
+                added ? 'features.queue.added_to_queue' : 'features.queue.add_error'
+              );
+              if (added) {
+                dropHistoryRow(nextRow);
+              }
+            } catch (error) {
+              if (handleGateError(error)) {
+                return;
+              }
+              setAddByRssNoticeKey('features.queue.add_error');
+            }
+          })();
           return;
         }
-        historyRequestIdRef.current += 1;
-        setIsLoadingMore(false);
-        setHistoryRows((rows) => rows.filter((row) => row.id !== nextRow.id));
+      }
+
+      setAddByRssNoticeKey(null);
+      void (async () => {
+        const added = await runQueueAction(nextRow, mediaType, position);
+        if (!added || !isHistoryRow(nextRow)) {
+          return;
+        }
+        dropHistoryRow(nextRow);
       })();
     },
-    [runQueueAction]
+    [
+      addAddByRssToQueueLast,
+      addAddByRssToQueueNext,
+      didOpenQueueHistoryGate,
+      dropHistoryRow,
+      handleGateError,
+      runQueueAction,
+    ]
   );
   const handleRetry = useCallback(() => {
     void loadHistory();
@@ -401,8 +531,9 @@ export function LibraryHistoryScreen(_props: LibraryHistoryScreenProps) {
     return null;
   }, [errorKey, handleRetry, historyFill]);
 
-  const listFooter = useMemo(
-    () => (
+  const listFooter = useMemo(() => {
+    const noticeKey = addByRssNoticeKey ?? playbackNoticeKey;
+    return (
       <>
         {isLoadingMore ? (
           <ListLoading testID="library-history-loading-more" />
@@ -413,13 +544,18 @@ export function LibraryHistoryScreen(_props: LibraryHistoryScreenProps) {
             testID="library-history-load-more-error"
           />
         ) : null}
-        {playbackNoticeKey !== null ? (
-          <Text style={styles.notice}>{t(playbackNoticeKey)}</Text>
-        ) : null}
+        {noticeKey !== null ? <Text style={styles.notice}>{t(noticeKey)}</Text> : null}
       </>
-    ),
-    [handleRetryNextPage, isLoadingMore, loadMoreErrorKey, playbackNoticeKey, styles.notice, t]
-  );
+    );
+  }, [
+    addByRssNoticeKey,
+    handleRetryNextPage,
+    isLoadingMore,
+    loadMoreErrorKey,
+    playbackNoticeKey,
+    styles.notice,
+    t,
+  ]);
 
   const listHeader = useMemo(
     () => (

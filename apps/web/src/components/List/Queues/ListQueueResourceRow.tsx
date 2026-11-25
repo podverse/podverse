@@ -5,14 +5,19 @@ import { useTranslations } from 'next-intl';
 import React from 'react';
 
 import type { DTOQueueResource } from '@podverse/helpers';
-import { MediumEnum } from '@podverse/helpers';
+import { getQueueForMedium, MediumEnum } from '@podverse/helpers';
 import { Button, ImagesPerView, MoreButton } from '@podverse/ui';
 
 import { IMAGES } from '../../../constants/images';
+import { useAccount } from '../../../contexts/Account';
+import { useModals } from '../../../contexts/Modals';
 import { useQueues } from '../../../contexts/Queue';
 import { getApiRequestService } from '../../../factories/apiRequestService';
+import { useMarkQueueResourcePlayed } from '../../../hooks/useMarkQueueResourcePlayed';
 import { usePlayAddByRSS } from '../../../hooks/usePlayAddByRSS';
+import { useQueueAddWithGate } from '../../../hooks/useQueueAddWithGate';
 import { parsePlaybackSeconds } from '../../../lib/playback';
+import { markPlayedAfterWrite } from '../../../lib/queue/queueResourcePlayed';
 import { loadAddByRSSIndexItemFromResourceData } from '../../../utils/addByRSS/playFromQueueResource';
 import { addByRSSResourceMergedArtworkCandidates } from '../../../utils/image/addByRSSResourceArtworkCandidates';
 import { ReadableDate } from '../../Time/ReadableDate';
@@ -44,8 +49,14 @@ export const ListQueueResourceRow: React.FC<Props> = ({
   const apiRequestService = getApiRequestService();
   const tFeatures = useTranslations('features');
   const tMedia = useTranslations('media');
-  const { activeQueue } = useQueues();
+  const tMediaPlayer = useTranslations('media_player');
+  const tInstructions = useTranslations('instructions');
+  const { loggedInAccount } = useAccount();
+  const { setModalLoginRequired, setModalPlaylistAddTo } = useModals();
+  const { activeQueue, queues } = useQueues();
   const playAddByRSS = usePlayAddByRSS();
+  const { runQueueAdd } = useQueueAddWithGate();
+  const markQueueResourcePlayed = useMarkQueueResourcePlayed();
   const item = queueResource.item;
   const clip = queueResource.clip;
   const item_soundbite = queueResource.item_soundbite;
@@ -60,7 +71,8 @@ export const ListQueueResourceRow: React.FC<Props> = ({
       ? tFeatures('add_by_rss.private_item_placeholder')
       : (resourceData?.title ?? 'Add-by-RSS');
 
-    const mediumId = resourceData?.medium_id as number | undefined;
+    const mediumId =
+      typeof resourceData?.medium_id === 'number' ? resourceData.medium_id : MediumEnum.Podcast;
     const isMusic = mediumId === MediumEnum.Music;
 
     const imageCandidates = !is_add_by_rss_redacted
@@ -73,16 +85,28 @@ export const ListQueueResourceRow: React.FC<Props> = ({
         )
       : [];
 
-    // Extract other metadata
-    const channelTitle = !is_add_by_rss_redacted
-      ? (resourceData?.channel_title as string | undefined)
-      : undefined;
-    const pubDate = !is_add_by_rss_redacted
-      ? (resourceData?.pub_date as string | undefined)
-      : undefined;
-    const duration = !is_add_by_rss_redacted
-      ? (resourceData?.duration as number | undefined)
-      : undefined;
+    const channelTitle =
+      !is_add_by_rss_redacted && typeof resourceData?.channel_title === 'string'
+        ? resourceData.channel_title
+        : undefined;
+    const pubDate =
+      !is_add_by_rss_redacted && typeof resourceData?.pub_date === 'string'
+        ? resourceData.pub_date
+        : undefined;
+    const duration =
+      !is_add_by_rss_redacted && typeof resourceData?.duration === 'number'
+        ? resourceData.duration
+        : undefined;
+
+    const queue = getQueueForMedium(queues, mediumId);
+
+    const ensureLoggedIn = (action: () => void, messageKey: string) => () => {
+      if (!loggedInAccount) {
+        setModalLoginRequired({ title: null, message: tInstructions(messageKey) });
+        return;
+      }
+      action();
+    };
 
     const removeFromQueueOnClick = async () => {
       if (!activeQueue?.id_text) return;
@@ -92,23 +116,11 @@ export const ListQueueResourceRow: React.FC<Props> = ({
       );
       removeFromQueue?.();
     };
-    const moreButtonMenuItems =
-      isEditModeQueue && !is_add_by_rss_redacted
-        ? [
-            {
-              label: tFeatures('queue.remove_from_queue'),
-              onClick: () => {
-                showToastPromise(removeFromQueueOnClick(), {
-                  success: tFeatures('queue.removed_from_queue'),
-                  error: tFeatures('queue.remove_error'),
-                });
-              },
-              variant: 'danger' as const,
-            },
-          ]
-        : [];
 
     const playAddByRssFromQueue = () => {
+      if (is_add_by_rss_redacted || !resourceData) {
+        return;
+      }
       if (onPlayAndRemove) {
         onPlayAndRemove();
         return;
@@ -124,6 +136,108 @@ export const ListQueueResourceRow: React.FC<Props> = ({
         playAddByRSS(indexItem, playbackPosition);
       })();
     };
+
+    const addToQueueNext = () => {
+      if (!queue || !resourceData) return;
+      void runQueueAdd(
+        () =>
+          apiRequestService.reqQueueResourceItemAddByRSSAddNext(queue.id_text, {
+            add_by_rss_resource_data: resourceData,
+          }),
+        {
+          success: tFeatures('queue.added_to_queue'),
+          error: tFeatures('queue.add_error'),
+        }
+      );
+    };
+
+    const addToQueueLast = () => {
+      if (!queue || !resourceData) return;
+      void runQueueAdd(
+        () =>
+          apiRequestService.reqQueueResourceItemAddByRSSAddLast(queue.id_text, {
+            add_by_rss_resource_data: resourceData,
+          }),
+        {
+          success: tFeatures('queue.added_to_queue'),
+          error: tFeatures('queue.add_error'),
+        }
+      );
+    };
+
+    const addToPlaylist = () => {
+      if (!resourceData) return;
+      setModalPlaylistAddTo({
+        channel: null,
+        item: null,
+        clip: null,
+        item_soundbite: null,
+        addByRSSResourceData: resourceData,
+        addByRSSHashId: add_by_rss_hash_id,
+      });
+    };
+
+    const markAsPlayed = () => {
+      if (!queue || !resourceData) return;
+      showToastPromise(
+        markPlayedAfterWrite(
+          apiRequestService.reqQueueResourceItemAddByRSSAddHistory(queue.id_text, {
+            add_by_rss_resource_data: resourceData,
+            completed: true,
+          }),
+          () => {
+            markQueueResourcePlayed({
+              duration: null,
+              hash: add_by_rss_hash_id,
+              kind: 'add_by_rss',
+            });
+          }
+        ),
+        {
+          success: tFeatures('history.marked_as_played'),
+          error: tFeatures('history.mark_as_played_error'),
+        }
+      );
+    };
+
+    const moreButtonMenuItems =
+      isEditModeQueue && !is_add_by_rss_redacted
+        ? [
+            {
+              label: tFeatures('queue.remove_from_queue'),
+              onClick: () => {
+                showToastPromise(removeFromQueueOnClick(), {
+                  success: tFeatures('queue.removed_from_queue'),
+                  error: tFeatures('queue.remove_error'),
+                });
+              },
+              variant: 'danger' as const,
+            },
+          ]
+        : !isEditModeQueue && !is_add_by_rss_redacted && resourceData
+          ? [
+              {
+                label: tMediaPlayer('play'),
+                onClick: playAddByRssFromQueue,
+              },
+              {
+                label: tFeatures('queue.queue_next'),
+                onClick: ensureLoggedIn(addToQueueNext, 'login_to_add_to_queue'),
+              },
+              {
+                label: tFeatures('queue.queue_last'),
+                onClick: ensureLoggedIn(addToQueueLast, 'login_to_add_to_queue'),
+              },
+              {
+                label: tFeatures('playlist.add_to_playlist'),
+                onClick: ensureLoggedIn(addToPlaylist, 'login_to_add_to_playlist'),
+              },
+              {
+                label: tFeatures('history.mark_as_played'),
+                onClick: ensureLoggedIn(markAsPlayed, 'login_to_mark_as_played'),
+              },
+            ]
+          : [];
 
     // Render music track style (compact row with play-on-click)
     if (isMusic) {

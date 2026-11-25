@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest';
 import type { DTOPlaylistResource, DTOQueueResource } from '@podverse/helpers/dto';
 
 import { safeJsonParse } from '../../data/db/serialization';
+import { addByRssPlaybackMediaId } from '../addByRss/resourceData';
 import type { ItemHomeRowSource } from './homeRowMappers';
 import {
   clipHomeRowSourceFromUnknown,
@@ -180,6 +181,51 @@ describe('queueResourceToHomeRow', () => {
     expect(row?.duration).toBe('42');
     expect(row?.mediaType).toBe('tracks');
     expect(row?.imageUrl).toBe('https://example.com/a');
+  });
+
+  it('maps an add-by-RSS history row with its playback id', () => {
+    const resourceData = {
+      channel_title: 'RSS channel',
+      duration: 42,
+      feed_url: 'https://example.com/feed.xml',
+      guid: 'episode-1',
+      title: 'RSS episode',
+    };
+    const row = queueResourceToHomeRow(
+      buildResource({
+        add_by_rss_hash_id: 'rss-history-1',
+        add_by_rss_resource_data: resourceData,
+        id: 8,
+        item: null,
+        item_id: null,
+      }),
+      'history'
+    );
+
+    expect(row).not.toBeNull();
+    expect(row?.id).toBe('history-8');
+    expect(row?.title).toBe('RSS episode');
+    expect(row?.playbackMediaId).toBe(addByRssPlaybackMediaId(resourceData));
+    expect(row?.playable).not.toBe(false);
+  });
+
+  it('maps a redacted add-by-RSS history row as a title without playback', () => {
+    const row = queueResourceToHomeRow(
+      buildResource({
+        add_by_rss_hash_id: 'rss-private-history',
+        id: 9,
+        is_add_by_rss_redacted: true,
+        item: null,
+        item_id: null,
+      }),
+      'history',
+      { addByRssPrivateTitle: 'Private Add-by-RSS Item' }
+    );
+
+    expect(row).not.toBeNull();
+    expect(row?.title).toBe('Private Add-by-RSS Item');
+    expect(row?.playbackMediaId).toBeUndefined();
+    expect(row?.playable).toBe(false);
   });
 
   it('maps redacted add-by-RSS rows with the provided localized placeholder', () => {
