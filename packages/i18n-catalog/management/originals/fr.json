@@ -799,6 +799,8 @@
       "addByRssFeedLimitUnlimited": "Illimité",
       "followLimit": "Dérogation de la limite de suivis",
       "followLimitHelp": "Vide utilise la valeur partagée par défaut de {defaultLimit}. Un palier de la liste est le maximum de podcasts, listes de lecture et comptes que ce compte peut suivre. Illimité ne refuse pas un nouveau suivi.",
+      "queueLimit": "Dérogation de la limite de file",
+      "queueLimitHelp": "Vide utilise la valeur partagée par défaut de {defaultLimit}. Un palier de la liste est le maximum de lignes que chaque file peut contenir. À venir, en lecture et historique partagent cette limite. La plus ancienne ligne de l'historique est retirée lorsqu'une nouvelle ligne la dépasserait.",
       "manualRefreshPerHour": "Remplacement de la limite de rafraîchissement manuel par heure",
       "manualRefreshPerHourHelp": "Nombre maximal de rafraîchissements manuels par heure. Défaut niveau essai : {trialDefault}. Défaut niveau Premium : {premiumDefault}. Défaut du niveau sélectionné pour les dérogations : {selectedDefault}.",
       "placeholderTierDefault": "Valeur par défaut : {count}",

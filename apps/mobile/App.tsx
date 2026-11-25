@@ -11,6 +11,7 @@ import splashIcon from './assets/splash/icon.png';
 import { AuthPromptProvider, AuthProvider, useAuth } from './src/auth';
 import { CrossDevicePlaybackNotice } from './src/components/feedback/CrossDevicePlaybackNotice';
 import { ForcedLogoutNotice } from './src/components/feedback/ForcedLogoutNotice';
+import { QueueHistoryLimitNotice } from './src/components/feedback/QueueHistoryLimitNotice';
 import { OverlayA11yShield, OverlayHostProvider, OverlayOutlet } from './src/components/overlay';
 import { VideoPlaybackChromeBridge } from './src/components/player/VideoPlaybackChromeBridge';
 import { ShareSheetPassthroughOverlay } from './src/components/share/ShareSheetPassthroughOverlay';
@@ -389,6 +390,7 @@ function AppBody({ onConsumePendingDeepLink, pendingDeepLinkUrl }: AppBodyProps)
             <TermsAcceptanceProvider>
               <NotificationsRuntime />
               <ForcedLogoutNotice />
+              <QueueHistoryLimitNotice />
               <CrossDevicePlaybackNotice />
               <SignInPushPromptHost />
               <OverlayA11yShield>

@@ -799,6 +799,8 @@
       "addByRssFeedLimitUnlimited": "Ilimitado",
       "followLimit": "Anulación del límite de seguimientos",
       "followLimitHelp": "Vacío usa el valor compartido por defecto de {defaultLimit}. Un nivel de la lista es el máximo de pódcasts, listas y cuentas que esta cuenta puede seguir. Ilimitado no rechaza un seguimiento nuevo.",
+      "queueLimit": "Anulación del límite de la cola",
+      "queueLimitHelp": "Vacío usa el valor compartido por defecto de {defaultLimit}. Un nivel de la lista es el máximo de filas que puede tener cada cola. Próximos, reproducción actual e historial comparten ese límite. Se elimina la fila más antigua del historial cuando una fila nueva lo superaría.",
       "manualRefreshPerHour": "Sobreescritura del límite de actualización manual por hora",
       "manualRefreshPerHourHelp": "Máximo de actualizaciones manuales por hora. Valor por defecto del nivel prueba: {trialDefault}. Valor por defecto del nivel Premium: {premiumDefault}. Valor por defecto del nivel seleccionado para anulaciones: {selectedDefault}.",
       "placeholderTierDefault": "Valor predeterminado: {count}",

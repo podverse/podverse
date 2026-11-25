@@ -12,6 +12,7 @@ export type CreateUserParams = {
   allow_directory_add_by_rss?: boolean | null;
   max_add_by_rss_feeds?: number | null;
   max_follows?: number | null;
+  max_queue_resources?: number | null;
   max_manual_refreshes_per_hour?: number | null;
   track_stats?: boolean | null;
   allow_notifications?: boolean | null;
@@ -35,6 +36,7 @@ export type User = {
   allow_directory_add_by_rss: boolean | null;
   max_add_by_rss_feeds: number | null;
   max_follows: number | null;
+  max_queue_resources: number | null;
   max_manual_refreshes_per_hour: number | null;
   track_stats: boolean | null;
   allow_notifications: boolean | null;
@@ -59,6 +61,7 @@ export type UpdateUserParams = {
   allow_directory_add_by_rss?: boolean | null;
   max_add_by_rss_feeds?: number | null;
   max_follows?: number | null;
+  max_queue_resources?: number | null;
   max_manual_refreshes_per_hour?: number | null;
   track_stats?: boolean | null;
   allow_notifications?: boolean | null;

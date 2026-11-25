@@ -1138,6 +1138,13 @@
     "manual_refresh_hourly_limit_reached": "Has alcanzado tu límite de actualización manual por esta hora.",
     "add_by_rss_feed_limit_reached": "Has alcanzado tu límite de {limit} feeds de Añadir por RSS. Para ampliarlo, escribe a {contactEmail}.",
     "follow_limit_reached": "Puedes seguir hasta {limit} pódcasts, listas y cuentas.",
+    "queue_history_limit_notice": {
+      "title": "Límite del historial",
+      "within": "Tu historial guarda hasta {limit} elementos. Estás a 50 de ese límite. Después, los elementos más antiguos del historial se eliminan mientras escuchas. Escribe a {contactEmail} si necesitas un límite mayor.",
+      "at_limit": "Tu historial guarda hasta {limit} elementos. Has llegado a ese límite, así que los elementos más antiguos del historial se eliminan mientras escuchas. Escribe a {contactEmail} si necesitas un límite mayor.",
+      "understand": "Entendido",
+      "save_failed": "No se pudo guardar. Inténtalo de nuevo."
+    },
     "directory_add_by_rss_trial_blocked": "Para evitar spam, las cuentas de prueba no pueden añadir feeds al directorio público. Necesitarás una cuenta Premium para añadir feeds, o escribe a <mail>{contactEmail}</mail> para pedir que añadamos este feed.",
     "trial_limitations_summary": "Algunas funciones no están disponibles durante el periodo de prueba para ayudar a reducir el spam y el abuso.",
     "trial_limitations_show_less": "Mostrar menos",

@@ -4,6 +4,9 @@ import {
   QUEUE_RESOURCE_DEFAULT_LIMIT,
   queueResourceLimitFor,
   queueResourceMigrationTier,
+  selectQueueResourceLimitToStored,
+  shouldShowQueueHistoryLimitNotice,
+  storedQueueResourceLimitToSelect,
 } from './queueResourceLimitTier.js';
 
 describe('queueResourceMigrationTier', () => {
@@ -25,5 +28,76 @@ describe('queueResourceLimitFor', () => {
     expect(queueResourceLimitFor(null)).toBe(QUEUE_RESOURCE_DEFAULT_LIMIT);
     expect(queueResourceLimitFor(undefined)).toBe(QUEUE_RESOURCE_DEFAULT_LIMIT);
     expect(queueResourceLimitFor(60000)).toBe(60000);
+  });
+});
+
+describe('shouldShowQueueHistoryLimitNotice', () => {
+  const limit = QUEUE_RESOURCE_DEFAULT_LIMIT;
+
+  it('stays hidden until 50 rows remain, then stays up through the cap', () => {
+    expect(
+      shouldShowQueueHistoryLimitNotice({
+        acknowledgedLimit: null,
+        largestQueueCount: limit - 51,
+        limit,
+      })
+    ).toBe(false);
+    expect(
+      shouldShowQueueHistoryLimitNotice({
+        acknowledgedLimit: null,
+        largestQueueCount: limit - 50,
+        limit,
+      })
+    ).toBe(true);
+    expect(
+      shouldShowQueueHistoryLimitNotice({
+        acknowledgedLimit: null,
+        largestQueueCount: limit - 49,
+        limit,
+      })
+    ).toBe(true);
+    expect(
+      shouldShowQueueHistoryLimitNotice({
+        acknowledgedLimit: null,
+        largestQueueCount: limit,
+        limit,
+      })
+    ).toBe(true);
+    expect(
+      shouldShowQueueHistoryLimitNotice({
+        acknowledgedLimit: null,
+        largestQueueCount: limit + 1,
+        limit,
+      })
+    ).toBe(true);
+  });
+
+  it('hides a cap that was already acknowledged and shows again when the cap changes', () => {
+    expect(
+      shouldShowQueueHistoryLimitNotice({
+        acknowledgedLimit: limit,
+        largestQueueCount: limit,
+        limit,
+      })
+    ).toBe(false);
+    expect(
+      shouldShowQueueHistoryLimitNotice({
+        acknowledgedLimit: limit,
+        largestQueueCount: 20000 - 50,
+        limit: 20000,
+      })
+    ).toBe(true);
+  });
+});
+
+describe('queue resource limit select', () => {
+  it('maps the empty default and listed tiers, and rejects the default and other integers', () => {
+    expect(storedQueueResourceLimitToSelect(null)).toBe('');
+    expect(storedQueueResourceLimitToSelect(10000)).toBe('');
+    expect(storedQueueResourceLimitToSelect(20000)).toBe('20000');
+    expect(selectQueueResourceLimitToStored('')).toBeNull();
+    expect(selectQueueResourceLimitToStored('20000')).toBe(20000);
+    expect(selectQueueResourceLimitToStored('10000')).toBeNull();
+    expect(selectQueueResourceLimitToStored('-1')).toBeNull();
   });
 });

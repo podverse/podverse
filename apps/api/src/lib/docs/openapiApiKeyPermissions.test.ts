@@ -26,7 +26,7 @@ type ApiKeyOperationRow = {
 };
 
 const sectionCounts: Record<ApiKeyResource, number> = {
-  account: 7,
+  account: 9,
   settings: 6,
   subscriptions: 34,
   add_by_rss: 12,
@@ -78,6 +78,8 @@ const operationTemplates: Record<
   account: [
     ['get', '/auth/me', 'read'],
     ['put', '/account', 'update'],
+    ['get', '/account/queue-history-limit-notice', 'read'],
+    ['post', '/account/queue-history-limit-notice', 'update'],
     ['get', '/account/{id_text}', 'read'],
     ['get', '/my-profile/podcasts/az', 'read'],
     ['get', '/my-profile/albums/az', 'read'],
@@ -426,9 +428,9 @@ function hasEmptyRequirement(operation: string): boolean {
 describe('OpenAPI API key permissions', () => {
   const rows = operationRows();
 
-  it('expands to 170 operations with the section counts', () => {
-    expect(rows).toHaveLength(170);
-    expect(new Set(rows.map((row) => `${row.method} ${row.path}`)).size).toBe(170);
+  it('expands to 172 operations with the section counts', () => {
+    expect(rows).toHaveLength(172);
+    expect(new Set(rows.map((row) => `${row.method} ${row.path}`)).size).toBe(172);
     for (const resource of API_KEY_RESOURCES) {
       expect(rows.filter((row) => row.resource === resource)).toHaveLength(sectionCounts[resource]);
     }
@@ -496,7 +498,7 @@ describe('OpenAPI API key permissions', () => {
         failures.push(`closed operation accepts a key: ${key}`);
       }
     }
-    if (permissionCount !== 170) {
+    if (permissionCount !== 172) {
       failures.push(`x-api-key-permission count ${permissionCount}`);
     }
 

@@ -1138,6 +1138,13 @@
     "manual_refresh_hourly_limit_reached": "",
     "add_by_rss_feed_limit_reached": "",
     "follow_limit_reached": "",
+    "queue_history_limit_notice": {
+      "title": "",
+      "within": "",
+      "at_limit": "",
+      "understand": "",
+      "save_failed": ""
+    },
     "directory_add_by_rss_trial_blocked": "",
     "trial_limitations_summary": "",
     "trial_limitations_show_less": "",

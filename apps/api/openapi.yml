@@ -9653,6 +9653,135 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/InternalServerErrorResponse"
+  /account/queue-history-limit-notice:
+    get:
+      operationId: apiGetAccountQueueHistoryLimitNotice
+      tags:
+        - account
+      summary: GET /account/queue-history-limit-notice
+      description: Returns whether to show the one-time history limit notice, the effective per-queue cap, and whether that cap is already reached. An API key needs account read.
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+        - apiKeyAuth: []
+      x-api-key-permission:
+        resource: account
+        action: read
+      responses:
+        "200":
+          description: Notice for the signed-in account
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - show
+                  - limit
+                  - at_limit
+                properties:
+                  show:
+                    type: boolean
+                  limit:
+                    type: integer
+                    example: 10000
+                  at_limit:
+                    type: boolean
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthorizationErrorResponse"
+        "404":
+          description: Account membership status not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NotFoundErrorResponse"
+    post:
+      operationId: apiPostAccountQueueHistoryLimitNotice
+      tags:
+        - account
+      summary: POST /account/queue-history-limit-notice
+      description: Records that the account acknowledged the current effective per-queue cap. The posted limit must equal that cap. An API key needs account update.
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+        - apiKeyAuth: []
+      x-api-key-permission:
+        resource: account
+        action: update
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - limit
+              properties:
+                limit:
+                  type: integer
+                  example: 10000
+      responses:
+        "200":
+          description: Acknowledgement saved. The notice stays hidden for this cap.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - show
+                  - limit
+                  - at_limit
+                properties:
+                  show:
+                    type: boolean
+                    example: false
+                  limit:
+                    type: integer
+                    example: 10000
+                  at_limit:
+                    type: boolean
+                    example: false
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ValidationErrorResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthorizationErrorResponse"
+        "404":
+          description: Account membership status not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NotFoundErrorResponse"
+        "409":
+          description: The posted limit is not the current cap
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - message
+                  - code
+                  - limit
+                properties:
+                  message:
+                    type: string
+                    example: Queue history limit changed
+                  code:
+                    type: string
+                    example: queue_history_limit_changed
+                  limit:
+                    type: integer
+                    example: 20000
   /account/content-log:
     get:
       operationId: apiGetAccountContentLog

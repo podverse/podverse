@@ -238,6 +238,7 @@ export * from './services/account/accountFollowingAccount.js';
 export * from './services/account/accountAddByRSSDirectoryConversion.js';
 export * from './services/account/accountFollowingAddByRSSChannel.js';
 export * from './services/account/accountFollowLimit.js';
+export * from './services/account/accountQueueHistoryLimitNotice.js';
 export * from './services/account/accountFollowingChannel.js';
 export * from './services/account/accountFollowingPlaylist.js';
 export * from './services/account/accountPhaseStatus.js';

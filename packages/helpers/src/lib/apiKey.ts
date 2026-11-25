@@ -35,8 +35,9 @@ export function formatApiKeyTokenHint(tokenHint: string): string {
 /**
  * Resources a key can grant, in the order web and mobile display them.
  *
- * - `account`: `GET /auth/me`, profile edits, the account's public profile, and its own profile
- *   lists. Never password, email, deletion, terms, or the data export.
+ * - `account`: `GET /auth/me`, profile edits, the account's public profile, its own profile
+ *   lists, and the queue history limit notice. Never password, email, deletion, terms, or the
+ *   data export.
  * - `settings`: locale, playback, notification settings, and device auto-download (writes only;
  *   settings are read through `GET /auth/me`). Never the listen-stats consent.
  * - `subscriptions`: followed podcasts, accounts, and playlists; subscribed lists; seen state; OPML

@@ -21,6 +21,7 @@ const MOCK_USER = {
   allow_directory_add_by_rss: null,
   max_add_by_rss_feeds: null,
   max_follows: null,
+  max_queue_resources: null,
   max_manual_refreshes_per_hour: null,
   track_stats: null,
   allow_notifications: null,
@@ -93,6 +94,8 @@ test.describe('Management-web user edit advanced overrides', () => {
     await expect(page.locator('#edit-user-rss-limit-info')).toContainText('6');
     await expect(page.locator('#edit-user-follow-limit-value')).toHaveText('Default');
     await expect(page.locator('#edit-user-follow-limit-info')).toContainText('500');
+    await expect(page.locator('#edit-user-queue-limit-value')).toHaveText('Default');
+    await expect(page.locator('#edit-user-queue-limit-info')).toContainText('10000');
     await expect(page.locator('#edit-user-refresh-limit')).toHaveAttribute(
       'placeholder',
       'Default: 3'

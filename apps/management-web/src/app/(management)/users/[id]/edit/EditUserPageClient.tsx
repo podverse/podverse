@@ -9,6 +9,7 @@ import type { ResolvedProductMembership } from '@podverse/helpers';
 import {
   AccountMembershipEnum,
   DEFAULT_MAX_FOLLOWS,
+  QUEUE_RESOURCE_DEFAULT_LIMIT,
   toDatetimeLocalInputValue,
 } from '@podverse/helpers';
 import type { FormDropdownOption } from '@podverse/ui';
@@ -45,6 +46,11 @@ import {
   selectFollowLimitToStored,
   storedFollowLimitToSelect,
 } from '../../../../../lib/followLimitSelect';
+import {
+  queueResourceLimitSelectOptions,
+  selectQueueResourceLimitToStored,
+  storedQueueResourceLimitToSelect,
+} from '../../../../../lib/queueResourceLimitSelect';
 import { getResolvedProductMembership } from '../../../../../lib/requests/productMembership';
 import { getUser, setUserPassword, updateUser, type User } from '../../../../../lib/requests/users';
 import { buildUserEditPath, buildUserPath, ROUTES } from '../../../../../lib/routes';
@@ -76,6 +82,7 @@ export function EditUserPageClient({ userId, initialTab }: Props) {
   const [allowDirectoryAddByRSS, setAllowDirectoryAddByRSS] = useState<boolean | null>(null);
   const [maxAddByRSSFeeds, setMaxAddByRSSFeeds] = useState<string>('');
   const [maxFollows, setMaxFollows] = useState<string>('');
+  const [maxQueueResources, setMaxQueueResources] = useState<string>('');
   const [maxManualRefreshesPerHour, setMaxManualRefreshesPerHour] = useState<string>('');
   const [trackStats, setTrackStats] = useState<boolean | null>(null);
   const [allowNotifications, setAllowNotifications] = useState<boolean | null>(null);
@@ -122,6 +129,14 @@ export function EditUserPageClient({ userId, initialTab }: Props) {
       followLimitSelectOptions({
         defaultLabel: t('advancedOverrides.addByRssFeedLimitDefault'),
         unlimitedLabel: t('advancedOverrides.addByRssFeedLimitUnlimited'),
+      }),
+    [t]
+  );
+
+  const queueLimitOptions = useMemo(
+    () =>
+      queueResourceLimitSelectOptions({
+        defaultLabel: t('advancedOverrides.addByRssFeedLimitDefault'),
       }),
     [t]
   );
@@ -229,6 +244,7 @@ export function EditUserPageClient({ userId, initialTab }: Props) {
           setAllowDirectoryAddByRSS(result.user.allow_directory_add_by_rss ?? null);
           setMaxAddByRSSFeeds(storedAddByRssFeedLimitToSelect(result.user.max_add_by_rss_feeds));
           setMaxFollows(storedFollowLimitToSelect(result.user.max_follows));
+          setMaxQueueResources(storedQueueResourceLimitToSelect(result.user.max_queue_resources));
           setMaxManualRefreshesPerHour(
             result.user.max_manual_refreshes_per_hour !== null
               ? String(result.user.max_manual_refreshes_per_hour)
@@ -264,6 +280,7 @@ export function EditUserPageClient({ userId, initialTab }: Props) {
         allow_directory_add_by_rss: allowDirectoryAddByRSS,
         max_add_by_rss_feeds: selectAddByRssFeedLimitToStored(maxAddByRSSFeeds),
         max_follows: selectFollowLimitToStored(maxFollows),
+        max_queue_resources: selectQueueResourceLimitToStored(maxQueueResources),
         max_manual_refreshes_per_hour:
           maxManualRefreshesPerHour.trim() === ''
             ? null
@@ -442,6 +459,16 @@ export function EditUserPageClient({ userId, initialTab }: Props) {
                         options={followLimitOptions}
                         value={maxFollows}
                         onChange={setMaxFollows}
+                      />
+                      <FormDropdown
+                        id="edit-user-queue-limit"
+                        eyebrow={t('advancedOverrides.queueLimit')}
+                        info={t('advancedOverrides.queueLimitHelp', {
+                          defaultLimit: QUEUE_RESOURCE_DEFAULT_LIMIT,
+                        })}
+                        options={queueLimitOptions}
+                        value={maxQueueResources}
+                        onChange={setMaxQueueResources}
                       />
                       <TextInput
                         id="edit-user-refresh-limit"

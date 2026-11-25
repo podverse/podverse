@@ -799,6 +799,8 @@
       "addByRssFeedLimitUnlimited": "Unlimited",
       "followLimit": "Follow limit override",
       "followLimitHelp": "Empty uses the shared default of {defaultLimit}. A listed tier is the most podcasts, playlists, and accounts this account can follow. Unlimited does not refuse a new follow.",
+      "queueLimit": "Queue Limit Override",
+      "queueLimitHelp": "Empty uses the shared default of {defaultLimit}. A listed tier is the most rows each queue can hold. Upcoming, now playing, and history share that cap. The oldest history row is removed when a new row would pass it.",
       "manualRefreshPerHour": "Manual refresh/hour limit override",
       "manualRefreshPerHourHelp": "Maximum manual refreshes per hour. Trial tier default: {trialDefault}. Premium tier default: {premiumDefault}. Selected tier default for overrides: {selectedDefault}.",
       "placeholderTierDefault": "Default: {count}",

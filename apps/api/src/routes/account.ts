@@ -24,6 +24,7 @@ import { AccountNotificationChannelController } from '@api/controllers/account/a
 import { AccountNotificationChannelTypeController } from '@api/controllers/account/accountNotificationChannelType.js';
 import { AccountOpmlExportController } from '@api/controllers/account/accountOpmlExport.js';
 import { AccountOpmlImportController } from '@api/controllers/account/accountOpmlImport.js';
+import { AccountQueueHistoryLimitNoticeController } from '@api/controllers/account/accountQueueHistoryLimitNotice.js';
 import { AccountTasteProfileController } from '@api/controllers/account/accountTasteProfile.js';
 import { AccountUnfollowBulkController } from '@api/controllers/account/accountUnfollowBulk.js';
 import { AccountUPDeviceController } from '@api/controllers/account/accountUPDevice.js';
@@ -349,6 +350,15 @@ router.post(
 router.delete(
   '/notification/channel/:channel_id_text/type/:type',
   asyncHandler(AccountNotificationChannelTypeController.delete)
+);
+
+router.get(
+  '/queue-history-limit-notice',
+  asyncHandler(AccountQueueHistoryLimitNoticeController.get)
+);
+router.post(
+  '/queue-history-limit-notice',
+  asyncHandler(AccountQueueHistoryLimitNoticeController.acknowledge)
 );
 
 router.get('/:id_text', asyncHandler(AccountController.getByIdText));

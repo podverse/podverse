@@ -1138,6 +1138,13 @@
     "manual_refresh_hourly_limit_reached": "You have reached your manual refresh limit for this hour.",
     "add_by_rss_feed_limit_reached": "You have reached your limit of {limit} Add by RSS feeds. To have it raised, email {contactEmail}.",
     "follow_limit_reached": "You can follow up to {limit} podcasts, playlists, and accounts.",
+    "queue_history_limit_notice": {
+      "title": "History Limit",
+      "within": "Your history keeps up to {limit} items. You are within 50 of that limit. After that, the oldest history items are removed as you listen. Email {contactEmail} if you need a higher limit.",
+      "at_limit": "Your history keeps up to {limit} items. You are at that limit, so the oldest history items are removed as you listen. Email {contactEmail} if you need a higher limit.",
+      "understand": "I Understand",
+      "save_failed": "Could not save. Try again."
+    },
     "directory_add_by_rss_trial_blocked": "To prevent spam, Trial accounts can't add feeds to the public directory. You will need a Premium account to add feeds, or email <mail>{contactEmail}</mail> to request that we add this feed.",
     "trial_limitations_summary": "Some features are unavailable during Trial to help reduce spam and abuse.",
     "trial_limitations_show_less": "Show Less",

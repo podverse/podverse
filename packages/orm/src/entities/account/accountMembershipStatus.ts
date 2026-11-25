@@ -40,6 +40,10 @@ export class AccountMembershipStatus {
   @Column({ type: 'integer', nullable: true })
   max_queue_resources?: number | null;
 
+  /** Effective queue cap acknowledged for the one-time history limit notice. */
+  @Column({ type: 'integer', nullable: true })
+  queue_history_limit_notice_limit?: number | null;
+
   @Column({ type: 'integer', nullable: true })
   max_manual_refreshes_per_hour?: number | null;
 

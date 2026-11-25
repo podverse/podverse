@@ -13,7 +13,8 @@ import type { ButtonVariant } from '../primitives/Button';
 /**
  * Presentational dialog: title + body with a required dismiss action, an optional confirm action,
  * and an optional second confirm. The second confirm is shown only with a first confirm. Top to
- * bottom: confirm, second confirm, dismiss.
+ * bottom: confirm, second confirm, dismiss. `confirmOnly` keeps a single confirm and ignores the
+ * scrim and the hardware back button.
  * All copy arrives already localized so each host owns wording and test IDs.
  */
 export type ConfirmDialogProps = {
@@ -25,6 +26,12 @@ export type ConfirmDialogProps = {
   confirmVariant?: ButtonVariant;
   /** When true, the confirm action shows its loading state. */
   confirmLoading?: boolean;
+  /** Single confirm. The scrim and hardware back do not dismiss. */
+  confirmOnly?: boolean;
+  /** Shown under the body when the confirm did not finish. */
+  error?: string;
+  /** When false, the scrim and hardware back do not dismiss. Ignored while `confirmOnly`. */
+  requestCloseDismisses?: boolean;
   onCancel: () => void;
   onConfirm?: () => void;
   testID: string;
@@ -44,6 +51,9 @@ export function ConfirmDialog({
   confirmLabel,
   confirmVariant,
   confirmLoading,
+  confirmOnly = false,
+  error,
+  requestCloseDismisses = true,
   onCancel,
   onConfirm,
   testID,
@@ -72,6 +82,11 @@ export function ConfirmDialog({
         body: {
           ...typography.prose,
           color: themeStyles.textSecondary.color,
+        },
+        error: {
+          ...typography.prose,
+          color: themeStyles.textSecondary.color,
+          marginTop: tokens.spacing.md,
         },
         contents: {
           flex: 1,
@@ -123,19 +138,28 @@ export function ConfirmDialog({
           variant: 'outline',
         }
       : undefined;
+  const dismissesOnRequest = confirmOnly !== true && requestCloseDismisses;
   const actions: readonly FormAction[] = [
     confirmAction,
     secondaryConfirmAction,
-    cancelAction,
+    confirmOnly ? undefined : cancelAction,
   ].filter((action): action is FormAction => action !== undefined);
 
   return (
-    <AppOverlay animation="fade" onRequestClose={onCancel} visible={visible}>
+    <AppOverlay
+      animation="fade"
+      onRequestClose={dismissesOnRequest ? onCancel : () => undefined}
+      visible={visible}
+    >
       <OverlayScrim style={styles.contents}>
         {/* The scrim is a sighted-only shortcut for the cancel button, so it stays out of the
             accessibility tree; `accessibilityViewIsModal` keeps VoiceOver inside the dialog rather
             than letting it wander onto the screen behind. */}
-        <Pressable accessible={false} onPress={onCancel} style={styles.backdrop}>
+        <Pressable
+          accessible={false}
+          onPress={dismissesOnRequest ? onCancel : undefined}
+          style={styles.backdrop}
+        >
           <Pressable
             accessibilityViewIsModal
             accessibilityRole="alert"
@@ -145,6 +169,11 @@ export function ConfirmDialog({
           >
             <Text style={styles.title}>{title}</Text>
             <Text style={styles.body}>{body}</Text>
+            {error !== undefined && error !== '' ? (
+              <Text accessibilityLiveRegion="polite" style={styles.error}>
+                {error}
+              </Text>
+            ) : null}
             <FormActions actions={actions} style={styles.actions} />
           </Pressable>
         </Pressable>

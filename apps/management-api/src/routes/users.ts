@@ -15,6 +15,7 @@ import {
   getAccountSignupModeCapabilities,
   isSavableAddByRssFeedLimit,
   isSavableFollowLimit,
+  isSavableQueueResourceLimit,
   ONE_MINUTE_MS,
   type PremiumBillingCadence,
   SharableStatusEnum,
@@ -38,6 +39,16 @@ const ADD_BY_RSS_FEED_LIMIT_SAVE_MESSAGE =
 
 const FOLLOW_LIMIT_SAVE_MESSAGE =
   'max_follows must be empty, unlimited, or one of 1000, 2000, 3000, 4000, 5000, 10000';
+
+const QUEUE_RESOURCE_LIMIT_SAVE_MESSAGE =
+  'max_queue_resources must be empty or one of 20000, 30000, 40000, 50000, 60000, 100000';
+
+function queueResourceLimitSaveIsInvalid(value: number | null | undefined): boolean {
+  if (value === undefined) {
+    return false;
+  }
+  return !isSavableQueueResourceLimit(value);
+}
 
 function followLimitSaveIsInvalid(value: number | null | undefined): boolean {
   if (value === undefined) {
@@ -156,6 +167,7 @@ function userRowToJson(row: Record<string, unknown>) {
     allow_directory_add_by_rss: row.allow_directory_add_by_rss ?? null,
     max_add_by_rss_feeds: row.max_add_by_rss_feeds ?? null,
     max_follows: row.max_follows ?? null,
+    max_queue_resources: row.max_queue_resources ?? null,
     max_manual_refreshes_per_hour: row.max_manual_refreshes_per_hour ?? null,
     track_stats: row.track_stats ?? null,
     allow_notifications: row.allow_notifications ?? null,
@@ -200,7 +212,7 @@ router.get('/', ensureAuthenticated, requireSuperuser, async (req, res, next) =>
       `SELECT a.id, a.id_text, a.verified, a.sharable_status_id, a.created_at,
               ac.email, ac.username,
               ams.account_membership_id, ams.membership_expires_at,
-              ams.allow_directory_add_by_rss, ams.max_add_by_rss_feeds, ams.max_follows,
+              ams.allow_directory_add_by_rss, ams.max_add_by_rss_feeds, ams.max_follows, ams.max_queue_resources,
               ams.max_manual_refreshes_per_hour, ams.track_stats, ams.allow_notifications
        FROM account a
        LEFT JOIN account_credentials ac ON ac.account_id = a.id
@@ -233,7 +245,7 @@ router.get('/:id', ensureAuthenticated, requireSuperuser, async (req, res, next)
       `SELECT a.id, a.id_text, a.verified, a.sharable_status_id, a.created_at,
                 ac.email, ac.username,
                 ams.account_membership_id, ams.membership_expires_at,
-                ams.allow_directory_add_by_rss, ams.max_add_by_rss_feeds, ams.max_follows,
+                ams.allow_directory_add_by_rss, ams.max_add_by_rss_feeds, ams.max_follows, ams.max_queue_resources,
                 ams.max_manual_refreshes_per_hour, ams.track_stats, ams.allow_notifications
          FROM account a
          LEFT JOIN account_credentials ac ON ac.account_id = a.id
@@ -265,6 +277,7 @@ router.post('/', ensureAuthenticated, requireSuperuser, async (req, res, next) =
       allow_directory_add_by_rss,
       max_add_by_rss_feeds,
       max_follows,
+      max_queue_resources,
       max_manual_refreshes_per_hour,
       track_stats,
       allow_notifications,
@@ -278,6 +291,7 @@ router.post('/', ensureAuthenticated, requireSuperuser, async (req, res, next) =
       allow_directory_add_by_rss?: boolean | null;
       max_add_by_rss_feeds?: number | null;
       max_follows?: number | null;
+      max_queue_resources?: number | null;
       max_manual_refreshes_per_hour?: number | null;
       track_stats?: boolean | null;
       allow_notifications?: boolean | null;
@@ -346,6 +360,11 @@ router.post('/', ensureAuthenticated, requireSuperuser, async (req, res, next) =
       return;
     }
 
+    if (queueResourceLimitSaveIsInvalid(max_queue_resources)) {
+      res.status(400).json({ message: QUEUE_RESOURCE_LIMIT_SAVE_MESSAGE });
+      return;
+    }
+
     const locale = process.env.DEFAULT_ACCOUNT_SETTINGS_LOCALE || 'en-US';
 
     const existingCheck = await AppDbDataSourceRead.query(
@@ -408,16 +427,18 @@ router.post('/', ensureAuthenticated, requireSuperuser, async (req, res, next) =
         allow_directory_add_by_rss,
         max_add_by_rss_feeds,
         max_follows,
+        max_queue_resources,
         max_manual_refreshes_per_hour,
         track_stats,
         allow_notifications
-      ) VALUES ($1, $2, NULL, $3, $4, $5, $6, $7, $8)`,
+      ) VALUES ($1, $2, NULL, $3, $4, $5, $6, $7, $8, $9)`,
       [
         accountId,
         membershipId,
         allow_directory_add_by_rss ?? null,
         max_add_by_rss_feeds ?? null,
         max_follows ?? null,
+        max_queue_resources ?? null,
         max_manual_refreshes_per_hour ?? null,
         track_stats ?? null,
         allow_notifications ?? null,
@@ -491,6 +512,7 @@ router.patch('/:id', ensureAuthenticated, requireSuperuser, async (req, res, nex
       allow_directory_add_by_rss,
       max_add_by_rss_feeds,
       max_follows,
+      max_queue_resources,
       max_manual_refreshes_per_hour,
       track_stats,
       allow_notifications,
@@ -503,6 +525,7 @@ router.patch('/:id', ensureAuthenticated, requireSuperuser, async (req, res, nex
       allow_directory_add_by_rss?: boolean | null;
       max_add_by_rss_feeds?: number | null;
       max_follows?: number | null;
+      max_queue_resources?: number | null;
       max_manual_refreshes_per_hour?: number | null;
       track_stats?: boolean | null;
       allow_notifications?: boolean | null;
@@ -545,6 +568,11 @@ router.patch('/:id', ensureAuthenticated, requireSuperuser, async (req, res, nex
 
     if (followLimitSaveIsInvalid(max_follows)) {
       res.status(400).json({ message: FOLLOW_LIMIT_SAVE_MESSAGE });
+      return;
+    }
+
+    if (queueResourceLimitSaveIsInvalid(max_queue_resources)) {
+      res.status(400).json({ message: QUEUE_RESOURCE_LIMIT_SAVE_MESSAGE });
       return;
     }
 
@@ -600,6 +628,7 @@ router.patch('/:id', ensureAuthenticated, requireSuperuser, async (req, res, nex
       allow_directory_add_by_rss !== undefined ||
       max_add_by_rss_feeds !== undefined ||
       max_follows !== undefined ||
+      max_queue_resources !== undefined ||
       max_manual_refreshes_per_hour !== undefined ||
       track_stats !== undefined ||
       allow_notifications !== undefined
@@ -691,6 +720,10 @@ router.patch('/:id', ensureAuthenticated, requireSuperuser, async (req, res, nex
         membershipParams.push(max_follows);
         membershipSets.push(`max_follows = $${membershipParams.length}`);
       }
+      if (max_queue_resources !== undefined) {
+        membershipParams.push(max_queue_resources);
+        membershipSets.push(`max_queue_resources = $${membershipParams.length}`);
+      }
       if (max_manual_refreshes_per_hour !== undefined) {
         membershipParams.push(max_manual_refreshes_per_hour);
         membershipSets.push(`max_manual_refreshes_per_hour = $${membershipParams.length}`);
@@ -745,7 +778,7 @@ router.patch('/:id', ensureAuthenticated, requireSuperuser, async (req, res, nex
       `SELECT a.id, a.id_text, a.verified, a.sharable_status_id, a.created_at,
                 ac.email, ac.username,
                 ams.account_membership_id, ams.membership_expires_at,
-                ams.allow_directory_add_by_rss, ams.max_add_by_rss_feeds, ams.max_follows,
+                ams.allow_directory_add_by_rss, ams.max_add_by_rss_feeds, ams.max_follows, ams.max_queue_resources,
                 ams.max_manual_refreshes_per_hour, ams.track_stats, ams.allow_notifications
          FROM account a
          LEFT JOIN account_credentials ac ON ac.account_id = a.id

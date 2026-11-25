@@ -38,6 +38,14 @@ const LazyMembershipExpirationToast = dynamic(
   { ssr: false }
 );
 
+const LazyQueueHistoryLimitNotice = dynamic(
+  () =>
+    import('../Modal/QueueHistoryLimitNotice').then((m) => ({
+      default: m.QueueHistoryLimitNotice,
+    })),
+  { ssr: false }
+);
+
 export function LazyLoadedComponents() {
   return (
     <>
@@ -49,6 +57,7 @@ export function LazyLoadedComponents() {
       </ErrorBoundaryWrapper>
       <LazyToast />
       <LazyMembershipExpirationToast />
+      <LazyQueueHistoryLimitNotice />
     </>
   );
 }

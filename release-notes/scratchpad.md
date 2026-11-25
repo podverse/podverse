@@ -306,3 +306,18 @@
   `NEXT_PUBLIC_HOME_DEFAULT_SORT`, and `NEXT_PUBLIC_HOME_DEFAULT_VIEW`. Blank keeps the Browse
   opening above and the Subscribed opening already in use. A set Home sort applies signed in and
   signed out. The app reads the same names with the `EXPO_PUBLIC_` prefix and needs a new build.
+
+## History limit notice and queue cap override
+
+- Surfaces: api, web, mobile, management-api, management-web, k8s
+- Change: A signed-in listener sees one History Limit dialog when their fullest queue is within 50
+  rows of the cap, including once the cap is reached. I Understand is the only way to dismiss it.
+  The account remembers the cap it acknowledged, including the default of 10,000, and the dialog
+  returns only after that cap changes and they are within 50 of the new one. Management create and
+  edit user can set the per-queue cap to empty (10,000) or 20,000, 30,000, 40,000, 50,000, 60,000,
+  or 100,000. There is no unlimited value. Upcoming, now playing, and history share the cap.
+- Who notices: signed-in listeners near the cap on web and mobile; operators raising a listener's
+  queue cap
+- Operator steps: app migrations run through `0020_account_queue_history_limit_notice_limit.sql`.
+  `API_EXPECTED_MIGRATION_FILENAME` is that file. The management marker stays
+  `0002_nano_id_v2_min_7.sql`.

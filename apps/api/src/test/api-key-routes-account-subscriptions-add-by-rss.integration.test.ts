@@ -123,6 +123,10 @@ function route(
 
 const ROUTE_CASES: RouteCase[] = [
   route('put', '/account', 'account', 'update', { body: PROFILE_BODY }),
+  route('get', '/account/queue-history-limit-notice', 'account', 'read'),
+  route('post', '/account/queue-history-limit-notice', 'account', 'update', {
+    body: { limit: 10000 },
+  }),
   route('get', `/account/${PLACEHOLDER_ID}`, 'account', 'read'),
   route('get', '/my-profile/podcasts/az', 'account', 'read', { query: PAGE }),
   route('get', '/my-profile/albums/az', 'account', 'read', { query: PAGE }),
@@ -354,8 +358,8 @@ describe('API key access for account, subscriptions, and Add by RSS', () => {
   }
 
   it('covers every labeled account, subscription, and Add by RSS route', () => {
-    expect(ROUTE_CASES).toHaveLength(46);
-    expect(ROUTE_CASES.filter((routeCase) => routeCase.resource === 'account')).toHaveLength(6);
+    expect(ROUTE_CASES).toHaveLength(48);
+    expect(ROUTE_CASES.filter((routeCase) => routeCase.resource === 'account')).toHaveLength(8);
     expect(ROUTE_CASES.filter((routeCase) => routeCase.resource === 'subscriptions')).toHaveLength(
       28
     );

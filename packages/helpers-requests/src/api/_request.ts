@@ -124,6 +124,10 @@ import {
   reqAccountPlaybackSendCommand,
 } from './account/playback.js';
 import {
+  reqAccountQueueHistoryLimitNoticeAcknowledge,
+  reqAccountQueueHistoryLimitNoticeGet,
+} from './account/queueHistoryLimitNotice.js';
+import {
   reqAccountChannelHidden,
   reqAccountChannelHiddenHide,
   reqAccountChannelHiddenUnhide,
@@ -923,6 +927,14 @@ export class ApiRequestService {
   }
 
   /* ACCOUNT > PLAYBACK */
+
+  reqAccountQueueHistoryLimitNoticeGet() {
+    return reqAccountQueueHistoryLimitNoticeGet(this);
+  }
+
+  reqAccountQueueHistoryLimitNoticeAcknowledge(params: { limit: number }) {
+    return reqAccountQueueHistoryLimitNoticeAcknowledge(this, params);
+  }
 
   reqAccountPlaybackCheckIn() {
     return reqAccountPlaybackCheckIn(this);

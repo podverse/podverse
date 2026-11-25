@@ -435,6 +435,58 @@ describe('PATCH /users/:id', () => {
     );
   });
 
+  it('rejects a queue limit outside the tier list', async () => {
+    const res = await request(app)
+      .patch(`${usersBase}/1`)
+      .set(superuserAuthHeaders())
+      .send({ max_queue_resources: 17 });
+
+    expect(res.status).toBe(400);
+    expect(res.body.message).toBe(
+      'max_queue_resources must be empty or one of 20000, 30000, 40000, 50000, 60000, 100000'
+    );
+    expect(readQueryMock).not.toHaveBeenCalled();
+  });
+
+  it('stores a listed queue limit and rejects unlimited', async () => {
+    const unlimited = await request(app)
+      .patch(`${usersBase}/1`)
+      .set(superuserAuthHeaders())
+      .send({ max_queue_resources: -1 });
+
+    expect(unlimited.status).toBe(400);
+
+    readQueryMock.mockResolvedValueOnce([{ id: 1 }]);
+    readQueryMock.mockResolvedValueOnce([
+      { account_membership_id: 1, membership_expires_at: null },
+    ]);
+    readWriteQueryMock.mockResolvedValueOnce(undefined);
+    readQueryMock.mockResolvedValueOnce([
+      {
+        id: 1,
+        id_text: 'abc123',
+        verified: true,
+        sharable_status_id: 3,
+        created_at: new Date(),
+        email: null,
+        username: 'kept',
+        max_queue_resources: 20000,
+      },
+    ]);
+
+    const res = await request(app)
+      .patch(`${usersBase}/1`)
+      .set(superuserAuthHeaders())
+      .send({ max_queue_resources: 20000 });
+
+    expect(res.status).toBe(200);
+    expect(res.body.user.max_queue_resources).toBe(20000);
+    expect(readWriteQueryMock).toHaveBeenCalledWith(
+      expect.stringContaining('max_queue_resources = $1'),
+      [20000, 1]
+    );
+  });
+
   it('returns 404 for non-existent user', async () => {
     readQueryMock.mockResolvedValueOnce([]); // existence check
 
@@ -845,7 +897,7 @@ describe('POST /users', () => {
     const membershipInsertCall = readWriteQueryMock.mock.calls[6];
     expect(membershipInsertCall?.[0]).toContain('INSERT INTO account_membership_status');
     expect(membershipInsertCall?.[0]).toContain('VALUES ($1, $2, NULL,');
-    expect(membershipInsertCall?.[1]).toEqual([42, 1, null, null, null, null, null, null]);
+    expect(membershipInsertCall?.[1]).toEqual([42, 1, null, null, null, null, null, null, null]);
     expect(ledger.startTrial).toHaveBeenCalledTimes(1);
     expect(ledger.startTrial).toHaveBeenCalledWith(
       expect.objectContaining({ accountId: 42, trialSeconds: 120 })

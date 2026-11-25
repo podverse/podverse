@@ -799,6 +799,8 @@
       "addByRssFeedLimitUnlimited": "",
       "followLimit": "",
       "followLimitHelp": "",
+      "queueLimit": "",
+      "queueLimitHelp": "",
       "manualRefreshPerHour": "",
       "manualRefreshPerHourHelp": "",
       "placeholderTierDefault": "",
