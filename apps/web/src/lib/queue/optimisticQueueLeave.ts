@@ -1,14 +1,12 @@
 import type { QueueExtraParams } from '@podverse/helpers';
 import type { DTOQueueResource } from '@podverse/helpers/dto';
+import type { LocalQueueLists, QueueZoneWrite, QueueZoneWriteQueue } from '@podverse/playback-core';
 import {
   emptyQueueZoneWriteQueue,
   enqueueNextLeave,
   enqueuePreviousRestore,
-  type LocalQueueLists,
   noteQueueZoneWritePosted,
   queueResourceContentId,
-  type QueueZoneWrite,
-  type QueueZoneWriteQueue,
   stepLocalQueueNext,
   stepLocalQueuePrevious,
 } from '@podverse/playback-core';

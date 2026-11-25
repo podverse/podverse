@@ -1,12 +1,11 @@
 import { describe, expect, it } from 'vitest';
 
+import type { LocalQueueLists, QueueZoneWriteQueue } from '../localQueueLeave.js';
 import {
   emptyQueueZoneWriteQueue,
   enqueueNextLeave,
   enqueuePreviousRestore,
-  type LocalQueueLists,
   noteQueueZoneWritePosted,
-  type QueueZoneWriteQueue,
   resolveLocalPrevious,
   stepLocalQueueNext,
 } from '../localQueueLeave.js';

@@ -2,16 +2,18 @@ import { useCallback, useRef } from 'react';
 
 import type { PlaybackEventKind } from '@podverse/helpers';
 import type { DTOQueueResource, QueueExtraParams } from '@podverse/helpers/dto';
-import type { PlaybackTarget } from '@podverse/playback-core';
+import type {
+  LocalQueueLists,
+  PlaybackTarget,
+  QueueZoneWrite,
+  QueueZoneWriteQueue,
+} from '@podverse/playback-core';
 import {
   emptyQueueZoneWriteQueue,
   enqueueNextLeave,
   enqueuePreviousRestore,
-  type LocalQueueLists,
   noteQueueZoneWritePosted,
   queueResourceContentId,
-  type QueueZoneWrite,
-  type QueueZoneWriteQueue,
   stepLocalQueueNext,
   stepLocalQueuePrevious,
 } from '@podverse/playback-core';

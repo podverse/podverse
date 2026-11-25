@@ -1,10 +1,9 @@
 import { describe, expect, it } from 'vitest';
 
+import type { LocalQueueLists, QueueZoneWriteQueue } from '@podverse/playback-core';
 import {
   emptyQueueZoneWriteQueue,
   enqueueNextLeave,
-  type LocalQueueLists,
-  type QueueZoneWriteQueue,
   stepLocalQueueNext,
 } from '@podverse/playback-core';
 

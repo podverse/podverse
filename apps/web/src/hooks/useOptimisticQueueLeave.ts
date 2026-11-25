@@ -13,10 +13,8 @@ import {
 import { useAutoQueue } from '../contexts/AutoQueue';
 import { useQueues } from '../contexts/Queue';
 import { getApiRequestService } from '../factories/apiRequestService';
-import {
-  bindOptimisticQueueLeave,
-  type OptimisticQueueLeaveBindings,
-} from '../lib/queue/optimisticQueueLeave';
+import type { OptimisticQueueLeaveBindings } from '../lib/queue/optimisticQueueLeave';
+import { bindOptimisticQueueLeave } from '../lib/queue/optimisticQueueLeave';
 import { checkIsLiveItem } from '../utils/mediaPlayer/mediaPlayerItemEnclosureType';
 import { useMediaPlayerResourceUpdate } from './useMediaPlayerResourceUpdate';
 
