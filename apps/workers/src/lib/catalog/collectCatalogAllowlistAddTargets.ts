@@ -75,8 +75,7 @@ export async function collectCatalogAllowlistAddTargets({
       unavailable.push(podcastIndexId);
     } else if (lookup.status === 'found' && !lookup.value.isDead) {
       const reported = reportedPodcastIndexId(lookup.value);
-      const liveId =
-        reported !== null && reported !== podcastIndexId ? reported : podcastIndexId;
+      const liveId = reported !== null && reported !== podcastIndexId ? reported : podcastIndexId;
       const moved = liveId !== podcastIndexId;
       records.push({
         listedPodcastIndexId: podcastIndexId,
@@ -85,9 +84,7 @@ export async function collectCatalogAllowlistAddTargets({
         feedUrl: lookup.value.feedUrl,
       });
       const covered =
-        storedPodcastIndexIds.has(liveId) ||
-        queued.has(liveId) ||
-        (moved && listed.has(liveId));
+        storedPodcastIndexIds.has(liveId) || queued.has(liveId) || (moved && listed.has(liveId));
       if (!covered) {
         targets.push({
           podcastIndexId: liveId,
@@ -112,11 +109,7 @@ export async function collectCatalogAllowlistAddTargets({
       unresolved.push(sourcePodcastIndexId);
       continue;
     }
-    if (
-      storedPodcastIndexIds.has(survivorId) ||
-      listed.has(survivorId) ||
-      queued.has(survivorId)
-    ) {
+    if (storedPodcastIndexIds.has(survivorId) || listed.has(survivorId) || queued.has(survivorId)) {
       records.push({
         listedPodcastIndexId: sourcePodcastIndexId,
         resolvedPodcastIndexId: survivorId,

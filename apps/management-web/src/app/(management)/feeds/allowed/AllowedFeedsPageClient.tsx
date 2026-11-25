@@ -2,8 +2,8 @@
 
 import Link from 'next/link';
 import { useTranslations } from 'next-intl';
-import { useCallback, useEffect, useMemo, useState } from 'react';
 import type { FormEvent } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 
 import type {
   CatalogAllowlistDirectoryHit,

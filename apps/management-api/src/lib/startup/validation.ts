@@ -248,10 +248,20 @@ const validateAllEnvironmentVariables = (env: StartupEnv, command?: string): Val
   results.push(...validateStrikeProcessorEnv(env));
   results.push(...validateCatalogEnv(env, ''));
   results.push(
-    validateOptional(env, 'PODCAST_INDEX_AUTH_KEY', 'Podcast Index', 'Blank: directory search is off')
+    validateOptional(
+      env,
+      'PODCAST_INDEX_AUTH_KEY',
+      'Podcast Index',
+      'Blank: directory search is off'
+    )
   );
   results.push(
-    validateOptional(env, 'PODCAST_INDEX_BASE_URL', 'Podcast Index', 'Blank: directory search is off')
+    validateOptional(
+      env,
+      'PODCAST_INDEX_BASE_URL',
+      'Podcast Index',
+      'Blank: directory search is off'
+    )
   );
   results.push(
     validateOptional(

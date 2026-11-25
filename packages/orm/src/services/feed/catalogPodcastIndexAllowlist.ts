@@ -233,9 +233,7 @@ export class CatalogPodcastIndexAllowlistService {
         origin: row.origin,
         title: row.title,
         feed_url: row.feedUrl,
-        stored:
-          storedIds.has(row.podcastIndexId) ||
-          (resolved !== null && storedIds.has(resolved)),
+        stored: storedIds.has(row.podcastIndexId) || (resolved !== null && storedIds.has(resolved)),
         removable: row.origin === 'admin' && !env.has(row.podcastIndexId),
       });
     }

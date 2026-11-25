@@ -197,7 +197,8 @@ export function registerFeedCatalogAllowlistRoutes(router: Router): void {
       if (result === 'on_env_list') {
         res.status(409).json({
           code: 'on_deployment_allowlist',
-          message: 'That id is on the deployment allowlist. Change the deployment list to remove it.',
+          message:
+            'That id is on the deployment allowlist. Change the deployment list to remove it.',
         });
         return;
       }

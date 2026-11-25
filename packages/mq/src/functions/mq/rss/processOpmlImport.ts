@@ -182,8 +182,7 @@ export const processOpmlImportJob = async (
                   : null;
             const allowlist = catalogPodcastIndexIdAllowlist ?? null;
             const listedInEnv =
-              allowlist === null ||
-              (podcastIndexId !== null && allowlist.includes(podcastIndexId));
+              allowlist === null || (podcastIndexId !== null && allowlist.includes(podcastIndexId));
             const listedInTable =
               podcastIndexId !== null && allowlist !== null && !listedInEnv
                 ? await catalogAllowlistTableAdmits([podcastIndexId])

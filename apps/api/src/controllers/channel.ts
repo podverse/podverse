@@ -309,10 +309,7 @@ export class ChannelController {
           }
         }
         const data: Channel | null = lookupIdText
-          ? await ChannelController.channelService.getByIdText(
-              lookupIdText,
-              channelGetOneRelations
-            )
+          ? await ChannelController.channelService.getByIdText(lookupIdText, channelGetOneRelations)
           : await ChannelController.channelService.getByPodcastIndexId(
               lookupId,
               channelGetOneRelations

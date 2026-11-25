@@ -38,8 +38,7 @@ export class FeedController {
             return;
           }
         }
-        const aliasId =
-          await FeedController.allowlist.storedPodcastIndexIdForAlias(numericId);
+        const aliasId = await FeedController.allowlist.storedPodcastIndexIdForAlias(numericId);
         if (aliasId !== null) {
           const aliasSurvivorIdText =
             await FeedController.mergeRedirects.survivorIdTextForPodcastIndexId(aliasId);

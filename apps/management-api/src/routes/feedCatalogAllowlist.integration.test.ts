@@ -162,14 +162,11 @@ describe('catalog allowlist management routes', () => {
 
   it('adds an admin row and does not enqueue', async () => {
     insertAdminMock.mockResolvedValue('created');
-    const response = await request(app)
-      .post(`${feedsBase}/catalog-allowlist`)
-      .set(auth(1))
-      .send({
-        podcast_index_id: 77,
-        title: 'Directory Show',
-        feed_url: 'https://dir.example/feed.xml',
-      });
+    const response = await request(app).post(`${feedsBase}/catalog-allowlist`).set(auth(1)).send({
+      podcast_index_id: 77,
+      title: 'Directory Show',
+      feed_url: 'https://dir.example/feed.xml',
+    });
     expect(response.status).toBe(201);
     expect(insertAdminMock).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -204,18 +201,14 @@ describe('catalog allowlist management routes', () => {
 
   it('removes an admin row and leaves the response without deleting a feed', async () => {
     removeAdminMock.mockResolvedValue('removed');
-    const response = await request(app)
-      .delete(`${feedsBase}/catalog-allowlist/77`)
-      .set(auth(1));
+    const response = await request(app).delete(`${feedsBase}/catalog-allowlist/77`).set(auth(1));
     expect(response.status).toBe(204);
     expect(removeAdminMock).toHaveBeenCalledWith(77, [10]);
   });
 
   it('refuses to remove an id that is still on the env list', async () => {
     removeAdminMock.mockResolvedValue('on_env_list');
-    const response = await request(app)
-      .delete(`${feedsBase}/catalog-allowlist/10`)
-      .set(auth(1));
+    const response = await request(app).delete(`${feedsBase}/catalog-allowlist/10`).set(auth(1));
     expect(response.status).toBe(409);
     expect(response.body.code).toBe('on_deployment_allowlist');
   });

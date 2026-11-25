@@ -27,7 +27,11 @@ function feed(
   };
 }
 
-function live(id: number, feedUrl: string, title: string | null = null): IndexProviderLookup<IndexProviderFeed> {
+function live(
+  id: number,
+  feedUrl: string,
+  title: string | null = null
+): IndexProviderLookup<IndexProviderFeed> {
   return feed(String(id), feedUrl, false, title);
 }
 
