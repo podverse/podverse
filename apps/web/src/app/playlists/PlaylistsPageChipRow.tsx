@@ -10,6 +10,7 @@ import { Button, ChipRow, ChipRowWithActions, MenuChip } from '@podverse/ui';
 import type { MediaListChipsConfig } from '../../components/MediaListChips/MediaListChips';
 import { MediaListChips } from '../../components/MediaListChips/MediaListChips';
 import { MediaListTrailingChips } from '../../components/MediaListChips/MediaListTrailingChips';
+import { useConfig } from '../../contexts/Config';
 import { playlistMediumForCatalog } from '../../lib/catalog/catalogListMedium';
 import { usePlaylistsPageContext } from './PlaylistsPageContext';
 import { getPlaylistsPageSortOptions } from './PlaylistsPageDropdownConfig';
@@ -21,6 +22,7 @@ type PlaylistsTypeKey = 'private' | 'private_followed' | 'public';
 export function PlaylistsPageChipRow({ chipsConfig }: { chipsConfig?: MediaListChipsConfig }) {
   const { filterParams, listScope, musicFilterVisible, setFilterParams } =
     usePlaylistsPageContext();
+  const playlistsPage = useConfig().public.playlistsPage;
   const router = useRouter();
   const tFeatures = useTranslations('features');
   const tFilters = useTranslations('filters');
@@ -31,7 +33,13 @@ export function PlaylistsPageChipRow({ chipsConfig }: { chipsConfig?: MediaListC
       return;
     }
     if (type === 'public') {
-      setFilterParams({ ...filterParams, type, sort: 'top', range: 'week', page: 1 });
+      setFilterParams({
+        ...filterParams,
+        type,
+        sort: playlistsPage.sort,
+        range: playlistsPage.range,
+        page: 1,
+      });
       return;
     }
     setFilterParams({ ...filterParams, type, sort: 'a_z', range: null, page: 1 });

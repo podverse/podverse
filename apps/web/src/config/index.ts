@@ -4,6 +4,8 @@ import type { AccountSignupMode } from '@podverse/helpers';
 import {
   DEFAULT_STATS_TRACK_EVENT_RETENTION_DAYS,
   parseListScreenDefaults,
+  parsePlaylistsPageDefaults,
+  playlistsPublicOpening,
 } from '@podverse/helpers';
 import { buildCatalogConfigFromEnv, optionalEnvString } from '@podverse/helpers-config';
 import { buildObservabilityConfigFromEnv } from '@podverse/observability/config';
@@ -97,6 +99,12 @@ const buildConfig = () => {
         homeSort: env.NEXT_PUBLIC_HOME_DEFAULT_SORT,
         homeView: env.NEXT_PUBLIC_HOME_DEFAULT_VIEW,
       }).defaults,
+      playlistsPage: playlistsPublicOpening(
+        parsePlaylistsPageDefaults({
+          sort: env.NEXT_PUBLIC_PLAYLISTS_DEFAULT_SORT,
+          range: env.NEXT_PUBLIC_PLAYLISTS_DEFAULT_RANGE,
+        }).defaults
+      ),
       theme: {
         customThemes: runtimeConfig.customThemes,
         customThemesUrl: optionalEnvString(env.NEXT_PUBLIC_CUSTOM_THEMES_URL),

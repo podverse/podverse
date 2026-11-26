@@ -11,7 +11,7 @@ test.describe('Playlists and Profiles chip rows', () => {
   test('The playlists page shows type chips, then the Filter and Sort chips', async ({
     page,
   }, testInfo) => {
-    await test.step('My Playlists, Subscribed, and Global are followed by Filter and Sort, and My Playlists sorts A-Z', async () => {
+    await test.step('My Playlists, Subscribed, and Global are followed by Filter and Sort. Global opens on Recent, and My Playlists sorts A-Z', async () => {
       await page.setViewportSize({ width: 1280, height: 720 });
       await page.goto('/playlists');
       await expectAppPath(page, '/playlists');
@@ -54,7 +54,7 @@ test.describe('Playlists and Profiles chip rows', () => {
         trailing.getByRole('button', { name: 'Filter: All', exact: true })
       ).toBeVisible();
       const sortButton = trailing.getByRole('button', { name: /^Sort: / });
-      await expect(sortButton).toHaveAccessibleName('Sort: Week');
+      await expect(sortButton).toHaveAccessibleName('Sort: Recent');
 
       await typeItems.getByRole('button', { name: 'My Playlists', exact: true }).click();
       await expect(
@@ -62,10 +62,17 @@ test.describe('Playlists and Profiles chip rows', () => {
       ).toHaveAttribute('aria-pressed', 'true');
       await expect(sortButton).toHaveAccessibleName('Sort: A-Z');
 
+      await typeItems.getByRole('button', { name: 'Global', exact: true }).click();
+      await expect(typeItems.getByRole('button', { name: 'Global', exact: true })).toHaveAttribute(
+        'aria-pressed',
+        'true'
+      );
+      await expect(sortButton).toHaveAccessibleName('Sort: Recent');
+
       await capturePageLoad(
         page,
         testInfo,
-        'My Playlists is pressed and the sort chip reads A-Z.',
+        'Global is pressed and the sort chip reads Recent.',
         typeItems
       );
     });

@@ -147,6 +147,15 @@ restarts, with no rebuild.
 - **`NEXT_PUBLIC_POLLING_INTERVAL_MS`** (Optional) - Polling interval in milliseconds (default: `3000`)
   - Must be a positive number if set
 
+### Playlists
+
+Signed-out `/playlists` opens on these when no sort is saved and the URL does not name one.
+A saved sort still wins. Signed-in My Playlists stays on A-Z.
+
+- **`NEXT_PUBLIC_PLAYLISTS_DEFAULT_SORT`** (Optional) - `recent` or `top`. Blank opens Recent.
+- **`NEXT_PUBLIC_PLAYLISTS_DEFAULT_RANGE`** (Optional) - `day`, `week`, `month`, or `all-time`.
+  Used only when the sort is `top`. Blank is week in that case.
+
 ### Brand: app + document chrome (optional, white-label)
 
 The installable app manifest is served from **`/manifest.webmanifest`** (`app/manifest.ts`) using runtime config. Manifest `name` and `short_name` are **`NEXT_PUBLIC_BRAND_NAME`** (with a built-in fallback if unset). The variables below override **app icons, theme/background, and head icon** URLs for the manifest, browser chrome, and `<head>`; they are not limited to a single feature. When unset, paths default to files under `/favicon/`; set **absolute** `https://…` URLs for CDN-hosted assets.

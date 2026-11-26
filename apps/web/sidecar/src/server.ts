@@ -8,7 +8,10 @@ import {
   HOME_LIST_SCREEN_CHIPS,
   LIST_SCREEN_SORTS,
   LIST_SCREEN_VIEWS,
+  PLAYLISTS_PAGE_PUBLIC_SORTS,
+  PLAYLISTS_PAGE_RANGES,
   parseListScreenDefaults,
+  parsePlaylistsPageDefaults,
 } from '@podverse/helpers';
 import type { ValidationResult, ValidationSummary } from '@podverse/helpers-config';
 import {
@@ -92,6 +95,8 @@ const optionalKeys = [
   'NEXT_PUBLIC_HOME_DEFAULT_CHIP',
   'NEXT_PUBLIC_HOME_DEFAULT_SORT',
   'NEXT_PUBLIC_HOME_DEFAULT_VIEW',
+  'NEXT_PUBLIC_PLAYLISTS_DEFAULT_RANGE',
+  'NEXT_PUBLIC_PLAYLISTS_DEFAULT_SORT',
   'NEXT_PUBLIC_CONTACT_EMAIL',
   'NEXT_PUBLIC_CUSTOM_THEMES_URL',
   'NEXT_PUBLIC_COOKIE_CONSENT_BANNER_ENABLED',
@@ -161,10 +166,21 @@ const LIST_SCREEN_ENV_FIELDS = {
   NEXT_PUBLIC_HOME_DEFAULT_VIEW: 'homeView',
 } as const;
 
+const PLAYLISTS_PAGE_ENV_FIELDS = {
+  NEXT_PUBLIC_PLAYLISTS_DEFAULT_RANGE: 'range',
+  NEXT_PUBLIC_PLAYLISTS_DEFAULT_SORT: 'sort',
+} as const;
+
+type PlaylistsPageEnvKey = keyof typeof PLAYLISTS_PAGE_ENV_FIELDS;
+
 type ListScreenEnvKey = keyof typeof LIST_SCREEN_ENV_FIELDS;
 
 function isListScreenEnvKey(key: string): key is ListScreenEnvKey {
   return Object.prototype.hasOwnProperty.call(LIST_SCREEN_ENV_FIELDS, key);
+}
+
+function isPlaylistsPageEnvKey(key: string): key is PlaylistsPageEnvKey {
+  return Object.prototype.hasOwnProperty.call(PLAYLISTS_PAGE_ENV_FIELDS, key);
 }
 
 function allowedListScreenValues(key: ListScreenEnvKey): readonly string[] {
@@ -197,6 +213,44 @@ function validateListScreenDefault(key: ListScreenEnvKey): ValidationResult {
       isValid: false,
       isRequired: false,
       message: `Invalid value: "${value.trim()}" - must be ${allowedListScreenValues(key).join(', ')}`,
+      category: 'Lists',
+    };
+  }
+  return {
+    name: key,
+    isSet: true,
+    isValid: true,
+    isRequired: false,
+    message: `Set to ${value.trim()}`,
+    category: 'Lists',
+  };
+}
+
+function validatePlaylistsPageDefault(key: PlaylistsPageEnvKey): ValidationResult {
+  const value = process.env[key] ?? '';
+  if (value.trim() === '') {
+    return {
+      name: key,
+      isSet: false,
+      isValid: true,
+      isRequired: false,
+      message: 'Skipped',
+      category: 'Lists',
+    };
+  }
+  const field = PLAYLISTS_PAGE_ENV_FIELDS[key];
+  const { issues } =
+    field === 'sort'
+      ? parsePlaylistsPageDefaults({ sort: value })
+      : parsePlaylistsPageDefaults({ range: value });
+  if (issues.length > 0) {
+    const allowed = key.endsWith('_SORT') ? PLAYLISTS_PAGE_PUBLIC_SORTS : PLAYLISTS_PAGE_RANGES;
+    return {
+      name: key,
+      isSet: true,
+      isValid: false,
+      isRequired: false,
+      message: `Invalid value: "${value.trim()}" - must be ${allowed.join(', ')}`,
       category: 'Lists',
     };
   }
@@ -385,6 +439,9 @@ function validateOne(key: string, isRequired: boolean): ValidationResult {
   if (isListScreenEnvKey(key)) {
     return validateListScreenDefault(key);
   }
+  if (isPlaylistsPageEnvKey(key)) {
+    return validatePlaylistsPageDefault(key);
+  }
   if (
     key === 'NEXT_PUBLIC_CATALOG_MUSIC_DISABLED' ||
     key === 'NEXT_PUBLIC_CATALOG_ADD_BY_RSS_DISABLED'
@@ -419,6 +476,8 @@ function getCategory(key: string): string {
     NEXT_PUBLIC_HOME_DEFAULT_CHIP: 'Lists',
     NEXT_PUBLIC_HOME_DEFAULT_SORT: 'Lists',
     NEXT_PUBLIC_HOME_DEFAULT_VIEW: 'Lists',
+    NEXT_PUBLIC_PLAYLISTS_DEFAULT_RANGE: 'Lists',
+    NEXT_PUBLIC_PLAYLISTS_DEFAULT_SORT: 'Lists',
     NEXT_PUBLIC_CATALOG_MUSIC_DISABLED: 'Catalog',
     NEXT_PUBLIC_CATALOG_PODCAST_INDEX_ID_ALLOWLIST: 'Catalog',
     NEXT_PUBLIC_COOKIE_CONSENT_BANNER_ENABLED: 'Legal',

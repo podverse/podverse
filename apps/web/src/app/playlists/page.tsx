@@ -7,6 +7,7 @@ import type {
   QueryParamsSubscribedFullSort,
 } from '@podverse/helpers-requests';
 
+import { getConfig } from '../../config';
 import { getCuratedStaticPageMetadata } from '../../lib/seo/curatedPageMetadata';
 import { getSSRAuthService } from '../../utils/auth/ssrAuth';
 import { guardSubscribedSsrFilter } from '../../utils/filters/ssrFilterGuards';
@@ -85,19 +86,20 @@ function parseSearchParams(
   isAuthenticated: boolean,
   cookieDefaults?: PlaylistsFilterDefaults
 ): ParseSearchParams {
+  const publicOpening = getConfig().public.playlistsPage;
   const parsed = searchParamsSchema.safeParse(queryParams);
 
   if (!parsed.success) {
     const guarded = guardSubscribedSsrFilter({
       isAuthenticated,
       type: cookieDefaults?.type ?? (isAuthenticated ? 'private' : 'public'),
-      sort: cookieDefaults?.sort ?? (isAuthenticated ? 'a_z' : 'top'),
-      range: cookieDefaults?.range ?? (isAuthenticated ? null : 'week'),
+      sort: cookieDefaults?.sort ?? (isAuthenticated ? 'a_z' : publicOpening.sort),
+      range: cookieDefaults?.range ?? (isAuthenticated ? null : publicOpening.range),
       page: 1,
       fallback: {
         type: 'public',
-        sort: 'top',
-        range: 'week',
+        sort: publicOpening.sort,
+        range: publicOpening.range,
         page: 1,
       },
     });
@@ -105,7 +107,7 @@ function parseSearchParams(
     return {
       currentPage: guarded.page,
       currentType: guarded.type ?? 'public',
-      currentSort: guarded.sort ?? 'top',
+      currentSort: guarded.sort ?? publicOpening.sort,
       currentRange: guarded.range,
       currentMedium: cookieDefaults?.medium ?? DEFAULT_PLAYLISTS_PAGE_MEDIUM,
     };
@@ -116,13 +118,13 @@ function parseSearchParams(
   const guarded = guardSubscribedSsrFilter({
     isAuthenticated,
     type: data.type ?? cookieDefaults?.type ?? (isAuthenticated ? 'private' : 'public'),
-    sort: data.sort ?? cookieDefaults?.sort ?? (isAuthenticated ? 'a_z' : 'top'),
-    range: data.range ?? cookieDefaults?.range ?? (isAuthenticated ? null : 'week'),
+    sort: data.sort ?? cookieDefaults?.sort ?? (isAuthenticated ? 'a_z' : publicOpening.sort),
+    range: data.range ?? cookieDefaults?.range ?? (isAuthenticated ? null : publicOpening.range),
     page: data.page,
     fallback: {
       type: 'public',
-      sort: 'top',
-      range: 'week',
+      sort: publicOpening.sort,
+      range: publicOpening.range,
       page: 1,
     },
   });
@@ -131,7 +133,7 @@ function parseSearchParams(
     {
       page: guarded.page,
       type: guarded.type ?? 'public',
-      sort: guarded.sort ?? 'top',
+      sort: guarded.sort ?? publicOpening.sort,
       range: guarded.range,
       medium: data.medium ?? cookieDefaults?.medium ?? DEFAULT_PLAYLISTS_PAGE_MEDIUM,
     },
