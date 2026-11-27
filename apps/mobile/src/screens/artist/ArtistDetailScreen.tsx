@@ -1082,7 +1082,11 @@ export function ArtistDetailScreen({ navigation, route }: ArtistDetailScreenProp
 
   const peopleBody = (
     <PeoplePane
+      appearanceChannelIdText={channel?.id_text}
       isLoading={isChannelLoading && channel === null}
+      onOpenPerson={(personId) => {
+        navigation.navigate('PersonDetail', { personId });
+      }}
       people={(channel?.channel_persons ?? []).map(toAboutPersonFromChannel)}
       testIDPrefix="artist-detail"
     />

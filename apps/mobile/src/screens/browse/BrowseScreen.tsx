@@ -4,9 +4,9 @@ import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { StyleProp, ViewStyle } from 'react-native';
-import { RefreshControl, StyleSheet, Text, View } from 'react-native';
+import { Pressable, RefreshControl, StyleSheet, Text, TextInput, View } from 'react-native';
 
-import type { DTOAccount, DTOPlaylist } from '@podverse/helpers';
+import type { DTOAccount, DTOPerson, DTOPlaylist } from '@podverse/helpers';
 import { categoryChipPressAction } from '@podverse/helpers';
 
 import { useAuth } from '../../auth/AuthProvider';
@@ -92,6 +92,7 @@ type CategoryListRow = {
 type BrowseListRow =
   | { id: string; kind: 'category'; row: CategoryListRow }
   | { id: string; kind: 'feed'; row: HomeFeedRowData }
+  | { id: string; kind: 'person'; person: DTOPerson }
   | { id: string; kind: 'playlist'; playlist: DTOPlaylist }
   | { id: string; kind: 'user'; account: DTOAccount };
 
@@ -288,6 +289,7 @@ export function BrowseScreen() {
   const [feedHasMore, setFeedHasMore] = useState<boolean>(false);
   const [isFeedLoadingMore, setIsFeedLoadingMore] = useState<boolean>(false);
   const [feedLoadMoreErrorKey, setFeedLoadMoreErrorKey] = useState<string | null>(null);
+  const [peopleQuery, setPeopleQuery] = useState('');
   // The last page merged into `directoryFeed`.
   const feedPageRef = useRef<number>(1);
   const feedRequestIdRef = useRef<number>(0);
@@ -581,6 +583,7 @@ export function BrowseScreen() {
           {
             category: activePrefs.category,
             page: 1,
+            q: peopleQuery,
             range: activePrefs.range,
             sort: activePrefs.sort,
           }
@@ -618,6 +621,7 @@ export function BrowseScreen() {
       activePrefs,
       clearSession,
       offlineModeEnabled,
+      peopleQuery,
       refreshToken,
       selectedMediaType,
       setTokens,
@@ -646,6 +650,7 @@ export function BrowseScreen() {
         {
           category: activePrefs.category,
           page: nextPage,
+          q: peopleQuery,
           range: activePrefs.range,
           sort: activePrefs.sort,
         }
@@ -672,6 +677,7 @@ export function BrowseScreen() {
     clearSession,
     isCategoryView,
     offlineModeEnabled,
+    peopleQuery,
     refreshToken,
     selectedMediaType,
     setTokens,
@@ -775,7 +781,9 @@ export function BrowseScreen() {
         ? directoryFeed.rows.length
         : directoryFeed.kind === 'playlists'
           ? directoryFeed.playlists.length
-          : directoryFeed.accounts.length;
+          : directoryFeed.kind === 'users'
+            ? directoryFeed.accounts.length
+            : directoryFeed.people.length;
     if (rowCount === 0) {
       return;
     }
@@ -920,7 +928,9 @@ export function BrowseScreen() {
       ? directoryFeed.playlists.length
       : directoryFeed.kind === 'users'
         ? directoryFeed.accounts.length
-        : directoryFeed.rows.length;
+        : directoryFeed.kind === 'people'
+          ? directoryFeed.people.length
+          : directoryFeed.rows.length;
 
   const listRows = useMemo<BrowseListRow[]>(() => {
     if (isCategoryView) {
@@ -938,6 +948,13 @@ export function BrowseScreen() {
         account,
         id: account.id_text,
         kind: 'user',
+      }));
+    }
+    if (directoryFeed.kind === 'people') {
+      return directoryFeed.people.map((person) => ({
+        id: person.id_text,
+        kind: 'person' as const,
+        person,
       }));
     }
     return directoryFeed.rows.map((row) => ({ id: row.id, kind: 'feed', row }));
@@ -1061,6 +1078,13 @@ export function BrowseScreen() {
             testID="browse-category-error"
           />
         ) : null}
+        {selectedMediaType === 'people' ? (
+          <TextInput
+            onChangeText={setPeopleQuery}
+            placeholder={t('info.people.search_placeholder')}
+            value={peopleQuery}
+          />
+        ) : null}
       </>
     ),
     [
@@ -1070,6 +1094,9 @@ export function BrowseScreen() {
       handleRetryFeed,
       isCategoryView,
       isFeedBusy,
+      peopleQuery,
+      selectedMediaType,
+      t,
     ]
   );
 
@@ -1200,6 +1227,18 @@ export function BrowseScreen() {
         );
       }
 
+      if (item.kind === 'person') {
+        return (
+          <Pressable
+            onPress={() => {
+              navigation.navigate('PersonDetail', { personId: item.person.id_text });
+            }}
+          >
+            <Text>{item.person.display_name}</Text>
+          </Pressable>
+        );
+      }
+
       return (
         <BrowseFeedItem
           addToPlaylistPress={rowAddToPlaylistPress}
@@ -1228,6 +1267,7 @@ export function BrowseScreen() {
       handleQueuePress,
       handleRowPress,
       handleUserPress,
+      navigation,
       isGridView,
       rowAddToPlaylistPress,
       rowGoToChannel,

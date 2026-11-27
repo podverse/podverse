@@ -9,6 +9,7 @@ import { CoverImage, ListRow } from '../primitives';
 import type { AboutPerson } from './aboutPerson';
 
 type AboutPersonRowProps = {
+  onOpenPerson?: (personIdText: string) => void;
   person: AboutPerson;
   testID: string;
 };
@@ -23,7 +24,7 @@ const createStyles = (_theme: ThemedStylesTheme) => ({
 /**
  * One credited person: optional portrait, name, role, and outbound href when the feed published one.
  */
-export function AboutPersonRow({ person, testID }: AboutPersonRowProps) {
+export function AboutPersonRow({ onOpenPerson, person, testID }: AboutPersonRowProps) {
   const { t } = useTranslation();
   const styles = useThemedStyles(createStyles);
 
@@ -36,20 +37,30 @@ export function AboutPersonRow({ person, testID }: AboutPersonRowProps) {
   }, []);
 
   const href = person.href;
-  const hasLink = href !== null && href.length > 0;
+  const hasWebsite = href !== null && href.length > 0;
+  const personIdText = person.personIdText;
+  const opensPerson = personIdText !== null && personIdText !== '' && onOpenPerson !== undefined;
 
   return (
     <ListRow
       accessibilityLabel={
-        hasLink ? `${person.name}, ${t('info.people.link_to_persons_webpage')}` : undefined
+        opensPerson
+          ? person.name
+          : hasWebsite
+            ? `${person.name}, ${t('info.people.website')}`
+            : undefined
       }
       leading={<CoverImage opensViewer={false} style={styles.personImage} uri={person.img} />}
       onPress={
-        hasLink
+        opensPerson
           ? () => {
-              void openExternalUrl(href);
+              onOpenPerson(personIdText);
             }
-          : undefined
+          : hasWebsite
+            ? () => {
+                void openExternalUrl(href);
+              }
+            : undefined
       }
       subtitle={person.role ?? undefined}
       testID={testID}

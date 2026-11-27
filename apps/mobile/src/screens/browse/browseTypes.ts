@@ -26,6 +26,7 @@ export const BROWSE_MEDIA_TYPE_ORDER = [
   'livestreams',
   'playlists',
   'users',
+  'people',
 ] as const;
 
 export type BrowseMediaType = (typeof BROWSE_MEDIA_TYPE_ORDER)[number];
@@ -42,6 +43,7 @@ export const MEDIA_TYPE_LABEL_KEYS: Record<BrowseMediaType, string> = {
   podcasts: 'media.podcast.podcasts',
   tracks: 'media.music.tracks',
   users: 'features.browse.users',
+  people: 'info.people.people',
 };
 
 export const browseEmptyMessageKey = (mediaType: BrowseMediaType): string => {
@@ -64,6 +66,8 @@ export const browseEmptyMessageKey = (mediaType: BrowseMediaType): string => {
       return 'features.playlist.no_playlists_found';
     case 'users':
       return 'features.browse.no_users_found';
+    case 'people':
+      return 'info.people.no_people_found';
   }
 };
 

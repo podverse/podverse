@@ -92,6 +92,9 @@ export class Channel {
   @Column({ type: 'boolean', default: false })
   may_have_live_items!: boolean;
 
+  @Column({ type: 'int', default: 0 })
+  person_appearance_count!: number;
+
   @Column({ type: 'timestamp', nullable: true })
   archived_slimmed_at?: Date | null;
 

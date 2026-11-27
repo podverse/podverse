@@ -9,6 +9,7 @@ export type AboutPerson = {
   id: number;
   img: string | null;
   name: string;
+  personIdText: string | null;
   role: string | null;
 };
 
@@ -17,6 +18,7 @@ export const toAboutPersonFromChannel = (person: DTOChannelPerson): AboutPerson 
   id: person.id,
   img: person.img,
   name: person.name,
+  personIdText: person.person_id_text ?? null,
   role: person.role,
 });
 
@@ -25,6 +27,7 @@ export const toAboutPersonFromItem = (person: DTOItemPerson): AboutPerson => ({
   id: person.id,
   img: person.img,
   name: person.name,
+  personIdText: person.person_id_text ?? null,
   role: person.role,
 });
 

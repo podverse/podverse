@@ -64,7 +64,10 @@ export function ArtistPageClient(props: ArtistPageClientProps) {
                     ssrHasAlbums={ssrHasAlbums}
                     ssrHasTracks={ssrHasTracks}
                     ssrHasDescription={ssrHasDescription}
-                    ssrHasPeople={(ssrChannel.channel_persons?.length ?? 0) > 0}
+                    ssrHasPeople={
+                      (ssrChannel.channel_persons?.length ?? 0) > 0 ||
+                      (ssrChannel.person_appearance_count ?? 0) > 0
+                    }
                     ssrHasPodroll={ssrHasPodroll}
                     ssrCanShowBoosts={ssrCanShowBoosts}
                   />

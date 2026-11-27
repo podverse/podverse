@@ -188,6 +188,10 @@ describe('management-api database routes', () => {
       expect(names).toContain('stats_popularity_clip');
       expect(names).toContain('stats_popularity_playlist');
       expect(names).toContain('stats_popularity_account');
+      expect(names).toContain('person');
+      expect(names).toContain('stats_popularity_person');
+      expect(names).not.toContain('stats_person_all_time_mark');
+      expect(names).not.toContain('stats_person_recommendation');
       expect(names).not.toContain('stats_aggregated_channel');
       expect(names).not.toContain('stats_aggregated_item');
       expect(names).not.toContain('stats_aggregated_clip');

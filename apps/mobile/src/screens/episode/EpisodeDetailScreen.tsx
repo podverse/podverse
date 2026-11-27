@@ -894,6 +894,9 @@ export function EpisodeDetailScreen({ navigation, route }: EpisodeDetailScreenPr
         <PeoplePane
           isLoading={episode === null}
           layout="inline"
+          onOpenPerson={(personId) => {
+            navigation.navigate('PersonDetail', { personId });
+          }}
           people={(episode?.item_persons ?? []).map(toAboutPersonFromItem)}
           testIDPrefix="episode-detail"
         />

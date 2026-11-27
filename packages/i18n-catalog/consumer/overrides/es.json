@@ -423,7 +423,15 @@
     "people": {
       "people": "",
       "person_image": "",
-      "link_to_persons_webpage": ""
+      "link_to_persons_webpage": "",
+      "cast": "",
+      "appearances": "",
+      "appearance_count": "",
+      "website": "",
+      "subscribe": "",
+      "subscribed": "",
+      "no_people_found": "",
+      "search_placeholder": ""
     },
     "chapter": {
       "chapter": "",

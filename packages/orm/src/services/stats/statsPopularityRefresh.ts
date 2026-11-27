@@ -3,6 +3,7 @@ import type { EntityManager } from 'typeorm';
 
 import { STATS_POPULARITY_RANGE_LOOKBACK_DAYS } from '@podverse/helpers';
 
+import { refreshPersonPopularityInTransaction } from './personPopularityRefresh.js';
 import type { StatsEntityType } from './statsEntityTables.js';
 import { STATS_ENTITY_TABLES, STATS_ENTITY_TYPES } from './statsEntityTables.js';
 
@@ -294,5 +295,6 @@ export async function refreshStatsPopularity(input: {
       )
     );
   }
+  await refreshPersonPopularityInTransaction(today);
   return results;
 }

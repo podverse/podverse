@@ -1573,9 +1573,33 @@ async function seedMediaPlayerAndEmbedFixtures(client, accountId) {
     [podcastChannelId, E2E_FIXTURE_CHANNEL_IMAGE_URL]
   );
   await client.query(
-    `INSERT INTO channel_person (channel_id, name, role, person_group, href)
-     VALUES ($1, $2, $3, $4, $5)`,
-    [podcastChannelId, 'E2E Channel Host', 'host', 'cast', 'https://e2e-seed-podcast.example/host']
+    `INSERT INTO person (id_text, name_key, display_name, channel_cast_count)
+     VALUES ($1, public.person_name_key($2), $2, 1)
+     ON CONFLICT (name_key, distinction_key) DO UPDATE
+       SET channel_cast_count = GREATEST(person.channel_cast_count, EXCLUDED.channel_cast_count)
+     RETURNING id, id_text`,
+    ['e2ePersHost1', 'E2E Channel Host']
+  );
+  const hostPerson = (
+    await client.query(
+      `SELECT id, id_text FROM person WHERE name_key = public.person_name_key($1)`,
+      ['E2E Channel Host']
+    )
+  ).rows[0];
+  await client.query(
+    `INSERT INTO channel_person (
+       channel_id, name, role, person_group, href, person_id, person_id_text
+     )
+     VALUES ($1, $2, $3, $4, $5, $6, $7)`,
+    [
+      podcastChannelId,
+      'E2E Channel Host',
+      'host',
+      'cast',
+      'https://e2e-seed-podcast.example/host',
+      hostPerson.id,
+      hostPerson.id_text,
+    ]
   );
 
   await deleteE2eQueueByIdText(client, E2E_PODCAST_QUEUE_ID_TEXT);
@@ -1670,16 +1694,41 @@ async function seedMediaPlayerAndEmbedFixtures(client, accountId) {
     pubDateOffsetSeconds: 0,
   });
   await client.query(
-    `INSERT INTO item_person (item_id, name, role, person_group, href)
-     VALUES ($1, $2, $3, $4, $5)`,
+    `INSERT INTO person (id_text, name_key, display_name, item_appearance_count)
+     VALUES ($1, public.person_name_key($2), $2, 1)
+     ON CONFLICT (name_key, distinction_key) DO UPDATE
+       SET item_appearance_count = GREATEST(person.item_appearance_count, EXCLUDED.item_appearance_count)
+     RETURNING id`,
+    ['e2ePersGuest', 'E2E Episode Guest']
+  );
+  const guestPerson = (
+    await client.query(
+      `SELECT id, id_text FROM person WHERE name_key = public.person_name_key($1)`,
+      ['E2E Episode Guest']
+    )
+  ).rows[0];
+  await client.query(
+    `INSERT INTO item_person (item_id, name, role, person_group, href, person_id, person_id_text)
+     VALUES ($1, $2, $3, $4, $5, $6, $7)`,
     [
       resumePositiveItemId,
       'E2E Episode Guest',
       'guest',
       'cast',
       'https://e2e-seed-podcast.example/guest',
+      guestPerson.id,
+      guestPerson.id_text,
     ]
   );
+  await client.query(
+    `INSERT INTO channel_item_person_count (channel_id, person_id, item_count)
+     VALUES ($1, $2, 1)
+     ON CONFLICT (channel_id, person_id) DO UPDATE SET item_count = EXCLUDED.item_count`,
+    [podcastChannelId, guestPerson.id]
+  );
+  await client.query(`UPDATE channel SET person_appearance_count = 1 WHERE id = $1`, [
+    podcastChannelId,
+  ]);
   const resumeNearEndItemId = await insertPodcastItem({
     idText: E2E_PODCAST_ITEM_RESUME_NEAR_END_ID_TEXT,
     guidSlug: 'resume-near-end',

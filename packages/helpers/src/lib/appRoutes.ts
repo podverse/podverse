@@ -18,6 +18,7 @@ export const APP_ROUTES = {
   MUSIC_LIVESTREAM: '/music/livestream',
   OFFICIAL_CLIP: '/official-clip',
   PLAYLIST: '/playlist',
+  PERSON: '/person',
   PODCAST: '/podcast',
   PODCAST_INDEX_FEED: '/podcast-index/feed',
   PODCAST_LIVESTREAM: '/podcast/livestream',
@@ -59,6 +60,9 @@ export const buildOfficialClipPath = (idText: string): string =>
 
 export const buildPlaylistPath = (idText: string): string =>
   buildAppRoutePath(APP_ROUTES.PLAYLIST, idText);
+
+export const buildPersonPath = (idText: string): string =>
+  buildAppRoutePath(APP_ROUTES.PERSON, idText);
 
 export const buildPodcastPath = (idText: string): string =>
   buildAppRoutePath(APP_ROUTES.PODCAST, idText);
@@ -126,6 +130,7 @@ export const FLAT_CONTENT_APP_ROUTES = [
   APP_ROUTES.ARTIST,
   APP_ROUTES.CLIP,
   APP_ROUTES.EPISODE,
+  APP_ROUTES.PERSON,
   APP_ROUTES.PODCAST,
   APP_ROUTES.TRACK,
 ] as const;
@@ -141,6 +146,7 @@ export const UNIVERSAL_LINK_PATH_PREFIXES = [
   `${APP_ROUTES.ARTIST}/`,
   `${APP_ROUTES.TRACK}/`,
   `${APP_ROUTES.PLAYLIST}/`,
+  `${APP_ROUTES.PERSON}/`,
   `${APP_ROUTES.CLIP}/`,
   `${APP_ROUTES.PROFILE}/`,
 ] as const;

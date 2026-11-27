@@ -44,6 +44,7 @@ tags:
   - name: metaboost
   - name: mq
   - name: playlist
+  - name: person
   - name: podroll
   - name: product
   - name: profile
@@ -1244,17 +1245,11 @@ components:
               items:
                 type: object
                 required:
-                  - channel
                   - strength
                 properties:
                   channel:
                     type: object
-                    required:
-                      - id_text
-                      - slug
-                      - title
-                      - medium_id
-                      - channel_images
+                    description: Present for podcast, album, and artist recommendations.
                     properties:
                       id_text:
                         type: string
@@ -1289,6 +1284,10 @@ components:
                             is_resized:
                               type: boolean
                               example: false
+                  person:
+                    description: Present when chip is people.
+                    allOf:
+                      - $ref: "#/components/schemas/Person"
                   strength:
                     type: integer
                     minimum: 1
@@ -2332,6 +2331,99 @@ components:
     ApiPostAccountFollowPlaylistResponse200:
       allOf:
         - $ref: "#/components/schemas/MessageResponse"
+    ApiPostAccountFollowPersonRequest:
+      type: object
+      required:
+        - person_id_text
+      properties:
+        person_id_text:
+          type: string
+          minLength: 7
+          maxLength: 15
+          example: p000000001
+    ApiPostAccountFollowPersonResponse200:
+      allOf:
+        - $ref: "#/components/schemas/MessageResponse"
+    Person:
+      type: object
+      required:
+        - id_text
+        - display_name
+        - summary
+        - list_image_url
+        - item_appearance_count
+        - channel_cast_count
+        - latest_appearance_at
+      properties:
+        id_text:
+          type: string
+          example: p000000001
+        display_name:
+          type: string
+          example: Ada Lovelace
+        summary:
+          type: string
+          nullable: true
+        list_image_url:
+          type: string
+          nullable: true
+        item_appearance_count:
+          type: integer
+          example: 4
+        channel_cast_count:
+          type: integer
+          example: 1
+        latest_appearance_at:
+          type: string
+          format: date-time
+          nullable: true
+        is_followed:
+          type: boolean
+        counts:
+          type: object
+          required:
+            - podcasts
+            - episodes
+            - albums
+            - tracks
+            - artists
+            - livestreams
+          properties:
+            podcasts:
+              type: integer
+            episodes:
+              type: integer
+            albums:
+              type: integer
+            tracks:
+              type: integer
+            artists:
+              type: integer
+            livestreams:
+              type: integer
+    ApiGetPersonListResponse200:
+      type: object
+      required:
+        - data
+        - meta
+      properties:
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/Person"
+        meta:
+          type: object
+          required:
+            - page
+            - count
+            - limit
+          properties:
+            page:
+              type: integer
+            count:
+              type: integer
+            limit:
+              type: integer
     ApiPostAccountNotificationChannelRequest:
       type: object
       required:
@@ -8964,6 +9056,63 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/InternalServerErrorResponse"
+  /account/follow/person:
+    post:
+      operationId: apiPostAccountFollowPerson
+      tags:
+        - account
+      summary: POST /account/follow/person
+      description: Follow a person. Does not create a notification channel. An API key needs subscriptions create.
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+        - apiKeyAuth: []
+      x-api-key-permission:
+        resource: subscriptions
+        action: create
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ApiPostAccountFollowPersonRequest"
+      responses:
+        "201":
+          description: Successfully followed person
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiPostAccountFollowPersonResponse200"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ValidationErrorResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthenticationErrorResponse"
+        "403":
+          description: Forbidden when the account is at its follow tier.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthorizationErrorResponse"
+        "404":
+          description: Person not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NotFoundErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InternalServerErrorResponse"
   /account/channel-seen:
     get:
       operationId: apiGetAccountChannelSeen
@@ -10047,7 +10196,7 @@ paths:
       tags:
         - account
       summary: GET /account/recommendations
-      description: Returns the signed-in account's recommendations for one chip, highest score first. Shows the account subscribes to are omitted. An API key needs history read.
+      description: Returns the signed-in account's recommendations for one chip, highest score first. Shows the account subscribes to are omitted. People the account follows are omitted. People are derived from the recommended shows. An API key needs history read.
       security:
         - bearerAuth: []
         - cookieAuth: []
@@ -10065,6 +10214,7 @@ paths:
               - podcasts
               - albums
               - artists
+              - people
             default: podcasts
       responses:
         "200":
@@ -11893,6 +12043,47 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/NotFoundErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InternalServerErrorResponse"
+  /account/unfollow/person:
+    post:
+      operationId: apiPostAccountUnfollowPerson
+      tags:
+        - account
+      summary: POST /account/unfollow/person
+      description: Stop following a person. An API key needs subscriptions delete.
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+        - apiKeyAuth: []
+      x-api-key-permission:
+        resource: subscriptions
+        action: delete
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ApiPostAccountFollowPersonRequest"
+      responses:
+        "204":
+          description: Successfully unfollowed person
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ValidationErrorResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthenticationErrorResponse"
         "500":
           description: Internal server error
           content:
@@ -24163,3 +24354,253 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/InternalServerErrorResponse"
+
+  /person:
+    get:
+      operationId: apiGetPerson
+      tags:
+        - person
+      summary: GET /person
+      description: Public people directory. Recent orders by latest appearance. Top orders by distinct listeners in the requested range. A name query is matched on the indexed name key.
+      security: []
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 50
+            default: 20
+        - name: q
+          in: query
+          schema:
+            type: string
+        - name: sort
+          in: query
+          schema:
+            type: string
+            enum:
+              - recent
+              - top
+            default: recent
+        - name: range
+          in: query
+          schema:
+            type: string
+            enum:
+              - day
+              - week
+              - month
+              - all-time
+            default: week
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiGetPersonListResponse200"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ValidationErrorResponse"
+  /person/{id_text}:
+    get:
+      operationId: apiGetPersonIdText
+      tags:
+        - person
+      summary: GET /person/{id_text}
+      description: One person, including content counts. Returned even when both public counts are zero.
+      security: []
+      parameters:
+        - name: id_text
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Person"
+        "404":
+          description: Person not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NotFoundErrorResponse"
+  /person/{id_text}/channels:
+    get:
+      operationId: apiGetPersonIdTextChannels
+      tags:
+        - person
+      summary: GET /person/{id_text}/channels
+      description: Public shows that credit the person, for the podcasts, albums, or artists chip.
+      security: []
+      parameters:
+        - name: id_text
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: chip
+          in: query
+          required: true
+          schema:
+            type: string
+            enum:
+              - podcasts
+              - albums
+              - artists
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 20
+        - name: sort
+          in: query
+          schema:
+            type: string
+            enum:
+              - recent
+              - top
+            default: recent
+        - name: range
+          in: query
+          schema:
+            type: string
+            enum:
+              - day
+              - week
+              - month
+              - all-time
+            default: week
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiGetPersonListResponse200"
+        "404":
+          description: Person not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NotFoundErrorResponse"
+  /person/{id_text}/items:
+    get:
+      operationId: apiGetPersonIdTextItems
+      tags:
+        - person
+      summary: GET /person/{id_text}/items
+      description: Public episodes, tracks, or livestreams that credit the person.
+      security: []
+      parameters:
+        - name: id_text
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: chip
+          in: query
+          required: true
+          schema:
+            type: string
+            enum:
+              - episodes
+              - tracks
+              - livestreams
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 20
+        - name: sort
+          in: query
+          schema:
+            type: string
+            enum:
+              - recent
+              - top
+            default: recent
+        - name: range
+          in: query
+          schema:
+            type: string
+            enum:
+              - day
+              - week
+              - month
+              - all-time
+            default: week
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiGetPersonListResponse200"
+        "404":
+          description: Person not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NotFoundErrorResponse"
+  /channel/{idOrIdText}/person-appearances:
+    get:
+      operationId: apiGetChannelIdOrIdTextPersonAppearances
+      tags:
+        - channel
+      summary: GET /channel/{idOrIdText}/person-appearances
+      description: Distinct people credited on the channel's items, highest item count first.
+      security: []
+      parameters:
+        - name: idOrIdText
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 20
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiGetPersonListResponse200"
+        "404":
+          description: Channel not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NotFoundErrorResponse"

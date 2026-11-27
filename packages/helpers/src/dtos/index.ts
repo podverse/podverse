@@ -125,6 +125,7 @@ export * from './mediaPlayer/playbackMode.js';
 export * from './mediaPlayer/playbackSpeed.js';
 
 export * from './playlist/playlist.js';
+export * from './person/person.js';
 export * from './playlist/playlistResource.js';
 
 export * from './podcast-index/podcastByGuid.js';

@@ -3,3 +3,9 @@
   padding: var(--spacing-form-input-vertical);
   margin-bottom: calc(var(--spacing-sm) * -1); // Keep negative margin for layout
 }
+
+.sectionTitle {
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-medium);
+  margin-bottom: var(--spacing-md);
+}

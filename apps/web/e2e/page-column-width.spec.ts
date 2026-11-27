@@ -1,5 +1,5 @@
-import { expect, test } from '@playwright/test';
 import type { Locator, Page } from '@playwright/test';
+import { expect, test } from '@playwright/test';
 
 import { capturePageLoad } from './helpers/stepScreenshots';
 

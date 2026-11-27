@@ -9,7 +9,7 @@ import { validateBodyObject, validateQueryObject } from '@api/lib/validation/ind
 import type { Request, Response } from 'express';
 import Joi from 'joi';
 
-import { isRecommendationChip } from '@podverse/helpers';
+import { isRecommendationChip, type RecommendationChip } from '@podverse/helpers';
 import { TasteProfileAccountService } from '@podverse/orm';
 
 const TASTE_PROFILE_DEFAULT_LIMIT = 20;
@@ -44,7 +44,7 @@ const unhideBodySchema = Joi.object({
 });
 
 const recommendationsQuerySchema = Joi.object({
-  chip: Joi.string().valid('podcasts', 'albums', 'artists').default('podcasts'),
+  chip: Joi.string().valid('podcasts', 'albums', 'artists', 'people').default('podcasts'),
 });
 
 const weightBodySchema = Joi.object({
@@ -82,7 +82,7 @@ function readTasteProfilePage(value: unknown): TasteProfilePage | null {
 
 type WeightBody = { channel_id_text: string; weight: number };
 
-function readRecommendationChip(value: unknown): 'podcasts' | 'albums' | 'artists' | null {
+function readRecommendationChip(value: unknown): RecommendationChip | null {
   if (typeof value !== 'object' || value === null) {
     return null;
   }
@@ -304,10 +304,14 @@ export class AccountTasteProfileController {
             const storesListens = await resolveAccountStoresListens(jwtUser.id);
             await seedTasteFromSubscriptions(jwtUser.id, storesListens);
             const items =
-              await AccountTasteProfileController.tasteProfileAccountService.listRecommendationsForAccount(
-                jwtUser.id,
-                chip
-              );
+              chip === 'people'
+                ? await AccountTasteProfileController.tasteProfileAccountService.listPersonRecommendationsForAccount(
+                    jwtUser.id
+                  )
+                : await AccountTasteProfileController.tasteProfileAccountService.listRecommendationsForAccount(
+                    jwtUser.id,
+                    chip
+                  );
             res.json({ data: { items } });
           } catch (error) {
             handleGenericErrorResponse(res, error);

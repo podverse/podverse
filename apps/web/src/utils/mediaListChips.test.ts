@@ -104,6 +104,7 @@ describe('chip lists', () => {
       'livestreams',
       'playlists',
       'users',
+      'people',
     ]);
     expect(ADD_BY_RSS_CHIPS).toEqual([
       'podcasts',
@@ -142,13 +143,14 @@ describe('mediaListChipsForCatalog', () => {
       'livestreams',
       'playlists',
       'users',
+      'people',
     ]);
     expect(mediaListChipsForCatalog(ADD_BY_RSS_CHIPS, false)).toEqual([
       'podcasts',
       'episodes',
       'livestreams',
     ]);
-    expect(mediaListChipsForCatalog(RECOMMENDATION_CHIPS, false)).toEqual(['podcasts']);
+    expect(mediaListChipsForCatalog(RECOMMENDATION_CHIPS, false)).toEqual(['podcasts', 'people']);
   });
 });
 

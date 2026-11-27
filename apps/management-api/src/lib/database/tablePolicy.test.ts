@@ -118,6 +118,7 @@ describe('tablePolicy', () => {
     const popularityTables = [
       { tableName: 'stats_popularity_channel', primaryKeyField: 'channel_id' },
       { tableName: 'stats_popularity_item', primaryKeyField: 'item_id' },
+      { tableName: 'stats_popularity_person', primaryKeyField: 'person_id' },
       { tableName: 'stats_popularity_clip', primaryKeyField: 'clip_id' },
       { tableName: 'stats_popularity_playlist', primaryKeyField: 'playlist_id' },
       { tableName: 'stats_popularity_account', primaryKeyField: 'account_id' },

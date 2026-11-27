@@ -3,7 +3,7 @@ import type {
   DTOAccountTasteProfileHiddenList,
   DTOAccountTasteProfileList,
   DTOAccountTasteProfileShowState,
-  RecommendationChip,
+  RecommendationShowChip,
 } from '@podverse/helpers';
 
 import type { ApiRequestService } from '../_request.js';
@@ -84,7 +84,7 @@ export const reqAccountTasteProfileUnhide = (
 
 export const reqAccountRecommendations = (
   api: ApiRequestService,
-  params: { chip: RecommendationChip }
+  params: { chip: RecommendationShowChip }
 ): Promise<DTOAccountRecommendation[]> => {
   const query = new URLSearchParams();
   query.set('chip', params.chip);

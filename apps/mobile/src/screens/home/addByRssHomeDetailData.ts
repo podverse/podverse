@@ -103,6 +103,7 @@ export const toAddByRssAboutPeople = (people: readonly AddByRssParsedPerson[]): 
       id: aboutPeople.length + 1,
       img: person.img ?? null,
       name: person.name,
+      personIdText: null,
       role: person.role ?? null,
     });
   }

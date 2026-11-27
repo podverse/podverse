@@ -39,3 +39,18 @@
   artist, and album lists use the same render path.
 - Who notices: people opening a podcast or album page
 - Operator steps: none
+
+## People directory, popularity, and recommendations
+
+- Surfaces: api, web, mobile, workers, orm, k8s
+- Change: A person is one row per standardized name. Channel People lists Cast and Appearances.
+  Browse has a People chip with name search, Recent, and Popularity. A person page lists that
+  person's shows and items, and an account can follow a person without notifications. Person
+  popularity counts distinct listeners on credited items and channels during the nightly refresh.
+  Recommendations grow a People chip from the shows already recommended to that listener.
+- Who notices: visitors browsing people, opening a channel's People section, and anyone with
+  recommendations turned on
+- Operator steps: app migrations run through `0023_person.sql`, which creates `pg_trgm`.
+  `API_EXPECTED_MIGRATION_FILENAME` is that file. The management marker stays
+  `0002_nano_id_v2_min_7.sql`. Regenerate the linear baseline after the migration applies.
+  Person popularity and person recommendations are filled by the existing nightly stats jobs.

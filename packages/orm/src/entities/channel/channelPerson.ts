@@ -36,6 +36,12 @@ export class ChannelPerson {
   @Column({ type: 'varchar', nullable: true, length: DATABASE_CONSTANTS.varchar_url })
   href!: string | null;
 
+  @Column({ type: 'int', nullable: true })
+  person_id!: number | null;
+
+  @Column({ type: 'varchar', length: DATABASE_CONSTANTS.nano_id_v2, nullable: true })
+  person_id_text!: string | null;
+
   @BeforeInsert()
   @BeforeUpdate()
   lowercaseFields() {

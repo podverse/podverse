@@ -96,6 +96,7 @@ export const startApp = async () => {
     const { billingRouter } = await import('@api/routes/billing.js');
     const { categoryRouter } = await import('@api/routes/category.js');
     const { channelRouter } = await import('@api/routes/channel.js');
+    const { personRouter } = await import('@api/routes/person.js');
     const { clipRouter } = await import('@api/routes/clip.js');
     const { embedDemoRoutesRoot } = await import('@api/routes/embedDemo.js');
     const { externalServicesRouter } = await import('@api/routes/externalServices.js');
@@ -148,6 +149,7 @@ export const startApp = async () => {
     app.use(billingRouter);
     app.use(categoryRouter);
     app.use(channelRouter);
+    app.use(personRouter);
     app.use(clipRouter);
     app.use(embedDemoRoutesRoot);
     app.use(externalServicesRouter);

@@ -1,4 +1,4 @@
-import type { DTOAccount, DTOPlaylist, QueryParamsMedium } from '@podverse/helpers';
+import type { DTOAccount, DTOPerson, DTOPlaylist, QueryParamsMedium } from '@podverse/helpers';
 
 import { createMobileApiRequestService, requestWithMobileAuthRefresh } from '../../auth';
 import type { MobileAuthRequestContext } from '../../data/repositories';
@@ -18,12 +18,14 @@ type BrowseFeedAuthDeps = MobileAuthRequestContext;
 export type BrowseFeedOptions = {
   category: string | null;
   page: number;
+  q?: string;
   range: BrowseRangeOption;
   sort: BrowseSortOption;
 };
 
 export type BrowseFeedResult =
   | { kind: 'media'; rows: HomeFeedRowData[] }
+  | { kind: 'people'; people: DTOPerson[] }
   | { kind: 'playlists'; playlists: DTOPlaylist[] }
   | { kind: 'users'; accounts: DTOAccount[] };
 
@@ -35,6 +37,9 @@ export const emptyBrowseFeed = (mediaType: BrowseMediaType): BrowseFeedResult =>
   }
   if (mediaType === 'users') {
     return { kind: 'users', accounts: [] };
+  }
+  if (mediaType === 'people') {
+    return { kind: 'people', people: [] };
   }
   return { kind: 'media', rows: [] };
 };
@@ -118,6 +123,19 @@ export const fetchBrowseFeedRows = async (
       })
     );
     return browseFeedPage({ kind: 'users', accounts: response.data }, response);
+  }
+
+  if (mediaType === 'people') {
+    const response = await requestWithMobileAuthRefresh(authDeps, async (api) =>
+      api.reqPersonList({
+        limit: 20,
+        page: options.page,
+        q: options.q,
+        range: range ?? undefined,
+        sort: sort === 'top' ? 'top' : 'recent',
+      })
+    );
+    return browseFeedPage({ kind: 'people', people: response.data }, response);
   }
 
   if (mediaType === 'clips') {

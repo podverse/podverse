@@ -18,6 +18,7 @@ import { AccountFCMDeviceController } from '@api/controllers/account/accountFCMD
 import { AccountFollowingAccountController } from '@api/controllers/account/accountFollowingAccount.js';
 import { AccountFollowingAddByRSSChannelController } from '@api/controllers/account/accountFollowingAddByRSSChannel.js';
 import { AccountFollowingChannelController } from '@api/controllers/account/accountFollowingChannel.js';
+import { AccountFollowingPersonController } from '@api/controllers/account/accountFollowingPerson.js';
 import { AccountFollowingPlaylistController } from '@api/controllers/account/accountFollowingPlaylist.js';
 import { AccountNotificationController } from '@api/controllers/account/accountNotification.js';
 import { AccountNotificationChannelController } from '@api/controllers/account/accountNotificationChannel.js';
@@ -280,6 +281,8 @@ router.post(
   '/unfollow/playlist',
   asyncHandler(AccountFollowingPlaylistController.unfollowPlaylist)
 );
+router.post('/follow/person', asyncHandler(AccountFollowingPersonController.followPerson));
+router.post('/unfollow/person', asyncHandler(AccountFollowingPersonController.unfollowPerson));
 
 router.get(
   '/notification/channel/:channel_id_text',

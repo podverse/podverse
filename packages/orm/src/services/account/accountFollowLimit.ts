@@ -72,7 +72,7 @@ export async function lockAccountForFollow(
   await manager.query(`SELECT id FROM account WHERE id = $1 FOR UPDATE`, [accountId]);
 }
 
-/** Channel, playlist, and account follows, counted together, plus the stored tier. */
+/** Channel, playlist, account, and person follows, counted together, plus the stored tier. */
 export async function readFollowRoom(
   manager: EntityManager,
   accountId: number
@@ -85,7 +85,8 @@ export async function readFollowRoom(
     `SELECT (
        (SELECT COUNT(*)::int FROM account_following_channel WHERE account_id = $1) +
        (SELECT COUNT(*)::int FROM account_following_playlist WHERE account_id = $1) +
-       (SELECT COUNT(*)::int FROM account_following_account WHERE account_id = $1)
+       (SELECT COUNT(*)::int FROM account_following_account WHERE account_id = $1) +
+       (SELECT COUNT(*)::int FROM account_following_person WHERE account_id = $1)
      ) AS total`,
     [accountId]
   );

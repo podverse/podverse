@@ -77,7 +77,10 @@ export function PodcastPageClient(props: PodcastPageClientProps) {
               ) : (
                 <>
                   <PodcastPageListHeader
-                    ssrHasPeople={(ssrChannel.channel_persons?.length ?? 0) > 0}
+                    ssrHasPeople={
+                      (ssrChannel.channel_persons?.length ?? 0) > 0 ||
+                      (ssrChannel.person_appearance_count ?? 0) > 0
+                    }
                     ssrHasPodroll={remoteItemsResponseHasRows(ssrPodroll)}
                     ssrHasRemoteItems={remoteItemsResponseHasRows(ssrRemoteItems)}
                     ssrHasItemSoundbites={ssrHasItemSoundbites}

@@ -667,12 +667,30 @@ already on taste rows.
   `concurrencyPolicy: Forbid`, `backoffLimit: 0`, `activeDeadlineSeconds: 10800`.
 - **Manual run:** `npm run stats_recommendations_refresh -w apps/workers` (append `-- -full`)
   after `npm run build -w apps/workers`. Nothing is scheduled locally.
-- **Reading the list:** `GET /account/recommendations?chip=podcasts|albums|artists` drops shows
-  the account subscribes to. Signed-in, no membership gate. Hide and unhide use
-  `POST /account/channel-hidden/hide`, `GET /account/channel-hidden`, and
-  `POST /account/channel-hidden/unhide`. Browse directory lists (`/channel/global/*`,
-  `/channel/category/*`, `/item/global/*`, `/item/category/*`) also omit hidden channels (and
-  their items) when the request has an active session; subscribed lists do not.
+- **Reading the list:** `GET /account/recommendations?chip=podcasts|albums|artists|people`
+  drops shows the account subscribes to, and drops people the account follows. Signed-in, no
+  membership gate. Hide and unhide use `POST /account/channel-hidden/hide`,
+  `GET /account/channel-hidden`, and `POST /account/channel-hidden/unhide`. People have no hide.
+  Browse directory lists (`/channel/global/*`, `/channel/category/*`, `/item/global/*`,
+  `/item/category/*`) also omit hidden channels (and their items) when the request has an active
+  session; subscribed lists do not.
+- **People:** after a listener's show recommendations are stored, the same job scores people
+  credited on those shows. A channel credit counts in full. Item credits on that show count in
+  proportion to how many of its items name the person, capped at five. The top 50 are stored in
+  `stats_person_recommendation`. Strength is 1–5 against that listener's top person score.
+  `GET /account/recommendations?chip=people` returns those people and omits people the account
+  follows. Followed people stay in the table until the next rebuild.
+
+### Person popularity
+
+`refreshPersonPopularity` runs at the end of the popularity refresh, in its own transaction.
+It does not run on the listen write path. A counted listen on an item credits that item's people.
+A counted listen on a channel credits that channel's people. Flagged listeners are left out.
+Day, week, and month totals in `stats_popularity_person` are distinct listeners in the retained
+event window. A refresh that misses events before they age out under-counts that window. All-time
+uses `stats_person_all_time_mark` so a listener adds at most once per recount period (the same
+default as show all-time) and does not reset when events age out. The mark table and
+`stats_person_recommendation` are not in the management database browser.
 
 ### Opens
 

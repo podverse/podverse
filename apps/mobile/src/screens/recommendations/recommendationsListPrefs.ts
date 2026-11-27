@@ -8,7 +8,12 @@ import { readSortPref, writeSortPref } from '../../prefs/sortPrefs';
 /** Same scope web uses for the Recommendations chip (`mediaType` on list `recommendations`). */
 const RECOMMENDATIONS_SCOPE: SortPrefScope = { kind: 'list', name: 'recommendations' };
 
-const CHIPS = ['podcasts', 'albums', 'artists'] as const satisfies readonly RecommendationChip[];
+const CHIPS = [
+  'podcasts',
+  'albums',
+  'artists',
+  'people',
+] as const satisfies readonly RecommendationChip[];
 
 const DEFAULT_CHIP: RecommendationChip = 'podcasts';
 
@@ -32,7 +37,11 @@ const isHomeViewMode = (value: string): value is HomeViewMode => {
 export const readRecommendationViewMode = async (
   chip: RecommendationChip
 ): Promise<HomeViewMode> => {
-  const stored = await readSortPref(recommendationsListViewModeScope(chip));
+  const scope =
+    chip === 'people'
+      ? { kind: 'list' as const, name: 'recommendations-people' }
+      : recommendationsListViewModeScope(chip);
+  const stored = await readSortPref(scope);
   if (stored?.viewMode !== undefined && isHomeViewMode(stored.viewMode)) {
     return stored.viewMode;
   }
@@ -43,5 +52,9 @@ export const writeRecommendationViewMode = async (
   chip: RecommendationChip,
   viewMode: HomeViewMode
 ): Promise<void> => {
-  await writeSortPref(recommendationsListViewModeScope(chip), { viewMode });
+  const scope =
+    chip === 'people'
+      ? { kind: 'list' as const, name: 'recommendations-people' }
+      : recommendationsListViewModeScope(chip);
+  await writeSortPref(scope, { viewMode });
 };

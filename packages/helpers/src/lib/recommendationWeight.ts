@@ -4,16 +4,26 @@ import { MediumEnum } from './medium.js';
 export const RECOMMENDATION_WEIGHT_MIN = 1;
 export const RECOMMENDATION_WEIGHT_MAX = 5;
 
-/** Chips the recommendations page can show. Taste Profile scores shows only. */
-export const RECOMMENDATION_CHIPS = ['podcasts', 'albums', 'artists'] as const;
+export const RECOMMENDATION_CHIPS = ['podcasts', 'albums', 'artists', 'people'] as const;
 
 export type RecommendationChip = (typeof RECOMMENDATION_CHIPS)[number];
 
+/** Show chips. People are derived from those shows and have no medium of their own. */
+export const RECOMMENDATION_SHOW_CHIPS = ['podcasts', 'albums', 'artists'] as const;
+
+export type RecommendationShowChip = (typeof RECOMMENDATION_SHOW_CHIPS)[number];
+
+export function isRecommendationShowChip(
+  value: RecommendationChip
+): value is RecommendationShowChip {
+  return value !== 'people';
+}
+
 /**
- * Mediums behind each chip. Podcasts and albums include the large-medium twin.
+ * Mediums behind each show chip. Podcasts and albums include the large-medium twin.
  * Artists are publisher music channels.
  */
-export const RECOMMENDATION_MEDIUM_IDS: Record<RecommendationChip, readonly number[]> = {
+export const RECOMMENDATION_MEDIUM_IDS: Record<RecommendationShowChip, readonly number[]> = {
   podcasts: [MediumEnum.Podcast, MediumEnum.PodcastL],
   albums: [MediumEnum.Music, MediumEnum.MusicL],
   artists: [MediumEnum.PublisherMusic],

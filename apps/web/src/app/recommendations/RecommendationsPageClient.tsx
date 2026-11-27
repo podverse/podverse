@@ -4,11 +4,16 @@ import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { useCallback, useEffect, useState } from 'react';
 
-import type { DTOAccountRecommendation, RecommendationChip } from '@podverse/helpers';
+import type {
+  DTOAccountRecommendation,
+  DTOPersonRecommendation,
+  RecommendationChip,
+} from '@podverse/helpers';
 import {
   buildAlbumPath,
   buildArtistPath,
   buildDTOChannelImageLoadCandidates,
+  buildPersonPath,
   buildPodcastPath,
   isTasteProfileTrackingAllowed,
   recommendationsListViewModeScope,
@@ -50,7 +55,7 @@ type RecommendationsPageClientProps = {
   chips: readonly RecommendationChip[];
 };
 
-function showPath(chip: RecommendationChip, idText: string): string {
+function showPath(chip: 'podcasts' | 'albums' | 'artists', idText: string): string {
   if (chip === 'albums') {
     return buildAlbumPath(idText);
   }
@@ -75,7 +80,7 @@ function RecommendationNodes({
   untitled,
   viewSelected,
 }: {
-  chip: RecommendationChip;
+  chip: 'podcasts' | 'albums' | 'artists';
   items: DTOAccountRecommendation[];
   onHide: (channelIdText: string) => void;
   untitled: string;
@@ -107,8 +112,13 @@ export function RecommendationsPageClient({
   const { loggedInAccount } = useAccount();
   const config = useConfig();
   const { setModalAuthLogin } = useModals();
-  const { setViewSelected, viewSelected } = useListViewMode(recommendationsListViewModeScope(chip));
+  const { setViewSelected, viewSelected } = useListViewMode(
+    chip === 'people'
+      ? { kind: 'list', name: 'recommendations-people' }
+      : recommendationsListViewModeScope(chip)
+  );
   const [state, setState] = useState<LoadState>({ status: 'idle' });
+  const [people, setPeople] = useState<DTOPersonRecommendation[]>([]);
   const [refreshKey, setRefreshKey] = useState(0);
   const signedIn = loggedInAccount !== null && loggedInAccount !== undefined;
   const trackingAllowed = isTasteProfileTrackingAllowed(
@@ -135,18 +145,30 @@ export function RecommendationsPageClient({
     }
     let cancelled = false;
     setState({ status: 'loading', chip });
-    getApiRequestService()
-      .reqAccountRecommendations({ chip })
-      .then((items) => {
-        if (!cancelled) {
-          setState({ status: 'ready', chip, items });
-        }
-      })
-      .catch(() => {
-        if (!cancelled) {
-          setState({ status: 'error', chip });
-        }
-      });
+    const request =
+      chip === 'people'
+        ? getApiRequestService()
+            .reqAccountPersonRecommendations()
+            .then((nextPeople) => {
+              if (!cancelled) {
+                setPeople(nextPeople);
+                setState({ status: 'ready', chip, items: [] });
+              }
+            })
+        : getApiRequestService()
+            .reqAccountRecommendations({ chip })
+            .then((items) => {
+              if (!cancelled) {
+                setPeople([]);
+                setState({ status: 'ready', chip, items });
+              }
+            });
+    request.catch(() => {
+      if (!cancelled) {
+        setPeople([]);
+        setState({ status: 'error', chip });
+      }
+    });
     return () => {
       cancelled = true;
     };
@@ -175,6 +197,7 @@ export function RecommendationsPageClient({
       ? { status: 'loading', chip }
       : state;
   const items = shown.status === 'ready' ? shown.items : [];
+  const visibleCount = chip === 'people' ? people.length : items.length;
   const openSettings = () => {
     router.push(`${ROUTES.SETTINGS}?tab=recommendations`);
   };
@@ -211,14 +234,14 @@ export function RecommendationsPageClient({
                 }}
               />
             ) : null}
-            {signedIn && !trackingAllowed && shown.status === 'ready' && items.length === 0 ? (
+            {signedIn && !trackingAllowed && shown.status === 'ready' && visibleCount === 0 ? (
               <CallToActionMessage
                 buttonLabel={t('enable')}
                 message={t('need_taste_profile')}
                 onButtonClick={openSettings}
               />
             ) : null}
-            {signedIn && !trackingAllowed && items.length > 0 ? (
+            {signedIn && !trackingAllowed && visibleCount > 0 ? (
               <div className={styles.note}>
                 <p>{t('paused')}</p>
                 <Button type="button" variant="secondary" onClick={openSettings}>
@@ -226,7 +249,7 @@ export function RecommendationsPageClient({
                 </Button>
               </div>
             ) : null}
-            {signedIn && trackingAllowed && shown.status === 'ready' && items.length === 0 ? (
+            {signedIn && trackingAllowed && shown.status === 'ready' && visibleCount === 0 ? (
               <NoResults message={t('check_back')} role="status" />
             ) : null}
             {signedIn && shown.status === 'error' ? (
@@ -235,12 +258,26 @@ export function RecommendationsPageClient({
               </p>
             ) : null}
             <WebLoadingSpinnerOverlay isLoading={signedIn && shown.status === 'loading'} />
-            {items.length > 0 ? (
+            {chip !== 'people' && items.length > 0 ? (
               <RecommendationNodes
                 chip={chip}
                 items={items}
                 onHide={hideChannelFromLists}
                 untitled={tMisc('untitled')}
+                viewSelected={viewSelected}
+              />
+            ) : null}
+            {chip === 'people' && people.length > 0 ? (
+              <RecommendationChannelNodes
+                items={people.map((item) => ({
+                  href: buildPersonPath(item.person.id_text),
+                  id: item.person.id_text,
+                  imageCandidates:
+                    item.person.list_image_url !== null && item.person.list_image_url !== ''
+                      ? [item.person.list_image_url]
+                      : [],
+                  title: item.person.display_name,
+                }))}
                 viewSelected={viewSelected}
               />
             ) : null}

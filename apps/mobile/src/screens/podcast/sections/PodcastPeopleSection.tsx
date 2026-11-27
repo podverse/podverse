@@ -1,6 +1,9 @@
+import { useNavigation } from '@react-navigation/native';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useMemo } from 'react';
 
 import { PeoplePane, toAboutPersonFromChannel } from '../../../components/content';
+import type { ChannelBrowseStackParamList } from '../../../navigation';
 import type { PodcastSectionPaneProps } from './podcastSectionPane';
 
 /**
@@ -8,9 +11,11 @@ import type { PodcastSectionPaneProps } from './podcastSectionPane';
  */
 export function PodcastPeopleSection({
   channel,
+  channelIdText,
   isChannelLoading,
   listHeader,
 }: PodcastSectionPaneProps) {
+  const navigation = useNavigation<NativeStackNavigationProp<ChannelBrowseStackParamList>>();
   const people = useMemo(
     () => (channel?.channel_persons ?? []).map(toAboutPersonFromChannel),
     [channel]
@@ -18,8 +23,12 @@ export function PodcastPeopleSection({
 
   return (
     <PeoplePane
+      appearanceChannelIdText={channelIdText}
       isLoading={isChannelLoading && channel === null}
       listHeader={listHeader}
+      onOpenPerson={(personId) => {
+        navigation.navigate('PersonDetail', { personId });
+      }}
       people={people}
       testIDPrefix="podcast-detail"
     />

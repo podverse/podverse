@@ -110,6 +110,7 @@ import { MoreSettingsTasteProfileScreen } from '../screens/more/MoreSettingsTast
 import { MoreSettingsThemeScreen } from '../screens/more/MoreSettingsThemeScreen';
 import { MoreTermsOfServiceScreen } from '../screens/more/MoreTermsOfServiceScreen';
 import { NotificationsInboxScreen } from '../screens/notifications/NotificationsInboxScreen';
+import { PersonDetailScreen } from '../screens/person/PersonDetailScreen';
 import type {
   FullPlayerContentTarget,
   FullPlayerItemOpenRequest,
@@ -194,6 +195,7 @@ export const HOME_STACK_ROUTES = {
   HomeRoot: 'HomeRoot',
   PlaylistCreate: 'PlaylistCreate',
   PodcastDetail: 'PodcastDetail',
+  PersonDetail: 'PersonDetail',
   TrackDetail: 'TrackDetail',
 } as const;
 
@@ -205,6 +207,7 @@ export const CHANNEL_BROWSE_STACK_ROUTES = {
   EpisodeDetail: 'EpisodeDetail',
   PlaylistCreate: 'PlaylistCreate',
   PodcastDetail: 'PodcastDetail',
+  PersonDetail: 'PersonDetail',
   /** Provider search detail for an unparsed feed (Search results and remote stub rows). */
   SearchResultDetail: 'SearchResultDetail',
   TrackDetail: 'TrackDetail',
@@ -244,6 +247,7 @@ export const LIBRARY_STACK_ROUTES = {
   LibraryPlaylists: 'LibraryPlaylists',
   LibraryQueue: 'LibraryQueue',
   PodcastDetail: 'PodcastDetail',
+  PersonDetail: 'PersonDetail',
   SearchResultDetail: 'SearchResultDetail',
   TrackDetail: 'TrackDetail',
 } as const;
@@ -280,6 +284,7 @@ export const MORE_STACK_ROUTES = {
   ClipDetail: 'ClipDetail',
   PlaylistDetail: 'PlaylistDetail',
   PodcastDetail: 'PodcastDetail',
+  PersonDetail: 'PersonDetail',
   MoreRoot: 'MoreRoot',
   MoreSettings: 'MoreSettings',
   MoreValueProviders: 'MoreValueProviders',
@@ -350,6 +355,7 @@ const homeTabLinkScreens = {
   EpisodeDetail: `${MOBILE_HOME_TAB_SEGMENT}${APP_ROUTES.EPISODE}/:episodeId`,
   HomeRoot: MOBILE_HOME_TAB_SEGMENT,
   PodcastDetail: `${MOBILE_HOME_TAB_SEGMENT}${APP_ROUTES.PODCAST}/:podcastId`,
+  PersonDetail: `${MOBILE_HOME_TAB_SEGMENT}${APP_ROUTES.PERSON}/:personId`,
   TrackDetail: `${MOBILE_HOME_TAB_SEGMENT}${APP_ROUTES.TRACK}/:trackId`,
 } as const;
 
@@ -408,6 +414,7 @@ const libraryTabLinkScreens = {
   LibraryPlaylists: 'my-library/playlists',
   LibraryQueue: 'my-library/queue',
   PodcastDetail: `my-library${APP_ROUTES.PODCAST}/:podcastId`,
+  PersonDetail: `my-library${APP_ROUTES.PERSON}/:personId`,
   TrackDetail: `my-library${APP_ROUTES.TRACK}/:trackId`,
 } as const;
 
@@ -424,6 +431,7 @@ const browseTabLinkScreens = {
   EpisodeDetail: `browse${APP_ROUTES.EPISODE}/:episodeId`,
   PlaylistDetail: `browse${APP_ROUTES.PLAYLIST}/:playlistId`,
   PodcastDetail: `browse${APP_ROUTES.PODCAST}/:podcastId`,
+  PersonDetail: `browse${APP_ROUTES.PERSON}/:personId`,
   Profile: `browse${APP_ROUTES.PROFILE}/:accountIdText`,
   TrackDetail: `browse${APP_ROUTES.TRACK}/:trackId`,
 } as const;
@@ -441,6 +449,7 @@ const recommendationsTabLinkScreens = {
   EpisodeDetail: `recommendations${APP_ROUTES.EPISODE}/:episodeId`,
   PlaylistDetail: `recommendations${APP_ROUTES.PLAYLIST}/:playlistId`,
   PodcastDetail: `recommendations${APP_ROUTES.PODCAST}/:podcastId`,
+  PersonDetail: `recommendations${APP_ROUTES.PERSON}/:personId`,
   Profile: `recommendations${APP_ROUTES.PROFILE}/:accountIdText`,
   TrackDetail: `recommendations${APP_ROUTES.TRACK}/:trackId`,
 } as const;
@@ -456,6 +465,7 @@ const searchTabLinkScreens = {
   ClipDetail: `search${APP_ROUTES.CLIP}/:clipId`,
   EpisodeDetail: `search${APP_ROUTES.EPISODE}/:episodeId`,
   PodcastDetail: `search${APP_ROUTES.PODCAST}/:podcastId`,
+  PersonDetail: `search${APP_ROUTES.PERSON}/:personId`,
   SearchResultDetail: 'search/result/:resultId',
   SearchRoot: 'search',
   TrackDetail: `search${APP_ROUTES.TRACK}/:trackId`,
@@ -555,6 +565,7 @@ export type ChannelBrowseStackParamList = {
   EpisodeDetail: { episodeId: string };
   PlaylistCreate: undefined;
   PodcastDetail: PodcastDetailRouteParams;
+  PersonDetail: { personId: string };
   SearchResultDetail: SearchResultDetailParams;
   TrackDetail: TrackDetailRouteParams;
 };
@@ -592,6 +603,7 @@ export type LibraryStackParamList = AddByRssDetailStackParamList & {
   LibraryPlaylists: undefined;
   LibraryQueue: undefined;
   PodcastDetail: PodcastDetailRouteParams;
+  PersonDetail: { personId: string };
   SearchResultDetail: SearchResultDetailParams;
   TrackDetail: TrackDetailRouteParams;
 };
@@ -627,6 +639,7 @@ export type MoreStackParamList = {
   ClipDetail: { clipId: string };
   PlaylistDetail: { playlistId: string };
   PodcastDetail: PodcastDetailRouteParams;
+  PersonDetail: { personId: string };
   MoreRoot: undefined;
   MoreSettings: undefined;
   MoreValueProviders: undefined;
@@ -1261,6 +1274,11 @@ function HomeStackNavigator() {
         options={{ title: t('media.podcast.podcast') }}
       />
       <HomeStack.Screen
+        component={PersonDetailScreen}
+        name={HOME_STACK_ROUTES.PersonDetail}
+        options={{ title: t('info.people.people') }}
+      />
+      <HomeStack.Screen
         component={EpisodeDetailScreen}
         name={HOME_STACK_ROUTES.EpisodeDetail}
         options={{ title: t('media.podcast.episode') }}
@@ -1367,6 +1385,11 @@ function SearchStackNavigator() {
           component={PodcastDetailScreen}
           name={SEARCH_STACK_ROUTES.PodcastDetail}
           options={{ title: t('media.podcast.podcast') }}
+        />
+        <SearchStack.Screen
+          component={PersonDetailScreen}
+          name={SEARCH_STACK_ROUTES.PersonDetail}
+          options={{ title: t('info.people.people') }}
         />
         <SearchStack.Screen
           component={EpisodeDetailScreen}
@@ -1490,6 +1513,11 @@ function LibraryStackNavigator() {
         options={{ title: t('media.podcast.podcast') }}
       />
       <LibraryStack.Screen
+        component={PersonDetailScreen}
+        name={LIBRARY_STACK_ROUTES.PersonDetail}
+        options={{ title: t('info.people.people') }}
+      />
+      <LibraryStack.Screen
         component={ArtistDetailScreen}
         name={LIBRARY_STACK_ROUTES.ArtistDetail}
         options={{ title: t('media.music.artist') }}
@@ -1580,6 +1608,11 @@ function BrowseStackNavigator({ root = 'browse' }: { root?: 'browse' | 'recommen
         component={PodcastDetailScreen}
         name={BROWSE_STACK_ROUTES.PodcastDetail}
         options={{ title: t('media.podcast.podcast') }}
+      />
+      <BrowseStack.Screen
+        component={PersonDetailScreen}
+        name={BROWSE_STACK_ROUTES.PersonDetail}
+        options={{ title: t('info.people.people') }}
       />
       <BrowseStack.Screen
         component={EpisodeDetailScreen}
@@ -1838,6 +1871,11 @@ function MoreStackNavigator({
         component={PodcastDetailScreen}
         name={MORE_STACK_ROUTES.PodcastDetail}
         options={{ title: t('media.podcast.podcast') }}
+      />
+      <MoreStack.Screen
+        component={PersonDetailScreen}
+        name={MORE_STACK_ROUTES.PersonDetail}
+        options={{ title: t('info.people.people') }}
       />
       <MoreStack.Screen
         component={AlbumDetailScreen}

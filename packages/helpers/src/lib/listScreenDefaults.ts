@@ -25,7 +25,12 @@ export const HOME_LIST_SCREEN_CHIPS = [
 
 export type HomeListScreenChip = (typeof HOME_LIST_SCREEN_CHIPS)[number];
 
-export const BROWSE_LIST_SCREEN_CHIPS = [...HOME_LIST_SCREEN_CHIPS, 'playlists', 'users'] as const;
+export const BROWSE_LIST_SCREEN_CHIPS = [
+  ...HOME_LIST_SCREEN_CHIPS,
+  'playlists',
+  'users',
+  'people',
+] as const;
 
 export type BrowseListScreenChip = (typeof BROWSE_LIST_SCREEN_CHIPS)[number];
 
