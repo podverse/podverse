@@ -112,6 +112,8 @@ export * from './lib/logLevel.js';
 export * from './lib/math.js';
 export * from './lib/managedCopy.js';
 export * from './lib/medium.js';
+export * from './lib/person/nameKey.js';
+export * from './lib/person/portrait.js';
 export * from './lib/recommendationWeight.js';
 export * from './managementAdminRoles/constants.js';
 export * from './lib/membershipFeatureComparison.js';

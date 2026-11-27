@@ -423,7 +423,15 @@
     "people": {
       "people": "Personnes",
       "person_image": "Image de la personne",
-      "link_to_persons_webpage": "Lien vers la page web de la personne"
+      "link_to_persons_webpage": "Lien vers la page web de la personne",
+      "cast": "Distribution",
+      "appearances": "Apparitions",
+      "appearance_count": "{count, plural, one {# apparition} other {# apparitions}}",
+      "website": "Site web",
+      "subscribe": "S’abonner",
+      "subscribed": "Abonné",
+      "no_people_found": "Aucune personne trouvée",
+      "search_placeholder": "Rechercher des personnes"
     },
     "chapter": {
       "chapter": "Chapitre",

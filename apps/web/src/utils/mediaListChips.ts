@@ -26,7 +26,7 @@ export const SUBSCRIBED_CHIPS = [
 ] as const;
 
 /** Browse chips, in mobile Browse order. */
-export const BROWSE_CHIPS = [...SUBSCRIBED_CHIPS, 'playlists', 'users'] as const;
+export const BROWSE_CHIPS = [...SUBSCRIBED_CHIPS, 'playlists', 'users', 'people'] as const;
 
 /** Add by RSS library chips, in mobile library order. */
 export const ADD_BY_RSS_CHIPS = [
@@ -38,8 +38,8 @@ export const ADD_BY_RSS_CHIPS = [
   'livestreams',
 ] as const;
 
-/** Recommendations chips. Taste Profile scores shows only. */
-export const RECOMMENDATION_CHIPS = ['podcasts', 'albums', 'artists'] as const;
+/** Recommendations chips. Shows come from Taste Profile. People are derived from those shows. */
+export const RECOMMENDATION_CHIPS = ['podcasts', 'albums', 'artists', 'people'] as const;
 
 const isMusicMediaListChip = (chip: string): boolean =>
   chip === 'artists' || chip === 'albums' || chip === 'tracks';
@@ -119,6 +119,7 @@ export const MEDIA_LIST_CHIP_LABEL_KEYS = {
   livestreams: 'media.livestream.livestreams',
   playlists: 'features.playlist.playlists',
   users: 'features.browse.users',
+  people: 'info.people.people',
 } as const satisfies Record<MediaListChip, string>;
 
 /** Sort-pref scope that remembers the chip on each page. */

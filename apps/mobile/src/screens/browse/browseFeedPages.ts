@@ -27,5 +27,11 @@ export const appendBrowseFeedPage = (
       kind: 'users',
     };
   }
+  if (current.kind === 'people' && next.kind === 'people') {
+    return {
+      kind: 'people',
+      people: appendUniqueBy(current.people, next.people, (row) => row.id_text),
+    };
+  }
   return current;
 };

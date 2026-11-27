@@ -28,7 +28,7 @@ export type RecommendationChannelListItem = {
 
 type RecommendationChannelNodesProps = {
   items: RecommendationChannelListItem[];
-  onHide: (channelIdText: string) => void;
+  onHide?: (channelIdText: string) => void;
   viewSelected: ViewSelectedOption;
 };
 
@@ -65,7 +65,7 @@ export const RecommendationChannelNodes: React.FC<RecommendationChannelNodesProp
 
 function useHideMenuItems(
   item: RecommendationChannelListItem,
-  onHide: (channelIdText: string) => void
+  onHide: ((channelIdText: string) => void) | undefined
 ): MoreButtonMenuItem[] {
   const t = useTranslations('features.recommendations');
   return useMemo(
@@ -73,7 +73,7 @@ function useHideMenuItems(
       {
         label: t('hide'),
         onClick: () => {
-          onHide(item.id);
+          onHide?.(item.id);
         },
       },
     ],
@@ -83,7 +83,7 @@ function useHideMenuItems(
 
 const RecommendationChannelRow: React.FC<{
   item: RecommendationChannelListItem;
-  onHide: (channelIdText: string) => void;
+  onHide?: (channelIdText: string) => void;
 }> = ({ item, onHide }) => {
   const tMedia = useTranslations('media');
   const locale = useLocale();
@@ -114,14 +114,16 @@ const RecommendationChannelRow: React.FC<{
           </div>
         </div>
       </Link>
-      <MoreButton ariaLabel={tMedia('more_options')} moreButtonMenuItems={moreButtonMenuItems} />
+      {onHide !== undefined ? (
+        <MoreButton ariaLabel={tMedia('more_options')} moreButtonMenuItems={moreButtonMenuItems} />
+      ) : null}
     </div>
   );
 };
 
 const RecommendationChannelGridNode: React.FC<{
   item: RecommendationChannelListItem;
-  onHide: (channelIdText: string) => void;
+  onHide?: (channelIdText: string) => void;
 }> = ({ item, onHide }) => {
   const tMedia = useTranslations('media');
   const locale = useLocale();
@@ -148,9 +150,14 @@ const RecommendationChannelGridNode: React.FC<{
           ) : null}
         </div>
       </Link>
-      <div className={styles.gridMore}>
-        <MoreButton ariaLabel={tMedia('more_options')} moreButtonMenuItems={moreButtonMenuItems} />
-      </div>
+      {onHide !== undefined ? (
+        <div className={styles.gridMore}>
+          <MoreButton
+            ariaLabel={tMedia('more_options')}
+            moreButtonMenuItems={moreButtonMenuItems}
+          />
+        </div>
+      ) : null}
     </div>
   );
 };

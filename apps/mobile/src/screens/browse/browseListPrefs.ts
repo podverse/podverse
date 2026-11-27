@@ -40,7 +40,7 @@ export type BrowseListPrefs = {
  * the row.
  */
 export const isBrowseViewModeMediaType = (mediaType: BrowseMediaType): boolean => {
-  return isChannelListViewModeType(mediaType);
+  return mediaType === 'people' || isChannelListViewModeType(mediaType);
 };
 
 const isHomeViewMode = (value: string): value is HomeViewMode => {

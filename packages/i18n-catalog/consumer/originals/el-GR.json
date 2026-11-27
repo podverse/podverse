@@ -423,7 +423,15 @@
     "people": {
       "people": "Άτομα",
       "person_image": "Εικόνα ατόμου",
-      "link_to_persons_webpage": "Σύνδεσμος στην ιστοσελίδα ατόμου"
+      "link_to_persons_webpage": "Σύνδεσμος στην ιστοσελίδα ατόμου",
+      "cast": "Συντελεστές",
+      "appearances": "Συμμετοχές",
+      "appearance_count": "{count, plural, one {# συμμετοχή} other {# συμμετοχές}}",
+      "website": "Ιστότοπος",
+      "subscribe": "Εγγραφή",
+      "subscribed": "Εγγεγραμμένος",
+      "no_people_found": "Δεν βρέθηκαν άτομα",
+      "search_placeholder": "Αναζήτηση ατόμων"
     },
     "chapter": {
       "chapter": "Κεφάλαιο",

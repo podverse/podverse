@@ -14,6 +14,7 @@ import {
   type ComputedFeedEffectivePolicy,
   computeEffectivePolicyFromConditionKeys,
 } from '@orm/lib/feedEffectivePolicyComputed.js';
+import { recomputePersonsForFeed } from '@orm/services/person/personCreditSync.js';
 import type { EntityManager } from 'typeorm';
 import type { Repository } from 'typeorm';
 
@@ -192,7 +193,9 @@ export class FeedPolicyService {
     policy.primary_block_reason = computed.primaryBlockReason;
     policy.last_policy_refresh_at = new Date();
 
-    return this.policyReadWriteRepo().save(policy);
+    const saved = await this.policyReadWriteRepo().save(policy);
+    await recomputePersonsForFeed(this.policyReadWriteRepo().manager, feedId);
+    return saved;
   }
 
   async getByFeedId(feedId: number): Promise<FeedPolicy | null> {

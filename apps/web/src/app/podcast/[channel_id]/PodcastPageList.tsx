@@ -8,8 +8,8 @@ import { isDescriptionTruncated } from '@podverse/helpers';
 
 import { BoostMessagesSection } from '../../../components/Boost/messages/BoostMessagesSection';
 import { useBoostMessagesView } from '../../../components/Boost/messages/useBoostMessagesView';
+import { ChannelPeopleSections } from '../../../components/Content/About/ChannelPeopleSections';
 import { ContentAbout } from '../../../components/Content/About/ContentAbout';
-import { ContentPeopleRows } from '../../../components/Content/About/ContentPeopleRows';
 import { ContentPodroll } from '../../../components/Content/Podroll/ContentPodroll';
 import { ContentRemoteItems } from '../../../components/Content/RemoteItems/ContentRemoteItems';
 import { ListClips } from '../../../components/List/Clips/ListClips';
@@ -103,7 +103,12 @@ export const PodcastPageList: React.FC<PodcastPageListProps> = ({
           fullDescriptionUrl={ssrChannel.channel_about?.website_link_url}
         />
       )}
-      {type === 'people' && <ContentPeopleRows channel_persons={ssrChannel.channel_persons} />}
+      {type === 'people' && (
+        <ChannelPeopleSections
+          channelIdText={ssrChannel.id_text}
+          channelPersons={ssrChannel.channel_persons ?? []}
+        />
+      )}
       {type === 'podroll' && <ContentPodroll remoteItemsResponse={podroll} />}
       {type === 'remote-items' && <ContentRemoteItems remoteItemsResponse={remoteItems} />}
       {type === 'settings' && <ListChannelSettings channel={ssrChannel} />}

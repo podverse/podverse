@@ -423,7 +423,15 @@
     "people": {
       "people": "People",
       "person_image": "Person Image",
-      "link_to_persons_webpage": "Link to Person's Webpage"
+      "link_to_persons_webpage": "Link to Person's Webpage",
+      "cast": "Cast",
+      "appearances": "Appearances",
+      "appearance_count": "{count, plural, one {# appearance} other {# appearances}}",
+      "website": "Website",
+      "subscribe": "Subscribe",
+      "subscribed": "Subscribed",
+      "no_people_found": "No People Found",
+      "search_placeholder": "Search People"
     },
     "chapter": {
       "chapter": "Chapter",

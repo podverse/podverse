@@ -23,15 +23,19 @@ Vocabulary for description / About / Summary lives in **domain-terms**.
 
 | Surface | Always includes | Never |
 | ------- | --------------- | ----- |
-| Channel About (podcast, album, artist) | `channel_description` | People, and falling back to item people |
+| Channel About (podcast, album, artist) | `channel_description` | People, including cast and appearances |
 | Item Summary (episode, track, livestream, full player) | `item_description` | People, and falling back to `channel_persons` |
 
-People are their own chip (`info.people.people`). Show that chip whenever the matching person
-array is non-empty, even if description prose is empty. Channel screens use `channel_persons`.
-Item screens use `item_persons`. Do not hide people behind an empty-description gate, and do not
-render people inside About or Summary. On web, About, Podroll, Remote Items, and People are
-section chips at every width. The channel side column stays in the layout and does not render
-that content.
+People are their own chip (`info.people.people`). Show that chip when a channel has cast
+(`channel_persons`) or appearances (`person_appearance_count` > 0), and when an item has
+`item_persons`, even if description prose is empty. A channel People chip lists Cast
+(`channel_persons`) and, below that, Appearances (distinct item people on that channel, including
+people who are also in Cast). Item screens list `item_persons` only. A credited name with
+`person_id_text` opens that person's page on channel, episode, and track screens. The full player
+and Add by RSS keep the website link and do not open the person page. Do not hide people behind
+an empty-description gate, and do not render people inside About or Summary. On web, About,
+Podroll, Remote Items, and People are section chips at every width. The channel side column stays
+in the layout and does not render that content.
 
 ## Previews and full notes
 

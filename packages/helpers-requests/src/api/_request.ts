@@ -87,6 +87,7 @@ import {
   reqAccountFollowChannelsBulk,
   reqAccountUnfollowChannel,
 } from './account/follow/channel.js';
+import { reqAccountFollowPerson, reqAccountUnfollowPerson } from './account/follow/person.js';
 import { reqAccountFollowPlaylist, reqAccountUnfollowPlaylist } from './account/follow/playlist.js';
 import { reqAccountUnfollowBulk } from './account/follow/unfollowBulk.js';
 import {
@@ -264,6 +265,14 @@ import {
   reqMetaboostMbrssV1MintRateLimitStatus,
 } from './metaboost/mbrssV1AppAssertion.js';
 import { reqMQRSSAddOnDemand, reqMQRSSRefreshOnDemand } from './mq/mq.js';
+import {
+  reqAccountPersonRecommendations,
+  reqChannelPersonAppearances,
+  reqPersonByIdText,
+  reqPersonChannels,
+  reqPersonItems,
+  reqPersonList,
+} from './person.js';
 import type {
   ReqPlaylistCreateParams,
   ReqPlaylistEditParams,
@@ -916,6 +925,14 @@ export class ApiRequestService {
     return reqAccountFollowPlaylist(this, params);
   }
 
+  reqAccountFollowPerson(params: { person_id_text: string }) {
+    return reqAccountFollowPerson(this, params);
+  }
+
+  reqAccountUnfollowPerson(params: { person_id_text: string }) {
+    return reqAccountUnfollowPerson(this, params);
+  }
+
   reqAccountUnfollowPlaylist(params: { playlist_id_text: string }) {
     return reqAccountUnfollowPlaylist(this, params);
   }
@@ -975,6 +992,57 @@ export class ApiRequestService {
 
   reqAccountRecommendations(params: { chip: 'podcasts' | 'albums' | 'artists' }) {
     return reqAccountRecommendations(this, params);
+  }
+
+  reqAccountPersonRecommendations() {
+    return reqAccountPersonRecommendations(this);
+  }
+
+  reqPersonList(params: {
+    page?: number;
+    limit?: number;
+    q?: string;
+    sort?: 'recent' | 'top';
+    range?: 'day' | 'week' | 'month' | 'all-time';
+  }) {
+    return reqPersonList(this, params);
+  }
+
+  reqPersonByIdText(idText: string) {
+    return reqPersonByIdText(this, idText);
+  }
+
+  reqPersonChannels(
+    idText: string,
+    params: {
+      chip: 'podcasts' | 'albums' | 'artists';
+      page?: number;
+      limit?: number;
+      sort?: 'recent' | 'top';
+      range?: 'day' | 'week' | 'month' | 'all-time';
+    }
+  ) {
+    return reqPersonChannels(this, idText, params);
+  }
+
+  reqPersonItems(
+    idText: string,
+    params: {
+      chip: 'episodes' | 'tracks' | 'livestreams';
+      page?: number;
+      limit?: number;
+      sort?: 'recent' | 'top';
+      range?: 'day' | 'week' | 'month' | 'all-time';
+    }
+  ) {
+    return reqPersonItems(this, idText, params);
+  }
+
+  reqChannelPersonAppearances(
+    channelIdOrIdText: string,
+    params: { page?: number; limit?: number }
+  ) {
+    return reqChannelPersonAppearances(this, channelIdOrIdText, params);
   }
 
   reqAccountChannelHidden(params: { page?: number; limit?: number }) {

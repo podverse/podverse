@@ -17,6 +17,10 @@ export const playlistIdTextParamSchema = {
   playlist_id_text: Joi.string().required(),
 };
 
+export const personIdTextParamSchema = {
+  person_id_text: Joi.string().min(7).max(15).required(),
+};
+
 export const queueIdTextParamSchema = {
   queue_id_text: Joi.string().required(),
 };

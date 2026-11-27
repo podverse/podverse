@@ -1,5 +1,6 @@
 import { config } from '@api/config/index.js';
 import { channelAddByRssMatchRateLimit, ChannelController } from '@api/controllers/channel.js';
+import { PersonController } from '@api/controllers/person.js';
 import { asyncHandler } from '@api/middleware/asyncHandler.js';
 import { Router } from 'express';
 
@@ -26,6 +27,7 @@ router.get('/subscribed/az', asyncHandler(ChannelController.getManySubscribedAZ)
 router.get('/subscribed/recent', asyncHandler(ChannelController.getManySubscribedRecent));
 router.get('/subscribed/top', asyncHandler(ChannelController.getManySubscribedTop));
 
+router.get('/:idOrIdText/person-appearances', asyncHandler(PersonController.appearances));
 router.get('/:idOrIdText', asyncHandler(ChannelController.getByIdOrIdText));
 
 export const channelRouter = router;

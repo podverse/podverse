@@ -911,6 +911,9 @@ export function TrackDetailScreen({ navigation, route }: TrackDetailScreenProps)
         <PeoplePane
           isLoading={track === null}
           layout="inline"
+          onOpenPerson={(personId) => {
+            navigation.navigate('PersonDetail', { personId });
+          }}
           people={(track?.item_persons ?? []).map(toAboutPersonFromItem)}
           testIDPrefix="track-detail"
         />

@@ -44,6 +44,8 @@ export interface DTOChannel {
   channel_location?: DTOChannelLocation;
   channel_meta_boost?: DTOChannelMetaBoost | null;
   channel_persons?: DTOChannelPerson[];
+  /** Distinct people credited on this channel's items. Absent on older stored payloads. */
+  person_appearance_count?: number;
   channel_podroll?: DTOChannelPodroll;
   channel_publisher?: DTOChannelPublisher;
   channel_remote_items?: DTOChannelRemoteItem[];

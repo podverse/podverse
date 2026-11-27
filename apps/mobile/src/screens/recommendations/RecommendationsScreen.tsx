@@ -4,7 +4,11 @@ import { useCallback, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { StyleSheet, Text, View } from 'react-native';
 
-import type { DTOAccountRecommendation, RecommendationChip } from '@podverse/helpers';
+import type {
+  DTOAccountRecommendation,
+  DTOPersonRecommendation,
+  RecommendationChip,
+} from '@podverse/helpers';
 import { isTasteProfileTrackingAllowed, primaryChannelListArtworkUrl } from '@podverse/helpers';
 
 import { useAuthPrompt } from '../../auth/AuthPromptContext';
@@ -45,11 +49,17 @@ import {
 } from './recommendationsListPrefs';
 import { RecommendationsOverflowMenu } from './RecommendationsOverflowMenu';
 
-const CHIPS = ['podcasts', 'albums', 'artists'] as const satisfies readonly RecommendationChip[];
+const CHIPS = [
+  'podcasts',
+  'albums',
+  'artists',
+  'people',
+] as const satisfies readonly RecommendationChip[];
 
 const CHIP_LABEL_KEYS: Record<RecommendationChip, string> = {
   albums: 'media.music.albums',
   artists: 'media.music.artists',
+  people: 'info.people.people',
   podcasts: 'media.podcast.podcasts',
 };
 
@@ -61,7 +71,7 @@ type LoadState =
 
 function openShow(
   navigation: NativeStackNavigationProp<BrowseStackParamList, 'BrowseRoot'>,
-  chip: RecommendationChip,
+  chip: 'podcasts' | 'albums' | 'artists',
   item: DTOAccountRecommendation
 ) {
   const idText = item.channel.id_text;
@@ -109,6 +119,7 @@ export function RecommendationsScreen() {
   const [viewMode, setViewMode] = useState<HomeViewMode>(DEFAULT_HOME_VIEW_MODE);
   const [retryCount, setRetryCount] = useState(0);
   const [state, setState] = useState<LoadState>({ status: 'idle' });
+  const [people, setPeople] = useState<DTOPersonRecommendation[]>([]);
   // Tokens make the session; the account snapshot arrives behind sync. Do not treat a missing
   // snapshot as signed-out — that shows a Login button that cannot open the auth sheet.
   const isAuthenticated = auth.status === 'authenticated';
@@ -161,17 +172,30 @@ export function RecommendationsScreen() {
         refreshToken: auth.refreshToken,
         setTokens: auth.setTokens,
       };
-      void requestWithMobileAuthRefresh(deps, (api) => api.reqAccountRecommendations({ chip }))
-        .then((items) => {
-          if (!cancelled) {
-            setState({ status: 'ready', items });
-          }
-        })
-        .catch(() => {
-          if (!cancelled) {
-            setState({ status: 'error' });
-          }
-        });
+      const load =
+        chip === 'people'
+          ? requestWithMobileAuthRefresh(deps, (api) => api.reqAccountPersonRecommendations()).then(
+              (nextPeople) => {
+                if (!cancelled) {
+                  setPeople(nextPeople);
+                  setState({ status: 'ready', items: [] });
+                }
+              }
+            )
+          : requestWithMobileAuthRefresh(deps, (api) =>
+              api.reqAccountRecommendations({ chip })
+            ).then((items) => {
+              if (!cancelled) {
+                setPeople([]);
+                setState({ status: 'ready', items });
+              }
+            });
+      void load.catch(() => {
+        if (!cancelled) {
+          setPeople([]);
+          setState({ status: 'error' });
+        }
+      });
       return () => {
         cancelled = true;
       };
@@ -216,7 +240,8 @@ export function RecommendationsScreen() {
   );
 
   const items = state.status === 'ready' ? state.items : [];
-  const isGridView = viewMode === 'grid' && items.length > 0;
+  const visibleCount = chip === 'people' ? people.length : items.length;
+  const isGridView = viewMode === 'grid' && visibleCount > 0;
   const { cellWidth, columns, onListLayout } = useFeedListColumns({
     gap: tokens.spacing.md,
     horizontalInset: tokens.spacing.lg,
@@ -284,13 +309,24 @@ export function RecommendationsScreen() {
     });
   }, [handleViewModeChange, isAuthenticated, navigation, openSettings, viewMode]);
 
-  const rows = useMemo(
-    () => items.map((item) => recommendationRow(item, t('misc.untitled'))),
-    [items, t]
-  );
+  const rows = useMemo(() => {
+    if (chip === 'people') {
+      return people.map((item) => ({
+        id: item.person.id_text,
+        imageUrl: item.person.list_image_url,
+        subtitle: null,
+        title: item.person.display_name,
+      }));
+    }
+    return items.map((item) => recommendationRow(item, t('misc.untitled')));
+  }, [chip, items, people, t]);
 
   const openRow = useCallback(
     (row: HomeFeedRowData) => {
+      if (chip === 'people') {
+        navigation.navigate(BROWSE_STACK_ROUTES.PersonDetail, { personId: row.id });
+        return;
+      }
       const item = items.find((candidate) => candidate.channel.id_text === row.id);
       if (item === undefined) {
         return;
@@ -320,7 +356,7 @@ export function RecommendationsScreen() {
             <HomeFeedGridCell
               artworkEdge={cellWidth}
               onPress={openRow}
-              removeAction={gridRemoveAction}
+              removeAction={chip === 'people' ? undefined : gridRemoveAction}
               row={item}
               testID={`recommendations-row-${item.id}`}
             />
@@ -328,7 +364,15 @@ export function RecommendationsScreen() {
         );
       }
 
-      return (
+      return chip === 'people' ? (
+        <HomeFeedRow
+          mediaType="podcasts"
+          onPlayPress={openRow}
+          onPress={openRow}
+          row={item}
+          testID={`recommendations-row-${item.id}`}
+        />
+      ) : (
         <SwipeActionRow
           actionTestID={`recommendations-hide-${item.id}`}
           onRemove={() => {
@@ -360,7 +404,7 @@ export function RecommendationsScreen() {
   );
 
   const header =
-    isAuthenticated && hasAccount && !trackingAllowed && items.length > 0 ? (
+    isAuthenticated && hasAccount && !trackingAllowed && visibleCount > 0 ? (
       <View style={styles.note}>
         <Text style={styles.noteText}>{t('features.recommendations.paused')}</Text>
         <Button

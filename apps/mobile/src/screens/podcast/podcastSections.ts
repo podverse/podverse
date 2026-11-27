@@ -9,6 +9,7 @@ import { PODCAST_TABS } from '../../prefs/detailListPrefs';
 export type PodcastSectionChannel = BoostEligibilityChannel & {
   channel_fundings?: readonly unknown[] | null;
   channel_persons?: readonly unknown[] | null;
+  person_appearance_count?: number | null;
   channel_podroll?: {
     channel_podroll_remote_items?: readonly unknown[] | null;
   } | null;
@@ -61,7 +62,7 @@ export const channelHasFunding = (channel: PodcastSectionChannel | null): boolea
 };
 
 export const channelHasPeople = (channel: PodcastSectionChannel | null): boolean => {
-  return (channel?.channel_persons?.length ?? 0) > 0;
+  return (channel?.channel_persons?.length ?? 0) > 0 || (channel?.person_appearance_count ?? 0) > 0;
 };
 
 export const channelHasBoosts = (channel: PodcastSectionChannel | null): boolean => {

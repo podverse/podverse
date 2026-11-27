@@ -13,9 +13,11 @@ import type {
   DTOAccountTasteProfileChannel,
   DTOAccountTasteProfileHiddenRow,
   DTOAccountTasteProfileRow,
+  DTOPersonRecommendation,
   RecommendationChip,
 } from '@podverse/helpers';
 import {
+  isRecommendationShowChip,
   RECOMMENDATION_MEDIUM_IDS,
   recommendationWeightChanged,
   recommendationWeightFromListenCount,
@@ -31,6 +33,16 @@ import { lockListener, readTrackingConsentForUpdate, runListenerWrite } from './
  */
 
 type TasteProfilePageParams = { limit: number; offset: number };
+
+function countField(value: unknown): number {
+  if (typeof value === 'number' && Number.isFinite(value)) {
+    return value;
+  }
+  if (typeof value === 'string' && value !== '' && Number.isFinite(Number(value))) {
+    return Number(value);
+  }
+  return 0;
+}
 
 type ChannelFields = {
   id_text: string;
@@ -302,6 +314,9 @@ export class TasteProfileAccountService {
     account_id: number,
     chip: RecommendationChip
   ): Promise<DTOAccountRecommendation[]> {
+    if (!isRecommendationShowChip(chip)) {
+      return [];
+    }
     return runListenerWrite(async (manager) => {
       const listener_id = await this.listeners.findListenerId(account_id, manager);
       if (listener_id === null) {
@@ -332,6 +347,76 @@ export class TasteProfileAccountService {
         channel: toChannelDto(row.channel),
         strength: row.strength,
       }));
+    });
+  }
+
+  async listPersonRecommendationsForAccount(
+    account_id: number
+  ): Promise<DTOPersonRecommendation[]> {
+    return runListenerWrite(async (manager) => {
+      const listener_id = await this.listeners.findListenerId(account_id, manager);
+      if (listener_id === null) {
+        return [];
+      }
+      const rows: unknown = await manager.query(
+        `SELECT person.id_text,
+                person.display_name,
+                person.summary,
+                person.list_image_url,
+                person.item_appearance_count,
+                person.channel_cast_count,
+                person.latest_appearance_at,
+                recommendation.strength
+         FROM stats_person_recommendation recommendation
+         JOIN person ON person.id = recommendation.person_id
+         WHERE recommendation.listener_id = $1
+           AND NOT EXISTS (
+             SELECT 1 FROM account_following_person follow
+             WHERE follow.account_id = $2
+               AND follow.person_id = recommendation.person_id
+           )
+         ORDER BY recommendation.score DESC, recommendation.person_id ASC`,
+        [listener_id, account_id]
+      );
+      if (!Array.isArray(rows)) {
+        return [];
+      }
+      return rows.flatMap((row) => {
+        if (typeof row !== 'object' || row === null) {
+          return [];
+        }
+        const record = Object.fromEntries(Object.entries(row));
+        const idText = record.id_text;
+        const displayName = record.display_name;
+        const strength = record.strength;
+        if (typeof idText !== 'string' || typeof displayName !== 'string') {
+          return [];
+        }
+        const strengthNumber = typeof strength === 'number' ? strength : Number(strength);
+        if (!Number.isInteger(strengthNumber)) {
+          return [];
+        }
+        return [
+          {
+            person: {
+              channel_cast_count: countField(record.channel_cast_count),
+              display_name: displayName,
+              id_text: idText,
+              item_appearance_count: countField(record.item_appearance_count),
+              latest_appearance_at:
+                record.latest_appearance_at instanceof Date
+                  ? record.latest_appearance_at.toISOString()
+                  : typeof record.latest_appearance_at === 'string'
+                    ? record.latest_appearance_at
+                    : null,
+              list_image_url:
+                typeof record.list_image_url === 'string' ? record.list_image_url : null,
+              summary: typeof record.summary === 'string' ? record.summary : null,
+            },
+            strength: strengthNumber,
+          },
+        ];
+      });
     });
   }
 

@@ -86,6 +86,7 @@ const CHANNEL_BODY = { channel_id_text: PLACEHOLDER_ID };
 const CHANNELS_BODY = { channel_id_texts: [PLACEHOLDER_ID] };
 const ACCOUNT_BODY = { following_account_id_text: PLACEHOLDER_ID };
 const PLAYLIST_BODY = { playlist_id_text: PLACEHOLDER_ID };
+const PERSON_BODY = { person_id_text: PLACEHOLDER_ID };
 const FEED_BODY = { feed_url: FEED_URL };
 const MARK_SEEN_BODY = { entries: [{ channel_id_text: PLACEHOLDER_ID }] };
 const MARK_ADD_BY_RSS_BODY = { entries: [{ feed_url: FEED_URL }] };
@@ -156,6 +157,8 @@ const ROUTE_CASES: RouteCase[] = [
   route('post', '/account/unfollow/account', 'subscriptions', 'delete', { body: ACCOUNT_BODY }),
   route('post', '/account/follow/playlist', 'subscriptions', 'create', { body: PLAYLIST_BODY }),
   route('post', '/account/unfollow/playlist', 'subscriptions', 'delete', { body: PLAYLIST_BODY }),
+  route('post', '/account/follow/person', 'subscriptions', 'create', { body: PERSON_BODY }),
+  route('post', '/account/unfollow/person', 'subscriptions', 'delete', { body: PERSON_BODY }),
   route('get', '/account/channel-seen', 'subscriptions', 'read', { query: PAGE }),
   route('get', '/account/channel-seen/add-by-rss', 'subscriptions', 'read', { query: PAGE }),
   route('post', '/account/channel-seen/mark', 'subscriptions', 'update', { body: MARK_SEEN_BODY }),
@@ -358,10 +361,10 @@ describe('API key access for account, subscriptions, and Add by RSS', () => {
   }
 
   it('covers every labeled account, subscription, and Add by RSS route', () => {
-    expect(ROUTE_CASES).toHaveLength(48);
+    expect(ROUTE_CASES).toHaveLength(50);
     expect(ROUTE_CASES.filter((routeCase) => routeCase.resource === 'account')).toHaveLength(8);
     expect(ROUTE_CASES.filter((routeCase) => routeCase.resource === 'subscriptions')).toHaveLength(
-      28
+      30
     );
     expect(ROUTE_CASES.filter((routeCase) => routeCase.resource === 'add_by_rss')).toHaveLength(12);
     expect(distinctRequirements(ROUTE_CASES)).toHaveLength(9);

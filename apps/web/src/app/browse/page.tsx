@@ -29,6 +29,7 @@ import { loadPlaylistsBrowseProps } from '../playlists/playlistsListSsr';
 import { PlaylistsPageClient } from '../playlists/PlaylistsPageClient';
 import { loadProfilesBrowseProps } from '../profiles/profilesListSsr';
 import { ProfilesPageClient } from '../profiles/ProfilesPageClient';
+import { PeopleBrowseClient } from './PeopleBrowseClient';
 
 type BrowsePageProps = { searchParams: Promise<MediaListSearchParams> };
 
@@ -126,6 +127,8 @@ export default async function BrowsePage({ searchParams }: BrowsePageProps) {
           {...await loadProfilesBrowseProps(params, ssr)}
         />
       );
+    case 'people':
+      return <PeopleBrowseClient key={chip} chipsConfig={chipsConfig} />;
     default: {
       const _exhaustive: never = chip;
       return _exhaustive;

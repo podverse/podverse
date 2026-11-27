@@ -8,6 +8,7 @@ import { AccountFCMDevice } from '@orm/entities/account/accountFCMDevice.js';
 import { AccountFollowingAccount } from '@orm/entities/account/accountFollowingAccount.js';
 import { AccountFollowingAddByRSSChannel } from '@orm/entities/account/accountFollowingAddByRSSChannel.js';
 import { AccountFollowingChannel } from '@orm/entities/account/accountFollowingChannel.js';
+import { AccountFollowingPerson } from '@orm/entities/account/accountFollowingPerson.js';
 import { AccountFollowingPlaylist } from '@orm/entities/account/accountFollowingPlaylist.js';
 import { AccountMembership } from '@orm/entities/account/accountMembership.js';
 import { AccountMembershipStatus } from '@orm/entities/account/accountMembershipStatus.js';
@@ -123,6 +124,7 @@ import { LiveItemStatus } from '@orm/entities/liveItem/liveItemStatus.js';
 import { Medium } from '@orm/entities/medium.js';
 import { MembershipClaimToken } from '@orm/entities/membershipClaimToken.js';
 import { OnDemandParserEvent } from '@orm/entities/onDemandParserEvent.js';
+import { Person } from '@orm/entities/person/person.js';
 import { Playlist } from '@orm/entities/playlist/playlist.js';
 import { PlaylistResource } from '@orm/entities/playlist/playlistResource.js';
 import { ProductMembershipSettings } from '@orm/entities/productMembershipSettings.js';
@@ -169,6 +171,7 @@ export const entities = [
   AccountFollowingAddByRSSChannel,
   AccountFollowingChannel,
   AccountFollowingPlaylist,
+  AccountFollowingPerson,
   AccountPendingFollowingChannel,
   AccountMembership,
   AccountMembershipStatus,
@@ -285,6 +288,7 @@ export const entities = [
   MembershipClaimToken,
   Medium,
   OnDemandParserEvent,
+  Person,
   Playlist,
   PlaylistResource,
   ProductMembershipSettings,

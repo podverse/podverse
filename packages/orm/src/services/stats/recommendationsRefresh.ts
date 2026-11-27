@@ -73,6 +73,11 @@ const DROP_STALE_RECOMMENDATIONS_SQL = `DELETE FROM stats_recommendation recomme
     SELECT 1 FROM stats_taste_profile tp WHERE tp.listener_id = recommendation.listener_id
   )`;
 
+const DROP_STALE_PERSON_RECOMMENDATIONS_SQL = `DELETE FROM stats_person_recommendation recommendation
+  WHERE NOT EXISTS (
+    SELECT 1 FROM stats_taste_profile tp WHERE tp.listener_id = recommendation.listener_id
+  )`;
+
 const DROP_STALE_RECOMMENDATION_STATE_SQL = `DELETE FROM stats_recommendation_state state
   WHERE NOT EXISTS (
     SELECT 1 FROM stats_taste_profile tp WHERE tp.listener_id = state.listener_id
@@ -185,6 +190,47 @@ const RECOMMENDATION_INSERT_SQL = `WITH weights AS (
   WHERE rank <= ${RECOMMENDATION_LIMIT} AND top_score > 0
   RETURNING 1`;
 
+/**
+ * People recommended from the shows just stored for these listeners. A cast credit counts in
+ * full. Episode credits count in proportion to how many of that show's items name the person,
+ * capped at five. Followed people stay in the table and are left out when the list is read.
+ */
+const PERSON_RECOMMENDATION_INSERT_SQL = `
+WITH credit AS (
+  SELECT channel_id, person_id, 1::float8 AS weight
+  FROM channel_person
+  WHERE person_id IS NOT NULL
+  UNION ALL
+  SELECT channel_id, person_id, LEAST(item_count, 5)::float8 / 5
+  FROM channel_item_person_count
+),
+scored AS (
+  SELECT recommendation.listener_id,
+         credit.person_id,
+         sum(recommendation.score * credit.weight) AS score
+  FROM stats_recommendation recommendation
+  JOIN credit ON credit.channel_id = recommendation.channel_id
+  WHERE recommendation.listener_id = ANY($1::uuid[])
+  GROUP BY recommendation.listener_id, credit.person_id
+),
+ranked AS (
+  SELECT listener_id,
+         person_id,
+         score,
+         row_number() OVER (PARTITION BY listener_id ORDER BY score DESC, person_id) AS rank,
+         max(score) OVER (PARTITION BY listener_id) AS top_score
+  FROM scored
+  WHERE score > 0
+)
+INSERT INTO stats_person_recommendation (listener_id, person_id, score, strength, computed_at)
+SELECT listener_id,
+       person_id,
+       score,
+       GREATEST(1, LEAST(5, round(score / top_score * 5)))::smallint,
+       now()
+FROM ranked
+WHERE rank <= ${RECOMMENDATION_LIMIT} AND top_score > 0`;
+
 const RECOMMENDATION_STATE_SQL = `INSERT INTO stats_recommendation_state (listener_id, computed_at)
   SELECT unnest($1::uuid[]), now()
   ON CONFLICT (listener_id) DO UPDATE SET computed_at = EXCLUDED.computed_at`;
@@ -270,6 +316,11 @@ export async function replaceRecommendationsForListeners(
     listenerIds,
   ]);
   const inserted: unknown = await manager.query(RECOMMENDATION_INSERT_SQL, [listenerIds]);
+  await manager.query(
+    `DELETE FROM stats_person_recommendation WHERE listener_id = ANY($1::uuid[])`,
+    [listenerIds]
+  );
+  await manager.query(PERSON_RECOMMENDATION_INSERT_SQL, [listenerIds]);
   await manager.query(RECOMMENDATION_STATE_SQL, [listenerIds]);
   return returnedRows(inserted);
 }
@@ -304,6 +355,7 @@ export async function refreshRecommendations(options: {
         await manager.query(DROP_STALE_SIMILARITY_SQL);
         await manager.query(DROP_STALE_SIMILARITY_STATE_SQL);
         await manager.query(DROP_STALE_RECOMMENDATIONS_SQL);
+        await manager.query(DROP_STALE_PERSON_RECOMMENDATIONS_SQL);
         await manager.query(DROP_STALE_RECOMMENDATION_STATE_SQL);
       });
     }

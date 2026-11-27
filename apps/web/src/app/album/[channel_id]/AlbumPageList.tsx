@@ -8,8 +8,8 @@ import { buildAlbumPath, buildTrackPath, isDescriptionTruncated } from '@podvers
 
 import { BoostMessagesSection } from '../../../components/Boost/messages/BoostMessagesSection';
 import { useBoostMessagesView } from '../../../components/Boost/messages/useBoostMessagesView';
+import { ChannelPeopleSections } from '../../../components/Content/About/ChannelPeopleSections';
 import { ContentAbout } from '../../../components/Content/About/ContentAbout';
-import { ContentPeopleRows } from '../../../components/Content/About/ContentPeopleRows';
 import { ContentPodroll } from '../../../components/Content/Podroll/ContentPodroll';
 import { ContentRemoteItems } from '../../../components/Content/RemoteItems/ContentRemoteItems';
 import { DetailListWrapper } from '../../../components/List/DetailListWrapper';
@@ -65,7 +65,12 @@ export const AlbumPageList: React.FC<AlbumPageListProps> = ({
           fullDescriptionUrl={ssrChannel.channel_about?.website_link_url}
         />
       )}
-      {type === 'people' && <ContentPeopleRows channel_persons={ssrChannel.channel_persons} />}
+      {type === 'people' && (
+        <ChannelPeopleSections
+          channelIdText={ssrChannel.id_text}
+          channelPersons={ssrChannel.channel_persons ?? []}
+        />
+      )}
       {type === 'boosts' && boostsPageFetcher !== null && (
         <BoostMessagesSection
           heading={tV4VBoostMessages('title')}

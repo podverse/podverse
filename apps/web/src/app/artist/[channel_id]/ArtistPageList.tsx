@@ -13,8 +13,8 @@ import { buildArtistPath, buildTrackPath, isDescriptionTruncated } from '@podver
 
 import { BoostMessagesSection } from '../../../components/Boost/messages/BoostMessagesSection';
 import { useBoostMessagesView } from '../../../components/Boost/messages/useBoostMessagesView';
+import { ChannelPeopleSections } from '../../../components/Content/About/ChannelPeopleSections';
 import { ContentAbout } from '../../../components/Content/About/ContentAbout';
-import { ContentPeopleRows } from '../../../components/Content/About/ContentPeopleRows';
 import { ContentPodroll } from '../../../components/Content/Podroll/ContentPodroll';
 import { DetailListWrapper } from '../../../components/List/DetailListWrapper';
 import { ListChannelSettings } from '../../../components/List/ListChannelSettings';
@@ -82,7 +82,12 @@ export const ArtistPageList: React.FC<ArtistPageListProps> = ({
           fullDescriptionUrl={ssrChannel.channel_about?.website_link_url}
         />
       )}
-      {type === 'people' && <ContentPeopleRows channel_persons={ssrChannel.channel_persons} />}
+      {type === 'people' && (
+        <ChannelPeopleSections
+          channelIdText={ssrChannel.id_text}
+          channelPersons={ssrChannel.channel_persons ?? []}
+        />
+      )}
       {type === 'podroll' && <ContentPodroll remoteItemsResponse={podroll} />}
       {type === 'settings' && <ListChannelSettings channel={ssrChannel} />}
     </DetailListWrapper>
