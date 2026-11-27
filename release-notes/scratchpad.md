@@ -21,3 +21,12 @@
 - Operator steps: app migrations run through `0022_feed_log_response_truncated.sql`.
   `API_EXPECTED_MIGRATION_FILENAME` is that file. The management marker stays
   `0002_nano_id_v2_min_7.sql`.
+
+## Page column stops stretching on a wide window
+
+- Surfaces: web
+- Change: Lists, grids, and the page body under the header stop growing past 80rem
+  (`--content-max-width`). A wider window leaves empty space on the right of that column. The nav
+  bar, the player bar, and a channel header's background still span the area beside the sidebar.
+- Who notices: people on wide monitors, on episode and track lists and on card grids
+- Operator steps: none

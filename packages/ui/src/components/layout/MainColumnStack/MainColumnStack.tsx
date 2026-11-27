@@ -7,5 +7,9 @@ export type MainColumnStackProps = {
 };
 
 export function MainColumnStack({ children }: MainColumnStackProps) {
-  return <div className={styles.mainColumnStack}>{children}</div>;
+  return (
+    <div className={styles.mainColumnStack} data-testid="main-column">
+      {children}
+    </div>
+  );
 }
