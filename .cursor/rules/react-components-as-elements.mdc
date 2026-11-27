@@ -1,0 +1,27 @@
+---
+description: Render a capitalized React component as an element. A direct call runs its hooks on the parent.
+globs:
+  - "**/*.tsx"
+  - "**/*.jsx"
+alwaysApply: false
+---
+
+# Render components as elements
+
+A function whose name starts with a capital letter and returns React nodes is a component. Render
+it as an element:
+
+```tsx
+<ListEpisodeNodes channel={channel} items={items} viewSelected={viewSelected} />
+```
+
+A direct call (`ListEpisodeNodes({ channel, items, viewSelected })`) runs that function inside the
+parent. Its `useState`, `useMemo`, and other hooks belong to the parent. An early `return` above
+the call, or any branch that skips it, changes how many hooks the parent runs. React then throws
+a change in the order of Hooks.
+
+Hooks that belong to the parent stay above every `return`. A child that mounts only on some
+renders is an element, so its hooks start and stop with that element.
+
+A camelCase helper that returns nodes (`renderNodes`, `renderInlineNodes`) is a plain function.
+Keep calling it. Do not give that helper hooks.

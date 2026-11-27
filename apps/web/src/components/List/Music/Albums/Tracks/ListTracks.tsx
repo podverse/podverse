@@ -72,8 +72,6 @@ export const ListTracks: React.FC<Props> = ({
     return <NoResults message={emptyMessage} role="status" />;
   }
 
-  const listNodes = ListTrackNodes({ channel, items, viewSelected, showChannelInfo });
-
   return (
     <>
       {showCallToAction && (
@@ -90,7 +88,12 @@ export const ListTracks: React.FC<Props> = ({
           setPage={setPage}
           paginationControlsClassName={styles.paginationControls}
         >
-          {listNodes}
+          <ListTrackNodes
+            channel={channel}
+            items={items}
+            viewSelected={viewSelected}
+            showChannelInfo={showChannelInfo}
+          />
         </Pagination>
       )}
     </>

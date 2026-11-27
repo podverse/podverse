@@ -30,3 +30,12 @@
   bar, the player bar, and a channel header's background still span the area beside the sidebar.
 - Who notices: people on wide monitors, on episode and track lists and on card grids
 - Operator steps: none
+
+## Episode and track lists stay up while rows load
+
+- Surfaces: web
+- Change: Episode and track lists render their rows as their own components. Opening a show or
+  album no longer crashes when the list starts empty and then fills in. Livestream, profile,
+  artist, and album lists use the same render path.
+- Who notices: people opening a podcast or album page
+- Operator steps: none

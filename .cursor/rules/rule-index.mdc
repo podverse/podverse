@@ -39,3 +39,5 @@ file of theirs is in context.
   `web-detail-route-not-found`
 - Notification `Last-Event-ID` replay, the iOS livestream rewind scrubber, landscape video Exit,
   or the cross-device "Sending to…" status → `e2e-problematic-assertions`
+- A capitalized function that returns React nodes, or a list that renders `*Nodes` →
+  `react-components-as-elements`

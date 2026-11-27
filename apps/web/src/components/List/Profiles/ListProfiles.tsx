@@ -51,8 +51,6 @@ export const ListProfiles: React.FC<Props> = ({
   const showCallToAction = showSubscribeMessage;
   const showPagination = !showSubscribeMessage;
 
-  const listNodes = ListProfileNodes({ accounts });
-
   return (
     <>
       {showCallToAction && (
@@ -69,7 +67,7 @@ export const ListProfiles: React.FC<Props> = ({
           setPage={setPage}
           paginationControlsClassName={styles.paginationControls}
         >
-          {listNodes}
+          <ListProfileNodes accounts={accounts} />
         </Pagination>
       )}
     </>

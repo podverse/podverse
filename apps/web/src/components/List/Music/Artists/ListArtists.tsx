@@ -54,8 +54,6 @@ export const ListArtists: React.FC<Props> = ({
   const showCallToAction = showSubscribeMessage;
   const showPagination = !showSubscribeMessage;
 
-  const listNodes = ListArtistNodes({ channels, viewSelected });
-
   return (
     <>
       {showCallToAction && (
@@ -72,7 +70,7 @@ export const ListArtists: React.FC<Props> = ({
           setPage={setPage}
           paginationControlsClassName={styles.paginationControls}
         >
-          {listNodes}
+          <ListArtistNodes channels={channels} viewSelected={viewSelected} />
         </Pagination>
       )}
     </>

@@ -56,8 +56,6 @@ export const ListLiveItems: React.FC<Props> = ({
   const showCallToAction = showSubscribeMessage;
   const showPagination = !showSubscribeMessage;
 
-  const listNodes = ListLiveItemNodes({ items, viewSelected, showChannelInfo });
-
   const showNoContentFound = page <= 1 && items.length === 0;
 
   if (showNoContentFound) {
@@ -80,7 +78,11 @@ export const ListLiveItems: React.FC<Props> = ({
           setPage={setPage}
           paginationControlsClassName={styles.paginationControls}
         >
-          {listNodes}
+          <ListLiveItemNodes
+            items={items}
+            viewSelected={viewSelected}
+            showChannelInfo={showChannelInfo}
+          />
         </Pagination>
       )}
     </>

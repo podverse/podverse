@@ -54,8 +54,6 @@ export const ListAlbums: React.FC<Props> = ({
   const showCallToAction = showSubscribeMessage;
   const showPagination = !showSubscribeMessage;
 
-  const listNodes = ListAlbumNodes({ channels, viewSelected });
-
   return (
     <>
       {showCallToAction && (
@@ -72,7 +70,7 @@ export const ListAlbums: React.FC<Props> = ({
           setPage={setPage}
           paginationControlsClassName={styles.paginationControls}
         >
-          {listNodes}
+          <ListAlbumNodes channels={channels} viewSelected={viewSelected} />
         </Pagination>
       )}
     </>
