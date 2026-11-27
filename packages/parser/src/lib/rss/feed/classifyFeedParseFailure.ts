@@ -1,7 +1,7 @@
 import type { FeedParseFailureReason } from '@podverse/helpers';
 import { getStatusCodeFromError, isTlsOrProtocolError } from '@podverse/helpers-requests';
 
-import { FeedNotAFeedError } from '../errors.js';
+import { FeedNotAFeedError, FeedResponseTruncatedError } from '../errors.js';
 
 const CAUSE_WALK_LIMIT = 3;
 
@@ -21,6 +21,7 @@ const CONNECTION_CODES = new Set([
   'EPIPE',
 ]);
 const XML_VALIDATOR_CODES = new Set(['InvalidTag', 'InvalidAttr', 'InvalidChar', 'InvalidXml']);
+const ZLIB_CUT_OFF_CODES = new Set(['Z_DATA_ERROR', 'Z_BUF_ERROR']);
 
 /**
  * Classifies a feed parse failure.
@@ -35,6 +36,10 @@ export function classifyFeedParseFailure(error: unknown): FeedParseFailureReason
   const statusReason = reasonForHttpStatus(status);
   if (statusReason !== null) {
     return statusReason;
+  }
+
+  if (someNode(error, isTruncatedResponse)) {
+    return 'response_truncated';
   }
 
   const networkReason = firstReason(error, reasonForNetworkCode);
@@ -87,6 +92,27 @@ export function isMaxResponseSizeError(error: unknown): boolean {
     message.includes('maxcontentlength') ||
     message.includes('maxbodylength') ||
     message.includes('response body exceeds max')
+  );
+}
+
+function isTruncatedResponse(node: unknown): boolean {
+  if (
+    node instanceof FeedResponseTruncatedError ||
+    readString(node, 'name') === 'FeedResponseTruncatedError'
+  ) {
+    return true;
+  }
+  const code = readString(node, 'code');
+  if (code !== null && ZLIB_CUT_OFF_CODES.has(code)) {
+    return true;
+  }
+  if (!(node instanceof Error)) {
+    return false;
+  }
+  const message = node.message.toLowerCase();
+  return (
+    message.includes('too many length or distance symbols') ||
+    message.includes('unexpected end of file')
   );
 }
 

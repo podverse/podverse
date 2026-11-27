@@ -13,6 +13,7 @@ const conditionMocks = vi.hoisted(() => ({
 }));
 
 const getOrCreateByFeedMock = vi.hoisted(() => vi.fn().mockResolvedValue({ id: 1, id_text: 'c1' }));
+const getByFeedIdMock = vi.hoisted(() => vi.fn().mockResolvedValue(null));
 
 const {
   handleAllRemoteItemsFeedParsingMock,
@@ -167,6 +168,7 @@ vi.mock('@podverse/orm', () => ({
     getChannelSeasonIndex = vi.fn().mockResolvedValue({});
   },
   ChannelService: class ChannelService {
+    getByFeedId = getByFeedIdMock;
     getOrCreateByFeed = getOrCreateByFeedMock;
   },
   checkIfSpamFeed: vi.fn(() => false),
@@ -210,6 +212,8 @@ vi.mock('@podverse/orm', () => ({
   shouldAttemptFeedParseFromLifecycleAndPolicy:
     conditionMocks.shouldAttemptFeedParseFromLifecycleAndPolicy,
 }));
+
+import { markFeedParseFailureRecorded } from '@parser/lib/rss/feed/recordFeedParseFailure.js';
 
 import { OnDemandParserEventType } from '@podverse/helpers';
 import { FeedConditionSourceEnum, FeedConditionTypeKeyEnum } from '@podverse/orm';
@@ -304,6 +308,8 @@ describe('parseRSSFeedAndSaveToDatabase condition / policy gate', () => {
       })
     );
     expect(conditionMocks.refreshFeedPolicy).toHaveBeenCalledWith(baseFeed.id);
+    expect(getByFeedIdMock).toHaveBeenCalledWith(baseFeed.id);
+    expect(getOrCreateByFeedMock).not.toHaveBeenCalled();
 
     const spamActivations = conditionMocks.setCondition.mock.calls.filter(
       (call) =>
@@ -311,5 +317,70 @@ describe('parseRSSFeedAndSaveToDatabase condition / policy gate', () => {
         call[0]?.isActive === true
     );
     expect(spamActivations).toHaveLength(0);
+  });
+
+  it('waits out a cut-off download without fetching again', async () => {
+    handleGetRSSFeedMock.mockResolvedValue({
+      ...baseFeed,
+      feed_log: {
+        last_parse_failure_reason: 'response_truncated',
+        last_failed_parse_time: new Date(),
+        consecutive_truncation_failures: 4,
+      },
+    });
+
+    const result = await parseRSSFeedAndSaveToDatabase('https://example.com/feed.xml', 9001, {
+      forceParse: false,
+      onDemandParserEvent: {
+        accountId: null,
+        remoteParentPodcastIndexId: null,
+        type: null,
+      },
+    });
+
+    expect(result).toEqual({ remoteItemsToParse: [], imageHints: [] });
+    expect(handleRequestRSSFeedMock).not.toHaveBeenCalled();
+    expect(getByFeedIdMock).not.toHaveBeenCalled();
+    expect(getOrCreateByFeedMock).not.toHaveBeenCalled();
+  });
+
+  it('fetches again when a forced reparse skips the cut-off wait', async () => {
+    handleGetRSSFeedMock.mockResolvedValue({
+      ...baseFeed,
+      feed_log: {
+        last_parse_failure_reason: 'response_truncated',
+        last_failed_parse_time: new Date(),
+        consecutive_truncation_failures: 4,
+      },
+    });
+    handleRequestRSSFeedMock.mockRejectedValue(new Error('stop after the wait is skipped'));
+
+    await parseRSSFeedAndSaveToDatabase('https://example.com/feed.xml', 9001, {
+      forceParse: true,
+      onDemandParserEvent: {
+        accountId: null,
+        remoteParentPodcastIndexId: null,
+        type: null,
+      },
+    }).catch(() => undefined);
+
+    expect(handleRequestRSSFeedMock).toHaveBeenCalled();
+  });
+
+  it('records a marked download failure once', async () => {
+    const downloadError = new Error('zlib: unexpected end of file');
+    markFeedParseFailureRecorded(downloadError);
+    handleRequestRSSFeedMock.mockRejectedValue(downloadError);
+
+    await parseRSSFeedAndSaveToDatabase('https://example.com/feed.xml', 9001, {
+      forceParse: true,
+      onDemandParserEvent: {
+        accountId: null,
+        remoteParentPodcastIndexId: null,
+        type: null,
+      },
+    });
+
+    expect(feedLogUpdateMock).not.toHaveBeenCalled();
   });
 });

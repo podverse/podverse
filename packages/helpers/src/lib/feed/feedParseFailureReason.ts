@@ -15,10 +15,24 @@ export const FEED_PARSE_FAILURE_REASONS = [
   'db_value_out_of_range',
   'db_error',
   'parse_error',
+  'response_truncated',
   'unknown',
 ] as const;
 
 export type FeedParseFailureReason = (typeof FEED_PARSE_FAILURE_REASONS)[number];
+
+/** A stored reason string, or null when the value is missing or not in the closed list. */
+export function parseFeedParseFailureReason(value: unknown): FeedParseFailureReason | null {
+  if (typeof value !== 'string') {
+    return null;
+  }
+  for (const reason of FEED_PARSE_FAILURE_REASONS) {
+    if (reason === value) {
+      return reason;
+    }
+  }
+  return null;
+}
 
 /** True for a failure that another fetch of the same URL will not repair. */
 export function isPermanentFeedParseFailure(reason: FeedParseFailureReason | null): boolean {

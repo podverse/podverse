@@ -30,4 +30,7 @@ export class FeedLog {
 
   @Column({ type: 'int', default: 0 })
   parse_errors!: number;
+
+  @Column({ type: 'int', default: 0 })
+  consecutive_truncation_failures!: number;
 }

@@ -179,11 +179,19 @@ describe('Podcast Index stream cursor and batch feed lookup', () => {
           feedId: activeFeed.id,
           podcastIndexId: podcastIndexId(runId, 1),
           stateKey: orm.FeedLifecycleStateKeyEnum.Active,
+          lastFinishedParseTime: null,
+          lastFailedAt: null,
+          reason: null,
+          consecutiveTruncationFailures: 0,
         },
         {
           feedId: archivedFeed.id,
           podcastIndexId: podcastIndexId(runId, 2),
           stateKey: orm.FeedLifecycleStateKeyEnum.Archived,
+          lastFinishedParseTime: null,
+          lastFailedAt: null,
+          reason: null,
+          consecutiveTruncationFailures: 0,
         },
       ])
     );

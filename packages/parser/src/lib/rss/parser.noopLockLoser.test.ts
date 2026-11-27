@@ -150,6 +150,7 @@ vi.mock('@podverse/orm', () => ({
     getChannelSeasonIndex = vi.fn();
   },
   ChannelService: class ChannelService {
+    getByFeedId = vi.fn().mockResolvedValue(null);
     getOrCreateByFeed = vi.fn();
   },
   checkIfSpamFeed: vi.fn(() => false),

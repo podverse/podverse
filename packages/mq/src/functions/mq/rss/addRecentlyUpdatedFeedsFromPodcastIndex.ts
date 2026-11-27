@@ -11,6 +11,10 @@ import {
   RECENT_DATA_CURSOR_OVERLAP_SECONDS,
 } from '@podverse/external-services-podcast-index';
 import type { MQQueueConfigFunctionParams } from '@podverse/helpers';
+import {
+  automaticParseBypassesTruncationWait,
+  truncationBackoffRemainingMs,
+} from '@podverse/helpers';
 import type { ILoggerLike } from '@podverse/helpers-backend';
 import type { PodcastIndexStreamCursorState } from '@podverse/orm';
 import {
@@ -61,6 +65,7 @@ export type RecentlyUpdatedFeedsResult = {
   failed: number;
   skippedNotInDb: number;
   skippedBlockingLifecycle: number;
+  skippedTruncationBackoff: number;
   /** Saved `next_since` after the run, or null when none is stored. */
   cursorNextSince: number | null;
   /** The gap sweep this run did, or null when the cursor was usable. */
@@ -74,7 +79,7 @@ type PollerPodcastIndexService = Pick<
 
 type PageCounts = Pick<
   RecentlyUpdatedFeedsResult,
-  'enqueued' | 'failed' | 'skippedNotInDb' | 'skippedBlockingLifecycle'
+  'enqueued' | 'failed' | 'skippedNotInDb' | 'skippedBlockingLifecycle' | 'skippedTruncationBackoff'
 >;
 
 /**
@@ -118,6 +123,7 @@ export const mqRSSAddRecentlyUpdatedFeedsFromPodcastIndex = async (
       failed: 0,
       skippedNotInDb: 0,
       skippedBlockingLifecycle: 0,
+      skippedTruncationBackoff: 0,
       cursorNextSince: null,
       gapSweep: null,
     };
@@ -129,6 +135,7 @@ export const mqRSSAddRecentlyUpdatedFeedsFromPodcastIndex = async (
       `enqueued: ${result.enqueued}, failed: ${result.failed}, ` +
       `skipped (not in db): ${result.skippedNotInDb}, ` +
       `skipped (lifecycle blocks parse): ${result.skippedBlockingLifecycle}, ` +
+      `skipped (truncation wait): ${result.skippedTruncationBackoff}, ` +
       `cursor next_since: ${result.cursorNextSince ?? 'none'}.`
   );
   return result;
@@ -164,6 +171,7 @@ async function pollRecentlyUpdatedFeeds(
     failed: 0,
     skippedNotInDb: 0,
     skippedBlockingLifecycle: 0,
+    skippedTruncationBackoff: 0,
     cursorNextSince: cursor?.nextSince ?? null,
     gapSweep: null,
   };
@@ -268,6 +276,7 @@ async function pollRecentlyUpdatedFeeds(
       result.failed += counts.failed;
       result.skippedNotInDb += counts.skippedNotInDb;
       result.skippedBlockingLifecycle += counts.skippedBlockingLifecycle;
+      result.skippedTruncationBackoff += counts.skippedTruncationBackoff;
 
       if (counts.failed > 0) {
         loggerService.error(
@@ -330,7 +339,12 @@ async function enqueuePage(
     failed: 0,
     skippedNotInDb: 0,
     skippedBlockingLifecycle: 0,
+    skippedTruncationBackoff: 0,
   };
+  const bypassTruncationWait = automaticParseBypassesTruncationWait({
+    forceParse: msgOptions.forceParse,
+    onDemandAccountId: msgOptions.onDemandParserEvent.accountId,
+  });
 
   const feedUrlByPodcastIndexId = new Map<number, string>();
   for (const feed of page.feeds) {
@@ -345,18 +359,28 @@ async function enqueuePage(
   const lifecycleRows = await feedService.listLifecycleByPodcastIndexIds([
     ...feedUrlByPodcastIndexId.keys(),
   ]);
-  const stateKeyByPodcastIndexId = new Map(
-    lifecycleRows.map((row) => [row.podcastIndexId, row.stateKey] as const)
+  const lifecycleByPodcastIndexId = new Map(
+    lifecycleRows.map((row) => [row.podcastIndexId, row] as const)
   );
 
   for (const [podcastIndexId, feedUrl] of feedUrlByPodcastIndexId) {
-    if (!stateKeyByPodcastIndexId.has(podcastIndexId)) {
+    const lifecycle = lifecycleByPodcastIndexId.get(podcastIndexId);
+    if (lifecycle === undefined) {
       counts.skippedNotInDb += 1;
       continue;
     }
-    const stateKey = stateKeyByPodcastIndexId.get(podcastIndexId) ?? null;
-    if (stateKey !== null && lifecycleStateBlocksParseAndVisibility(stateKey)) {
+    if (lifecycle.stateKey !== null && lifecycleStateBlocksParseAndVisibility(lifecycle.stateKey)) {
       counts.skippedBlockingLifecycle += 1;
+      continue;
+    }
+    const truncationWaitMs = truncationBackoffRemainingMs({
+      reason: lifecycle.reason ?? null,
+      lastFailedAt: lifecycle.lastFailedAt ?? null,
+      consecutiveFailures: lifecycle.consecutiveTruncationFailures ?? 0,
+      now: new Date(),
+    });
+    if (!bypassTruncationWait && truncationWaitMs > 0) {
+      counts.skippedTruncationBackoff += 1;
       continue;
     }
 

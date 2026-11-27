@@ -15,7 +15,7 @@ import { getParsedFeedMd5Hash } from '../hash/parsedFeed.js';
 import { getAndParseRSSFeed } from '../parser.js';
 import { assertCatalogAdmitsNewFeed } from './catalogAdmission.js';
 import { classifyFeedParseFailure, readFeedParseHttpStatus } from './classifyFeedParseFailure.js';
-import { recordFeedParseFailure } from './recordFeedParseFailure.js';
+import { markFeedParseFailureRecorded, recordFeedParseFailure } from './recordFeedParseFailure.js';
 
 export type HandleGetRSSFeedOptions = {
   catalogAllowlistSourcePodcastIndexId?: number;
@@ -91,15 +91,18 @@ export const handleRequestRSSFeed = async (
       ...(typeof statusCode === 'number' ? { last_http_status: statusCode } : {}),
       last_parse_failure_reason: classifyFeedParseFailure(error),
     });
+    markFeedParseFailureRecorded(error);
     return throwRequestError(error);
   }
 
   if (!parsedFeed) {
+    const notAFeed = new FeedNotAFeedError();
     await recordFeedParseFailure(feed, feedLogService, {
       last_http_status: 200,
       last_parse_failure_reason: 'not_a_feed',
     });
-    return throwRequestError(new FeedNotAFeedError());
+    markFeedParseFailureRecorded(notAFeed);
+    return throwRequestError(notAFeed);
   }
 
   timerManager.end('handleRequestRSSFeed');

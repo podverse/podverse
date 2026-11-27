@@ -9,7 +9,11 @@ import { sleepRateLimit } from '@workers/lib/podcastIndex/collectTrendingFeedIds
 
 import { extractDeadFeedCsvRow } from '@podverse/external-services-podcast-index';
 import type { MQQueueNameParamKey } from '@podverse/helpers';
-import { MQ_QUEUES, validMQQueueNamesParamKeys } from '@podverse/helpers';
+import {
+  allowlistFeedCountsAsStored,
+  MQ_QUEUES,
+  validMQQueueNamesParamKeys,
+} from '@podverse/helpers';
 import { mqRSSAdd as mqRSSAddFunction } from '@podverse/mq';
 import { CatalogPodcastIndexAllowlistService, FeedService } from '@podverse/orm';
 
@@ -48,8 +52,32 @@ export const mqRSSAddCatalogAllowlist = async (args: CommandLineArgs) => {
     effectiveAllowlist.add(row.podcastIndexId);
   }
 
-  const storedPodcastIndexIds = new Set(await new FeedService().listPodcastIndexIds());
+  const feedService = new FeedService();
+  const storedPodcastIndexIds = new Set(await feedService.listPodcastIndexIds());
   const listedIds = [...effectiveAllowlist];
+  const idsToInspect = new Set<number>();
+  for (const id of listedIds) {
+    if (storedPodcastIndexIds.has(id)) {
+      idsToInspect.add(id);
+    }
+    const resolved = rowByListedId.get(id)?.resolvedPodcastIndexId;
+    if (typeof resolved === 'number' && storedPodcastIndexIds.has(resolved)) {
+      idsToInspect.add(resolved);
+    }
+  }
+  const now = new Date();
+  const snapshots = await feedService.listParseSnapshotsByPodcastIndexIds([...idsToInspect]);
+  let truncationWait = 0;
+  for (const id of idsToInspect) {
+    const snapshot = snapshots.get(id);
+    if (snapshot === undefined || !allowlistFeedCountsAsStored(snapshot, now)) {
+      storedPodcastIndexIds.delete(id);
+      continue;
+    }
+    if (snapshot.lastFinishedParseTime === null) {
+      truncationWait += 1;
+    }
+  }
   const listedCount = listedIds.length;
   const alreadyStored = listedIds.filter((id) => {
     if (storedPodcastIndexIds.has(id)) {
@@ -135,7 +163,7 @@ export const mqRSSAddCatalogAllowlist = async (args: CommandLineArgs) => {
   }
 
   logger.info(
-    `${LOG_PREFIX} Done. Listed: ${listedCount}, already stored: ${alreadyStored}, enqueued: ${enqueued}, failed: ${failed}, unavailable: ${formatIdList(plan.unavailable)}, unresolved: ${formatIdList(plan.unresolved)}.`
+    `${LOG_PREFIX} Done. Listed: ${listedCount}, already stored: ${alreadyStored}, truncation wait: ${truncationWait}, enqueued: ${enqueued}, failed: ${failed}, unavailable: ${formatIdList(plan.unavailable)}, unresolved: ${formatIdList(plan.unresolved)}.`
   );
   if (plan.unresolved.length > 0) {
     logger.warn(`${LOG_PREFIX} Unresolved podcast_index_id: ${plan.unresolved.join(', ')}`);

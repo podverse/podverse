@@ -12,7 +12,11 @@ import {
   handleParsedFeed,
   handleRequestRSSFeed,
 } from '@parser/lib/rss/feed/feed.js';
-import { recordFeedParseFailure } from '@parser/lib/rss/feed/recordFeedParseFailure.js';
+import { fetchRssBodyWithTruncationRetry } from '@parser/lib/rss/feed/fetchRssWithTruncationRetry.js';
+import {
+  recordFeedParseFailure,
+  wasFeedParseFailureRecorded,
+} from '@parser/lib/rss/feed/recordFeedParseFailure.js';
 import type { HandleParsedItemsResult } from '@parser/lib/rss/item/item.js';
 import { handleParsedItems } from '@parser/lib/rss/item/item.js';
 import type { HandleParsedLiveItemsResult } from '@parser/lib/rss/liveItem/liveItem.js';
@@ -27,6 +31,7 @@ import { parseFeed } from 'podverse-partytime/core';
 
 import type { FeedParseFailureReason, ImageShrinkHint } from '@podverse/helpers';
 import {
+  automaticParseBypassesTruncationWait,
   DEFAULT_HTTP_TIMEOUT_MS,
   getOnDemandParserEventDateRange,
   ON_DEMAND_ADD_PARSER_LIMIT,
@@ -34,6 +39,7 @@ import {
   OnDemandParserEventType,
   resolveParserMaxFeedBodyBytes,
   sleep,
+  truncationBackoffRemainingMs,
 } from '@podverse/helpers';
 import { canonicalHttpOrHttpsUrl } from '@podverse/helpers-validation';
 import type { Channel, Feed, FeedPolicy, Item } from '@podverse/orm';
@@ -92,10 +98,22 @@ import { installPartytimeResponseBodyLogFilter } from './partytimeLogFilter.js';
 
 export const getAndParseRSSFeed = async (url: string, maxFeedBodyBytes: number) => {
   installPartytimeResponseBodyLogFilter();
-  const response = await _request(url, {
-    maxResponseBytes: maxFeedBodyBytes,
+  const data = await fetchRssBodyWithTruncationRetry({
+    url,
+    maxFeedBodyBytes,
+    request: async (feedUrl, maxBytes) => {
+      const response = await _request(feedUrl, {
+        maxResponseBytes: maxBytes,
+      });
+      return response.data as string;
+    },
+    sleep,
+    onRetry: (attempt, delayMs) => {
+      loggerService.info(
+        `Feed download cut off: url=${url} attempt=${attempt} retry_in_ms=${delayMs}`
+      );
+    },
   });
-  const data = response.data as string;
   const bodyBytes = Buffer.byteLength(data, 'utf8');
   const parsedFeed = parseFeed(data, { allowMissingGuid: true, maxFeedBodyBytes });
 
@@ -206,6 +224,7 @@ const FEED_PARSE_FAILURE_DETAIL_REASONS = new Set<FeedParseFailureReason>([
   'db_value_out_of_range',
   'db_error',
   'parse_error',
+  'response_truncated',
   'unknown',
 ]);
 
@@ -337,7 +356,28 @@ export const parseRSSFeedAndSaveToDatabase = async (
     const policyBeforeFetch = await feedPolicyService.recomputePolicy(feed.id);
     assertLifecycleAndPolicyAllowParse(feed, policyBeforeFetch);
 
-    channel = await channelService.getOrCreateByFeed(feed);
+    if (
+      !automaticParseBypassesTruncationWait({
+        forceParse: options.forceParse,
+        onDemandAccountId: options.onDemandParserEvent.accountId,
+      })
+    ) {
+      const feedLog = feed.feed_log;
+      const waitMs = truncationBackoffRemainingMs({
+        reason: feedLog?.last_parse_failure_reason ?? null,
+        lastFailedAt: feedLog?.last_failed_parse_time ?? null,
+        consecutiveFailures: feedLog?.consecutive_truncation_failures ?? 0,
+        now: new Date(),
+      });
+      if (waitMs > 0) {
+        loggerService.info(
+          `Feed parse waiting: feed_id=${feed.id} podcast_index_id=${podcast_index_id} wait_ms=${waitMs}`
+        );
+        return { remoteItemsToParse: [], imageHints: [] };
+      }
+    }
+
+    channel = await channelService.getByFeedId(feed.id);
     if (channel && !channel.title) {
       try {
         const podcastIndexService = getPodcastIndexService();
@@ -531,6 +571,7 @@ export const parseRSSFeedAndSaveToDatabase = async (
     await feedLogService.update(feed, {
       last_finished_parse_time: new Date(),
       last_parse_failure_reason: null,
+      consecutive_truncation_failures: 0,
     });
     parseSucceeded = true;
   } catch (error) {
@@ -559,7 +600,7 @@ export const parseRSSFeedAndSaveToDatabase = async (
     } else {
       const reason = classifyFeedParseFailure(error);
       const statusCode = readFeedParseHttpStatus(error);
-      if (feed) {
+      if (feed && !wasFeedParseFailureRecorded(error)) {
         const feedLogService = new FeedLogService();
         await recordFeedParseFailure(feed, feedLogService, {
           ...(typeof statusCode === 'number' ? { last_http_status: statusCode } : {}),

@@ -12,6 +12,14 @@ export class FeedNoChangesSinceLastParsedError extends Error {
   }
 }
 
+/** The download ended before the feed document was complete. */
+export class FeedResponseTruncatedError extends Error {
+  constructor(url: string) {
+    super(`Feed download ended early: ${url}`);
+    this.name = 'FeedResponseTruncatedError';
+  }
+}
+
 /** The response body was not an RSS or Atom feed. */
 export class FeedNotAFeedError extends Error {
   constructor() {

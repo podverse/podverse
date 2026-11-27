@@ -11,7 +11,12 @@ import {
   PODCAST_INDEX_GAP_SWEEP_MAX_RUN_MS,
 } from '@podverse/external-services-podcast-index';
 import type { MQQueueConfig, MQQueueConfigFunctionParams } from '@podverse/helpers';
-import { DATABASE_CONSTANTS, formatGuidEnclosureUrl } from '@podverse/helpers';
+import {
+  automaticParseBypassesTruncationWait,
+  DATABASE_CONSTANTS,
+  formatGuidEnclosureUrl,
+  truncationBackoffRemainingMs,
+} from '@podverse/helpers';
 import type { ILoggerLike } from '@podverse/helpers-backend';
 import type { FeedGapSweepRow, FeedNewestItem } from '@podverse/orm';
 import {
@@ -31,9 +36,14 @@ const LOG_PREFIX = '[mqRSSCatchUpFromPodcastIndex]';
  * - `unchanged`: Podcast Index's newest episode is our newest item.
  * - `unlisted_recently_parsed`: Podcast Index lists no episode and the feed finished a parse
  *   after the gap started.
+ * - `truncation_backoff`: a cut-off download is still inside its wait.
  */
 export type GapSweepFeedDecision =
-  'queue_changed' | 'queue_unlisted' | 'unchanged' | 'unlisted_recently_parsed';
+  | 'queue_changed'
+  | 'queue_unlisted'
+  | 'unchanged'
+  | 'unlisted_recently_parsed'
+  | 'truncation_backoff';
 
 /**
  * - `finished`: every feed was checked and the `gap_sweep` row is cleared.
@@ -52,6 +62,7 @@ export type GapSweepResult = {
   unchanged: number;
   skippedUnlistedRecentlyParsed: number;
   skippedBlockingLifecycle: number;
+  skippedTruncationBackoff: number;
   failed: number;
   /** Last `feed.id` whose chunk finished in this run, or null when none did. */
   lastFeedId: number | null;
@@ -64,6 +75,7 @@ type ChunkCounts = Pick<
   | 'unchanged'
   | 'skippedUnlistedRecentlyParsed'
   | 'skippedBlockingLifecycle'
+  | 'skippedTruncationBackoff'
   | 'failed'
 >;
 
@@ -92,7 +104,21 @@ export function decideGapSweepFeed(params: {
   newestItem: FeedNewestItem | null;
   lastFinishedParseTime: Date | null;
   gapStartSeconds: number;
+  reason?: FeedGapSweepRow['reason'] | null;
+  lastFailedAt?: Date | null;
+  consecutiveTruncationFailures?: number;
+  now?: Date;
 }): GapSweepFeedDecision {
+  const waitMs = truncationBackoffRemainingMs({
+    reason: params.reason ?? null,
+    lastFailedAt: params.lastFailedAt ?? null,
+    consecutiveFailures: params.consecutiveTruncationFailures ?? 0,
+    now: params.now ?? new Date(),
+  });
+  if (waitMs > 0) {
+    return 'truncation_backoff';
+  }
+
   const { episode, newestItem, lastFinishedParseTime, gapStartSeconds } = params;
 
   if (episode === null) {
@@ -145,6 +171,7 @@ export async function sweepFeedsAgainstPodcastIndex(
     unchanged: 0,
     skippedUnlistedRecentlyParsed: 0,
     skippedBlockingLifecycle: 0,
+    skippedTruncationBackoff: 0,
     failed: 0,
     lastFeedId: null,
   };
@@ -195,6 +222,7 @@ export async function sweepFeedsAgainstPodcastIndex(
     result.unchanged += counts.unchanged;
     result.skippedUnlistedRecentlyParsed += counts.skippedUnlistedRecentlyParsed;
     result.skippedBlockingLifecycle += counts.skippedBlockingLifecycle;
+    result.skippedTruncationBackoff += counts.skippedTruncationBackoff;
     result.failed += counts.failed;
 
     if (counts.failed > 0) {
@@ -238,13 +266,31 @@ async function sweepChunk(
     unchanged: 0,
     skippedUnlistedRecentlyParsed: 0,
     skippedBlockingLifecycle: 0,
+    skippedTruncationBackoff: 0,
     failed: 0,
   };
 
+  const bypassTruncationWait = automaticParseBypassesTruncationWait({
+    forceParse: params.msgOptions.forceParse,
+    onDemandAccountId: params.msgOptions.onDemandParserEvent.accountId,
+  });
   const parseable: FeedGapSweepRow[] = [];
   for (const row of rows) {
     if (row.stateKey !== null && lifecycleStateBlocksParseAndVisibility(row.stateKey)) {
       counts.skippedBlockingLifecycle += 1;
+    } else if (
+      !bypassTruncationWait &&
+      decideGapSweepFeed({
+        episode: null,
+        newestItem: null,
+        lastFinishedParseTime: row.lastFinishedParseTime,
+        gapStartSeconds: params.gapStartSeconds,
+        reason: row.reason,
+        lastFailedAt: row.lastFailedAt,
+        consecutiveTruncationFailures: row.consecutiveTruncationFailures,
+      }) === 'truncation_backoff'
+    ) {
+      counts.skippedTruncationBackoff += 1;
     } else {
       parseable.push(row);
     }
@@ -275,8 +321,15 @@ async function sweepChunk(
       newestItem: newestItemByFeedId.get(row.feedId) ?? null,
       lastFinishedParseTime: row.lastFinishedParseTime,
       gapStartSeconds: params.gapStartSeconds,
+      reason: bypassTruncationWait ? null : row.reason,
+      lastFailedAt: bypassTruncationWait ? null : row.lastFailedAt,
+      consecutiveTruncationFailures: bypassTruncationWait ? 0 : row.consecutiveTruncationFailures,
     });
 
+    if (decision === 'truncation_backoff') {
+      counts.skippedTruncationBackoff += 1;
+      continue;
+    }
     if (decision === 'unchanged') {
       counts.unchanged += 1;
       continue;
@@ -322,6 +375,7 @@ export function describeGapSweepCounts(result: GapSweepResult): string {
     `${result.enqueuedUnlisted}, unchanged: ${result.unchanged}, ` +
     `skipped (not listed, parsed since gap start): ${result.skippedUnlistedRecentlyParsed}, ` +
     `skipped (lifecycle blocks parse): ${result.skippedBlockingLifecycle}, ` +
+    `skipped (truncation wait): ${result.skippedTruncationBackoff}, ` +
     `failed: ${result.failed}, last feed.id: ${result.lastFeedId ?? 'none'}`
   );
 }

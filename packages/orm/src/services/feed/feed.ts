@@ -10,7 +10,8 @@ import { readQueryResultRows } from '@orm/lib/queryResultRows.js';
 import type { EntityManager, FindOptionsRelations } from 'typeorm';
 import { QueryFailedError } from 'typeorm';
 
-import { FEED_PARSE_MAX_MINUTES } from '@podverse/helpers';
+import type { AllowlistParseSnapshot } from '@podverse/helpers';
+import { FEED_PARSE_MAX_MINUTES, parseFeedParseFailureReason } from '@podverse/helpers';
 import { canonicalHttpOrHttpsUrl } from '@podverse/helpers-validation';
 
 import { computeParsingStaleBefore, deriveHttpsAndHttpUrlsFromInput } from './feed.helpers.js';
@@ -350,14 +351,23 @@ export class FeedService {
         .createQueryBuilder('feed')
         .leftJoin('feed.feed_lifecycle_state', 'lifecycle')
         .leftJoin('lifecycle.feed_lifecycle_state_type', 'lifecycle_type')
+        .leftJoin('feed.feed_log', 'feed_log')
         .select('feed.id', 'feed_id')
         .addSelect('feed.podcast_index_id', 'podcast_index_id')
         .addSelect('lifecycle_type.state_key', 'state_key')
+        .addSelect('feed_log.last_finished_parse_time', 'last_finished_parse_time')
+        .addSelect('feed_log.last_failed_parse_time', 'last_failed_parse_time')
+        .addSelect('feed_log.last_parse_failure_reason', 'last_parse_failure_reason')
+        .addSelect('feed_log.consecutive_truncation_failures', 'consecutive_truncation_failures')
         .where('feed.podcast_index_id IN (:...ids)', { ids: chunk })
         .getRawMany<{
           feed_id: number | string;
           podcast_index_id: number | string;
           state_key: string | null;
+          last_finished_parse_time: Date | string | null;
+          last_failed_parse_time: Date | string | null;
+          last_parse_failure_reason: string | null;
+          consecutive_truncation_failures: number | string | null;
         }>();
       for (const row of found) {
         const feedId = finiteInteger(row.feed_id);
@@ -369,6 +379,7 @@ export class FeedService {
           feedId,
           podcastIndexId,
           stateKey: feedLifecycleStateKey(row.state_key),
+          ...parseSnapshotFromRow(row),
         });
       }
     }
@@ -394,6 +405,9 @@ export class FeedService {
       .addSelect('feed.podcast_index_id', 'podcast_index_id')
       .addSelect('lifecycle_type.state_key', 'state_key')
       .addSelect('feed_log.last_finished_parse_time', 'last_finished_parse_time')
+      .addSelect('feed_log.last_failed_parse_time', 'last_failed_parse_time')
+      .addSelect('feed_log.last_parse_failure_reason', 'last_parse_failure_reason')
+      .addSelect('feed_log.consecutive_truncation_failures', 'consecutive_truncation_failures')
       .where('feed.id > :afterFeedId', { afterFeedId: params.afterFeedId })
       .orderBy('feed.id', 'ASC')
       .limit(params.limit)
@@ -403,6 +417,9 @@ export class FeedService {
         podcast_index_id: number | string;
         state_key: string | null;
         last_finished_parse_time: Date | string | null;
+        last_failed_parse_time: Date | string | null;
+        last_parse_failure_reason: string | null;
+        consecutive_truncation_failures: number | string | null;
       }>();
     const rows: FeedGapSweepRow[] = [];
     for (const row of found) {
@@ -416,10 +433,51 @@ export class FeedService {
         url: row.url,
         podcastIndexId,
         stateKey: feedLifecycleStateKey(row.state_key),
-        lastFinishedParseTime: dateOrNull(row.last_finished_parse_time),
+        ...parseSnapshotFromRow(row),
       });
     }
     return rows;
+  }
+
+  /**
+   * Parse outcome for each stored Podcast Index id. A feed with no feed_log row has null times
+   * and a zero cut-off count.
+   */
+  async listParseSnapshotsByPodcastIndexIds(
+    podcastIndexIds: readonly number[]
+  ): Promise<Map<number, AllowlistParseSnapshot>> {
+    const snapshots = new Map<number, AllowlistParseSnapshot>();
+    const chunkSize = 2000;
+    for (let index = 0; index < podcastIndexIds.length; index += chunkSize) {
+      const chunk = podcastIndexIds.slice(index, index + chunkSize);
+      if (chunk.length === 0) {
+        continue;
+      }
+      const found = await this.repositoryRead
+        .createQueryBuilder('feed')
+        .leftJoin('feed.feed_log', 'feed_log')
+        .select('feed.podcast_index_id', 'podcast_index_id')
+        .addSelect('feed_log.last_finished_parse_time', 'last_finished_parse_time')
+        .addSelect('feed_log.last_failed_parse_time', 'last_failed_parse_time')
+        .addSelect('feed_log.last_parse_failure_reason', 'last_parse_failure_reason')
+        .addSelect('feed_log.consecutive_truncation_failures', 'consecutive_truncation_failures')
+        .where('feed.podcast_index_id IN (:...ids)', { ids: chunk })
+        .getRawMany<{
+          podcast_index_id: number | string;
+          last_finished_parse_time: Date | string | null;
+          last_failed_parse_time: Date | string | null;
+          last_parse_failure_reason: string | null;
+          consecutive_truncation_failures: number | string | null;
+        }>();
+      for (const row of found) {
+        const podcastIndexId = finiteInteger(row.podcast_index_id);
+        if (podcastIndexId === null) {
+          continue;
+        }
+        snapshots.set(podcastIndexId, parseSnapshotFromRow(row));
+      }
+    }
+    return snapshots;
   }
 
   /**
@@ -514,7 +572,7 @@ export type FeedLifecycleByPodcastIndexId = {
   feedId: number;
   podcastIndexId: number;
   stateKey: FeedLifecycleStateKeyEnum | null;
-};
+} & AllowlistParseSnapshot;
 
 export type FeedIdAndPodcastIndexId = {
   id: number;
@@ -528,8 +586,7 @@ export type FeedGapSweepRow = {
   url: string;
   podcastIndexId: number;
   stateKey: FeedLifecycleStateKeyEnum | null;
-  lastFinishedParseTime: Date | null;
-};
+} & AllowlistParseSnapshot;
 
 /** `enclosureUrl` is the stored `item.guid_enclosure_url`. */
 export type FeedNewestItem = {
@@ -538,6 +595,22 @@ export type FeedNewestItem = {
   enclosureUrl: string | null;
   pubDate: Date | null;
 };
+
+type ParseSnapshotRow = {
+  last_finished_parse_time: Date | string | null;
+  last_failed_parse_time: Date | string | null;
+  last_parse_failure_reason: string | null;
+  consecutive_truncation_failures: number | string | null;
+};
+
+function parseSnapshotFromRow(row: ParseSnapshotRow): AllowlistParseSnapshot {
+  return {
+    lastFinishedParseTime: dateOrNull(row.last_finished_parse_time),
+    lastFailedAt: dateOrNull(row.last_failed_parse_time),
+    reason: parseFeedParseFailureReason(row.last_parse_failure_reason),
+    consecutiveTruncationFailures: finiteInteger(row.consecutive_truncation_failures) ?? 0,
+  };
+}
 
 function dateOrNull(value: unknown): Date | null {
   if (value instanceof Date) {

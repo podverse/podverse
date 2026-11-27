@@ -483,6 +483,12 @@ export class ChannelService {
     });
   }
 
+  async getByFeedId(feedId: number): Promise<Channel | null> {
+    return this.repositoryRead.findOne({
+      where: { feed_id: feedId },
+    });
+  }
+
   async getOrCreateByFeed(feed: Feed): Promise<Channel> {
     let channel = await this.repositoryRead.findOne({
       where: { feed_id: feed.id },

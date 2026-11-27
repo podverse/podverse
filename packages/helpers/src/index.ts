@@ -82,6 +82,7 @@ export * from './lib/directoryAddPoll.js';
 export * from './lib/feed/buildFeedParseStatusLines.js';
 export * from './lib/feed/buildLocalizedFeedParseStatusLines.js';
 export * from './lib/feed/feedParseFailureReason.js';
+export * from './lib/feed/truncationRetry.js';
 export * from './lib/fileSize.js';
 export * from './lib/fileName.js';
 export * from './lib/configValidation.js';

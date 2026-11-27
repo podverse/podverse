@@ -4,7 +4,7 @@ import { describe, expect, it } from 'vitest';
 
 import type { FeedParseFailureReason } from '@podverse/helpers';
 
-import { FeedNotAFeedError } from '../errors.js';
+import { FeedNotAFeedError, FeedResponseTruncatedError } from '../errors.js';
 import { classifyFeedParseFailure } from './classifyFeedParseFailure.js';
 
 function htmlFedToXmlParser(): unknown {
@@ -74,6 +74,27 @@ const cases: Array<{ label: string; error: unknown; reason: FeedParseFailureReas
     label: 'wrapped axios 404',
     error: new Error('Unknown Error: Request failed with status code 404', { cause: axios404 }),
     reason: 'http_404',
+  },
+  {
+    label: 'zlib Z_DATA_ERROR',
+    error: Object.assign(new Error('too many length or distance symbols'), {
+      code: 'Z_DATA_ERROR',
+    }),
+    reason: 'response_truncated',
+  },
+  {
+    label: 'wrapped zlib cut-off',
+    error: new Error('Unknown Error: too many length or distance symbols', {
+      cause: Object.assign(new Error('too many length or distance symbols'), {
+        code: 'Z_DATA_ERROR',
+      }),
+    }),
+    reason: 'response_truncated',
+  },
+  {
+    label: 'typed cut-off error',
+    error: new FeedResponseTruncatedError('https://example.com/feed.xml'),
+    reason: 'response_truncated',
   },
 ];
 

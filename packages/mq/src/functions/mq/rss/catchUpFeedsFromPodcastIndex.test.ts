@@ -101,6 +101,38 @@ describe('decideGapSweepFeed', () => {
     ).toBe('queue_changed');
   });
 
+  it('leaves a cut-off download alone until its wait has elapsed', () => {
+    const now = new Date('2026-11-26T20:00:00.000Z');
+    expect(
+      decideGapSweepFeed({
+        episode: episode(),
+        newestItem: null,
+        lastFinishedParseTime: null,
+        gapStartSeconds: GAP_START_SECONDS,
+        reason: 'response_truncated',
+        lastFailedAt: now,
+        consecutiveTruncationFailures: 4,
+        now,
+      })
+    ).toBe('truncation_backoff');
+  });
+
+  it('queues a cut-off download once the wait has elapsed', () => {
+    const now = new Date('2026-11-27T21:00:00.000Z');
+    expect(
+      decideGapSweepFeed({
+        episode: episode(),
+        newestItem: null,
+        lastFinishedParseTime: null,
+        gapStartSeconds: GAP_START_SECONDS,
+        reason: 'response_truncated',
+        lastFailedAt: new Date('2026-11-26T20:00:00.000Z'),
+        consecutiveTruncationFailures: 4,
+        now,
+      })
+    ).toBe('queue_changed');
+  });
+
   it('queues a feed we hold no dated item for', () => {
     expect(
       decideGapSweepFeed({

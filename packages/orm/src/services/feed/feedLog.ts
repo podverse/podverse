@@ -16,6 +16,7 @@ type FeedLogDto = {
   last_failed_parse_time?: Date | null;
   last_parse_failure_reason?: FeedParseFailureReason | null;
   parse_errors?: number;
+  consecutive_truncation_failures?: number;
 };
 
 export class FeedLogService extends BaseOneService<FeedLog, 'feed'> {
