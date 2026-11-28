@@ -14,6 +14,10 @@ export interface DTOPlaylist {
   medium_id: number;
   last_updated: string;
   playlist_resources?: DTOPlaylistResource[];
+  /**
+   * Folded names in the owner's order. Absent when the viewer must not see these tags.
+   */
+  tags?: string[];
 }
 
 export interface DTOPlaylistLikes {

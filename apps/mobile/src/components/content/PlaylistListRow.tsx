@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { StyleSheet, View } from 'react-native';
 
 import type { DTOPlaylist } from '@podverse/helpers';
+import { formatPlaylistTagLine } from '@podverse/helpers/playlistTagLine';
 
 import { formatPlaylistRowSubtitle, playlistCreatorLabel } from '../../lib/rows/catalogRowCopy';
 import type { ThemedStylesTheme } from '../../theme/useThemedStyles';
@@ -26,7 +27,8 @@ const createStyles = ({ styles: themeStyles }: ThemedStylesTheme) => ({
 
 /**
  * Text-only playlist catalog row. Matches web `ListPlaylistRow`: title, item count, optional
- * description, and an optional creator line. Playlist DTOs have no artwork.
+ * description, optional creator, and an optional single-line tag list. Playlist DTOs have no
+ * artwork.
  */
 export const PlaylistListRow = memo(function PlaylistListRow({
   onPress,
@@ -39,10 +41,13 @@ export const PlaylistListRow = memo(function PlaylistListRow({
   const title = playlist.title?.trim() || playlist.id_text;
   const subtitle = formatPlaylistRowSubtitle(playlist, t);
   const creator = showCreator ? playlistCreatorLabel(playlist, t) : undefined;
+  const tagLine = formatPlaylistTagLine(playlist.tags);
 
   return (
     <View style={styles.row}>
       <ListRow
+        footer={tagLine === null ? undefined : tagLine}
+        footerTestID={testID !== undefined && tagLine !== null ? `${testID}-tags` : undefined}
         meta={creator}
         metaTestID={testID === undefined ? undefined : `${testID}-creator`}
         onPress={onPress}

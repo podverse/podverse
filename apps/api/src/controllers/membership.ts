@@ -6,41 +6,37 @@ import {
 } from '@api/lib/membership/membershipComparisonCatalog.js';
 import type { Request, Response } from 'express';
 
+import type { PublicClientConfigMembership } from '@podverse/helpers';
 import { buildMembershipComparisonDocument } from '@podverse/helpers';
 import { BillingPriceCatalogService } from '@podverse/orm';
 
 const billingPriceCatalogService = new BillingPriceCatalogService();
 
+/**
+ * Membership catalog for public reads. Annual savings is 0 when the monthly price is 0,
+ * so the percent never divides by zero.
+ */
+export async function buildPublicMembershipCatalog(): Promise<PublicClientConfigMembership> {
+  const flat = await billingPriceCatalogService.resolveProductMembership();
+  const freeTrialExpiration = flat.freeTrialExpirationSeconds;
+  const freeTrialDays = Math.floor(freeTrialExpiration / 86400);
+  const costMonthly = flat.premiumMembershipCostMonthly;
+  const costAnnually = flat.premiumMembershipCostAnnually;
+  const monthlyEquivalentAnnually = costMonthly * 12;
+  const annuallySavingsPercent =
+    monthlyEquivalentAnnually > 0
+      ? Math.floor(((monthlyEquivalentAnnually - costAnnually) / monthlyEquivalentAnnually) * 100)
+      : 0;
+
+  return {
+    ...flat,
+    freeTrialDays,
+    annuallySavingsPercent,
+    monthlyEquivalentAnnually,
+  };
+}
+
 export class MembershipController {
-  /** Public read-only resolved membership product numbers (env + DB + pricing catalog; no NEXT_PUBLIC drift). */
-  static async getResolvedProductMembership(_req: Request, res: Response): Promise<void> {
-    try {
-      const flat = await billingPriceCatalogService.resolveProductMembership();
-      const freeTrialExpiration = flat.freeTrialExpirationSeconds;
-      const freeTrialDays = Math.floor(freeTrialExpiration / 86400);
-      const costMonthly = flat.premiumMembershipCostMonthly;
-      const costAnnually = flat.premiumMembershipCostAnnually;
-      const monthlyEquivalentAnnually = costMonthly * 12;
-      const annuallySavingsPercent =
-        monthlyEquivalentAnnually > 0
-          ? Math.floor(
-              ((monthlyEquivalentAnnually - costAnnually) / monthlyEquivalentAnnually) * 100
-            )
-          : 0;
-
-      res.json({
-        data: {
-          ...flat,
-          freeTrialDays,
-          annuallySavingsPercent,
-          monthlyEquivalentAnnually,
-        },
-      });
-    } catch (error) {
-      handleGenericErrorResponse(res, error);
-    }
-  }
-
   /**
    * Localized Free versus Premium rows and Trial limitations. Accept-Language picks the catalog
    * locale. Caps come from the resolved product settings, so a client renders the current list

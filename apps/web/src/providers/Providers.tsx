@@ -8,7 +8,7 @@ import { ImageRuntimeProvider } from '@podverse/ui';
 
 import { ConsentGatedIntegrations } from '../components/Integrations/ConsentGatedIntegrations';
 import { WebRouteNavigationLoading } from '../components/LoadingSpinner/WebRouteNavigationLoading';
-import type { WebConfig } from '../config';
+import type { ResolvedWebConfig } from '../config/publicClientConfig';
 import { IMAGES } from '../constants/images';
 import { PROXY } from '../constants/proxy';
 import { AccountProvider } from '../contexts/Account';
@@ -43,7 +43,7 @@ export default function Providers({
   categories,
 }: {
   children: React.ReactNode;
-  config: WebConfig;
+  config: ResolvedWebConfig;
   locale: string;
   ssrLocalSettings: LocalSettingsState;
   ssrLoggedInAccount: DTOAccount | null;

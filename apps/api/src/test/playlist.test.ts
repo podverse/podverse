@@ -68,6 +68,9 @@ const {
   plResourceRemoveSbMock,
   itemGetByIdTextMock,
   clipGetByIdTextMock,
+  playlistTagReplaceMock,
+  playlistTagLoadNamesMock,
+  playlistTagSearchMock,
   getAccountMock,
 } = vi.hoisted(() => ({
   playlistCreateMock: vi.fn(async () => ({
@@ -162,6 +165,9 @@ const {
     id: 11,
     id_text: CLIP_ID_TEXT,
   })),
+  playlistTagReplaceMock: vi.fn(async () => undefined),
+  playlistTagLoadNamesMock: vi.fn(async () => new Map<string, string[]>()),
+  playlistTagSearchMock: vi.fn(async (): Promise<string[]> => []),
   getAccountMock: vi.fn(async () => ({
     id: TEST_USER_ID,
     id_text: TEST_USER_ACCOUNT_ID_TEXT,
@@ -257,6 +263,12 @@ vi.mock('@podverse/orm', async (importOriginal) => {
     getByIdText = clipGetByIdTextMock;
   }
 
+  class MockPlaylistTagService {
+    loadTagNamesByPlaylistIdText = playlistTagLoadNamesMock;
+    replaceForPlaylist = playlistTagReplaceMock;
+    searchVisiblePrefix = playlistTagSearchMock;
+  }
+
   return {
     ...actual,
     CategoryService: MockCategoryService,
@@ -268,6 +280,7 @@ vi.mock('@podverse/orm', async (importOriginal) => {
     ClipService: MockClipService,
     StatsPopularityPlaylistService: MockStatsPopularityPlaylistService,
     AccountFollowingPlaylistService: MockAccountFollowingPlaylistService,
+    PlaylistTagService: MockPlaylistTagService,
   };
 });
 
@@ -352,6 +365,61 @@ describe('playlist routes', () => {
 
       expect(res.status).toBe(403);
     });
+
+    it('calls replaceForPlaylist with the raw tag array', async () => {
+      playlistTagReplaceMock.mockClear();
+      const rawTags = ['  Adam Curry ', 'adam curry'];
+
+      const res = await request(app)
+        .post(`${playlistBase}/`)
+        .set(authHeaders(TEST_USER_ID))
+        .send({ ...validCreateBody, tags: rawTags });
+
+      expect(res.status).toBe(201);
+      expect(playlistTagReplaceMock).toHaveBeenCalledTimes(1);
+      expect(playlistTagReplaceMock).toHaveBeenCalledWith(1, rawTags, {
+        maxCount: 5,
+        maxLength: 50,
+      });
+    });
+
+    it('does not call replaceForPlaylist when tags are omitted', async () => {
+      playlistTagReplaceMock.mockClear();
+
+      const res = await request(app)
+        .post(`${playlistBase}/`)
+        .set(authHeaders(TEST_USER_ID))
+        .send(validCreateBody);
+
+      expect(res.status).toBe(201);
+      expect(playlistTagReplaceMock).not.toHaveBeenCalled();
+    });
+
+    it('returns 400 when the tag list is longer than the configured count', async () => {
+      playlistTagReplaceMock.mockClear();
+
+      const res = await request(app)
+        .post(`${playlistBase}/`)
+        .set(authHeaders(TEST_USER_ID))
+        .send({ ...validCreateBody, tags: ['a', 'b', 'c', 'd', 'e', 'f'] });
+
+      expect(res.status).toBe(400);
+      expect(res.body.message).toBe('A playlist has at most 5 tags.');
+      expect(playlistTagReplaceMock).not.toHaveBeenCalled();
+    });
+
+    it('returns 400 when a tag is longer than the configured length', async () => {
+      playlistTagReplaceMock.mockClear();
+
+      const res = await request(app)
+        .post(`${playlistBase}/`)
+        .set(authHeaders(TEST_USER_ID))
+        .send({ ...validCreateBody, tags: ['a'.repeat(51)] });
+
+      expect(res.status).toBe(400);
+      expect(res.body.message).toBe('A tag is at most 50 characters.');
+      expect(playlistTagReplaceMock).not.toHaveBeenCalled();
+    });
   });
 
   describe('PATCH /:playlist_id_text', () => {
@@ -369,7 +437,35 @@ describe('playlist routes', () => {
       expect(playlistUpdateMock).toHaveBeenCalled();
     });
 
+    it('does not call replaceForPlaylist when tags are omitted', async () => {
+      playlistTagReplaceMock.mockClear();
+      playlistGetByIdTextMock.mockResolvedValueOnce(ownershipPlaylist(TEST_USER_ID) as never);
+
+      const res = await request(app)
+        .patch(`${playlistBase}/${PLAYLIST_ID_TEXT}`)
+        .set(authHeaders(TEST_USER_ID))
+        .send(validUpdateBody);
+
+      expect(res.status).toBe(200);
+      expect(playlistTagReplaceMock).not.toHaveBeenCalled();
+    });
+
+    it('calls replaceForPlaylist when tags is an empty array', async () => {
+      playlistTagReplaceMock.mockClear();
+      playlistGetByIdTextMock.mockResolvedValueOnce(ownershipPlaylist(TEST_USER_ID) as never);
+
+      const res = await request(app)
+        .patch(`${playlistBase}/${PLAYLIST_ID_TEXT}`)
+        .set(authHeaders(TEST_USER_ID))
+        .send({ ...validUpdateBody, tags: [] });
+
+      expect(res.status).toBe(200);
+      expect(playlistTagReplaceMock).toHaveBeenCalledTimes(1);
+      expect(playlistTagReplaceMock).toHaveBeenCalledWith(1, [], { maxCount: 5, maxLength: 50 });
+    });
+
     it('returns 403 when not the owner', async () => {
+      playlistTagReplaceMock.mockClear();
       playlistGetByIdTextMock.mockResolvedValueOnce(ownershipPlaylist(OTHER_USER_ID) as never);
 
       const res = await request(app)
@@ -378,6 +474,7 @@ describe('playlist routes', () => {
         .send(validUpdateBody);
 
       expect(res.status).toBe(403);
+      expect(playlistTagReplaceMock).not.toHaveBeenCalled();
     });
 
     it('returns 404 when playlist not found', async () => {
@@ -614,6 +711,56 @@ describe('playlist routes', () => {
 
       expect(res.status).toBe(404);
     });
+
+    it('returns tags for a public playlist and omits sharable_status', async () => {
+      playlistGetByIdTextMock.mockResolvedValue({
+        id: 1,
+        playlist_id_text: PLAYLIST_ID_TEXT,
+        account: { id: OTHER_USER_ID },
+        sharable_status: { id: 1 },
+      } as never);
+      playlistGetOnePublicMock.mockResolvedValue({
+        id: 1,
+        id_text: PLAYLIST_ID_TEXT,
+        title: 'Pub',
+        sharable_status: { id: 1 },
+      });
+      playlistTagLoadNamesMock.mockResolvedValueOnce(
+        new Map<string, string[]>([[PLAYLIST_ID_TEXT, ['morning', 'news']]])
+      );
+
+      const res = await request(app).get(`${playlistBase}/${PLAYLIST_ID_TEXT}`);
+
+      expect(res.status).toBe(200);
+      expect(res.body.tags).toEqual(['morning', 'news']);
+      expect(res.body.sharable_status).toBeUndefined();
+    });
+
+    it("returns tags for a private playlist when the caller's account owns it", async () => {
+      playlistGetByIdTextMock.mockResolvedValue({
+        id: 1,
+        playlist_id_text: PLAYLIST_ID_TEXT,
+        account: { id: TEST_USER_ID },
+        sharable_status: { id: 3 },
+      } as never);
+      playlistGetOnePrivateMock.mockResolvedValue({
+        id: 1,
+        id_text: PLAYLIST_ID_TEXT,
+        title: 'Priv',
+        sharable_status: { id: 3 },
+        account: { id: TEST_USER_ID, id_text: TEST_USER_ACCOUNT_ID_TEXT },
+      });
+      playlistTagLoadNamesMock.mockResolvedValueOnce(
+        new Map<string, string[]>([[PLAYLIST_ID_TEXT, ['secret']]])
+      );
+
+      const res = await request(app)
+        .get(`${playlistBase}/${PLAYLIST_ID_TEXT}`)
+        .set(authHeaders(TEST_USER_ID));
+
+      expect(res.status).toBe(200);
+      expect(res.body.tags).toEqual(['secret']);
+    });
   });
 
   describe('GET /private/* list endpoints', () => {
@@ -676,6 +823,21 @@ describe('playlist routes', () => {
       const res = await request(app).get(`${playlistBase}/private/recent?medium=music&page=1`);
 
       expect(res.status).toBe(401);
+    });
+
+    it('GET /private/recent ignores tag', async () => {
+      playlistGetManyPrivateMock.mockClear();
+      const res = await request(app)
+        .get(`${playlistBase}/private/recent?medium=music&page=1&tag=news`)
+        .set(authHeaders(TEST_USER_ID));
+
+      expect(res.status).toBe(200);
+      expect(playlistGetManyPrivateMock).toHaveBeenCalledTimes(1);
+      expect(playlistGetManyPrivateMock).toHaveBeenCalledWith(TEST_USER_ID, 'music', {
+        skip: 0,
+        take: PAGINATION.DEFAULT_LIMIT,
+        order: { last_updated: 'DESC' },
+      });
     });
 
     it('GET /private/likes returns 200 with auth', async () => {
@@ -813,6 +975,51 @@ describe('playlist routes', () => {
 
       expect(res.status).toBe(401);
     });
+
+    it('omits tags when a followed playlist is private and owned by someone else', async () => {
+      getAccountMock.mockResolvedValueOnce({
+        id: TEST_USER_ID,
+        id_text: TEST_USER_ACCOUNT_ID_TEXT,
+        account_credentials: { email: TEST_EMAIL },
+        account_membership_status: {
+          membership_expires_at: new Date(Date.now() + 86400000 * 365),
+        },
+      });
+      followingPlGetFollowedPlaylistsPrivateWithCountMock.mockResolvedValueOnce([
+        [
+          {
+            playlist: {
+              id: 1,
+              id_text: 'other-pl01',
+              title: 'Secret',
+              sharable_status_id: 3,
+              sharable_status: { id: 3 },
+              account: { id_text: 'someone-else' },
+            },
+          },
+        ],
+        1,
+      ]);
+
+      const res = await request(app)
+        .get(`${playlistBase}/private/followed/recent?medium=music&page=1`)
+        .set(authHeaders(TEST_USER_ID));
+
+      expect(res.status).toBe(200);
+      expect(res.body.data[0].tags).toBeUndefined();
+    });
+  });
+
+  describe('GET /tag', () => {
+    it('returns 200 with an empty data array without auth', async () => {
+      playlistTagSearchMock.mockResolvedValue([]);
+
+      const res = await request(app).get(`${playlistBase}/tag?q=ad`);
+
+      expect(res.status).toBe(200);
+      expect(res.body).toEqual({ data: [] });
+      expect(playlistTagSearchMock).toHaveBeenCalledWith('ad');
+    });
   });
 
   describe('GET /public/recent', () => {
@@ -831,7 +1038,66 @@ describe('playlist routes', () => {
           order: { last_updated: 'DESC', id_text: 'ASC' },
           skip: 0,
           take: pageLookaheadTake(PAGINATION.DEFAULT_LIMIT),
-        })
+        }),
+        null
+      );
+    });
+
+    it('passes the raw tag to the public recent list', async () => {
+      playlistGetManyPublicForListMock.mockClear();
+      const res = await request(app).get(`${playlistBase}/public/recent?medium=av&page=1&tag=news`);
+
+      expect(res.status).toBe(200);
+      expect(playlistGetManyPublicForListMock).toHaveBeenCalledTimes(1);
+      expect(playlistGetManyPublicForListMock).toHaveBeenCalledWith(
+        'av',
+        expect.objectContaining({
+          order: { last_updated: 'DESC', id_text: 'ASC' },
+          skip: 0,
+          take: pageLookaheadTake(PAGINATION.DEFAULT_LIMIT),
+        }),
+        'news'
+      );
+    });
+
+    it('passes the raw tag without folding it', async () => {
+      playlistGetManyPublicForListMock.mockClear();
+      const res = await request(app)
+        .get(`${playlistBase}/public/recent`)
+        .query({ medium: 'av', page: 1, tag: 'ADAM CURRY' });
+
+      expect(res.status).toBe(200);
+      expect(playlistGetManyPublicForListMock).toHaveBeenCalledTimes(1);
+      expect(playlistGetManyPublicForListMock).toHaveBeenCalledWith(
+        'av',
+        expect.objectContaining({
+          skip: 0,
+          take: pageLookaheadTake(PAGINATION.DEFAULT_LIMIT),
+        }),
+        'ADAM CURRY'
+      );
+    });
+
+    it('passes null when the public recent tag is blank', async () => {
+      playlistGetManyPublicForListMock.mockClear();
+      const empty = await request(app).get(`${playlistBase}/public/recent?medium=av&page=1&tag=`);
+      expect(empty.status).toBe(200);
+      expect(playlistGetManyPublicForListMock).toHaveBeenCalledWith(
+        'av',
+        expect.objectContaining({ skip: 0 }),
+        null
+      );
+
+      playlistGetManyPublicForListMock.mockClear();
+      const spaces = await request(app)
+        .get(`${playlistBase}/public/recent`)
+        .query({ medium: 'av', page: 1, tag: '   ' });
+      expect(spaces.status).toBe(200);
+      expect(playlistGetManyPublicForListMock).toHaveBeenCalledTimes(1);
+      expect(playlistGetManyPublicForListMock).toHaveBeenCalledWith(
+        'av',
+        expect.objectContaining({ skip: 0 }),
+        null
       );
     });
 
@@ -862,6 +1128,31 @@ describe('playlist routes', () => {
         expect.objectContaining({ take: pageLookaheadTake(PAGINATION.DEFAULT_LIMIT) })
       );
       expect(statsPlGetManyPublicMock.mock.calls.at(-1)?.[2]).toBe('day_count');
+      expect(statsPlGetManyPublicMock.mock.calls.at(-1)?.[3]).toBeNull();
+    });
+
+    it('passes the raw tag and keeps the range count field', async () => {
+      statsPlGetManyPublicMock.mockClear();
+      const res = await request(app).get(
+        `${playlistBase}/public/top?medium=music&page=1&range=day&tag=news`
+      );
+
+      expect(res.status).toBe(200);
+      expect(statsPlGetManyPublicMock).toHaveBeenCalledTimes(1);
+      expect(statsPlGetManyPublicMock.mock.calls[0]?.[2]).toBe('day_count');
+      expect(statsPlGetManyPublicMock.mock.calls[0]?.[3]).toBe('news');
+    });
+
+    it('passes null when the public top tag is blank', async () => {
+      statsPlGetManyPublicMock.mockClear();
+      const res = await request(app).get(
+        `${playlistBase}/public/top?medium=music&page=1&range=day&tag=`
+      );
+
+      expect(res.status).toBe(200);
+      expect(statsPlGetManyPublicMock).toHaveBeenCalledTimes(1);
+      expect(statsPlGetManyPublicMock.mock.calls[0]?.[2]).toBe('day_count');
+      expect(statsPlGetManyPublicMock.mock.calls[0]?.[3]).toBeNull();
     });
   });
 

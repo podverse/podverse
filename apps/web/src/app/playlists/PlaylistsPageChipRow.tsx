@@ -14,6 +14,7 @@ import { useConfig } from '../../contexts/Config';
 import { playlistMediumForCatalog } from '../../lib/catalog/catalogListMedium';
 import { usePlaylistsPageContext } from './PlaylistsPageContext';
 import { getPlaylistsPageSortOptions } from './PlaylistsPageDropdownConfig';
+import { PlaylistTagFilter } from './PlaylistTagFilter';
 
 import chipRowStyles from '../../styles/components/MediaListChips/MediaListChips.module.scss';
 
@@ -69,6 +70,7 @@ export function PlaylistsPageChipRow({ chipsConfig }: { chipsConfig?: MediaListC
 
   const trailing = (
     <>
+      {filterParams.type === 'public' ? <PlaylistTagFilter /> : null}
       <MenuChip
         faceLabel={mediumLabel}
         label={tFilters('screen.filter_heading')}

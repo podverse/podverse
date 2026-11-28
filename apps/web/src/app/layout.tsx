@@ -11,6 +11,7 @@ import { RouteAwareFontPreloads } from '../components/Head/RouteAwareFontPreload
 import { RuntimeConfigScript } from '../components/Head/RuntimeConfigScript';
 import { getConfig, getWebOrigin } from '../config';
 import { getCustomThemeCssText } from '../config/custom-themes.server';
+import { getConfigResolved } from '../config/loadPublicClientConfig.server';
 import { resolveWebRuntimeConfigForRequest } from '../config/resolve-runtime-config.server';
 import { ASSETS } from '../constants/assets';
 import { getSSRApiRequestService } from '../factories/apiRequestService';
@@ -25,24 +26,27 @@ import { toUITheme } from '../utils/localSettings/uiTheme';
 
 import '../styles/index.scss';
 
-const staticConfig = getConfig();
-const brandName = staticConfig.public.brand.name;
-const defaultOpenGraphImage = new URL(
-  staticConfig.public.brand.logoLight || ASSETS.IMAGES.BRANDING.BRAND.LOGO,
-  getWebOrigin()
-).toString();
+export async function generateMetadata(): Promise<Metadata> {
+  const resolved = await getConfigResolved();
+  const brandName = resolved.public.brand.name;
+  const envConfig = getConfig();
+  const defaultOpenGraphImage = new URL(
+    envConfig.public.brand.logoLight || ASSETS.IMAGES.BRANDING.BRAND.LOGO,
+    getWebOrigin()
+  ).toString();
 
-export const metadata: Metadata = {
-  metadataBase: new URL(getWebOrigin()),
-  title: {
-    default: brandName,
-    template: `%s | ${brandName}`,
-  },
-  openGraph: {
-    siteName: brandName,
-    images: [{ url: defaultOpenGraphImage }],
-  },
-};
+  return {
+    metadataBase: new URL(getWebOrigin()),
+    title: {
+      default: brandName,
+      template: `%s | ${brandName}`,
+    },
+    openGraph: {
+      siteName: brandName,
+      images: [{ url: defaultOpenGraphImage }],
+    },
+  };
+}
 
 async function loadCompiledMessages(locale: string) {
   try {
@@ -63,7 +67,7 @@ async function loadCompiledMessages(locale: string) {
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
   const runtimeConfig = await resolveWebRuntimeConfigForRequest();
-  const config = getConfig();
+  const config = await getConfigResolved();
   const customThemeCssText = getCustomThemeCssText(runtimeConfig);
   const cookieStore = await cookies();
   const ssrLocalSettings = getParsedLocalSettings(cookieStore);

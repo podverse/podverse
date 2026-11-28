@@ -2,6 +2,7 @@ import type { SortPrefScope } from './sortPrefs.js';
 
 /**
  * The remembered entry for one Browse media type: its sort, its Top window, and its list or grid.
+ * The playlists entry also remembers the applied tag.
  *
  * Browse and Home lists of the same media type are separate instances, so the name carries a
  * `browse-` prefix. Podcasts, artists, and albums resolve to the same key as

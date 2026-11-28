@@ -46,6 +46,17 @@ describe('sanitizeSortPrefValue', () => {
     expect(sanitizeSortPrefValue({ sort: 'x'.repeat(65) })).toBeNull();
   });
 
+  it('keeps a playlist tag with the other fields', () => {
+    expect(sanitizeSortPrefValue({ tag: 'adam curry', sort: 'recent' })).toEqual({
+      sort: 'recent',
+      tag: 'adam curry',
+    });
+  });
+
+  it('drops a playlist tag longer than the token limit', () => {
+    expect(sanitizeSortPrefValue({ tag: 'x'.repeat(65) })).toBeNull();
+  });
+
   it('drops non-string values', () => {
     expect(sanitizeSortPrefValue({ sort: 3, viewMode: ['grid'] })).toBeNull();
   });
@@ -73,6 +84,12 @@ describe('mergeSortPrefValue', () => {
   it('clears a field written as undefined', () => {
     expect(mergeSortPrefValue({ filter: 'addByRss', sort: 'a_z' }, { filter: undefined })).toEqual({
       sort: 'a_z',
+    });
+  });
+
+  it('clears a playlist tag written as undefined and keeps sort', () => {
+    expect(mergeSortPrefValue({ sort: 'recent', tag: 'news' }, { tag: undefined })).toEqual({
+      sort: 'recent',
     });
   });
 

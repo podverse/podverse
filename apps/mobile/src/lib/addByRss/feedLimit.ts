@@ -1,13 +1,11 @@
-import {
-  requestWithMobileAuthRefreshIfSignedIn,
-  requestWithoutMobileAuth,
-} from '../../auth/authRequestWithRefresh';
+import { requestWithMobileAuthRefreshIfSignedIn } from '../../auth/authRequestWithRefresh';
+import { loadPublicClientConfig } from '../../config/publicClientConfig';
 import type { MobileAuthRequestContext } from '../../data/repositories/types';
 
 /**
- * The default reader reads the public Add by RSS feed limit. The account reader reads the
- * signed-in account's own limit. Each call reads the server. `null` means the server did not
- * answer with a non-negative integer.
+ * The default reader reads `membership.maxAddByRSSFeeds` from the shared public client config
+ * load. The account reader reads the signed-in account's own limit from the server. `null`
+ * means that read did not answer with a non-negative integer.
  */
 
 const readNonNegativeInteger = (value: unknown): number | null => {
@@ -19,8 +17,11 @@ const readNonNegativeInteger = (value: unknown): number | null => {
 
 export async function fetchAddByRssDefaultFeedLimit(): Promise<number | null> {
   try {
-    const response = await requestWithoutMobileAuth((api) => api.reqProductMembershipGet());
-    return readNonNegativeInteger(response.data.maxAddByRSSFeeds);
+    const config = await loadPublicClientConfig();
+    if (config === null) {
+      return null;
+    }
+    return readNonNegativeInteger(config.membership.maxAddByRSSFeeds);
   } catch {
     return null;
   }

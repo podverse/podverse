@@ -14,6 +14,8 @@ interface PlaylistCreatePageContextType {
   setTitle: (title: string) => void;
   description: string;
   setDescription: (description: string) => void;
+  tags: string[];
+  setTags: (tags: string[]) => void;
   isUpdating: boolean;
   setIsUpdating: (isUpdating: boolean) => void;
 }
@@ -32,6 +34,7 @@ export const PlaylistCreatePageContextProvider = ({
   const [medium, setMedium] = useState<string>(`${MediumEnum.AV}`);
   const [title, setTitle] = useState<string>('');
   const [description, setDescription] = useState<string>('');
+  const [tags, setTags] = useState<string[]>([]);
   const [sharableStatus, setSharableStatus] = useState<string>(`${SharableStatusEnum.Private}`);
   const [isUpdating, setIsUpdating] = useState<boolean>(false);
 
@@ -44,6 +47,8 @@ export const PlaylistCreatePageContextProvider = ({
         setTitle,
         description,
         setDescription,
+        tags,
+        setTags,
         sharableStatus,
         setSharableStatus,
         isUpdating,

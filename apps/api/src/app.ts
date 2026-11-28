@@ -5,6 +5,7 @@ import 'reflect-metadata';
 import { config } from '@api/config/index.js';
 import { loggerService } from '@api/factories/loggerService.js';
 import { initializePassport } from '@api/lib/auth/index.js';
+import { asyncHandler } from '@api/middleware/asyncHandler.js';
 import bodyParser from 'body-parser';
 import cookieParser from 'cookie-parser';
 import cors from 'cors';
@@ -128,7 +129,9 @@ export const startApp = async () => {
       await import('@api/lib/accountEventStream/accountEventStreamHub.js');
     startAccountEventStreamHub();
 
-    // --- Versioned: meta, then root (same order as Metaboost versioned router)
+    const { PublicClientConfigController } = await import('@api/controllers/publicClientConfig.js');
+
+    // --- Versioned: meta, config, then root
     app.get(`${baseUrl}/meta`, (_req: Request, res: Response) => {
       res.json({
         version: config.api.version,
@@ -136,6 +139,8 @@ export const startApp = async () => {
         status: 'ok',
       });
     });
+
+    app.get(`${baseUrl}/config`, asyncHandler(PublicClientConfigController.get));
 
     app.get(`${baseUrl}/`, (_req: Request, res: Response) => {
       res.status(200).json({ status: 'ok', message: 'API is online' });

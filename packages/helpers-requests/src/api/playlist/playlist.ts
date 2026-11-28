@@ -20,9 +20,17 @@ export async function reqPlaylistGet(api: ApiRequestService, id_text: string) {
   });
 }
 
+export type QueryParamsPlaylistPublicTop = QueryParamsGlobalTop & {
+  tag?: string | null;
+};
+
+export type QueryParamsPlaylistPublicRecent = QueryParamsGlobalRecent & {
+  tag?: string | null;
+};
+
 export async function reqPlaylistGetManyPublicTop(
   api: ApiRequestService,
-  params: QueryParamsGlobalTop
+  params: QueryParamsPlaylistPublicTop
 ) {
   return api.apiRequest<ApiListResponse<DTOPlaylist>>({
     path: '/playlist/public/top',
@@ -35,13 +43,23 @@ export async function reqPlaylistGetManyPublicTop(
 
 export async function reqPlaylistGetManyPublicRecent(
   api: ApiRequestService,
-  params: QueryParamsGlobalRecent
+  params: QueryParamsPlaylistPublicRecent
 ) {
   return api.apiRequest<ApiListResponse<DTOPlaylist>>({
     path: '/playlist/public/recent',
     method: 'GET',
     config: {
       params,
+    },
+  });
+}
+
+export async function reqPlaylistTagSearch(api: ApiRequestService, q: string) {
+  return api.apiRequest<{ data: string[] }>({
+    path: '/playlist/tag',
+    method: 'GET',
+    config: {
+      params: { q },
     },
   });
 }
@@ -158,18 +176,27 @@ export async function reqPlaylistGetManyPrivateFollowedAZ(
   });
 }
 
+function publicPlaylistTagQuery(tag: string | null | undefined): { tag?: string } {
+  if (typeof tag !== 'string' || tag.trim().length === 0) {
+    return {};
+  }
+  return { tag };
+}
+
 export async function reqPlaylistGetMany(api: ApiRequestService, params: QueryParamsPlaylists) {
   if (params.type === 'public') {
     if (params.sort === 'recent') {
       return reqPlaylistGetManyPublicRecent(api, {
         page: params.page,
         medium: params.medium,
+        ...publicPlaylistTagQuery(params.tag),
       });
     }
     return reqPlaylistGetManyPublicTop(api, {
       page: params.page,
       medium: params.medium,
       range: params.range ?? 'week',
+      ...publicPlaylistTagQuery(params.tag),
     });
   } else if (params.type === 'private') {
     if (params.sort === 'recent') {
@@ -305,6 +332,7 @@ export type ReqPlaylistCreateParams = {
   description?: string;
   medium: QueryParamsQueueMedium;
   sharable_status_id: number;
+  tags?: string[];
 };
 
 export async function reqPlaylistCreate(api: ApiRequestService, params: ReqPlaylistCreateParams) {
@@ -323,20 +351,31 @@ export type ReqPlaylistEditParams = {
   title: string;
   description?: string;
   sharable_status_id: number;
+  tags?: string[];
 };
 
 export async function reqPlaylistEdit(api: ApiRequestService, params: ReqPlaylistEditParams) {
+  const data: {
+    title: string;
+    description?: string;
+    sharable_status_id: number;
+    tags?: string[];
+  } = {
+    title: params.title,
+    description: params.description,
+    sharable_status_id: params.sharable_status_id,
+  };
+  if (params.tags !== undefined) {
+    data.tags = params.tags;
+  }
+
   return api.apiRequest<DTOPlaylist>({
     path: `/playlist/${params.id_text}`,
     method: 'PATCH',
     config: {
       withCredentials: true,
     },
-    data: {
-      title: params.title,
-      description: params.description,
-      sharable_status_id: params.sharable_status_id,
-    },
+    data,
   });
 }
 

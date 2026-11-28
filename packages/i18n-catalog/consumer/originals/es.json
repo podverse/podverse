@@ -201,6 +201,13 @@
       "add_to_liked": "Añadir a me gusta",
       "remove_from_liked": "Quitar de me gusta",
       "no_playlists_found": "No se encontraron listas de reproducción",
+      "tags": "Etiquetas",
+      "tag_placeholder": "Escribe una etiqueta",
+      "tag_suggestions": "Sugerencias de etiquetas",
+      "clear_tag_text": "Borrar el texto de la etiqueta",
+      "remove_tag": "Quitar {tag}",
+      "tag_searching": "Buscando etiquetas...",
+      "tag_limit": "Una lista de reproducción tiene como máximo {count} etiquetas.",
       "login_prompt": "Inicia sesión para usar esta función."
     },
     "clip": {
@@ -725,6 +732,15 @@
       "subscribed": "Suscrito",
       "category": "Categoría"
     },
+    "tag": {
+      "tag": "Etiqueta",
+      "placeholder": "Escribe una etiqueta",
+      "suggestions": "Sugerencias de etiquetas",
+      "searching": "Buscando etiquetas.",
+      "too_long": "Una etiqueta tiene como máximo 50 caracteres.",
+      "selected": "Etiqueta: {tag}",
+      "clear_text": "Borrar texto de etiqueta"
+    },
     "sort": {
       "recent": "Reciente",
       "oldest": "Más antiguo",
@@ -739,6 +755,14 @@
       "week": "Semana",
       "month": "Mes",
       "all_time": "Todo el tiempo"
+    },
+    "playlist_tag": {
+      "label": "Etiqueta",
+      "placeholder": "Escribe una etiqueta",
+      "suggestions": "Sugerencias de etiquetas",
+      "clear_text": "Borrar texto de la etiqueta",
+      "clear": "Quitar etiqueta",
+      "selected": "Etiqueta: {name}"
     },
     "list": {
       "title_label": "Filtrar por título",

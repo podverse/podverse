@@ -4,7 +4,7 @@ import type { AuthSessionEndedNotice, DTOAccount } from '@podverse/helpers';
 import { AuthCookieName } from '@podverse/helpers';
 import { parseAuthSessionEndedError } from '@podverse/helpers-requests';
 
-import { getConfig } from '../../config';
+import { getConfigResolved } from '../../config/loadPublicClientConfig.server';
 import { getSSRApiRequestService } from '../../factories/apiRequestService';
 import { isTermsAcceptanceRequired } from '../../lib/termsAcceptanceRequired';
 
@@ -66,7 +66,7 @@ export async function getSSRAuthService(): Promise<{
     };
   }
 
-  const configuredTermsVersion = getConfig().public.legal.terms.version;
+  const configuredTermsVersion = (await getConfigResolved()).public.legal.terms.version;
   let termsAcceptanceRequired: boolean;
   try {
     const account = await ssrApiRequestService.reqAuthMe();

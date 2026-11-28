@@ -18,21 +18,6 @@ export async function reqMembershipGetPricing(api: ApiRequestService) {
   });
 }
 
-/** Prices, the annual savings percent, and the default Add by RSS feed limit. */
-type ProductMembershipCatalog = {
-  annuallySavingsPercent: number;
-  maxAddByRSSFeeds: number;
-  premiumMembershipCostAnnually: number;
-  premiumMembershipCostMonthly: number;
-};
-
-export async function reqProductMembershipGet(api: ApiRequestService) {
-  return api.apiRequest<{ data: ProductMembershipCatalog }>({
-    path: '/product/membership',
-    method: 'GET',
-  });
-}
-
 /** Localized feature table and Trial limitations for the caller's Accept-Language. */
 export async function reqMembershipComparisonGet(
   api: ApiRequestService,

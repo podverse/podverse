@@ -143,22 +143,39 @@ restarts, with no rebuild.
 
 ### Brand & Features
 
-- **`NEXT_PUBLIC_BRAND_NAME`** (Optional) - Brand name for the application
+- **`NEXT_PUBLIC_BRAND_NAME`** (Optional) - Brand name for the application. The website uses
+  `GET /config`, and this value applies when that request fails.
 - **`NEXT_PUBLIC_POLLING_INTERVAL_MS`** (Optional) - Polling interval in milliseconds (default: `3000`)
   - Must be a positive number if set
 
 ### Playlists
 
-Signed-out `/playlists` opens on these when no sort is saved and the URL does not name one.
-A saved sort still wins. Signed-in My Playlists stays on A-Z.
+These apply to `/playlists` only. Browse playlists does not read them. A saved choice and an
+explicit URL still win. A blank type keeps signed-in My Playlists and signed-out Global. A
+signed-out visitor ignores a private or subscribed type. Signed-in My Playlists with no saved
+sort stays A-Z. A public opening with no saved sort uses the sort and range env, including when
+the visitor is signed in. Medium `all` or blank opens All.
 
 - **`NEXT_PUBLIC_PLAYLISTS_DEFAULT_SORT`** (Optional) - `recent` or `top`. Blank opens Recent.
 - **`NEXT_PUBLIC_PLAYLISTS_DEFAULT_RANGE`** (Optional) - `day`, `week`, `month`, or `all-time`.
   Used only when the sort is `top`. Blank is week in that case.
+- **`NEXT_PUBLIC_PLAYLISTS_DEFAULT_TYPE`** (Optional) - `private`, `private_followed`, or `public`.
+  Blank keeps signed-in My Playlists and signed-out Global. A signed-out visitor ignores `private`
+  and `private_followed`.
+- **`NEXT_PUBLIC_PLAYLISTS_DEFAULT_MEDIUM`** (Optional) - `all`, `av`, or `music`. `all` or blank
+  opens All.
+- **`NEXT_PUBLIC_PLAYLISTS_DEFAULT_TAG`** (Optional) - Empty by default. A tag name is the opening
+  tag on `/playlists` only. A saved choice and `?tag=` still win. The visitor can change or clear
+  it. Browse playlists does not read it. It does not lock the list.
 
 ### Brand: app + document chrome (optional, white-label)
 
-The installable app manifest is served from **`/manifest.webmanifest`** (`app/manifest.ts`) using runtime config. Manifest `name` and `short_name` are **`NEXT_PUBLIC_BRAND_NAME`** (with a built-in fallback if unset). The variables below override **app icons, theme/background, and head icon** URLs for the manifest, browser chrome, and `<head>`; they are not limited to a single feature. When unset, paths default to files under `/favicon/`; set **absolute** `https://…` URLs for CDN-hosted assets.
+The installable app manifest is served from **`/manifest.webmanifest`** (`app/manifest.ts`) using
+runtime config. Manifest `name` and `short_name` come from `GET /config` `instance.brandName`, and
+from `NEXT_PUBLIC_BRAND_NAME` when that request fails. The variables below override **app icons,
+theme/background, and head icon** URLs for the manifest, browser chrome, and `<head>`; they are not
+limited to a single feature. When unset, paths default to files under `/favicon/`; set **absolute**
+`https://…` URLs for CDN-hosted assets.
 
 - **`NEXT_PUBLIC_BRAND_APP_ICON_192_URL`** (Optional) - 192×192 maskable icon (install / launcher, manifest, and other app surfaces)
 - **`NEXT_PUBLIC_BRAND_APP_ICON_512_URL`** (Optional) - 512×512 maskable icon
@@ -199,11 +216,13 @@ The installable app manifest is served from **`/manifest.webmanifest`** (`app/ma
 
 ### Account
 
-- **`NEXT_PUBLIC_ACCOUNT_SIGNUP_MODE`** (Required) - Account signup mode (no default value)
+- **`NEXT_PUBLIC_ACCOUNT_SIGNUP_MODE`** (Required) - Account signup mode (no default value). The
+  website uses `GET /config`, and this value applies when that request fails.
   - Valid values: `"admin_only_username"`, `"admin_only_email"`, or `"user_signup_email"`
   - Must be explicitly set - no default value is assumed
 
-- **`NEXT_PUBLIC_CONTACT_EMAIL`** (Optional) - Contact email address
+- **`NEXT_PUBLIC_CONTACT_EMAIL`** (Optional) - Contact email address. The website uses
+  `GET /config`, and this value applies when that request fails.
 
 ### Social Media
 

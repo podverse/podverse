@@ -4,6 +4,7 @@ import {
   CATEGORY_MAPPING_KEYS,
   PLAYBACK_EVENT_KINDS,
   PLAYBACK_REPLAY_BATCH_LIMIT,
+  PLAYLIST_TAG_NAME_MAX_LENGTH,
   QUERY_PARAMS_MEDIUMS,
   QUERY_PARAMS_PODCAST_INDEX_SEARCH_MEDIUMS,
 } from '@podverse/helpers';
@@ -168,6 +169,20 @@ export const channelTitleSearchQuerySchema = {
     .valid(...QUERY_PARAMS_PODCAST_INDEX_SEARCH_MEDIUMS)
     .default('all'),
   page: Joi.number().integer().min(1).required(),
+};
+
+export const playlistTagSearchQuerySchema = {
+  q: Joi.string().trim().min(1).max(PLAYLIST_TAG_NAME_MAX_LENGTH).required(),
+};
+
+export const playlistPublicRecentQuerySchema = {
+  ...mediumPageQuerySchema,
+  tag: Joi.string().allow('').max(PLAYLIST_TAG_NAME_MAX_LENGTH).optional(),
+};
+
+export const playlistPublicTopQuerySchema = {
+  ...mediumPageRangeQuerySchema,
+  tag: Joi.string().allow('').max(PLAYLIST_TAG_NAME_MAX_LENGTH).optional(),
 };
 
 export const positionBetweenBodySchema = {

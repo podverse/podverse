@@ -56,6 +56,11 @@ export type TextFieldProps = {
   onChangeText: (value: string) => void;
   onFocus?: () => void;
   onSubmitEditing?: () => void;
+  /**
+   * What Return does after `onSubmitEditing`. Omitted fields keep the platform default, which
+   * blurs a single-line field. `submit` runs the handler and leaves the keyboard up.
+   */
+  submitBehavior?: TextInputProps['submitBehavior'];
   placeholder: string;
   placeholderTextColor?: string;
   returnKeyType?: TextInputProps['returnKeyType'];
@@ -114,6 +119,7 @@ export function TextField({
   returnKeyType,
   secureTextEntry,
   style,
+  submitBehavior,
   testID,
   textContentType,
   value,
@@ -247,6 +253,7 @@ export function TextField({
             onFocus?.();
           }}
           onSubmitEditing={onSubmitEditing}
+          submitBehavior={submitBehavior}
           placeholder={placeholder}
           placeholderTextColor={placeholderTextColor ?? themeStyles.textSecondary.color}
           ref={setInputRef}

@@ -313,9 +313,11 @@ Mobile now participates in the same local env pipeline as other apps:
   linked by `make local_env_link`) and are applied to both web sidecar `NEXT_PUBLIC_API_*`
   vars and mobile `EXPO_PUBLIC_MOBILE_API_BASE_URL_{IOS,ANDROID}` (must include `/api/v2`).
 - `NEXT_PUBLIC_CONTACT_EMAIL` from `socials.env` is copied to mobile
-  `EXPO_PUBLIC_CONTACT_EMAIL` for the error-log email action.
+  `EXPO_PUBLIC_CONTACT_EMAIL` for the error-log email action. That copy is the fallback when
+  `GET /config` fails.
 - `ACCOUNT_SIGNUP_MODE` from `app.env` is written as `EXPO_PUBLIC_ACCOUNT_SIGNUP_MODE`.
-  An unset build uses `user_signup_email`, which shows email flows such as change email.
+  An unset build uses `user_signup_email`, which shows email flows such as change email. That
+  copy is the fallback when `GET /config` fails.
 - `BRAND_DOMAIN` from `brand.env` is written as `EXPO_PUBLIC_MOBILE_WEB_BASE_URL`
   (`https://<BRAND_DOMAIN>`) for share links and universal-link host registration.
 - At runtime, the app reads those vars only via `getMobileConfig()` in

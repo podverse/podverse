@@ -139,3 +139,37 @@ Issue 410. This is the issue for the work. Do not open a second one. Area steps 
 This is an operator deliverable, not a product change. The last implementation step writes `proposed-reply.md` in the set and repeats it in a fenced `text` block. Do not post it. Do not recommend posting or closing until the change is merged into `develop`. Then recommend the comment and the close. A few sentences for the people in the thread, with no file names or plan names.
 
 - **Ticket reply** The last plan covers this row.
+
+### Review of the first planning pass
+
+The operator accepted every item under `## Decisions to review` in `00-SUMMARY.md` except the four mismatches the review named.
+
+> Accept them. Decide only the four mismatches.
+
+**Commit.** Same on web and mobile. A typed name becomes a chip on Enter or Return. Save also commits text still in the box. There is no create row. Blur does not add a chip. The name is stored only when the playlist is saved.
+
+> Same on both: Enter/Return adds the chip, and Save also commits text still in the box. No create row. Blur does not add a chip.
+
+**Caps.** Same on web and mobile. At the tag limit, hide the box and show a sentence that names the configured limit. The default sentence, when the limit is 5, is "A playlist has at most 5 tags." Typing stops at the character cap. There is no extra sentence for that cap. The count defaults to 5. The character cap defaults to 50. Both are API env, and the API rejects a save over either limit.
+
+> same on both, but make sure the 5 is the default limit and it can potnetially be changeable by env var. the limit should be enforced at the api level
+
+> At the tag limit, hide the box and show a sentence that names the limit (default: "A playlist has at most 5 tags."). Typing stops at 50 characters, with no extra sentence.
+
+> on the api, the char limit should also be by api
+
+**Field order.** Tags are the last field before Cancel and Save on each form. On the web that is after Description. On the phone that is after Sharable Status.
+
+> Last field before Cancel / Save on each form. Web stays after Description. The phone stays after Sharable Status.
+
+**Search failure.** Same on web and mobile. The field shows "Something went wrong. Please try again later, or contact support for assistance." Enter, Return, and Save still add the typed name.
+
+> Same on both: show "Something went wrong. Please try again later, or contact support for assistance." on the field, and still let Enter/Return and Save add the typed name.
+
+**Public config.** One public GET returns grouped objects so later settings can be added without a new route: the membership catalog that `GET /product/membership` returns today, the two playlist tag limits, and the seven settings the API already owns and the clients copy. Those seven are brand name, legal name, contact email, signup mode, terms version, taste-profile agreement version, and stats retention days. This route replaces public `GET /product/membership`. Pricing, comparison, and the management editor stay. Web and mobile use the API values, and keep today's env only when the config request fails. The playlist form uses 5 and 50 until the tag limits arrive. API URLs stay on the client. Web-only infrastructure stays on the client. Home, Browse, and playlists opening defaults stay client settings. The name column stays the existing short varchar, so the character env cannot be set above that width. Update every caller, the docs, local-env, and the `k.podcastdj.com` GitOps checkout where these keys are set.
+
+> information like this should be available through the same endpoint, i am thinking this endpoint has a purpose of making sure that clients have the configurable aspects like this in one network call. i am unsure if we even need that membership response endpoint if we consoidate on one endpoint for this configurable type of data. we have never deployed this app to the public so we could potentially remove that membership config endpoint if it is no longer necessary
+
+> do what you recommend and make sure the response schema is setup in a logical way so we can potentially extend it in the future, also look for opportunities where env vars can be consolidated to the backend today through the use of this config endpoint.
+
+> i want you to do what you recommend and make sure all touch points are updated and documentation as necessary and if local-env or k.podcastdj.com etc needs to be updated we want to update it

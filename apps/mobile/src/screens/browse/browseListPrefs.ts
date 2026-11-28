@@ -1,5 +1,6 @@
 import type { SortPrefScope, SortPrefValue } from '@podverse/helpers';
 import { browseListScope, isChannelListViewModeType, pickSortPrefToken } from '@podverse/helpers';
+import { normalizePlaylistTagName } from '@podverse/helpers/playlistTag';
 
 import type { HomeViewMode } from '../../prefs/homeListPrefs';
 import { HOME_VIEW_MODES } from '../../prefs/homeListPrefs';
@@ -20,16 +21,19 @@ import {
 /**
  * Browse's remembered selections. The root entry holds the selected media type and category,
  * which every list shares. Each media type has its own entry (`browseListScope`) for its sort,
- * its Top window, and its list or grid, the same split Home uses.
+ * its Top window, and its list or grid, the same split Home uses. The playlists entry also
+ * remembers the applied tag.
  */
 const BROWSE_ROOT_SCOPE: SortPrefScope = { kind: 'list', name: 'browse' };
 
 export type BrowseListPrefs = {
   category: string | null;
-  /** The media type `range`, `sort`, and `viewMode` belong to. */
+  /** The media type `range`, `sort`, `tag`, and `viewMode` belong to. */
   mediaType: BrowseMediaType;
   range: BrowseRangeOption;
   sort: BrowseSortOption;
+  /** Folded playlist tag on Browse playlists. Every other media type reads `null`. */
+  tag: string | null;
   viewMode: HomeViewMode;
 };
 
@@ -77,11 +81,18 @@ export const readBrowseListPrefs = async (): Promise<BrowseListPrefs> => {
       : defaultBrowseMediaType();
   const entry = await readSortPref(browseListScope(mediaType));
 
+  let tag: string | null = null;
+  if (mediaType === 'playlists' && entry?.tag !== undefined) {
+    const folded = normalizePlaylistTagName(entry.tag);
+    tag = folded.ok ? folded.name : null;
+  }
+
   return {
     category: root?.category !== undefined ? root.category : null,
     mediaType,
     range: pickSortPrefToken(entry?.range, BROWSE_RANGE_OPTIONS, DEFAULT_BROWSE_RANGE),
     sort: pickSortPrefToken(entry?.sort, BROWSE_SORT_OPTIONS, defaultBrowseSort()),
+    tag,
     viewMode: resolveBrowseViewMode(mediaType, root, entry),
   };
 };
@@ -105,6 +116,31 @@ export const writeBrowseSort = async (
   }
 
   await writeSortPref(browseListScope(mediaType), { sort });
+};
+
+/**
+ * The applied tag on Browse playlists. Null clears that field and leaves sort and range.
+ * Any other media type is left alone. A name that does not fold is left alone.
+ */
+export const writeBrowsePlaylistTag = async (
+  mediaType: BrowseMediaType,
+  tag: string | null
+): Promise<void> => {
+  if (mediaType !== 'playlists') {
+    return;
+  }
+
+  if (tag === null) {
+    await writeSortPref(browseListScope('playlists'), { tag: undefined });
+    return;
+  }
+
+  const folded = normalizePlaylistTagName(tag);
+  if (!folded.ok) {
+    return;
+  }
+
+  await writeSortPref(browseListScope('playlists'), { tag: folded.name });
 };
 
 /**

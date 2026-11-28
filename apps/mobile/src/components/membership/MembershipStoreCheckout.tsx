@@ -18,7 +18,7 @@ import { MembershipStrikeCheckout } from './MembershipStrikeCheckout';
 
 /**
  * Store checkout for a signed-in member. Monthly or annual, then buy. Plan prices and the annual
- * percent off come from `GET /product/membership`, the public catalog. PayPal, when the server
+ * percent off come from `GET /config` (`membership`). PayPal, when the server
  * includes it for this platform, opens web checkout. When nothing on this platform can be bought,
  * the screen tells the member how to reach the team. The terms page is the legal document that
  * describes how the service handles data, so Privacy opens that page too.

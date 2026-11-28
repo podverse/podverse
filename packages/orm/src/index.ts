@@ -157,6 +157,7 @@ export * from './entities/liveItem/liveItemStatus.js';
 
 export * from './entities/playlist/playlist.js';
 export * from './entities/playlist/playlistResource.js';
+export * from './entities/playlist/playlistTag.js';
 
 export * from './entities/queue/queue.js';
 export * from './entities/queue/queueResource.js';
@@ -372,6 +373,7 @@ export * from './services/onDemandParserEvent.js';
 
 export * from './services/playlist/playlist.js';
 export * from './services/playlist/playlistResource.js';
+export * from './services/playlist/playlistTag.js';
 
 export * from './services/publisherFeed.js';
 export * from './services/remoteItemReference/remoteItemReference.js';

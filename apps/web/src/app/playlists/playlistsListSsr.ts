@@ -21,6 +21,7 @@ import {
   DEFAULT_PLAYLISTS_PAGE_MEDIUM,
   getPlaylistsPageFilterParams,
 } from './PlaylistsPageDropdownConfig';
+import { playlistQueryTag, resolvePlaylistsPageFilters } from './resolvePlaylistsPageFilters';
 
 export const searchParamsSchema = z.object({
   page: z
@@ -32,11 +33,21 @@ export const searchParamsSchema = z.object({
   sort: z.enum(QUERY_PARAMS_SUBSCRIBED_FULL_SORT).optional().nullable().default(null),
   range: z.enum(QUERY_PARAMS_STATS_RANGE_VALUES).optional().nullable().default(null),
   medium: z.enum(QUERY_PARAMS_QUEUE_MEDIUMS).optional().nullable().default(null),
+  tag: z.string().optional(),
 });
 
 export type PlaylistsPageSearchParams = z.infer<typeof searchParamsSchema>;
 
 type FetchPlaylists = (params: QueryParamsPlaylists) => Promise<ApiListResponse<DTOPlaylist>>;
+
+type LoadPlaylistsListParams = {
+  page: number;
+  type: QueryParamsPlaylists['type'];
+  sort: QueryParamsPlaylists['sort'];
+  range: QueryParamsPlaylists['range'];
+  medium: QueryParamsQueueMedium;
+  tag: string | null;
+};
 
 export type LoadedPlaylistList = {
   playlists: DTOPlaylist[];
@@ -49,17 +60,19 @@ export type LoadedPlaylistList = {
 };
 
 /**
- * One playlist page for the visitor's type, sort, range, and medium.
+ * One playlist page for the visitor's type, sort, range, medium, and tag.
  * With Music off, an empty Music page loads All at page 1 and keeps the remembered medium.
  * All and Podcasts also check page 1 of Music so the filter can include Music when that page has a row.
+ * That Music check does not send a tag.
  */
 export async function loadPlaylistsList(
   fetchPlaylists: FetchPlaylists,
-  params: QueryParamsPlaylists
+  params: LoadPlaylistsListParams
 ): Promise<LoadedPlaylistList> {
   const musicEnabled = getCatalogConfig().musicEnabled;
-  const requestPage = (medium: QueryParamsQueueMedium, page: number) =>
-    safeSsrListRequest<DTOPlaylist>(
+  const requestPage = (medium: QueryParamsQueueMedium, page: number, includeTag: boolean) => {
+    const tag = includeTag ? playlistQueryTag(params.type, params.tag) : undefined;
+    return safeSsrListRequest<DTOPlaylist>(
       () =>
         fetchPlaylists({
           page,
@@ -67,38 +80,43 @@ export async function loadPlaylistsList(
           sort: params.sort,
           range: params.range,
           medium,
+          ...(tag === undefined ? {} : { tag }),
         }),
       page
     );
+  };
 
   if (musicEnabled) {
-    const response = await requestPage(params.medium, params.page);
+    const response = await requestPage(params.medium, params.page, true);
     return toLoadedPlaylistList(response, params.page, params.medium, true);
   }
 
   if (params.medium === 'music') {
-    const response = await requestPage('music', params.page);
+    const response = await requestPage('music', params.page, true);
     if (response.data.length > 0) {
       return toLoadedPlaylistList(response, params.page, 'music', true);
     }
-    const allResponse = await requestPage('all', 1);
+    const allResponse = await requestPage('all', 1, true);
     return toLoadedPlaylistList(allResponse, 1, 'all', false, 'music');
   }
 
   const [response, musicProbe] = await Promise.all([
-    requestPage(params.medium, params.page),
-    requestPage('music', 1),
+    requestPage(params.medium, params.page, true),
+    requestPage('music', 1, false),
   ]);
   return toLoadedPlaylistList(response, params.page, params.medium, musicProbe.data.length > 0);
 }
 
-/** Public playlists for the Browse chip. Type stays public; sort, range, and medium are remembered. */
+/**
+ * Public playlists for the Browse chip. Type stays public.
+ * Sort, range, medium, and tag are remembered on this list.
+ */
 export async function loadPlaylistsBrowseProps(
   searchParams: MediaListSearchParams,
   ssr: MediaListSsr
 ): Promise<PlaylistsListProps> {
   const cookieDefaults = getFilterDefaultsForPage(ssr.localSettings, 'browse-playlists');
-  const { page, sort, range, medium } = resolveBrowseParams(searchParams, cookieDefaults);
+  const { page, sort, range, medium, tag } = resolveBrowseParams(searchParams, cookieDefaults);
   const { currentPage, currentSort, currentRange, currentMedium } = getPlaylistsPageFilterParams(
     {
       page,
@@ -117,6 +135,7 @@ export async function loadPlaylistsBrowseProps(
       sort: currentSort,
       range: currentRange,
       medium: currentMedium,
+      tag,
     }
   );
 
@@ -128,6 +147,7 @@ export async function loadPlaylistsBrowseProps(
       sort: currentSort,
       range: currentRange,
       medium: loaded.medium,
+      tag,
     },
     musicFilterVisible: loaded.musicFilterVisible,
     rememberedMedium: loaded.rememberedMedium,
@@ -162,6 +182,7 @@ function resolveBrowseParams(
     sort: firstMediaListSearchParam(searchParams, 'sort'),
     range: firstMediaListSearchParam(searchParams, 'range'),
     medium: firstMediaListSearchParam(searchParams, 'medium'),
+    tag: firstMediaListSearchParam(searchParams, 'tag'),
   });
 
   const sort =
@@ -172,14 +193,39 @@ function resolveBrowseParams(
     (parsed.success ? parsed.data.range : null) ??
     cookieDefaults?.range ??
     (sort === 'top' ? 'week' : null);
+  const page = parsed.success ? parsed.data.page : 1;
+  const medium =
+    (parsed.success ? parsed.data.medium : null) ??
+    cookieDefaults?.medium ??
+    DEFAULT_PLAYLISTS_PAGE_MEDIUM;
+  // Browse does not read the /playlists opening.
+  // The tag comes from the URL, then this list's cookie.
+  const tag = resolvePlaylistsPageFilters({
+    isAuthenticated: false,
+    useEnvTag: false,
+    url: {
+      page,
+      type: 'public',
+      sort: null,
+      range: null,
+      medium: null,
+      tag: parsed.success ? parsed.data.tag : undefined,
+    },
+    cookie: cookieDefaults,
+    opening: {
+      sort: 'recent',
+      range: null,
+      type: 'public',
+      medium: null,
+      tag: null,
+    },
+  }).tag;
 
   return {
-    page: parsed.success ? parsed.data.page : 1,
+    page,
     sort,
     range,
-    medium:
-      (parsed.success ? parsed.data.medium : null) ??
-      cookieDefaults?.medium ??
-      DEFAULT_PLAYLISTS_PAGE_MEDIUM,
+    medium,
+    tag,
   };
 }

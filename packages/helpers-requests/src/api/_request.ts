@@ -217,6 +217,7 @@ import {
   reqClipGetManyPublic,
   reqClipUpdate,
 } from './clip/clip.js';
+import { reqPublicClientConfigGet } from './config/publicClientConfig.js';
 import { reqEmbedDemoGetShowcase } from './embedDemo/embedDemo.js';
 import {
   reqPodcastIndexFeedById,
@@ -254,11 +255,7 @@ import {
   reqLiveItemGetManyUpcoming,
 } from './liveItem/liveItem.js';
 import { reqManagedCopyGet } from './managedCopy/managedCopy.js';
-import {
-  reqMembershipComparisonGet,
-  reqMembershipGetPricing,
-  reqProductMembershipGet,
-} from './membership/membership.js';
+import { reqMembershipComparisonGet, reqMembershipGetPricing } from './membership/membership.js';
 import {
   reqMetaboostMbrssV1MintAppAssertion,
   type ReqMetaboostMbrssV1MintAppAssertionParams,
@@ -288,6 +285,7 @@ import {
   reqPlaylistGetAllLikesPrivate,
   reqPlaylistGetMany,
   reqPlaylistLikesMembership,
+  reqPlaylistTagSearch,
   reqPlaylistToggleLike,
 } from './playlist/playlist.js';
 import {
@@ -1436,8 +1434,8 @@ export class ApiRequestService {
     return reqMembershipGetPricing(this);
   }
 
-  reqProductMembershipGet() {
-    return reqProductMembershipGet(this);
+  reqPublicClientConfigGet(abort?: AbortOpts) {
+    return reqPublicClientConfigGet(this, abort);
   }
 
   reqMembershipComparisonGet(options?: { locale?: string }) {
@@ -1512,6 +1510,10 @@ export class ApiRequestService {
 
   reqPlaylistGetMany(params: QueryParamsPlaylists) {
     return reqPlaylistGetMany(this, params);
+  }
+
+  reqPlaylistTagSearch(q: string) {
+    return reqPlaylistTagSearch(this, q);
   }
 
   reqPlaylistGetAllLikesPrivate(params?: ReqPlaylistGetAllLikesPrivateParams) {

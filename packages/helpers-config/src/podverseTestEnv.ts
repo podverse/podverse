@@ -70,6 +70,8 @@ const apiTestEnvBase = (): Record<string, string> => ({
   BRAND_BANNER_IMAGE_3X1_URL: 'https://example.test/brand-banner-3x1.png',
   ADD_BY_RSS_CREDENTIALS_ENCRYPTION_KEY: '0123456789abcdef'.repeat(4),
   OPML_IMPORT_MAX_FEEDS_PER_HOUR: '50',
+  PLAYLIST_TAG_MAX_PER_PLAYLIST: '5',
+  PLAYLIST_TAG_NAME_MAX_LENGTH: '50',
   EMAIL_CHANGE_VERIFICATION_TOKEN_EXPIRATION: exp,
   LEGAL_NAME: 'Test Legal',
   LEGAL_ADDRESS: 'Test Address',

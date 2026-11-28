@@ -6,6 +6,7 @@ import { advanceAuthSessionGeneration } from '../auth/authRequestWithRefresh';
 import { clearAllSecureTokens } from '../auth/secureTokenStorage';
 import { nativePlaybackBridge } from '../bridge/nativePlaybackBridge';
 import { writeCustomApiBaseUrl } from '../config/customApiEndpoint';
+import { clearPublicClientConfig } from '../config/publicClientConfig';
 import { downloadManager } from '../downloads/downloadManager';
 import { DOWNLOADS_SUBDIRECTORY } from '../downloads/downloadStorage';
 import { downloadStore } from '../downloads/downloadStore';
@@ -43,6 +44,7 @@ export const clearLocalLibraryForApiSwitch = async (
   baseUrl: string | null,
   webOrigin: string | null
 ): Promise<void> => {
+  clearPublicClientConfig();
   syncQueue.reset();
   advanceAuthSessionGeneration();
   await clearAllSecureTokens();

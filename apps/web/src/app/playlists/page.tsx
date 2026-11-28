@@ -19,10 +19,7 @@ import {
 import type { PlaylistsPageSearchParams } from './playlistsListSsr';
 import { loadPlaylistsList, searchParamsSchema } from './playlistsListSsr';
 import { PlaylistsPageClient } from './PlaylistsPageClient';
-import {
-  DEFAULT_PLAYLISTS_PAGE_MEDIUM,
-  getPlaylistsPageFilterParams,
-} from './PlaylistsPageDropdownConfig';
+import { resolvePlaylistsPageFilters } from './resolvePlaylistsPageFilters';
 
 export type PlaylistsPageProps = {
   searchParams: Promise<PlaylistsPageSearchParams>;
@@ -42,7 +39,7 @@ export default async function PlaylistsPage({ searchParams }: PlaylistsPageProps
   const ssrFilterDefaults = getFilterDefaultsForPage(ssrLocalSettings, 'playlists');
 
   const queryParams = await searchParams;
-  const { currentType, currentSort, currentRange, currentMedium, currentPage } =
+  const { currentType, currentSort, currentRange, currentMedium, currentPage, currentTag } =
     await parseSearchParams(queryParams, canLoadPrivateSsrData, ssrFilterDefaults);
 
   const loaded = await loadPlaylistsList(
@@ -53,6 +50,7 @@ export default async function PlaylistsPage({ searchParams }: PlaylistsPageProps
       sort: currentSort,
       range: currentRange,
       medium: currentMedium,
+      tag: currentTag,
     }
   );
 
@@ -64,6 +62,7 @@ export default async function PlaylistsPage({ searchParams }: PlaylistsPageProps
         sort: currentSort,
         range: currentRange,
         medium: loaded.medium,
+        tag: currentTag,
       }}
       musicFilterVisible={loaded.musicFilterVisible}
       rememberedMedium={loaded.rememberedMedium}
@@ -79,6 +78,7 @@ type ParseSearchParams = {
   currentSort: QueryParamsSubscribedFullSort;
   currentRange: QueryParamsStatsRange | null;
   currentMedium: QueryParamsQueueMedium;
+  currentTag: string | null;
 };
 
 function parseSearchParams(
@@ -88,39 +88,28 @@ function parseSearchParams(
 ): ParseSearchParams {
   const publicOpening = getConfig().public.playlistsPage;
   const parsed = searchParamsSchema.safeParse(queryParams);
-
-  if (!parsed.success) {
-    const guarded = guardSubscribedSsrFilter({
-      isAuthenticated,
-      type: cookieDefaults?.type ?? (isAuthenticated ? 'private' : 'public'),
-      sort: cookieDefaults?.sort ?? (isAuthenticated ? 'a_z' : publicOpening.sort),
-      range: cookieDefaults?.range ?? (isAuthenticated ? null : publicOpening.range),
-      page: 1,
-      fallback: {
-        type: 'public',
-        sort: publicOpening.sort,
-        range: publicOpening.range,
-        page: 1,
-      },
-    });
-
-    return {
-      currentPage: guarded.page,
-      currentType: guarded.type ?? 'public',
-      currentSort: guarded.sort ?? publicOpening.sort,
-      currentRange: guarded.range,
-      currentMedium: cookieDefaults?.medium ?? DEFAULT_PLAYLISTS_PAGE_MEDIUM,
-    };
-  }
-
-  const data = parsed.data;
-
+  const resolved = resolvePlaylistsPageFilters({
+    isAuthenticated,
+    useEnvTag: true,
+    url: parsed.success
+      ? {
+          page: parsed.data.page,
+          type: parsed.data.type,
+          sort: parsed.data.sort,
+          range: parsed.data.range,
+          medium: parsed.data.medium,
+          tag: parsed.data.tag,
+        }
+      : { page: 1, type: null, sort: null, range: null, medium: null, tag: undefined },
+    cookie: cookieDefaults,
+    opening: publicOpening,
+  });
   const guarded = guardSubscribedSsrFilter({
     isAuthenticated,
-    type: data.type ?? cookieDefaults?.type ?? (isAuthenticated ? 'private' : 'public'),
-    sort: data.sort ?? cookieDefaults?.sort ?? (isAuthenticated ? 'a_z' : publicOpening.sort),
-    range: data.range ?? cookieDefaults?.range ?? (isAuthenticated ? null : publicOpening.range),
-    page: data.page,
+    type: resolved.currentType,
+    sort: resolved.currentSort,
+    range: resolved.currentRange,
+    page: resolved.currentPage,
     fallback: {
       type: 'public',
       sort: publicOpening.sort,
@@ -129,14 +118,12 @@ function parseSearchParams(
     },
   });
 
-  return getPlaylistsPageFilterParams(
-    {
-      page: guarded.page,
-      type: guarded.type ?? 'public',
-      sort: guarded.sort ?? publicOpening.sort,
-      range: guarded.range,
-      medium: data.medium ?? cookieDefaults?.medium ?? DEFAULT_PLAYLISTS_PAGE_MEDIUM,
-    },
-    isAuthenticated
-  );
+  return {
+    currentPage: guarded.page,
+    currentType: guarded.type ?? 'public',
+    currentSort: guarded.sort ?? publicOpening.sort,
+    currentRange: guarded.range,
+    currentMedium: resolved.currentMedium,
+    currentTag: resolved.tag,
+  };
 }

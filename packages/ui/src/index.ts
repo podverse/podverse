@@ -357,6 +357,18 @@ export type {
 } from './components/form/FormContainer/FormContainer';
 export { FormDropdown } from './components/form/FormDropdown/index';
 export type { FormDropdownOption, FormDropdownProps } from './components/form/FormDropdown/index';
+export { AutocompleteDropdown } from './components/form/AutocompleteDropdown/index';
+export type {
+  AutocompleteDropdownProps,
+  AutocompleteOption,
+} from './components/form/AutocompleteDropdown/index';
+export { TagField, commitTagDraft } from './components/form/TagField/index';
+export type {
+  TagDraftCommitResult,
+  TagDraftCommitStatus,
+  TagFieldLabels,
+  TagFieldProps,
+} from './components/form/TagField/index';
 export { FormGroup } from './components/form/FormGroup/FormGroup';
 export type { FormGroupProps } from './components/form/FormGroup/FormGroup';
 export { FormPrimaryActions } from './components/form/FormPrimaryActions/FormPrimaryActions';

@@ -20,6 +20,7 @@ describe('buildStaticPageMetadata', () => {
       descriptionPlain: 'Browse podcast episodes, channels, and creators.',
       pathname: '/browse',
       imageUrl: 'https://img.example/podcasts.png',
+      brandName: 'Podverse',
     });
 
     expect(metadata).toMatchObject({

@@ -186,6 +186,7 @@ export function resolvePendingMediaListChrome({
             sort: resolved.currentSort,
             range: resolved.currentRange,
             medium: nextMedium,
+            tag: stored?.tag ?? null,
           });
         },
       },
@@ -203,6 +204,7 @@ export function resolvePendingMediaListChrome({
             sort,
             range,
             medium: resolved.currentMedium,
+            tag: stored?.tag ?? null,
           });
         },
       },

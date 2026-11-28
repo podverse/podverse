@@ -1,0 +1,74 @@
+@use '../../../styles/mixins/flexShrink' as *;
+@use '../../../styles/mixins/form' as *;
+
+.root {
+  @include flexItemAllowShrink;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  width: 100%;
+}
+
+.eyebrow {
+  @include formFieldEyebrow;
+}
+
+.limit {
+  @include formInfoText;
+}
+
+.leadingList {
+  @include flexItemAllowShrink;
+  display: flex;
+  flex: 0 1 auto;
+  flex-wrap: wrap;
+  gap: var(--spacing-sm);
+  list-style: none;
+  margin: 0;
+  max-width: 100%;
+  padding: 0;
+  width: max-content;
+}
+
+.stackList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-sm);
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.tag {
+  align-items: center;
+  background: var(--background-color-secondary);
+  border: 1px solid var(--border-color-tertiary);
+  border-radius: var(--border-radius);
+  box-sizing: border-box;
+  color: var(--text-color-primary);
+  display: inline-flex;
+  flex: none;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  gap: var(--spacing-sm);
+  height: 2.25rem;
+  line-height: 1;
+  margin: 0;
+  max-width: 100%;
+  padding: 0 var(--spacing-base);
+  white-space: nowrap;
+}
+
+.tagText {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.removeButton {
+  flex: none;
+}
+
+.removeIcon {
+  font-size: var(--font-size-sm);
+}

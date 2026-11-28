@@ -375,6 +375,7 @@ export interface QueryParamsPlaylists {
   type: QueryParamsPlaylistsType;
   sort: QueryParamsSubscribedFullSort;
   range: QueryParamsStatsRange | null;
+  tag?: string | null;
 }
 
 export type QueryParamsPlaylistsPublicTop = {

@@ -7,6 +7,7 @@ type PlaylistWireInput = {
   sharable_status_id?: number | null;
   sharable_status?: unknown;
   account?: Parameters<typeof accountToJson>[0];
+  tags?: string[];
 };
 
 /** API wire shape for playlist responses (entity fields minus relation object). */
@@ -19,10 +20,10 @@ export type PlaylistApiJson = Omit<Playlist, 'sharable_status'>;
 export function playlistToJson<T extends PlaylistWireInput>(
   playlist: T
 ): Omit<T, 'sharable_status'> {
-  const { sharable_status: _sharableStatus, account, ...rest } = playlist;
+  const { sharable_status: _sharableStatus, account, tags, ...rest } = playlist;
   const sharableStatusId = resolveSharableStatusId(playlist);
 
-  const result = { ...rest } as Omit<T, 'sharable_status'>;
+  const result = { ...rest } as Omit<T, 'sharable_status' | 'tags'>;
 
   if (sharableStatusId !== undefined) {
     Object.assign(result, { sharable_status_id: sharableStatusId });
@@ -32,7 +33,11 @@ export function playlistToJson<T extends PlaylistWireInput>(
     Object.assign(result, { account: accountToJson(account) });
   }
 
-  return result;
+  if (Array.isArray(tags)) {
+    Object.assign(result, { tags });
+  }
+
+  return result as Omit<T, 'sharable_status'>;
 }
 
 export function playlistsToJson<T extends PlaylistWireInput>(

@@ -25,10 +25,10 @@ export type SortPrefScope =
 /**
  * The structured selections a screen may remember.
  *
- * Every field is a short enumerated token chosen from a control, never free input. That is the whole
- * reason the shape is closed: a text filter restored on launch hides most of the list and reads as
- * missing data rather than as a remembered preference, and an open record would let one screen store
- * one without anyone noticing.
+ * Each field except `tag` is a short token chosen from a control. `tag` is the playlist tag name
+ * the Browse playlists list applied. It is one folded name, not the text still in the search box.
+ * Unrecognised fields are dropped. The shape stays closed so a screen cannot store a free-text
+ * filter: restoring one on launch hides most of the list and reads as missing data.
  */
 export type SortPrefValue = {
   category?: string;
@@ -37,6 +37,7 @@ export type SortPrefValue = {
   range?: string;
   sort?: string;
   tab?: string;
+  tag?: string;
   type?: string;
   viewMode?: string;
 };
@@ -48,13 +49,14 @@ const SORT_PREF_FIELDS = [
   'range',
   'sort',
   'tab',
+  'tag',
   'type',
   'viewMode',
 ] as const;
 
 /**
- * A token longer than this did not come from a control. Storing it anyway is how free text reaches a
- * store that promises not to hold any.
+ * A value longer than this is dropped. A control token and a folded playlist tag name both fit;
+ * anything longer did not come from either.
  */
 const MAX_TOKEN_LENGTH = 64;
 

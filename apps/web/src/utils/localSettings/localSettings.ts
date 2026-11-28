@@ -73,6 +73,8 @@ export interface PlaylistsFilterDefaults {
   sort: QueryParamsSubscribedFullSort;
   range: QueryParamsStatsRange | null;
   medium: QueryParamsQueueMedium;
+  /** Absent on an older cookie. Null means the visitor cleared the tag. */
+  tag?: string | null;
 }
 
 export interface PodcastsFilterDefaults {

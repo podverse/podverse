@@ -201,6 +201,13 @@
       "add_to_liked": "Ajouter aux j'aime",
       "remove_from_liked": "Retirer des j'aime",
       "no_playlists_found": "Aucune playlist trouvée",
+      "tags": "Étiquettes",
+      "tag_placeholder": "Saisissez une étiquette",
+      "tag_suggestions": "Suggestions d'étiquettes",
+      "clear_tag_text": "Effacer le texte de l'étiquette",
+      "remove_tag": "Retirer {tag}",
+      "tag_searching": "Recherche d'étiquettes...",
+      "tag_limit": "Une playlist a au plus {count} étiquettes.",
       "login_prompt": "Connectez-vous pour utiliser cette fonctionnalité."
     },
     "clip": {
@@ -725,6 +732,15 @@
       "subscribed": "Abonnés",
       "category": "Catégorie"
     },
+    "tag": {
+      "tag": "Étiquette",
+      "placeholder": "Saisissez une étiquette",
+      "suggestions": "Suggestions d'étiquettes",
+      "searching": "Recherche d'étiquettes.",
+      "too_long": "Une étiquette compte au plus 50 caractères.",
+      "selected": "Étiquette : {tag}",
+      "clear_text": "Effacer le texte de l'étiquette"
+    },
     "sort": {
       "recent": "Récents",
       "oldest": "Les plus anciens",
@@ -739,6 +755,14 @@
       "week": "Semaine",
       "month": "Mois",
       "all_time": "Tout le temps"
+    },
+    "playlist_tag": {
+      "label": "Étiquette",
+      "placeholder": "Saisir une étiquette",
+      "suggestions": "Suggestions d'étiquettes",
+      "clear_text": "Effacer le texte de l'étiquette",
+      "clear": "Retirer l'étiquette",
+      "selected": "Étiquette : {name}"
     },
     "list": {
       "title_label": "Filtrer par titre",

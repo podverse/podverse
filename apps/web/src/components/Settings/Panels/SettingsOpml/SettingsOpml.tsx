@@ -8,7 +8,7 @@ import { resolveOpmlImportError } from '@podverse/helpers';
 import type { OpmlImportStatusResponse } from '@podverse/helpers-requests';
 import { Button, Divider } from '@podverse/ui';
 
-import { getContactEmail } from '../../../../constants/contact';
+import { useConfig } from '../../../../contexts/Config';
 import { getApiRequestService } from '../../../../factories/apiRequestService';
 import { pollOpmlImportStatus } from '../../../../utils/opml/pollOpmlImportStatus';
 import { handleRateLimitAlert } from '../../../../utils/rateLimit/rateLimitAlert';
@@ -55,6 +55,7 @@ export function SettingsOpml() {
   const tMembership = useTranslations('membership');
   const tMisc = useTranslations('misc');
   const locale = useLocale();
+  const contactEmail = useConfig().public.contact.email;
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [isExporting, setIsExporting] = useState(false);
@@ -224,7 +225,7 @@ export function SettingsOpml() {
                       {result.outcome === 'feed_limit_reached' && typeof result.limit === 'number'
                         ? tMembership('add_by_rss_feed_limit_reached', {
                             limit: result.limit,
-                            contactEmail: getContactEmail(),
+                            contactEmail,
                           })
                         : result.outcome === 'follow_limit' && typeof result.limit === 'number'
                           ? tMembership('follow_limit_reached', { limit: result.limit })

@@ -10,6 +10,9 @@ import {
   MS_PER_SECOND,
   parseCountPerWindowEnvFromKey,
   parseOptionalNonNegativeInt,
+  PLAYLIST_TAG_MAX_PER_PLAYLIST,
+  PLAYLIST_TAG_MAX_PER_PLAYLIST_ENV_CEILING,
+  PLAYLIST_TAG_NAME_MAX_LENGTH,
   POPULARITY_DEFAULT_ALL_TIME_RECOUNT_DAYS,
   POPULARITY_DEFAULT_DAILY_LISTEN_POPULARITY_CAP,
   POPULARITY_DEFAULT_DAILY_LISTEN_STORED_CAP,
@@ -229,6 +232,10 @@ type Config = {
     /** Max new (PI enqueue / add-by-RSS) feeds per account per hour. */
     maxFeedsPerHour: number;
   };
+  playlistTags: {
+    maxPerPlaylist: number;
+    nameMaxLength: number;
+  };
   addByRss: {
     /** 64-hex AES-256 key that seals Basic Auth credentials for the parse queue (transit only). */
     credentialsEncryptionKey: string;
@@ -238,6 +245,18 @@ type Config = {
     allowInsecureCredentials: boolean;
   };
 };
+
+function readPlaylistTagLimitEnv(name: string, fallback: number, min: number, max: number): number {
+  const raw = process.env[name];
+  if (raw === undefined || raw.trim() === '') {
+    return fallback;
+  }
+  const parsed = parseOptionalNonNegativeInt(raw);
+  if (parsed === undefined || parsed < min || parsed > max) {
+    throw new Error(`${name} must be an integer from ${min} through ${max}`);
+  }
+  return parsed;
+}
 
 function readWholeNumberEnv(name: string, fallback: number, min: number): number {
   const parsed = parseOptionalNonNegativeInt(process.env[name]);
@@ -601,6 +620,20 @@ export const config: Config = {
       const parsed = Number.parseInt(raw, 10);
       return Number.isFinite(parsed) && parsed >= 1 ? parsed : 50;
     })(),
+  },
+  playlistTags: {
+    maxPerPlaylist: readPlaylistTagLimitEnv(
+      'PLAYLIST_TAG_MAX_PER_PLAYLIST',
+      PLAYLIST_TAG_MAX_PER_PLAYLIST,
+      1,
+      PLAYLIST_TAG_MAX_PER_PLAYLIST_ENV_CEILING
+    ),
+    nameMaxLength: readPlaylistTagLimitEnv(
+      'PLAYLIST_TAG_NAME_MAX_LENGTH',
+      PLAYLIST_TAG_NAME_MAX_LENGTH,
+      1,
+      PLAYLIST_TAG_NAME_MAX_LENGTH
+    ),
   },
   addByRss: {
     credentialsEncryptionKey: process.env.ADD_BY_RSS_CREDENTIALS_ENCRYPTION_KEY!,

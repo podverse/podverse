@@ -22,13 +22,17 @@ export function resolveTermsContentDir(): string {
   return path.join(process.cwd(), 'apps', 'api', 'legal', 'terms');
 }
 
-function retentionDaysLabel(): string {
+export function resolveStatsTrackEventRetentionDays(): number {
   const raw = config.terms.retentionDays.trim();
   const parsed = Number.parseInt(raw, 10);
   if (raw !== '' && Number.isFinite(parsed) && parsed > 0) {
-    return String(parsed);
+    return parsed;
   }
-  return String(DEFAULT_STATS_TRACK_EVENT_RETENTION_DAYS);
+  return DEFAULT_STATS_TRACK_EVENT_RETENTION_DAYS;
+}
+
+function retentionDaysLabel(): string {
+  return String(resolveStatsTrackEventRetentionDays());
 }
 
 function omitLinesWithPlaceholder(markdown: string, placeholder: string): string {

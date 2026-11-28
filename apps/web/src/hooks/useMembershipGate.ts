@@ -8,8 +8,8 @@ import {
   evaluateFeatureAccess,
 } from '@podverse/helpers';
 
-import { getContactEmail } from '../constants/contact';
 import { useAccount } from '../contexts/Account';
+import { useConfig } from '../contexts/Config';
 import { useModals } from '../contexts/Modals';
 import type { Membership403FeatureContext } from '../utils/membership/modalForMembership403';
 import { getMembership403ModalProps } from '../utils/membership/modalForMembership403';
@@ -40,6 +40,7 @@ export function useMembershipGate(): {
   const tMembership = useTranslations('membership');
   const { setModalLoginRequired } = useModals();
   const { loggedInAccount } = useAccount();
+  const contactEmail = useConfig().public.contact.email;
 
   const membership = useMemo(() => deriveMembershipState(loggedInAccount), [loggedInAccount]);
   const accessTier = useMemo(() => accessTierFromMembership(membership), [membership]);
@@ -53,7 +54,7 @@ export function useMembershipGate(): {
     (error: unknown, options?: { featureContext?: Membership403FeatureContext }): boolean => {
       const membershipModal = getMembership403ModalProps({
         error,
-        contactEmail: getContactEmail(),
+        contactEmail,
         featureContext: options?.featureContext ?? 'generic',
         membership,
         tMembership,
@@ -64,7 +65,7 @@ export function useMembershipGate(): {
       setModalLoginRequired(membershipModal);
       return true;
     },
-    [membership, setModalLoginRequired, tMembership]
+    [contactEmail, membership, setModalLoginRequired, tMembership]
   );
 
   return { accessTier, evaluateFeature, tryHandleMembershipGateError };

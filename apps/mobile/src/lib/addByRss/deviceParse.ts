@@ -38,12 +38,6 @@ const resolveParseVersion = (): string => {
 
 const parseVersion = resolveParseVersion();
 
-const userAgent = buildAddByRssDeviceUserAgent({
-  appName: mobileBrandName(),
-  appVersion: parseVersion,
-  platform: Platform.OS,
-});
-
 const hostPacer = createAddByRssHostPacer({ now: Date.now, sleep });
 
 /** Feed parses and the files feeds link share one host pacer, so their requests space together. */
@@ -53,7 +47,11 @@ const deviceFetchDeps = (): AddByRssDeviceFetchDeps => ({
   pacer: hostPacer,
   rewriteUrl: resolveE2eMediaUrl,
   timeoutMs: ADD_BY_RSS_DEVICE_FETCH_TIMEOUT_MS,
-  userAgent,
+  userAgent: buildAddByRssDeviceUserAgent({
+    appName: mobileBrandName(),
+    appVersion: parseVersion,
+    platform: Platform.OS,
+  }),
 });
 
 /**

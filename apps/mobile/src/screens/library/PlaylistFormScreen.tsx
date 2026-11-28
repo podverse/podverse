@@ -1,5 +1,5 @@
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { StyleSheet, Text, View } from 'react-native';
 
@@ -9,16 +9,24 @@ import { MediumEnum, SharableStatusEnum } from '@podverse/helpers';
 import { useAuthPrompt } from '../../auth/AuthPromptContext';
 import { useAuth } from '../../auth/AuthProvider';
 import { ConfirmDialog } from '../../components/feedback/ConfirmDialog';
-import { FormActions, FormField, OptionChipGroup, TextField } from '../../components/form';
+import {
+  FormActions,
+  FormField,
+  OptionChipGroup,
+  PlaylistTagField,
+  TextField,
+} from '../../components/form';
 import { MobileScreenContainer } from '../../components/screen/MobileScreenContainer';
 import { CallToActionSection } from '../../components/state/CallToActionSection';
 import { LoadingSection } from '../../components/state/LoadingSection';
+import { usePlaylistTagLimits } from '../../config/publicClientConfig';
 import { playlistRepository } from '../../data';
 import { useMembershipGate } from '../../membership/MembershipGateProvider';
 import type { LibraryStackParamList } from '../../navigation';
 import { LIBRARY_STACK_ROUTES } from '../../navigation';
 import { formActionsGap, formActionsTopGap } from '../../theme/screenLayout';
 import { useTheme } from '../../theme/useTheme';
+import { playlistFormTagsForSave } from './playlistFormTags';
 
 type PlaylistFormScreenProps = NativeStackScreenProps<
   LibraryStackParamList,
@@ -68,12 +76,20 @@ export function PlaylistFormScreen({ navigation, route }: PlaylistFormScreenProp
   const { styles: themeStyles, tokens } = useTheme();
   const { onRequestLogin } = useAuthPrompt();
   const { account, accessToken, clearSession, refreshToken, setTokens, status } = useAuth();
+  const tagLimits = usePlaylistTagLimits();
 
   const params = route.params;
   const editPlaylistId = params !== undefined && 'playlistId' in params ? params.playlistId : null;
   const isEdit = editPlaylistId !== null;
 
   const [title, setTitle] = useState<string>('');
+  const [tags, setTags] = useState<readonly string[]>([]);
+  const [draft, setDraft] = useState<string>('');
+  const [tagSuggestions, setTagSuggestions] = useState<readonly string[]>([]);
+  const [tagSuggestionsFor, setTagSuggestionsFor] = useState<string>('');
+  const [tagSearching, setTagSearching] = useState<boolean>(false);
+  const [tagErrorKey, setTagErrorKey] = useState<string | null>(null);
+  const tagSearchRequestIdRef = useRef(0);
   const [description, setDescription] = useState<string>('');
   const [medium, setMedium] = useState<QueryParamsQueueMedium>(CREATE_MEDIUM);
   const [sharableStatusId, setSharableStatusId] = useState<SharableStatusEnum>(
@@ -145,6 +161,8 @@ export function PlaylistFormScreen({ navigation, route }: PlaylistFormScreenProp
         setDescription(playlist.description ?? '');
         setSharableStatusId(playlist.sharable_status_id);
         setMedium(playlist.medium_id === MediumEnum.Music ? MUSIC_MEDIUM : CREATE_MEDIUM);
+        setTags(playlist.tags ?? []);
+        setDraft('');
       }
     } catch {
       setErrorKey('errors.generic');
@@ -162,20 +180,71 @@ export function PlaylistFormScreen({ navigation, route }: PlaylistFormScreenProp
   const trimmedTitle = title.trim();
   const canSubmit = status === 'authenticated' && trimmedTitle.length > 0 && !isSubmitting;
 
+  const handleTagSearch = useCallback(
+    (query: string) => {
+      const requestId = tagSearchRequestIdRef.current + 1;
+      tagSearchRequestIdRef.current = requestId;
+      if (query === '') {
+        setTagSuggestions([]);
+        setTagSuggestionsFor('');
+        setTagSearching(false);
+        setTagErrorKey(null);
+        return;
+      }
+
+      setTagSearching(true);
+      setTagErrorKey(null);
+      void (async () => {
+        try {
+          const response = await playlistRepository.searchTags(authArgs, query);
+          if (requestId !== tagSearchRequestIdRef.current) {
+            return;
+          }
+          setTagSuggestions(response);
+          setTagSuggestionsFor(query);
+        } catch {
+          if (requestId !== tagSearchRequestIdRef.current) {
+            return;
+          }
+          setTagSuggestions([]);
+          setTagSuggestionsFor(query);
+          setTagErrorKey('errors.generic');
+        } finally {
+          if (requestId === tagSearchRequestIdRef.current) {
+            setTagSearching(false);
+          }
+        }
+      })();
+    },
+    [authArgs]
+  );
+
   const handleSubmit = useCallback(async () => {
     if (!canSubmit) {
       return;
     }
     const nextDescription = description.trim().length > 0 ? description.trim() : undefined;
+    const saved = playlistFormTagsForSave({
+      tags,
+      draft,
+      maxCount: tagLimits.maxPerPlaylist,
+      maxLength: tagLimits.nameMaxLength,
+    });
+    setTags(saved.tags);
+    if (saved.clearDraft) {
+      setDraft('');
+    }
 
     setIsSubmitting(true);
     setErrorKey(null);
+    setTagErrorKey(null);
     try {
       if (editPlaylistId !== null) {
         await playlistRepository.edit(authArgs, {
           description: nextDescription,
           id_text: editPlaylistId,
           sharable_status_id: sharableStatusId,
+          tags: [...saved.tags],
           title: trimmedTitle,
         });
         navigation.goBack();
@@ -186,6 +255,7 @@ export function PlaylistFormScreen({ navigation, route }: PlaylistFormScreenProp
         description: nextDescription,
         medium,
         sharable_status_id: sharableStatusId,
+        tags: [...saved.tags],
         title: trimmedTitle,
       });
       const routeNames = navigation.getState().routeNames;
@@ -206,11 +276,14 @@ export function PlaylistFormScreen({ navigation, route }: PlaylistFormScreenProp
     authArgs,
     canSubmit,
     description,
+    draft,
     editPlaylistId,
     handleGateError,
     medium,
     navigation,
     sharableStatusId,
+    tagLimits,
+    tags,
     trimmedTitle,
   ]);
 
@@ -333,6 +406,30 @@ export function PlaylistFormScreen({ navigation, route }: PlaylistFormScreenProp
             options={sharableOptions}
             testID="playlist-form-sharable-chips"
             value={sharableStatusId}
+          />
+        </FormField>
+
+        <FormField label={t('features.playlist.tags')}>
+          <PlaylistTagField
+            clearDraftAccessibilityLabel={t('features.playlist.clear_tag_text')}
+            draft={draft}
+            editable={true}
+            errorMessage={tagErrorKey !== null ? t(tagErrorKey) : ''}
+            inputAccessibilityLabel={t('features.playlist.tags')}
+            limitMessage={t('features.playlist.tag_limit', { count: tagLimits.maxPerPlaylist })}
+            maxCount={tagLimits.maxPerPlaylist}
+            maxLength={tagLimits.nameMaxLength}
+            onChange={setTags}
+            onDraftChange={setDraft}
+            onSearch={handleTagSearch}
+            placeholder={t('features.playlist.tag_placeholder')}
+            removeAccessibilityLabel={(tag) => t('features.playlist.remove_tag', { tag })}
+            searching={tagSearching}
+            searchingLabel={t('features.playlist.tag_searching')}
+            suggestions={tagSuggestions}
+            suggestionsFor={tagSuggestionsFor}
+            tags={tags}
+            testID="playlist-form-tags"
           />
         </FormField>
       </View>

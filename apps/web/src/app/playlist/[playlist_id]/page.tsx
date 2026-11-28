@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 
 import { buildPlaylistPath, SharableStatusEnum } from '@podverse/helpers';
 
+import { getConfigResolved } from '../../../config/loadPublicClientConfig.server';
 import { buildNoindexMetadata } from '../../../lib/seo/buildNoindexMetadata';
 import { buildStaticPageMetadata } from '../../../lib/seo/buildStaticPageMetadata';
 import { getPlaylistForSeoPage } from '../../../lib/seo/fetchers';
@@ -25,10 +26,12 @@ export async function generateMetadata({ params }: PlaylistPageProps): Promise<M
       return buildNoindexMetadata('Playlist');
     }
 
+    const brandName = (await getConfigResolved()).public.brand.name;
     return buildStaticPageMetadata({
       title: playlist.title?.trim() || 'Playlist',
       descriptionPlain: toSeoPlainText(playlist.description || 'Podverse playlist page'),
       pathname: buildPlaylistPath(playlist.id_text),
+      brandName,
     });
   } catch {
     return buildNoindexMetadata('Playlist');

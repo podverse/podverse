@@ -14,6 +14,7 @@ import { useFilterDefaults } from '../../hooks/useFilterDefaults';
 import { useListPageCache } from '../../hooks/useListPageCache';
 import { useSkipInitialEffect } from '../../hooks/useSkipInitialEffect';
 import { getPlaylistsPageFilterParams } from './PlaylistsPageDropdownConfig';
+import { playlistQueryTag } from './resolvePlaylistsPageFilters';
 
 interface PlaylistsPageContextType {
   listScope: 'page' | 'browse';
@@ -137,15 +138,24 @@ export const PlaylistsPageContextProvider = ({
         );
 
       const api = getApiRequestService();
+      const visitorTag = playlistQueryTag(currentType, filterParams.tag ?? null);
+      const listQuery = (
+        page: number,
+        medium: QueryParamsQueueMedium,
+        tag: string | undefined
+      ): QueryParamsPlaylists => ({
+        page,
+        type: currentType,
+        sort: currentSort,
+        range: currentRange,
+        medium,
+        ...(tag === undefined ? {} : { tag }),
+      });
 
       if (musicEnabled) {
-        const response = await api.reqPlaylistGetMany({
-          page: filterParams.page,
-          type: currentType,
-          sort: currentSort,
-          range: currentRange,
-          medium: currentMedium,
-        });
+        const response = await api.reqPlaylistGetMany(
+          listQuery(filterParams.page, currentMedium, visitorTag)
+        );
         if (!isCurrent()) {
           return;
         }
@@ -155,13 +165,9 @@ export const PlaylistsPageContextProvider = ({
       }
 
       if (currentMedium === 'music') {
-        const response = await api.reqPlaylistGetMany({
-          page: filterParams.page,
-          type: currentType,
-          sort: currentSort,
-          range: currentRange,
-          medium: 'music',
-        });
+        const response = await api.reqPlaylistGetMany(
+          listQuery(filterParams.page, 'music', visitorTag)
+        );
         if (!isCurrent()) {
           return;
         }
@@ -175,20 +181,8 @@ export const PlaylistsPageContextProvider = ({
       }
 
       const [response, musicProbe] = await Promise.all([
-        api.reqPlaylistGetMany({
-          page: filterParams.page,
-          type: currentType,
-          sort: currentSort,
-          range: currentRange,
-          medium: currentMedium,
-        }),
-        api.reqPlaylistGetMany({
-          page: 1,
-          type: currentType,
-          sort: currentSort,
-          range: currentRange,
-          medium: 'music',
-        }),
+        api.reqPlaylistGetMany(listQuery(filterParams.page, currentMedium, visitorTag)),
+        api.reqPlaylistGetMany(listQuery(1, 'music', undefined)),
       ]);
       if (!isCurrent()) {
         return;

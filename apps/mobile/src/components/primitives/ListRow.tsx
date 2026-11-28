@@ -17,6 +17,9 @@ export type ListRowProps = {
   subtitleNumberOfLines?: number;
   /** Optional third line under the subtitle (playlist creator). */
   meta?: string;
+  /** Optional last line in the content column. Omitted or blank renders nothing. */
+  footer?: string;
+  footerTestID?: string;
   leading?: ReactNode;
   trailing?: ReactNode;
   /** Numeric count shown left of `trailing`. Hidden at 0. */
@@ -66,6 +69,10 @@ const createStyles = ({ styles: themeStyles, tokens }: ThemedStylesTheme) =>
       gap: tokens.spacing.sm,
       justifyContent: 'center',
     },
+    footer: {
+      ...typography.body,
+      color: themeStyles.textSecondary.color,
+    },
     meta: {
       ...typography.caption,
       color: tokens.text.accent,
@@ -94,15 +101,17 @@ const createStyles = ({ styles: themeStyles, tokens }: ThemedStylesTheme) =>
 
 /**
  * Themed list row: optional leading node, a title, an optional subtitle, an optional meta line,
- * and an optional trailing node. Renders as a `Pressable` when `onPress` is supplied, else a
- * static `View`. All copy is passed in by the caller (i18n owned upstream); colors/spacing come
- * from theme tokens.
+ * an optional footer, and an optional trailing node. Renders as a `Pressable` when `onPress` is
+ * supplied, else a static `View`. All copy is passed in by the caller (i18n owned upstream);
+ * colors/spacing come from theme tokens.
  */
 export const ListRow = memo(function ListRow({
   title,
   subtitle,
   subtitleNumberOfLines,
   meta,
+  footer,
+  footerTestID,
   leading,
   trailing,
   badgeCount,
@@ -159,6 +168,11 @@ export const ListRow = memo(function ListRow({
             {meta}
           </Text>
         ) : null}
+        {footer !== undefined && footer.length > 0 ? (
+          <Text numberOfLines={1} style={styles.footer} testID={footerTestID}>
+            {footer}
+          </Text>
+        ) : null}
       </View>
       {trailingCluster}
     </>
@@ -178,14 +192,17 @@ export const ListRow = memo(function ListRow({
     );
   }
 
-  // The explicit label replaces the children, so fold the subtitle and badge in or a screen reader
-  // loses them.
+  // The explicit label replaces the children, so fold the subtitle, meta, footer, and badge in
+  // or a screen reader loses them.
   const spokenParts = [title];
   if (subtitle !== undefined) {
     spokenParts.push(subtitle);
   }
   if (meta !== undefined) {
     spokenParts.push(meta);
+  }
+  if (footer !== undefined && footer.length > 0) {
+    spokenParts.push(footer);
   }
   const defaultLabel = spokenParts.join('. ');
   const labelWithBadge =

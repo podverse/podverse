@@ -9,13 +9,13 @@ import { MainColumnStack, MainHeader, MainSidebarLayout } from '@podverse/ui';
 
 import { AuthForgotPasswordForm } from '../../components/Auth/AuthForgotPasswordForm';
 import { MainWrapper } from '../../components/Main/MainWrapper';
-import { getConfig } from '../../config';
+import { useConfig } from '../../contexts/Config';
 
 export function ForgotPasswordPageClient() {
   const tAuthentication = useTranslations('authentication');
   const router = useRouter();
 
-  const config = getConfig();
+  const config = useConfig();
   const signupMode = config.public.account.signupMode;
   const capabilities = getAccountSignupModeCapabilities(signupMode);
 

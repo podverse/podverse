@@ -7,6 +7,7 @@ import { redirect } from 'next/navigation';
 
 import { buildProfilePath, SharableStatusEnum } from '@podverse/helpers';
 
+import { getConfigResolved } from '../../../config/loadPublicClientConfig.server';
 import { ROUTES } from '../../../constants/routes';
 import { buildNoindexMetadata } from '../../../lib/seo/buildNoindexMetadata';
 import { buildStaticPageMetadata } from '../../../lib/seo/buildStaticPageMetadata';
@@ -61,10 +62,12 @@ export async function generateMetadata({ params }: ProfilePageProps): Promise<Me
       account.account_profile?.bio || 'Podverse profile page'
     );
 
+    const brandName = (await getConfigResolved()).public.brand.name;
     return buildStaticPageMetadata({
       title,
       descriptionPlain,
       pathname: buildProfilePath(account.id_text),
+      brandName,
     });
   } catch {
     return buildNoindexMetadata('Profile');

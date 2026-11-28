@@ -201,6 +201,13 @@
       "add_to_liked": "Add to Liked",
       "remove_from_liked": "Remove from Liked",
       "no_playlists_found": "No Playlists Found",
+      "tags": "Tags",
+      "tag_placeholder": "Type a tag",
+      "tag_suggestions": "Tag Suggestions",
+      "clear_tag_text": "Clear Tag Text",
+      "remove_tag": "Remove {tag}",
+      "tag_searching": "Searching tags...",
+      "tag_limit": "A playlist has at most {count} tags.",
       "login_prompt": "Log in to use this feature."
     },
     "clip": {
@@ -725,6 +732,15 @@
       "subscribed": "Subscribed",
       "category": "Category"
     },
+    "tag": {
+      "tag": "Tag",
+      "placeholder": "Type a tag",
+      "suggestions": "Tag Suggestions",
+      "searching": "Searching tags.",
+      "too_long": "A tag is at most 50 characters.",
+      "selected": "Tag: {tag}",
+      "clear_text": "Clear Tag Text"
+    },
     "sort": {
       "recent": "Recent",
       "oldest": "Oldest",
@@ -739,6 +755,14 @@
       "week": "Week",
       "month": "Month",
       "all_time": "All Time"
+    },
+    "playlist_tag": {
+      "label": "Tag",
+      "placeholder": "Type a tag",
+      "suggestions": "Tag Suggestions",
+      "clear_text": "Clear Tag Text",
+      "clear": "Clear Tag",
+      "selected": "Tag: {name}"
     },
     "list": {
       "title_label": "Filter by Title",

@@ -4,6 +4,7 @@ import { z } from 'zod';
 import { buildTrackPath } from '@podverse/helpers';
 import { QUERY_PARAMS_ITEM_MUSIC_TYPE_VALUES } from '@podverse/helpers-requests';
 
+import { getConfigResolved } from '../../../config/loadPublicClientConfig.server';
 import { buildContentMetadata } from '../../../lib/seo/buildContentMetadata';
 import { buildNoindexMetadata } from '../../../lib/seo/buildNoindexMetadata';
 import {
@@ -48,12 +49,14 @@ export async function generateMetadata({
       toSeoPlainText(item.item_description?.value || item.title)
     );
 
+    const brandName = (await getConfigResolved()).public.brand.name;
     return buildContentMetadata({
       title: item.title,
       descriptionPlain,
       pathname: buildTrackPath(item.id_text),
       imageUrl: getItemThenChannelHeroImageUrl(item.item_images, channel.channel_images),
       type: 'article',
+      brandName,
     });
   } catch {
     return buildNoindexMetadata();

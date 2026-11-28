@@ -4,7 +4,8 @@ name: Browse Tab And Tab Bar Pref
 # Default bar is Home / Browse / For Me / My Library / More. Search is the Home header control.
 # Settings does not list Search. For Me is already on the bar.
 # Browse is one chip row: directory types in a stable order. Categories and the sort chip
-# (filter chrome) appear only when the current type can use them; the sort chip is last.
+# (filter chrome) appear only when the current type can use them. Playlists also shows a
+# tag chip before the sort chip. The sort chip is last.
 # Every type opens on Recent and keeps its own sort. Podcasts, artists, and albums open
 # on a grid; this flow switches those chips to a list before it reads row ids.
 
@@ -32,6 +33,8 @@ name: Browse Tab And Tab Bar Pref
     visible:
       id: browse-sort-button
     timeout: ${TIMEOUT_SLOWER}
+- assertNotVisible:
+    id: browse-playlist-tag-button
 # Podcasts opens on Recent, drawn as a grid. The rest of this flow reads list rows.
 - assertVisible: "Sort: Recent"
 - extendedWaitUntil:
@@ -86,7 +89,24 @@ name: Browse Tab And Tab Bar Pref
     visible:
       id: "browse-playlist-row-.*"
     timeout: ${TIMEOUT_SLOWER}
+- runFlow:
+    file: shared/reveal-chip-row-trailing.yaml
+    env:
+      CHIP_ROW_ID: browse-media-type-selector
+      TRAILING_ID: browse-sort-button
+- assertVisible:
+    id: browse-playlist-tag-button
 - assertVisible: "Sort: Recent"
+- tapOn:
+    id: browse-playlist-tag-button
+- extendedWaitUntil:
+    visible:
+      id: browse-playlist-tag-sheet
+    timeout: ${TIMEOUT_FAST}
+- tapOn:
+    id: browse-playlist-tag-cancel
+- assertNotVisible:
+    id: browse-playlist-tag-sheet
 - takeScreenshot: browse-screen-playlists
 - runFlow:
     file: shared/reveal-chip-row-leading.yaml
@@ -100,6 +120,8 @@ name: Browse Tab And Tab Bar Pref
       id: browse-feed-list
     timeout: ${TIMEOUT_SLOWER}
 - assertVisible: "Sort: Recent"
+- assertNotVisible:
+    id: browse-playlist-tag-button
 - takeScreenshot: browse-screen-users
 # Livestreams is the chip before Playlists. The row is at its trailing edge here.
 - runFlow:

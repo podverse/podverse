@@ -246,6 +246,21 @@ Rotating `AUTH_JWT_SECRET` ends every session at once. Ending one session or one
 
 These variables are optional but will still be validated if set:
 
+### Playlist tags
+
+- **`PLAYLIST_TAG_MAX_PER_PLAYLIST`** (default `5`) — how many tags one playlist can have. Unset
+  or blank uses 5. A set value must be an integer from 1 through 32767, so the count can be
+  higher than 5.
+- **`PLAYLIST_TAG_NAME_MAX_LENGTH`** (default `50`) — how many characters one tag name can have.
+  Unset or blank uses 50. A set value must be an integer from 1 through 50. Startup refuses a
+  value above 50.
+
+### Public client config
+
+`GET /config` returns `playlistLimits` from `PLAYLIST_TAG_MAX_PER_PLAYLIST` and
+`PLAYLIST_TAG_NAME_MAX_LENGTH`, plus `membership` and `instance`. Startup checks for those keys
+are in `src/lib/startup/validation.ts` (see [Validation Output](#validation-output)).
+
 ### Premium/Membership
 
 - **`MEMBERSHIP_PREMIUM_COST_MONTHLY`** (Optional) - Monthly premium membership cost (default: 3)

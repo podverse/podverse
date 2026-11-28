@@ -1,16 +1,18 @@
 import { Playlist } from '@orm/entities/playlist/playlist.js';
 import { PlaylistResource } from '@orm/entities/playlist/playlistResource.js';
+import { PlaylistTag, PlaylistTagAssignment } from '@orm/entities/playlist/playlistTag.js';
 import { AccountService } from '@orm/services/account/account.js';
 import { BaseManyService } from '@orm/services/base/baseManyService.js';
 import { ClipService } from '@orm/services/clip.js';
 import { ItemService } from '@orm/services/item/item.js';
-import type { EntityManager, FindManyOptions, FindOneOptions } from 'typeorm';
+import type { EntityManager, FindManyOptions, FindOneOptions, SelectQueryBuilder } from 'typeorm';
 import { Equal, In, Not } from 'typeorm';
 
 import type { MediumEnum, QueryParamsQueueMedium } from '@podverse/helpers';
 import {
   getQueueMediumIdFromType,
   MediumEnum as MediumId,
+  normalizePlaylistTagName,
   SharableStatusEnum,
 } from '@podverse/helpers';
 
@@ -47,6 +49,91 @@ export type LikesMembershipResult = {
   clip_id_texts: string[];
   add_by_rss_hash_ids: string[];
 };
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value);
+}
+
+function foldedPlaylistTagName(tagName: string | null): string | null {
+  if (tagName === null) {
+    return null;
+  }
+  const normalized = normalizePlaylistTagName(tagName);
+  if (!normalized.ok) {
+    return null;
+  }
+  return normalized.name;
+}
+
+function sortDirection(value: unknown): 'ASC' | 'DESC' {
+  if (value === 'ASC' || value === 'asc' || value === 1) {
+    return 'ASC';
+  }
+  if (value === 'DESC' || value === 'desc' || value === -1) {
+    return 'DESC';
+  }
+  if (isRecord(value)) {
+    const direction = value.direction;
+    if (direction === 'ASC' || direction === 'asc' || direction === 1) {
+      return 'ASC';
+    }
+    if (direction === 'DESC' || direction === 'desc' || direction === -1) {
+      return 'DESC';
+    }
+  }
+  throw new Error('Playlist list order is not supported');
+}
+
+function playlistPageOrderColumn(column: string): string {
+  switch (column) {
+    case 'id':
+    case 'id_text':
+    case 'last_updated':
+      return `playlist.${column}`;
+    default:
+      throw new Error('Playlist list order is not supported');
+  }
+}
+
+function applyPlaylistPageOrder(
+  qb: SelectQueryBuilder<Playlist>,
+  order: FindManyOptions<Playlist>['order']
+): void {
+  if (order === undefined) {
+    return;
+  }
+  for (const [column, direction] of Object.entries(order)) {
+    qb.addOrderBy(playlistPageOrderColumn(column), sortDirection(direction));
+  }
+}
+
+function integerId(value: unknown): number | null {
+  if (typeof value === 'number' && Number.isInteger(value)) {
+    return value;
+  }
+  if (typeof value === 'string' && /^[0-9]+$/.test(value)) {
+    return Number(value);
+  }
+  return null;
+}
+
+function playlistIdsFromRaw(value: unknown): number[] {
+  if (!Array.isArray(value)) {
+    throw new Error('Playlist tag page did not return rows');
+  }
+  const ids: number[] = [];
+  for (const row of value) {
+    if (!isRecord(row)) {
+      throw new Error('Playlist tag page is missing a playlist id');
+    }
+    const id = integerId(row.id);
+    if (id === null) {
+      throw new Error('Playlist tag page is missing a playlist id');
+    }
+    ids.push(id);
+  }
+  return ids;
+}
 
 export class PlaylistService extends BaseManyService<Playlist, 'account'> {
   private accountService: AccountService;
@@ -140,22 +227,79 @@ export class PlaylistService extends BaseManyService<Playlist, 'account'> {
 
   async getManyPublicForList(
     queueMediumType: QueryParamsQueueMedium | null,
-    options: Pick<FindManyOptions<Playlist>, 'order' | 'skip' | 'take'>
+    options: Pick<FindManyOptions<Playlist>, 'order' | 'skip' | 'take'>,
+    tagName: string | null = null
   ): Promise<Playlist[]> {
     const medium_id = getQueueMediumIdFromType(queueMediumType);
-    const playlists = await this.repositoryRead.find({
-      ...options,
-      select: PUBLIC_PLAYLIST_LIST_SELECT,
-      relations: PUBLIC_PLAYLIST_LIST_RELATIONS,
-      where: {
-        sharable_status_id: SharableStatusEnum.Public,
-        ...(medium_id ? { medium_id: Equal(medium_id) } : {}),
-      },
-    });
+    const foldedTag = foldedPlaylistTagName(tagName);
+    // A folded tag pages matching playlist ids, then loads those rows. Without a tag, the list
+    // query does not join assignments, so skip and take count playlist rows.
+    const playlists =
+      foldedTag === null
+        ? await this.repositoryRead.find({
+            ...options,
+            select: PUBLIC_PLAYLIST_LIST_SELECT,
+            relations: PUBLIC_PLAYLIST_LIST_RELATIONS,
+            where: {
+              sharable_status_id: SharableStatusEnum.Public,
+              ...(medium_id ? { medium_id: Equal(medium_id) } : {}),
+            },
+          })
+        : await this.loadPublicListForTag(medium_id, options, foldedTag);
     for (const playlist of playlists) {
       omitUnlistedPlaylistListFields(playlist);
     }
     return playlists;
+  }
+
+  private async loadPublicListForTag(
+    mediumId: number | null,
+    options: Pick<FindManyOptions<Playlist>, 'order' | 'skip' | 'take'>,
+    foldedTag: string
+  ): Promise<Playlist[]> {
+    const qb = this.repositoryRead
+      .createQueryBuilder('playlist')
+      .innerJoin(PlaylistTagAssignment, 'assignment', 'assignment.playlist_id = playlist.id')
+      .innerJoin(
+        PlaylistTag,
+        'playlist_tag',
+        'playlist_tag.id = assignment.playlist_tag_id AND playlist_tag.name = :tagName',
+        { tagName: foldedTag }
+      )
+      .where('playlist.sharable_status_id = :publicStatus', {
+        publicStatus: SharableStatusEnum.Public,
+      })
+      .select('playlist.id', 'id');
+    if (mediumId) {
+      qb.andWhere('playlist.medium_id = :mediumId', { mediumId });
+    }
+    // One tag name matches each playlist once, so limit and offset page playlists.
+    applyPlaylistPageOrder(qb, options.order);
+    if (typeof options.skip === 'number') {
+      qb.offset(options.skip);
+    }
+    if (typeof options.take === 'number') {
+      qb.limit(options.take);
+    }
+
+    const ids = playlistIdsFromRaw(await qb.getRawMany());
+    if (ids.length === 0) {
+      return [];
+    }
+    const playlists = await this.repositoryRead.find({
+      select: PUBLIC_PLAYLIST_LIST_SELECT,
+      relations: PUBLIC_PLAYLIST_LIST_RELATIONS,
+      where: { id: In(ids) },
+    });
+    const byId = new Map(playlists.map((playlist) => [playlist.id, playlist]));
+    const ordered: Playlist[] = [];
+    for (const id of ids) {
+      const playlist = byId.get(id);
+      if (playlist !== undefined) {
+        ordered.push(playlist);
+      }
+    }
+    return ordered;
   }
 
   async getManyPrivate(
