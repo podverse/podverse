@@ -2,6 +2,8 @@ import { useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Linking } from 'react-native';
 
+import { personCreditHttpUrl } from '@podverse/helpers/person';
+
 import { LIST_ROW_ARTWORK_SIZE } from '../../theme/screenLayout';
 import type { ThemedStylesTheme } from '../../theme/useThemedStyles';
 import { useThemedStyles } from '../../theme/useThemedStyles';
@@ -36,8 +38,9 @@ export function AboutPersonRow({ onOpenPerson, person, testID }: AboutPersonRowP
     }
   }, []);
 
-  const href = person.href;
-  const hasWebsite = href !== null && href.length > 0;
+  const href = personCreditHttpUrl(person.href);
+  const imageUrl = personCreditHttpUrl(person.img);
+  const hasWebsite = href !== null;
   const personIdText = person.personIdText;
   const opensPerson = personIdText !== null && personIdText !== '' && onOpenPerson !== undefined;
 
@@ -50,7 +53,7 @@ export function AboutPersonRow({ onOpenPerson, person, testID }: AboutPersonRowP
             ? `${person.name}, ${t('info.people.website')}`
             : undefined
       }
-      leading={<CoverImage opensViewer={false} style={styles.personImage} uri={person.img} />}
+      leading={<CoverImage opensViewer={false} style={styles.personImage} uri={imageUrl} />}
       onPress={
         opensPerson
           ? () => {

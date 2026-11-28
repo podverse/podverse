@@ -115,6 +115,7 @@ export * from './lib/logLevel.js';
 export * from './lib/math.js';
 export * from './lib/managedCopy.js';
 export * from './lib/medium.js';
+export * from './lib/person/creditUrl.js';
 export * from './lib/person/localCredits.js';
 export * from './lib/person/nameKey.js';
 export * from './lib/person/portrait.js';

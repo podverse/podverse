@@ -16,9 +16,25 @@ test.describe('About and Summary people', () => {
       new RegExp(`/podcast/${E2E_PODCAST_CHANNEL_ID_TEXT}.*type=people`)
     );
 
+    await expect(page.getByRole('heading', { name: 'Cast' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Appearances' })).toBeVisible();
+
     const hostName = page.getByRole('link', { name: 'E2E Channel Host', exact: true });
     await expect(hostName).toBeVisible();
     await expect(hostName).toHaveAttribute('href', /\/person\//);
+    await expect(page.getByRole('link', { name: 'E2E Episode Guest', exact: true })).toBeVisible();
+    await expect(page.getByRole('link', { name: "Link to Person's Webpage" })).toHaveAttribute(
+      'href',
+      'https://e2e-seed-podcast.example/host'
+    );
+    await expect(page.getByRole('img', { name: 'E2E Channel Host' })).toHaveAttribute(
+      'src',
+      '/images/placeholder-image.png'
+    );
+    await expect(page.getByRole('img', { name: 'E2E Episode Guest' })).toHaveAttribute(
+      'src',
+      '/images/placeholder-image.png'
+    );
     await captureVerifiedElement(page, testInfo, hostName, 'Channel People shows the seeded host');
     await capturePageLoad(page, testInfo, 'Channel People with people');
   });

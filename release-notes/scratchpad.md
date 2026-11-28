@@ -226,3 +226,13 @@
 - Who notices: someone setting up an authenticator, and a signed-in phone whose refresh
   response is missing tokens
 - Operator steps: none
+
+## Person pictures use the placeholder when a portrait fails
+
+- Surfaces: web, mobile
+- Change: A person credit picture that is missing, or that fails to load, shows the placeholder.
+  A website link is shown only when the credit URL is http or https. A host that is down still
+  shows as a link. The page does not request the website to check it.
+- Who notices: people opening a channel or episode People section when a portrait is blocked or
+  missing, and when a credit link is not a web address
+- Operator steps: none
