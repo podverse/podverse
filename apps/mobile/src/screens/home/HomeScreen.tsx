@@ -623,7 +623,7 @@ export function HomeScreen() {
   }, []);
 
   const handleSearchPress = useCallback((medium: 'all' | 'music' = 'all') => {
-    navigateToSearchScreen({ autoFocus: true, medium });
+    navigateToSearchScreen({ medium });
   }, []);
 
   const handleBrowsePress = useCallback(

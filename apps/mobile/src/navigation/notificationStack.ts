@@ -26,6 +26,59 @@ export type HomeStackScreenRef =
 
 type NavState = PartialState<NavigationState>;
 
+const SEARCH_ROOT_ROUTE_NAME = 'SearchRoot';
+
+const focusedRouteIndex = (state: NavState): number => {
+  if (typeof state.index === 'number') {
+    return state.index;
+  }
+  return Math.max(0, state.routes.length - 1);
+};
+
+const paramsWithAutoFocus = (params: object | undefined): { autoFocus: true } => {
+  if (params === undefined || Array.isArray(params)) {
+    return { autoFocus: true };
+  }
+  return { ...params, autoFocus: true };
+};
+
+/**
+ * A link that opens Search itself focuses the field. A link that opens a page above Search
+ * leaves that request off, so Back onto the field does not focus it.
+ */
+export const withSearchRootAutoFocus = (state: NavState | undefined): NavState | undefined => {
+  if (state === undefined) {
+    return undefined;
+  }
+  return stampFocusedSearchRoot(state);
+};
+
+const stampFocusedSearchRoot = (state: NavState): NavState => {
+  const index = focusedRouteIndex(state);
+  const route = state.routes[index];
+  if (route === undefined) {
+    return state;
+  }
+
+  if (route.state !== undefined) {
+    const nextState = stampFocusedSearchRoot(route.state);
+    if (nextState === route.state) {
+      return state;
+    }
+    const routes = state.routes.slice();
+    routes[index] = { ...route, state: nextState };
+    return { ...state, routes };
+  }
+
+  if (route.name !== SEARCH_ROOT_ROUTE_NAME) {
+    return state;
+  }
+
+  const routes = state.routes.slice();
+  routes[index] = { ...route, params: paramsWithAutoFocus(route.params) };
+  return { ...state, routes };
+};
+
 const splitScopedPath = (scopedPath: string): string[] => {
   return scopedPath.split('/').filter((segment) => segment.length > 0);
 };
@@ -185,10 +238,10 @@ export const resolveMobileDeepLinkState = (
     }
   }
 
-  return (
+  return withSearchRootAutoFocus(
     getDefaultStateFromPath(scopedPath, options) ??
-    getDefaultStateFromPath(MOBILE_HOME_TAB_PATH, options) ??
-    undefined
+      getDefaultStateFromPath(MOBILE_HOME_TAB_PATH, options) ??
+      undefined
   );
 };
 

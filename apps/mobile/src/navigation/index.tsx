@@ -578,10 +578,11 @@ export type HomeStackParamList = ChannelBrowseStackParamList &
 export type SearchStackParamList = ChannelBrowseStackParamList &
   AddByRssDetailStackParamList & {
     /**
-     * `autoFocus` focuses the field. The field is cleared only when Search has no saved query.
-     * The Home search control and the empty-state button send it. `medium` optionally selects
-     * the All / Music chip (and persists it) before the field focuses. Both are consumed on focus
-     * so a saved query stays when Search opens again.
+     * `autoFocus` focuses the field after the slide-up finishes, including when a saved query
+     * is restored. The search helper, and a link that opens Search itself, send it. The param
+     * is consumed when that focus is scheduled, so a later return to this screen does not focus.
+     * `medium` optionally selects the All / Music chip and persists it. A saved query and its
+     * rows stay on screen.
      */
     SearchRoot: { autoFocus?: boolean; medium?: 'all' | 'music' } | undefined;
   };
@@ -1222,7 +1223,7 @@ export function navigateToSearchScreen(params?: SearchStackParamList['SearchRoot
     return;
   }
   rootNavigationRef.navigate(ROOT_STACK_ROUTES.Search, {
-    params,
+    params: { ...params, autoFocus: true },
     screen: SEARCH_STACK_ROUTES.SearchRoot,
   });
 }

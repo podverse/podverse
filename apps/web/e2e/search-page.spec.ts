@@ -16,6 +16,7 @@ test.describe('Search page', () => {
 
     await expect(heading).toBeVisible();
     await expect(searchField).toBeVisible();
+    await expect(searchField).toBeFocused();
     await expect(allChip).toBeVisible();
     await expect(musicChip).toBeVisible();
     await expect(allChip).toHaveAttribute('aria-pressed', 'true');
@@ -77,5 +78,26 @@ test.describe('Search page', () => {
       },
       searchField
     );
+  });
+
+  test('When a visitor returns to Search with the browser Back button, the field is not focused.', async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 1280, height: 720 });
+    await page.goto('/');
+    const sidebar = page.locator('#sidebar');
+    await sidebar.getByRole('link', { name: 'Search' }).click();
+    await expect(page).toHaveURL(/\/search\/?$/);
+    const searchField = page.getByLabel('Search by Title...');
+    await expect(searchField).toBeFocused();
+
+    await sidebar.getByRole('link', { name: 'Browse' }).click();
+    await page.goBack();
+    await expect(page).toHaveURL(/\/search\/?$/);
+    await expect(searchField).not.toBeFocused();
+
+    await sidebar.getByRole('link', { name: 'Browse' }).click();
+    await sidebar.getByRole('link', { name: 'Search' }).click();
+    await expect(searchField).toBeFocused();
   });
 });

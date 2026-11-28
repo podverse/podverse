@@ -15,7 +15,7 @@ export function HomeSearchButton() {
       accessibilityLabel={t('features.search.search')}
       icon="search"
       onPress={() => {
-        navigateToSearchScreen({ autoFocus: true });
+        navigateToSearchScreen();
       }}
       testID="home-search"
     />

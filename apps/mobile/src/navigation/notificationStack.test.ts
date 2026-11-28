@@ -13,6 +13,7 @@ import {
   applyHomeContentStackToState,
   parseHomeContentStackPath,
   resolveMobileDeepLinkAction,
+  withSearchRootAutoFocus,
 } from './notificationStack';
 
 describe('parseHomeContentStackPath', () => {
@@ -131,5 +132,59 @@ describe('resolveMobileDeepLinkAction', () => {
     expect(
       resolveMobileDeepLinkAction('podverse-next://alby/callback?code=1&state=2', options)
     ).toBeUndefined();
+  });
+});
+
+describe('withSearchRootAutoFocus', () => {
+  it('requests focus when Search itself is the open screen', () => {
+    expect(
+      withSearchRootAutoFocus({
+        index: 0,
+        routes: [
+          {
+            name: 'Search',
+            state: {
+              index: 0,
+              routes: [{ name: 'SearchRoot', params: { medium: 'music' } }],
+            },
+          },
+        ],
+      })
+    ).toEqual({
+      index: 0,
+      routes: [
+        {
+          name: 'Search',
+          state: {
+            index: 0,
+            routes: [{ name: 'SearchRoot', params: { autoFocus: true, medium: 'music' } }],
+          },
+        },
+      ],
+    });
+  });
+
+  it('does not request focus when a result page is open above Search', () => {
+    const state = {
+      index: 0,
+      routes: [
+        {
+          name: 'Search',
+          state: {
+            index: 1,
+            routes: [
+              { name: 'SearchRoot' },
+              { name: 'SearchResultDetail', params: { resultId: '1' } },
+            ],
+          },
+        },
+      ],
+    };
+
+    expect(withSearchRootAutoFocus(state)).toBe(state);
+  });
+
+  it('returns undefined when the link did not resolve', () => {
+    expect(withSearchRootAutoFocus(undefined)).toBeUndefined();
   });
 });

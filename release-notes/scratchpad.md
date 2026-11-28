@@ -175,3 +175,13 @@
   the header. Deploy the API, management API, web, and management web together.
 - Operator steps: bump those four alpha overlays in k.podcastdj.com in one promotion.
   No new env key. No logout.
+
+## Search field focuses on open
+
+- Surfaces: web, mobile
+- Change: Opening Search from the Search control or a link to Search focuses the field
+  (keyboard on a phone), including when a previous mobile query is restored. Browser Back
+  or Forward onto web Search, and Back onto the mobile Search screen, leave the field
+  unfocused. A page restored from the browser back-forward cache blurs the field.
+- Who notices: people opening Search on the website or in the phone app
+- Operator steps: none

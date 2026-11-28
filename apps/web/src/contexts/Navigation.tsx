@@ -1,6 +1,7 @@
 'use client';
 
-import { createContext, useCallback, useContext, useEffect, useState } from 'react';
+import { usePathname } from 'next/navigation';
+import { createContext, useCallback, useContext, useEffect, useRef, useState } from 'react';
 
 type NavigationType = 'push' | 'pop' | null;
 
@@ -41,9 +42,37 @@ export function clearBackNavFlag(): void {
   sessionStorage.removeItem(BACK_NAV_FLAG_KEY);
 }
 
+let leftInitialDocument = false;
+
+/** True after a client navigation away from the URL that loaded this document. */
+export function hasLeftInitialDocument(): boolean {
+  return leftInitialDocument;
+}
+
+const rememberBackNavigation = (): void => {
+  sessionStorage.setItem(BACK_NAV_FLAG_KEY, 'true');
+};
+
+// Registered at load so the flag is set before a router render that runs inside the same popstate.
+if (typeof window !== 'undefined') {
+  window.addEventListener('popstate', rememberBackNavigation);
+}
+
 export function NavigationProvider({ children }: { children: React.ReactNode }) {
+  const pathname = usePathname();
+  const initialPathnameRef = useRef<string | null>(null);
   const [navigationType, setNavigationType] = useState<NavigationType>(null);
   const [isBackNavigation, setIsBackNavigation] = useState(false);
+
+  useEffect(() => {
+    if (initialPathnameRef.current === null) {
+      initialPathnameRef.current = pathname;
+      return;
+    }
+    if (pathname !== initialPathnameRef.current) {
+      leftInitialDocument = true;
+    }
+  }, [pathname]);
 
   useEffect(() => {
     const handlePopState = () => {

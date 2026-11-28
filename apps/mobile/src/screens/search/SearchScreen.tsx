@@ -20,6 +20,7 @@ import { subscriptionsRepository } from '../../data/repositories';
 import { OFFLINE_UNAVAILABLE_MESSAGE_KEY } from '../../lib/offlineModeViews';
 import type { SearchStackParamList } from '../../navigation';
 import { openParsedSearchChannel, SEARCH_STACK_ROUTES } from '../../navigation';
+import { ROOT_SLIDE_UP_ANIMATION_MS } from '../../navigation/slideUpScreen';
 import { useTabLayout } from '../../navigation/TabLayoutProvider';
 import { useOfflineMode } from '../../prefs/offlineMode';
 import { readSearchListMedium, writeSearchListMedium } from '../../prefs/searchListPrefs';
@@ -105,6 +106,7 @@ export function SearchScreen({ navigation, route }: SearchScreenProps) {
   const [errorKey, setErrorKey] = useState<string | null>(null);
   const [resolvingFeedId, setResolvingFeedId] = useState<string | null>(null);
   const inputRef = useRef<TextInputInstance | null>(null);
+  const pendingAutoFocusRef = useRef(false);
   const searchRequestIdRef = useRef(0);
 
   const wantsAutoFocus = route.params?.autoFocus === true;
@@ -131,28 +133,66 @@ export function SearchScreen({ navigation, route }: SearchScreenProps) {
     };
   }, []);
 
-  // The Home search control and the Home empty-state button send the listener here to type.
-  // With nothing saved, the field starts empty and focused. An optional medium selects All / Music
-  // first. Both params are consumed on focus. A saved query and its rows stay on screen.
+  // An intentional open sets autoFocus. The field focuses after the slide-up finishes, including
+  // when a saved query is on screen. The param is consumed when that focus is scheduled, so a
+  // return to this screen does not focus. Nothing saved means the field is cleared before focus.
   useFocusEffect(
     useCallback(() => {
-      if (requestedMedium === 'all' || requestedMedium === 'music') {
+      const clearMedium = requestedMedium === 'all' || requestedMedium === 'music';
+      if (clearMedium) {
         setMedium(requestedMedium);
         void writeSearchListMedium(requestedMedium);
-        navigation.setParams({ medium: undefined });
+      }
+      if (wantsAutoFocus) {
+        pendingAutoFocusRef.current = true;
+      }
+      if (clearMedium || wantsAutoFocus) {
+        navigation.setParams({
+          ...(clearMedium ? { medium: undefined } : {}),
+          ...(wantsAutoFocus ? { autoFocus: undefined } : {}),
+        });
       }
 
-      if (!wantsAutoFocus) {
+      if (!pendingAutoFocusRef.current) {
         return;
       }
 
-      navigation.setParams({ autoFocus: undefined });
-      if (readSearchSession() !== null) {
-        return;
-      }
-      setQuery('');
-      setDebouncedQuery('');
-      inputRef.current?.focus();
+      let settled = false;
+      let cancelled = false;
+      const focusField = () => {
+        if (cancelled || settled || !pendingAutoFocusRef.current) {
+          return;
+        }
+        settled = true;
+        pendingAutoFocusRef.current = false;
+        if (readSearchSession() === null) {
+          setQuery('');
+          setDebouncedQuery('');
+        }
+        requestAnimationFrame(() => {
+          if (cancelled) {
+            return;
+          }
+          inputRef.current?.focus();
+        });
+      };
+
+      const unsubscribe = navigation.addListener('transitionEnd', (event) => {
+        if (event.data.closing) {
+          return;
+        }
+        focusField();
+      });
+      const timeoutId = setTimeout(focusField, ROOT_SLIDE_UP_ANIMATION_MS);
+
+      return () => {
+        unsubscribe();
+        clearTimeout(timeoutId);
+        if (!navigation.isFocused()) {
+          cancelled = true;
+          pendingAutoFocusRef.current = false;
+        }
+      };
     }, [navigation, requestedMedium, wantsAutoFocus])
   );
 
