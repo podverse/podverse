@@ -1,4 +1,11 @@
-import { createCipheriv, createDecipheriv, createHmac, randomBytes, randomInt, timingSafeEqual } from 'node:crypto';
+import {
+  createCipheriv,
+  createDecipheriv,
+  createHmac,
+  randomBytes,
+  randomInt,
+  timingSafeEqual,
+} from 'node:crypto';
 
 import type { SecondFactorMode } from '@podverse/helpers';
 import { secondFactorLoginGate, sha256Hex } from '@podverse/helpers';
@@ -59,8 +66,7 @@ export type SecondFactorChallengeRepository = {
 };
 
 export type SecondFactorEmailAllowance =
-  | { allowed: true }
-  | { allowed: false; retryAfterMs: number };
+  { allowed: true } | { allowed: false; retryAfterMs: number };
 
 export type SecondFactorEmailRateLimiter = {
   consume(ownerId: number, ip: string): Promise<SecondFactorEmailAllowance>;
@@ -107,7 +113,10 @@ function encodeBase32(bytes: Buffer): string {
 }
 
 function decodeBase32(input: string): Buffer {
-  const cleaned = input.replace(/=+$/u, '').toUpperCase().replace(/[^A-Z2-7]/gu, '');
+  const cleaned = input
+    .replace(/=+$/u, '')
+    .toUpperCase()
+    .replace(/[^A-Z2-7]/gu, '');
   let bits = 0;
   let value = 0;
   const out: number[] = [];
@@ -144,12 +153,8 @@ function hotp(secret: Buffer, counter: number): string {
   const counterBytes = Buffer.alloc(8);
   counterBytes.writeBigUInt64BE(BigInt(counter));
   const hmac = createHmac('sha1', secret).update(counterBytes).digest();
-  const offset = hmac[hmac.length - 1]! & 0x0f;
-  const binary =
-    ((hmac[offset]! & 0x7f) << 24) |
-    (hmac[offset + 1]! << 16) |
-    (hmac[offset + 2]! << 8) |
-    hmac[offset + 3]!;
+  const offset = hmac.readUInt8(hmac.length - 1) & 0x0f;
+  const binary = hmac.readUInt32BE(offset) & 0x7fffffff;
   return (binary % 1_000_000).toString().padStart(TOTP_DIGITS, '0');
 }
 
@@ -340,10 +345,7 @@ export async function beginEnrollment(
   };
 }
 
-async function storeBackupCodes(
-  deps: SecondFactorDeps,
-  ownerId: number
-): Promise<string[]> {
+async function storeBackupCodes(deps: SecondFactorDeps, ownerId: number): Promise<string[]> {
   const codes = generateBackupCodes();
   await deps.repository.replaceBackupCodes(
     ownerId,
@@ -437,11 +439,7 @@ export async function submitLoginCode(
     await deps.challenges.remove(tokenHash);
     return { ok: false, burned: true };
   }
-  const secret = openSecondFactorSecret(
-    record.secretCiphertext,
-    deps.keyHex(),
-    challenge.ownerId
-  );
+  const secret = openSecondFactorSecret(record.secretCiphertext, deps.keyHex(), challenge.ownerId);
   const nowMs = nowOf(deps);
   const appCodeOk = secret !== null && verifyTotpCode(secret, input.code, nowMs);
   const emailCodeOk =
@@ -451,7 +449,8 @@ export async function submitLoginCode(
     challenge.emailCodeExpiresAtMs > nowMs &&
     /^\d{6}$/u.test(input.code) &&
     hashesMatch(hashEmailCode(input.code), challenge.emailCodeHash);
-  const backupOk = !appCodeOk && !emailCodeOk && (await consumeBackupCode(deps, challenge.ownerId, input.code));
+  const backupOk =
+    !appCodeOk && !emailCodeOk && (await consumeBackupCode(deps, challenge.ownerId, input.code));
   if (!appCodeOk && !emailCodeOk && !backupOk) {
     const failure = await noteChallengeFailure(deps, tokenHash, challenge);
     return { ok: false, burned: failure === 'burned' };
@@ -513,7 +512,7 @@ export async function appCodeMatchesFactor(
   if (secret === null) {
     return false;
   }
-  return verifyTotpCode(secret, code, deps.nowMs());
+  return verifyTotpCode(secret, code, nowOf(deps));
 }
 
 export async function codeMatchesFactor(
@@ -554,9 +553,13 @@ export async function clearSecondFactor(deps: SecondFactorDeps, ownerId: number)
 export async function readSecondFactorStatus(
   deps: SecondFactorDeps,
   ownerId: number
-): Promise<{ enrolled: boolean; mode: SecondFactorMode }> {
+): Promise<{ enrolled: boolean; backupCodesRemaining: number; mode: SecondFactorMode }> {
   const record = await deps.repository.find(ownerId);
-  return { enrolled: enrolled(record), mode: deps.mode() };
+  const isEnrolled = enrolled(record);
+  const backupCodesRemaining = isEnrolled
+    ? (await deps.repository.unusedBackupHashes(ownerId)).length
+    : 0;
+  return { enrolled: isEnrolled, backupCodesRemaining, mode: deps.mode() };
 }
 
 export async function readSetupChallenge(

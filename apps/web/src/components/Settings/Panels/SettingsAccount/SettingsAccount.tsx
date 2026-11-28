@@ -12,11 +12,11 @@ import { getApiRequestService } from '../../../../factories/apiRequestService';
 import { handleRateLimitAlert } from '../../../../utils/rateLimit/rateLimitAlert';
 import { dismissToast, showToast, showToastLoading } from '../../../Toast/Toast';
 import { SettingsSection } from '../../SettingsSection';
-import { SettingsSecondFactor } from './SettingsSecondFactor';
 import { ModalChangeEmail } from './ModalChangeEmail';
 import { ModalChangePassword } from './ModalChangePassword';
 import { ModalDeleteAccount } from './ModalDeleteAccount';
 import { SettingsMembership } from './SettingsMembership';
+import { SettingsSecondFactor } from './SettingsSecondFactor';
 import { SettingsSessions } from './SettingsSessions';
 import { SettingsTerms } from './SettingsTerms';
 

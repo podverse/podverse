@@ -11,7 +11,6 @@ import {
   confirmEnrollment,
   failSetupChallenge,
   finishSetupChallenge,
-  hashSecondFactorToken,
   issueEmailCode,
   readSecondFactorStatus,
   readSetupChallenge,
@@ -22,18 +21,15 @@ import {
 
 import { sendSecondFactorCodeEmail } from '../mailer/sendSecondFactorCodeEmail.js';
 import { endAdminSessions, startAdminSession } from './adminSessionStore.js';
-import {
-  clearAuthCookie,
-  completeManagementWebLogin,
-} from './index.js';
+import { clearAuthCookie, completeManagementWebLogin } from './index.js';
 import { SecondFactorUnavailableError } from './secondFactorGate.js';
-import { signMobileTokenPair } from './sessionTokens.js';
 import {
   clearSettingsCodeFailures,
   managementSecondFactorDeps,
   noteSettingsCodeFailure,
   settingsCodeAttempts,
 } from './secondFactorRuntime.js';
+import { signMobileTokenPair } from './sessionTokens.js';
 
 function readBodyString(body: unknown, key: string): string {
   if (typeof body !== 'object' || body === null) {
@@ -145,11 +141,13 @@ export async function submitSecondFactorCode(req: Request, res: Response): Promi
     }
     const result = await submitLoginCode(managementSecondFactorDeps(), { challengeToken, code });
     if (!result.ok) {
-      res.status(401).json(
-        result.burned
-          ? { message: 'Unauthorized', challenge: 'expired' }
-          : { message: 'Unauthorized' }
-      );
+      res
+        .status(401)
+        .json(
+          result.burned
+            ? { message: 'Unauthorized', challenge: 'expired' }
+            : { message: 'Unauthorized' }
+        );
       return;
     }
     await finishLogin(req, res, result.ownerId, result.client, result.deviceLabel);
@@ -167,7 +165,7 @@ export async function sendSecondFactorEmail(req: Request, res: Response): Promis
       challengeToken,
       ip: req.ip ?? 'unknown',
     });
-    if (issued.status === 'invalid' || issued.status === 'not_enrolled') {
+    if (issued.status === 'invalid') {
       res.status(401).json({ message: 'Unauthorized' });
       return;
     }
@@ -207,9 +205,8 @@ export async function beginSecondFactorSetup(req: Request, res: Response): Promi
       ownerId: existing.ownerId,
       accountName: admin.label,
     });
-    await finishSetupChallenge(deps, hashSecondFactorToken(setupToken));
     res.json({
-      setupToken: started.setupToken,
+      setupToken,
       qrDataUrl: started.qrDataUrl,
       manualKey: started.manualKey,
     });
@@ -228,13 +225,17 @@ export async function confirmSecondFactorSetup(req: Request, res: Response): Pro
     }
     const confirmed = await confirmEnrollment(deps, { ownerId: existing.ownerId, code });
     if (!confirmed.ok) {
-      const burned = await failSetupChallenge(deps, hashSecondFactorToken(setupToken));
-      res.status(401).json(
-        burned ? { message: 'Unauthorized', challenge: 'expired' } : { message: 'Unauthorized' }
-      );
+      const failure = await failSetupChallenge(deps, setupToken);
+      res
+        .status(401)
+        .json(
+          failure === 'again'
+            ? { message: 'Unauthorized' }
+            : { message: 'Unauthorized', challenge: 'expired' }
+        );
       return;
     }
-    await finishSetupChallenge(deps, hashSecondFactorToken(setupToken));
+    await finishSetupChallenge(deps, setupToken);
     await finishLogin(
       req,
       res,
@@ -274,9 +275,10 @@ export async function beginSecondFactorEnroll(req: Request, res: Response): Prom
       res.status(401).json({ message: 'Unauthorized' });
       return;
     }
-    const deps = managementSecondFactorDeps();
-    const started = await beginEnrollment(deps, { ownerId: admin.id, accountName: account.label });
-    await finishSetupChallenge(deps, hashSecondFactorToken(started.setupToken));
+    const started = await beginEnrollment(managementSecondFactorDeps(), {
+      ownerId: admin.id,
+      accountName: account.label,
+    });
     res.json({ qrDataUrl: started.qrDataUrl, manualKey: started.manualKey });
   });
 }
@@ -298,9 +300,11 @@ export async function confirmSecondFactorEnroll(req: Request, res: Response): Pr
     });
     if (!confirmed.ok) {
       const burned = await noteSettingsCodeFailure(admin.id);
-      res.status(401).json(
-        burned ? { message: 'Unauthorized', challenge: 'expired' } : { message: 'Unauthorized' }
-      );
+      res
+        .status(401)
+        .json(
+          burned ? { message: 'Unauthorized', challenge: 'expired' } : { message: 'Unauthorized' }
+        );
       return;
     }
     await clearSettingsCodeFailures(admin.id);
@@ -359,11 +363,10 @@ export async function regenerateAdminBackupCodes(req: Request, res: Response): P
     return;
   }
   await runSecondFactor(res, async () => {
-    const codes = await regenerateBackupCodes(
-      managementSecondFactorDeps(),
-      admin.id,
-      readBodyString(req.body, 'code')
-    );
+    const codes = await regenerateBackupCodes(managementSecondFactorDeps(), {
+      ownerId: admin.id,
+      code: readBodyString(req.body, 'code'),
+    });
     if (codes === null) {
       res.status(401).json({ message: 'Unauthorized' });
       return;

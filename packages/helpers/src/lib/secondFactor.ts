@@ -6,8 +6,7 @@ export type SecondFactorLoginStepName = (typeof SECOND_FACTOR_LOGIN_STEPS)[numbe
 
 /** What a correct password may return instead of a session. */
 export type SecondFactorLoginStep =
-  | { step: 'setup'; setupToken: string }
-  | { step: 'code'; challengeToken: string };
+  { step: 'setup'; setupToken: string } | { step: 'code'; challengeToken: string };
 
 export function isSecondFactorMode(value: unknown): value is SecondFactorMode {
   return value === 'optional' || value === 'required';

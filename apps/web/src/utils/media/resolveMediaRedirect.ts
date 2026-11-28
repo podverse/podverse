@@ -51,9 +51,7 @@ const isLoopbackHostname = (hostname: string): boolean => {
 
 const hasUserinfo = (url: URL): boolean => url.username !== '' || url.password !== '';
 
-type PreparedHop =
-  | { kind: 'loopback' }
-  | { kind: 'guarded'; connection: OutboundConnectionTarget };
+type PreparedHop = { kind: 'loopback' } | { kind: 'guarded'; connection: OutboundConnectionTarget };
 
 /**
  * Format, userinfo, and SSRF, including DNS for every host that is not an allowed loopback hop.

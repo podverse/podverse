@@ -1,9 +1,8 @@
 import { config } from '@management-api/config/index.js';
+import { loggerService } from '@management-api/factories/loggerService.js';
 import nodemailer from 'nodemailer';
 
 import { getOwnPropertyValue, isObjectLike } from '@podverse/helpers';
-
-import { loggerService } from '../factories/loggerService.js';
 
 function failureCode(err: unknown): string | undefined {
   if (!isObjectLike(err)) {

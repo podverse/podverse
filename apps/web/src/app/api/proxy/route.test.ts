@@ -1,7 +1,6 @@
+import axios from 'axios';
 import { NextRequest } from 'next/server';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-
-import axios from 'axios';
 
 const axiosRequest = vi.hoisted(() =>
   vi.fn(() => {

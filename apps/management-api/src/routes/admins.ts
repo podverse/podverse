@@ -7,8 +7,8 @@ import {
   resolvePodverseManagementAdminRole,
 } from '@management-api/lib/adminRoles.js';
 import { endAdminSessions } from '@management-api/lib/auth/adminSessionStore.js';
-import { clearOtherAdminSecondFactor } from '@management-api/lib/auth/secondFactorHttp.js';
 import { ensureAuthenticated } from '@management-api/lib/auth/index.js';
+import { clearOtherAdminSecondFactor } from '@management-api/lib/auth/secondFactorHttp.js';
 import { requireCrud } from '@management-api/lib/authz/requireCrud.js';
 import { requireSuperuser } from '@management-api/lib/authz/requireSuperuser.js';
 import { getParamRequired } from '@management-api/lib/params.js';

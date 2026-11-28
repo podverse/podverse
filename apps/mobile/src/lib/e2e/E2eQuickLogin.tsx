@@ -107,6 +107,10 @@ export function E2eQuickLogin() {
           setError(handleRateLimitMessage(result.rateLimitError, t) ?? t('errors.generic'));
           return;
         }
+        if (result.error === 'second_factor') {
+          setError(t('authentication.could_not_sign_in'));
+          return;
+        }
         setError(t(completeMobilePasswordLoginMessageKey(result.error)));
       }
     })()

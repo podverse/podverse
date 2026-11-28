@@ -200,33 +200,37 @@ export const ModalAuthLogin: React.FC = () => {
           ) : null}
           {factor?.kind === 'setup' ? (
             <>
-              <FormInfoMessageText message={factorNotice ?? tAuthentication('second_factor_setup_help')} />
+              <FormInfoMessageText
+                message={factorNotice ?? tAuthentication('second_factor_setup_help')}
+              />
               <img alt="" src={factor.qrDataUrl} />
               <p data-testid="second-factor-manual-key">{factor.manualKey}</p>
             </>
           ) : null}
           {factor?.kind === 'code' ? (
-            <FormInfoMessageText message={factorNotice ?? tAuthentication('second_factor_code_help')} />
+            <FormInfoMessageText
+              message={factorNotice ?? tAuthentication('second_factor_code_help')}
+            />
           ) : null}
           {factor === null ? (
             <>
-          <TextInput
-            type="text"
-            name="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            autoFocus
-            placeholder={tAuthentication('email_example')}
-            eyebrow={inputLabel}
-          />
-          <TextInput
-            type="password"
-            name="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            placeholder={tAuthentication('password_hint')}
-            eyebrow={tAuthentication('password')}
-          />
+              <TextInput
+                type="text"
+                name="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                autoFocus
+                placeholder={tAuthentication('email_example')}
+                eyebrow={inputLabel}
+              />
+              <TextInput
+                type="password"
+                name="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder={tAuthentication('password_hint')}
+                eyebrow={tAuthentication('password')}
+              />
             </>
           ) : null}
           {factor?.kind === 'code' || factor?.kind === 'setup' ? (

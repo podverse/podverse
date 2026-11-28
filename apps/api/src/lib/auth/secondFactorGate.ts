@@ -1,7 +1,6 @@
 import { loggerService } from '@api/factories/loggerService.js';
 
 import type { SecondFactorLoginStep } from '@podverse/helpers';
-
 import { continueAfterPassword } from '@podverse/helpers-backend';
 
 import { mainSecondFactorDeps } from './secondFactorRuntime.js';

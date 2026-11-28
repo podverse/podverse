@@ -300,11 +300,23 @@ export const refreshAccessTokenSingleFlight = async ({
         return null;
       }
 
-      rememberAccessToken(refreshedTokens.access_token);
+      const accessToken = refreshedTokens.access_token;
+      const nextRefreshToken = refreshedTokens.refresh_token;
+      if (
+        typeof accessToken !== 'string' ||
+        accessToken === '' ||
+        typeof nextRefreshToken !== 'string' ||
+        nextRefreshToken === ''
+      ) {
+        console.warn('[auth] refresh response did not include tokens');
+        return null;
+      }
+
+      rememberAccessToken(accessToken);
       try {
         await setTokens({
-          accessToken: refreshedTokens.access_token,
-          refreshToken: refreshedTokens.refresh_token,
+          accessToken,
+          refreshToken: nextRefreshToken,
         });
       } catch (saveError) {
         // SecureStore did not take the rotated pair, so the saved refresh token has not changed.
@@ -320,7 +332,7 @@ export const refreshAccessTokenSingleFlight = async ({
         return null;
       }
 
-      return refreshedTokens.access_token;
+      return accessToken;
     } catch (error) {
       if (getErrorResponseStatus(error) === 401) {
         // The refusal belongs to the session that sent the token. Sign-out or a newer sign-in

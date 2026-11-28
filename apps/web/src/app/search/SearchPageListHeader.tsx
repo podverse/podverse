@@ -11,9 +11,9 @@ import {
   clearBackNavFlag,
   hasLeftInitialDocument,
 } from '../../contexts/Navigation';
-import { useSearchPageContext } from './SearchPageContext';
-import { readSearchInputArrival, shouldFocusSearchInput } from './searchInputFocus';
 import type { SearchInputArrival } from './searchInputFocus';
+import { readSearchInputArrival, shouldFocusSearchInput } from './searchInputFocus';
+import { useSearchPageContext } from './SearchPageContext';
 
 import styles from './SearchPageListHeader.module.scss';
 

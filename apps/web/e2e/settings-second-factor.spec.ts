@@ -11,7 +11,9 @@ async function openAccountSettings(page: Page): Promise<void> {
 }
 
 test.describe('Authenticator Settings', () => {
-  test('shows the authenticator setup control on the account settings page', async ({ page }, testInfo) => {
+  test('shows the authenticator setup control on the account settings page', async ({
+    page,
+  }, testInfo) => {
     await openAccountSettings(page);
     const setup = page.getByRole('button', { name: 'Set Up Authenticator' });
     await expect(setup).toBeVisible();

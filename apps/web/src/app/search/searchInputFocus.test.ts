@@ -1,9 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import {
-  documentOpenedSearchViaBackForward,
-  shouldFocusSearchInput,
-} from './searchInputFocus';
+import { documentOpenedSearchViaBackForward, shouldFocusSearchInput } from './searchInputFocus';
 
 describe('shouldFocusSearchInput', () => {
   const arrival = {
@@ -35,15 +32,15 @@ describe('shouldFocusSearchInput', () => {
   });
 
   it('focuses a push even when a stale back flag is still set', () => {
-    expect(
-      shouldFocusSearchInput({ ...arrival, activationType: 'push', backNavFlag: true })
-    ).toBe(true);
+    expect(shouldFocusSearchInput({ ...arrival, activationType: 'push', backNavFlag: true })).toBe(
+      true
+    );
   });
 
   it('leaves the field unfocused when the document loaded /search via Back or Forward', () => {
-    expect(
-      shouldFocusSearchInput({ ...arrival, documentOpenedSearchViaBackForward: true })
-    ).toBe(false);
+    expect(shouldFocusSearchInput({ ...arrival, documentOpenedSearchViaBackForward: true })).toBe(
+      false
+    );
   });
 });
 
@@ -52,9 +49,9 @@ describe('documentOpenedSearchViaBackForward', () => {
     expect(documentOpenedSearchViaBackForward('back_forward', 'https://example.com/search')).toBe(
       true
     );
-    expect(
-      documentOpenedSearchViaBackForward('back_forward', 'https://example.com/search/')
-    ).toBe(true);
+    expect(documentOpenedSearchViaBackForward('back_forward', 'https://example.com/search/')).toBe(
+      true
+    );
   });
 
   it('ignores a back or forward load of another page and a normal load of /search', () => {

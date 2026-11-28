@@ -215,3 +215,14 @@
   `podverse-mailer-opaque` values. Apply the new database migrations. Ship the API and web
   images together. On alpha (`k.podcastdj.com`), set both modes to `optional` in `api.env`
   and the management env. Do not put the keys in git.
+
+## Authenticator setup keeps the password-step token
+
+- Surfaces: api, management-api, mobile
+- Change: Starting authenticator setup returns the same setup token the password step issued.
+  That token stays valid until the code is confirmed, or until the fifth wrong code. Settings
+  status includes how many backup codes are still unused. A mobile refresh response that has
+  no tokens is not saved.
+- Who notices: someone setting up an authenticator, and a signed-in phone whose refresh
+  response is missing tokens
+- Operator steps: none

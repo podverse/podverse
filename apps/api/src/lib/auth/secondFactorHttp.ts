@@ -7,29 +7,27 @@ import {
   beginEnrollment,
   clearSecondFactor,
   confirmEnrollment,
-  SECOND_FACTOR_MAX_ATTEMPTS,
   failSetupChallenge,
   finishSetupChallenge,
-  hashSecondFactorToken,
   issueEmailCode,
   readSecondFactorStatus,
   readSetupChallenge,
   regenerateBackupCodes,
+  SECOND_FACTOR_MAX_ATTEMPTS,
   submitLoginCode,
 } from '@podverse/helpers-backend';
 import { AccountService } from '@podverse/orm';
 
 import { sendSecondFactorCodeEmail } from '../mailer/sendSecondFactorCodeEmail.js';
 import { buildRateLimit429Body } from '../rateLimitPayload.js';
+import { endAccountSessions, startAccountSession } from './accountSessionStore.js';
 import {
   clearAuthCookie,
   completeWebLogin,
   ensureAuthenticated,
   getAuthenticatedUser,
 } from './index.js';
-import { endAccountSessions, startAccountSession } from './accountSessionStore.js';
 import { verifyPassword } from './password.js';
-import { signMobileTokenPair } from './sessionTokens.js';
 import { SecondFactorUnavailableError } from './secondFactorGate.js';
 import {
   clearSettingsCodeFailures,
@@ -37,6 +35,7 @@ import {
   noteSettingsCodeFailure,
   settingsCodeAttempts,
 } from './secondFactorRuntime.js';
+import { signMobileTokenPair } from './sessionTokens.js';
 
 function readBodyString(body: unknown, key: string): string {
   if (typeof body !== 'object' || body === null) {
@@ -72,10 +71,7 @@ async function accountForFactor(ownerId: number): Promise<{
   };
 }
 
-async function runSecondFactor(
-  res: Response,
-  action: () => Promise<void>
-): Promise<void> {
+async function runSecondFactor(res: Response, action: () => Promise<void>): Promise<void> {
   try {
     await action();
   } catch (error) {
@@ -142,7 +138,13 @@ export async function submitSecondFactorCode(req: Request, res: Response): Promi
     }
     const result = await submitLoginCode(mainSecondFactorDeps(), { challengeToken, code });
     if (!result.ok) {
-      res.status(401).json(result.burned ? { message: 'Unauthorized', challenge: 'expired' } : { message: 'Unauthorized' });
+      res
+        .status(401)
+        .json(
+          result.burned
+            ? { message: 'Unauthorized', challenge: 'expired' }
+            : { message: 'Unauthorized' }
+        );
       return;
     }
     await finishLogin(req, res, result.ownerId, result.client, result.deviceLabel);
@@ -160,7 +162,7 @@ export async function sendSecondFactorEmail(req: Request, res: Response): Promis
       challengeToken,
       ip: clientIp(req),
     });
-    if (issued.status === 'invalid' || issued.status === 'not_enrolled') {
+    if (issued.status === 'invalid') {
       res.status(401).json({ message: 'Unauthorized' });
       return;
     }
@@ -200,9 +202,8 @@ export async function beginSecondFactorSetup(req: Request, res: Response): Promi
       ownerId: existing.ownerId,
       accountName: account.label,
     });
-    await finishSetupChallenge(deps, hashSecondFactorToken(setupToken));
     res.json({
-      setupToken: started.setupToken,
+      setupToken,
       qrDataUrl: started.qrDataUrl,
       manualKey: started.manualKey,
     });
@@ -221,11 +222,17 @@ export async function confirmSecondFactorSetup(req: Request, res: Response): Pro
     }
     const confirmed = await confirmEnrollment(deps, { ownerId: existing.ownerId, code });
     if (!confirmed.ok) {
-      const burned = await failSetupChallenge(deps, hashSecondFactorToken(setupToken));
-      res.status(401).json(burned ? { message: 'Unauthorized', challenge: 'expired' } : { message: 'Unauthorized' });
+      const failure = await failSetupChallenge(deps, setupToken);
+      res
+        .status(401)
+        .json(
+          failure === 'again'
+            ? { message: 'Unauthorized' }
+            : { message: 'Unauthorized', challenge: 'expired' }
+        );
       return;
     }
-    await finishSetupChallenge(deps, hashSecondFactorToken(setupToken));
+    await finishSetupChallenge(deps, setupToken);
     await finishLogin(
       req,
       res,
@@ -237,10 +244,20 @@ export async function confirmSecondFactorSetup(req: Request, res: Response): Pro
   });
 }
 
-function withAccount(req: Request, res: Response, next: NextFunction, action: (accountId: number) => Promise<void>): void {
-  ensureAuthenticated(req, res, () => {
-    void runSecondFactor(res, () => action(getAuthenticatedUser(req).id));
-  }, { skipMembershipStatus: true, skipTermsAcceptance: true });
+function withAccount(
+  req: Request,
+  res: Response,
+  _next: NextFunction,
+  action: (accountId: number) => Promise<void>
+): void {
+  ensureAuthenticated(
+    req,
+    res,
+    () => {
+      void runSecondFactor(res, () => action(getAuthenticatedUser(req).id));
+    },
+    { skipMembershipStatus: true, skipTermsAcceptance: true }
+  );
 }
 
 export function readSecondFactorSettings(req: Request, res: Response, next: NextFunction): void {
@@ -261,9 +278,10 @@ export function beginSecondFactorEnroll(req: Request, res: Response, next: NextF
       res.status(401).json({ message: 'Unauthorized' });
       return;
     }
-    const deps = mainSecondFactorDeps();
-    const started = await beginEnrollment(deps, { ownerId: accountId, accountName: account.label });
-    await finishSetupChallenge(deps, hashSecondFactorToken(started.setupToken));
+    const started = await beginEnrollment(mainSecondFactorDeps(), {
+      ownerId: accountId,
+      accountName: account.label,
+    });
     res.json({ qrDataUrl: started.qrDataUrl, manualKey: started.manualKey });
   });
 }
@@ -280,7 +298,11 @@ export function confirmSecondFactorEnroll(req: Request, res: Response, next: Nex
     });
     if (!confirmed.ok) {
       const burned = await noteSettingsCodeFailure(accountId);
-      res.status(401).json(burned ? { message: 'Unauthorized', challenge: 'expired' } : { message: 'Unauthorized' });
+      res
+        .status(401)
+        .json(
+          burned ? { message: 'Unauthorized', challenge: 'expired' } : { message: 'Unauthorized' }
+        );
       return;
     }
     await clearSettingsCodeFailures(accountId);
@@ -299,7 +321,10 @@ export function disableAccountSecondFactor(req: Request, res: Response, next: Ne
       res.status(401).json({ message: 'Unauthorized' });
       return;
     }
-    const passwordMatches = await verifyPassword(readBodyString(req.body, 'password'), account.passwordHash);
+    const passwordMatches = await verifyPassword(
+      readBodyString(req.body, 'password'),
+      account.passwordHash
+    );
     if (!passwordMatches) {
       res.status(401).json({ message: 'Unauthorized' });
       return;
@@ -324,13 +349,16 @@ export function disableAccountSecondFactor(req: Request, res: Response, next: Ne
   });
 }
 
-export function regenerateAccountBackupCodes(req: Request, res: Response, next: NextFunction): void {
+export function regenerateAccountBackupCodes(
+  req: Request,
+  res: Response,
+  next: NextFunction
+): void {
   withAccount(req, res, next, async (accountId) => {
-    const codes = await regenerateBackupCodes(
-      mainSecondFactorDeps(),
-      accountId,
-      readBodyString(req.body, 'code')
-    );
+    const codes = await regenerateBackupCodes(mainSecondFactorDeps(), {
+      ownerId: accountId,
+      code: readBodyString(req.body, 'code'),
+    });
     if (codes === null) {
       res.status(401).json({ message: 'Unauthorized' });
       return;

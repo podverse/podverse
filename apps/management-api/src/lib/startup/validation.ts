@@ -174,11 +174,21 @@ const validateAllEnvironmentVariables = (env: StartupEnv, command?: string): Val
       'Use Default (5)'
     )
   );
-  results.push(validateOptional(env, 'MAILER_HOST', 'Mailer', 'Blank: email codes are unavailable'));
-  results.push(validateOptional(env, 'MAILER_PORT', 'Mailer', 'Blank: email codes are unavailable'));
-  results.push(validateOptional(env, 'MAILER_USERNAME', 'Mailer', 'Blank: email codes are unavailable'));
-  results.push(validateOptional(env, 'MAILER_PASSWORD', 'Mailer', 'Blank: email codes are unavailable'));
-  results.push(validateOptional(env, 'MAILER_FROM', 'Mailer', 'Blank: email codes are unavailable'));
+  results.push(
+    validateOptional(env, 'MAILER_HOST', 'Mailer', 'Blank: email codes are unavailable')
+  );
+  results.push(
+    validateOptional(env, 'MAILER_PORT', 'Mailer', 'Blank: email codes are unavailable')
+  );
+  results.push(
+    validateOptional(env, 'MAILER_USERNAME', 'Mailer', 'Blank: email codes are unavailable')
+  );
+  results.push(
+    validateOptional(env, 'MAILER_PASSWORD', 'Mailer', 'Blank: email codes are unavailable')
+  );
+  results.push(
+    validateOptional(env, 'MAILER_FROM', 'Mailer', 'Blank: email codes are unavailable')
+  );
   results.push(validateRequired(env, 'BRAND_NAME', 'Auth & Security'));
   results.push(validateUserAgent(env));
   results.push(validateAdminSessionRetentionDays(env));

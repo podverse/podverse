@@ -201,25 +201,25 @@ function LoginPage() {
           ) : null}
           {factor === null ? (
             <>
-          <TextInput
-            id="email"
-            eyebrow={t('usernameOrEmail')}
-            type="text"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-            disabled={loading}
-          />
+              <TextInput
+                id="email"
+                eyebrow={t('usernameOrEmail')}
+                type="text"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+                disabled={loading}
+              />
 
-          <TextInput
-            id="password"
-            eyebrow={t('password')}
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-            disabled={loading}
-          />
+              <TextInput
+                id="password"
+                eyebrow={t('password')}
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                disabled={loading}
+              />
             </>
           ) : null}
           {factor?.kind === 'code' || factor?.kind === 'setup' ? (

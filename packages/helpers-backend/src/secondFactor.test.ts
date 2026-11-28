@@ -15,6 +15,7 @@ import {
   hashBackupCode,
   issueEmailCode,
   openSecondFactorSecret,
+  readSecondFactorStatus,
   sealSecondFactorSecret,
   submitLoginCode,
   totpCodeAt,
@@ -76,7 +77,9 @@ function memoryRepository(): SecondFactorRepository & { record: SecondFactorReco
       }
     },
     async unusedBackupHashes() {
-      return backup.filter((row) => !row.used).map((row) => ({ id: row.id, codeHash: row.codeHash }));
+      return backup
+        .filter((row) => !row.used)
+        .map((row) => ({ id: row.id, codeHash: row.codeHash }));
     },
     async markBackupUsed(id) {
       const row = backup.find((item) => item.id === id && !item.used);
@@ -283,6 +286,28 @@ describe('second factor login', () => {
       code: totpCodeAt(secret, NOW),
     });
     expect(app.ok).toBe(true);
+  });
+
+  it('counts unused backup codes once the authenticator is confirmed', async () => {
+    const repository = memoryRepository();
+    const challenges = memoryChallenges();
+    const flow = deps({ mode: 'optional', repository, challenges });
+    expect(await readSecondFactorStatus(flow, 3)).toEqual({
+      enrolled: false,
+      backupCodesRemaining: 0,
+      mode: 'optional',
+    });
+    await repository.saveInitial(3, sealSecondFactorSecret('JBSWY3DPEHPK3PXP', KEY, 3));
+    await repository.markConfirmed(3, new Date(NOW));
+    await repository.replaceBackupCodes(3, [
+      hashBackupCode('ABCD-EFGH'),
+      hashBackupCode('IJKL-MNOP'),
+    ]);
+    expect(await readSecondFactorStatus(flow, 3)).toEqual({
+      enrolled: true,
+      backupCodesRemaining: 2,
+      mode: 'optional',
+    });
   });
 
   it('accepts one backup code and then clears the factor', async () => {

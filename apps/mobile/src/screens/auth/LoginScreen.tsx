@@ -15,7 +15,6 @@ import {
   createMobileApiRequestService,
   useAuth,
 } from '../../auth';
-import { accountRepository } from '../../data/repositories/accountRepository';
 import { resolveLocalDevLoginPrefill } from '../../auth/localDevLoginPrefill';
 import { VerificationEmailNotSentMessage } from '../../auth/VerificationEmailNotSentMessage';
 import { CustomApiNotice } from '../../components/feedback/CustomApiNotice';
@@ -23,6 +22,7 @@ import { FormActions, TextField } from '../../components/form';
 import { HeaderBarChrome } from '../../components/screen/HeaderBarChrome';
 import { MobileScreenContainer } from '../../components/screen/MobileScreenContainer';
 import { getMobileConfig } from '../../config';
+import { accountRepository } from '../../data/repositories/accountRepository';
 import { handleRateLimitMessage } from '../../lib/rateLimit/handleRateLimitMessage';
 import { SlideUpDismissGesture } from '../../navigation/SlideUpDismissGesture';
 import { formActionsTopGap } from '../../theme/screenLayout';
@@ -139,7 +139,10 @@ export function LoginScreen({
           return;
         }
         if (factor.kind === 'setup' && Array.isArray(confirmed.backupCodes)) {
-          if (typeof confirmed.access_token === 'string' && typeof confirmed.refresh_token === 'string') {
+          if (
+            typeof confirmed.access_token === 'string' &&
+            typeof confirmed.refresh_token === 'string'
+          ) {
             await setTokens({
               accessToken: confirmed.access_token,
               refreshToken: confirmed.refresh_token,
@@ -155,7 +158,10 @@ export function LoginScreen({
           setFactor({ codes: confirmed.backupCodes, kind: 'backup' });
           return;
         }
-        if (typeof confirmed.access_token === 'string' && typeof confirmed.refresh_token === 'string') {
+        if (
+          typeof confirmed.access_token === 'string' &&
+          typeof confirmed.refresh_token === 'string'
+        ) {
           await setTokens({
             accessToken: confirmed.access_token,
             refreshToken: confirmed.refresh_token,
@@ -184,7 +190,12 @@ export function LoginScreen({
           setFactor({ challengeToken: result.challengeToken, kind: 'code' });
           return;
         }
-        if (result.error === 'second_factor' && result.step === 'setup' && result.setupToken && api) {
+        if (
+          result.error === 'second_factor' &&
+          result.step === 'setup' &&
+          result.setupToken &&
+          api
+        ) {
           const started = await api.reqAuthSecondFactorSetup({ setupToken: result.setupToken });
           if (typeof started.manualKey === 'string' && typeof started.setupToken === 'string') {
             setFactor({
@@ -273,51 +284,52 @@ export function LoginScreen({
               <Text testID="second-factor-backup-codes">{factor.codes.join('\n')}</Text>
             ) : null}
             {factor === null ? (
-            <>
-            <TextField
-              accessibilityLabel={t('authentication.email_or_username')}
-              autoCapitalize="none"
-              autoComplete="username"
-              autoCorrect={false}
-              eyebrow={t('authentication.email_or_username')}
-              keyboardType="email-address"
-              onChangeText={(value) => {
-                setEmail(value);
-                hideUnverifiedNotice();
-              }}
-              placeholder={t('authentication.email_example')}
-              testID="login-email"
-              textContentType="username"
-              value={email}
-            />
-            <TextField
-              accessibilityLabel={t('authentication.password')}
-              autoCapitalize="none"
-              autoComplete={isE2e ? 'off' : 'current-password'}
-              autoCorrect={false}
-              eyebrow={t('authentication.password')}
-              onChangeText={(value) => {
-                setPassword(value);
-                hideUnverifiedNotice();
-              }}
-              placeholder={t('authentication.password_hint')}
-              // E2E: iOS Autofill + secureTextEntry blocks Maestro inputText; plaintext when isE2e.
-              secureTextEntry={!isE2e}
-              testID="login-password"
-              textContentType={isE2e ? 'none' : 'password'}
-              value={password}
-            />
-            </>
+              <>
+                <TextField
+                  accessibilityLabel={t('authentication.email_or_username')}
+                  autoCapitalize="none"
+                  autoComplete="username"
+                  autoCorrect={false}
+                  eyebrow={t('authentication.email_or_username')}
+                  keyboardType="email-address"
+                  onChangeText={(value) => {
+                    setEmail(value);
+                    hideUnverifiedNotice();
+                  }}
+                  placeholder={t('authentication.email_example')}
+                  testID="login-email"
+                  textContentType="username"
+                  value={email}
+                />
+                <TextField
+                  accessibilityLabel={t('authentication.password')}
+                  autoCapitalize="none"
+                  autoComplete={isE2e ? 'off' : 'current-password'}
+                  autoCorrect={false}
+                  eyebrow={t('authentication.password')}
+                  onChangeText={(value) => {
+                    setPassword(value);
+                    hideUnverifiedNotice();
+                  }}
+                  placeholder={t('authentication.password_hint')}
+                  // E2E: iOS Autofill + secureTextEntry blocks Maestro inputText; plaintext when isE2e.
+                  secureTextEntry={!isE2e}
+                  testID="login-password"
+                  textContentType={isE2e ? 'none' : 'password'}
+                  value={password}
+                />
+              </>
             ) : (
-            <TextField
-              accessibilityLabel={t('authentication.second_factor_code')}
-              autoCapitalize="none"
-              autoCorrect={false}
-              eyebrow={t('authentication.second_factor_code')}
-              onChangeText={setFactorCode}
-              testID="second-factor-code"
-              value={factorCode}
-            />
+              <TextField
+                accessibilityLabel={t('authentication.second_factor_code')}
+                autoCapitalize="none"
+                autoCorrect={false}
+                eyebrow={t('authentication.second_factor_code')}
+                onChangeText={setFactorCode}
+                placeholder={t('authentication.second_factor_code_help')}
+                testID="second-factor-code"
+                value={factorCode}
+              />
             )}
             {factor?.kind === 'code' ? (
               <Pressable

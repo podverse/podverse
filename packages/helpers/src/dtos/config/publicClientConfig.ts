@@ -1,6 +1,6 @@
 import type { AccountSignupMode } from '../../lib/accountSignupMode.js';
-import type { SecondFactorMode } from '../../lib/secondFactor.js';
 import type { ResolvedProductMembership } from '../../lib/productMembershipDefaultsFromEnv.js';
+import type { SecondFactorMode } from '../../lib/secondFactor.js';
 
 export type PublicClientConfigMembership = ResolvedProductMembership & {
   freeTrialDays: number;

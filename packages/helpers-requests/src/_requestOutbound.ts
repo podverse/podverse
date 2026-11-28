@@ -1,3 +1,4 @@
+import type { LookupOptions } from 'node:dns';
 import http from 'node:http';
 import https from 'node:https';
 import type { LookupFunction } from 'node:net';
@@ -57,14 +58,25 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null;
 }
 
+function wantedAddressFamily(family: LookupOptions['family']): 4 | 6 | undefined {
+  if (family === 4 || family === 'IPv4') {
+    return 4;
+  }
+  if (family === 6 || family === 'IPv6') {
+    return 6;
+  }
+  return undefined;
+}
+
 function selectAddresses(
   addresses: readonly OutboundAddress[],
-  family: number | undefined
+  family: LookupOptions['family']
 ): OutboundAddress[] {
-  if (family !== 4 && family !== 6) {
+  const wanted = wantedAddressFamily(family);
+  if (wanted === undefined) {
     return [...addresses];
   }
-  return addresses.filter((entry) => entry.family === family);
+  return addresses.filter((entry) => entry.family === wanted);
 }
 
 function deliverAddresses(
@@ -73,18 +85,14 @@ function deliverAddresses(
     address: string | { address: string; family: number }[],
     family?: number
   ) => void,
-  options: { all?: boolean; family?: number },
+  options: LookupOptions,
   addresses: readonly OutboundAddress[],
   hostname: string
 ): void {
   const selected = selectAddresses(addresses, options.family);
   const first = selected[0];
   if (first === undefined) {
-    callback(
-      new OutboundUrlBlockedError(`No addresses resolved for host: ${hostname}`),
-      '',
-      4
-    );
+    callback(new OutboundUrlBlockedError(`No addresses resolved for host: ${hostname}`), '', 4);
     return;
   }
   if (options.all === true) {

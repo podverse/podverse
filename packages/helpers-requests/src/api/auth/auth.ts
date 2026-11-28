@@ -18,6 +18,8 @@ export type AuthLoginResponse = ApiMessageResponse & {
   qrDataUrl?: string;
   manualKey?: string;
   challenge?: 'expired';
+  access_token?: string;
+  refresh_token?: string;
 };
 
 export type MobileTokenResponse = {

@@ -119,10 +119,9 @@ export function createAccountSecondFactorRepository(): SecondFactorRepository {
     },
     async replaceBackupCodes(ownerId, codeHashes) {
       await AppDataSourceReadWrite.transaction(async (manager) => {
-        await manager.query(
-          `DELETE FROM account_second_factor_backup_code WHERE account_id = $1`,
-          [ownerId]
-        );
+        await manager.query(`DELETE FROM account_second_factor_backup_code WHERE account_id = $1`, [
+          ownerId,
+        ]);
         for (const codeHash of codeHashes) {
           await manager.query(
             `INSERT INTO account_second_factor_backup_code (account_id, code_hash)

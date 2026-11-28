@@ -48,6 +48,7 @@ export function MoreSettingsSecondFactorScreen() {
           accessibilityLabel={t('authentication.second_factor_code')}
           eyebrow={t('authentication.second_factor_code')}
           onChangeText={setCode}
+          placeholder={t('authentication.second_factor_code_help')}
           testID="second-factor-code"
           value={code}
         />

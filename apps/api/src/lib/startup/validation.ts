@@ -269,18 +269,10 @@ const validateAllEnvironmentVariables = (): ValidationSummary => {
   results.push(validateSecondFactorKey());
   results.push(validateOptional('AUTH_LOGIN_MAX_PER_MINUTE', 'Auth & Security', 'Use Default (5)'));
   results.push(
-    validateOptional(
-      'AUTH_SECOND_FACTOR_EMAIL_MAX_PER_HOUR',
-      'Auth & Security',
-      'Use Default (3)'
-    )
+    validateOptional('AUTH_SECOND_FACTOR_EMAIL_MAX_PER_HOUR', 'Auth & Security', 'Use Default (3)')
   );
   results.push(
-    validateOptional(
-      'AUTH_SECOND_FACTOR_EMAIL_MAX_PER_DAY',
-      'Auth & Security',
-      'Use Default (5)'
-    )
+    validateOptional('AUTH_SECOND_FACTOR_EMAIL_MAX_PER_DAY', 'Auth & Security', 'Use Default (5)')
   );
   results.push(
     validateOptional(
