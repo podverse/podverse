@@ -90,6 +90,13 @@ The public API cookie domain is `api-beta.podverse.fm`. The management API
 cookie domain is `management-api.beta.podverse.fm`. Each cookie stays on the
 host that set it. The beta site and the live site do not share a session.
 
+Beta and production publish the management web and the management API only on a
+VPN, or on an equivalent private network. The public API and the public site
+stay on the public internet. Alpha's management hostnames are on the public
+internet today. Beta and production do not copy that. A management session is
+still required on every environment. See
+[Management network access](/docs/development/k8s/REMOTE-K8S-GITOPS.md#management-network-access).
+
 Store submission does not wait for a tester count. The operators decide when
 the beta has been exercised enough.
 

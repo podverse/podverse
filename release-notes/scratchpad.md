@@ -185,3 +185,13 @@
   unfocused. A page restored from the browser back-forward cache blurs the field.
 - Who notices: people opening Search on the website or in the phone app
 - Operator steps: none
+
+## API reference no longer loads a third-party script
+
+- Surfaces: api, management-api
+- Change: Swagger UI is served from this build. Management API docs require a management
+  session, the same way other management routes do. The public API spec stays readable
+  without a session.
+- Who notices: anyone who opened the management API docs without signing in. Public API
+  readers still can.
+- Operator steps: none

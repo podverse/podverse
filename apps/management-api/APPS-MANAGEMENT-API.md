@@ -66,8 +66,12 @@ npm run build:prod -w apps/management-api
 
 All routers are mounted with the `${config.api.prefix}${config.api.version}/<resource>` pattern (matches `apps/api`). Handlers use relative paths.
 
-- OpenAPI UI: `/api/v2/docs`
-- OpenAPI YAML: `/api/v2/docs.yaml`
+- OpenAPI UI: `/api/v2/docs` (management session required)
+- OpenAPI YAML: `/api/v2/docs.yaml` (management session required)
+
+Those docs use the same session check as the other management routes, including on a local
+server. Beta and production should also publish this API, and management web, only on a VPN.
+See [Management network access](/docs/development/k8s/REMOTE-K8S-GITOPS.md#management-network-access).
 
 ### Authentication
 

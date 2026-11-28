@@ -1,8 +1,18 @@
 import fs from 'node:fs';
+import { createRequire } from 'node:module';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 import type { Express, Request, Response } from 'express';
+
+const require = createRequire(import.meta.url);
+
+const SWAGGER_UI_FILES = [
+  'swagger-ui.css',
+  'swagger-ui-bundle.js',
+  'swagger-ui.css.map',
+  'swagger-ui-bundle.js.map',
+] as const;
 
 function resolveOpenApiPath(): string {
   const currentFile = fileURLToPath(import.meta.url);
@@ -23,14 +33,31 @@ function resolveOpenApiPath(): string {
   return fallbackPath;
 }
 
-function getSwaggerHtml(specUrl: string, title: string): string {
+function swaggerUiDistDir(): string {
+  return path.dirname(require.resolve('swagger-ui-dist/package.json'));
+}
+
+function registerSwaggerUiAssets(app: Express, assetsBase: string): void {
+  const distDir = swaggerUiDistDir();
+  for (const fileName of SWAGGER_UI_FILES) {
+    app.get(`${assetsBase}/${fileName}`, (_req: Request, res: Response) => {
+      res.sendFile(fileName, { root: distDir }, (error) => {
+        if (error && !res.headersSent) {
+          res.status(404).type('text/plain').send('Not found');
+        }
+      });
+    });
+  }
+}
+
+function getSwaggerHtml(specUrl: string, assetsBase: string, title: string): string {
   return `<!doctype html>
 <html lang="en">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>${title}</title>
-    <link rel="stylesheet" href="https://unpkg.com/swagger-ui-dist@5/swagger-ui.css" />
+    <link rel="stylesheet" href="${assetsBase}/swagger-ui.css" />
     <style>
       body { margin: 0; background: #f7f7f8; }
       #swagger-ui { max-width: 1200px; margin: 0 auto; }
@@ -38,7 +65,7 @@ function getSwaggerHtml(specUrl: string, title: string): string {
   </head>
   <body>
     <div id="swagger-ui"></div>
-    <script src="https://unpkg.com/swagger-ui-dist@5/swagger-ui-bundle.js"></script>
+    <script src="${assetsBase}/swagger-ui-bundle.js"></script>
     <script>
       window.ui = SwaggerUIBundle({
         url: '${specUrl}',
@@ -54,6 +81,8 @@ function getSwaggerHtml(specUrl: string, title: string): string {
 
 export function registerSwaggerDocs(app: Express, baseUrl: string): void {
   const openApiPath = resolveOpenApiPath();
+  const assetsBase = `${baseUrl}/docs/assets`;
+  registerSwaggerUiAssets(app, assetsBase);
 
   app.get(`${baseUrl}/docs.yaml`, (_req: Request, res: Response) => {
     try {
@@ -65,6 +94,8 @@ export function registerSwaggerDocs(app: Express, baseUrl: string): void {
   });
 
   app.get(`${baseUrl}/docs`, (_req: Request, res: Response) => {
-    res.type('text/html').send(getSwaggerHtml(`${baseUrl}/docs.yaml`, 'Podverse API Docs'));
+    res
+      .type('text/html')
+      .send(getSwaggerHtml(`${baseUrl}/docs.yaml`, assetsBase, 'Podverse API Docs'));
   });
 }

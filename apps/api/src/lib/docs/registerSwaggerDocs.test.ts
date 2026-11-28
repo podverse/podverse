@@ -174,6 +174,33 @@ describe('registerSwaggerDocs', () => {
     const htmlResponse = await request(app).get(`${API_BASE}/docs`).expect(200);
     expect(htmlResponse.headers['content-type']).toContain('text/html');
     expect(htmlResponse.text).toContain(`${API_BASE}/docs.yaml`);
+    expect(htmlResponse.text).not.toContain('unpkg.com');
+    expect(htmlResponse.text).toContain(`${API_BASE}/docs/assets/swagger-ui-bundle.js`);
+  });
+
+  it('serves Swagger UI from this build without a session', async () => {
+    const app = express();
+    registerSwaggerDocs(app, API_BASE);
+
+    const htmlResponse = await request(app).get(`${API_BASE}/docs`).expect(200);
+    expect(htmlResponse.text).not.toContain('unpkg.com');
+    expect(htmlResponse.text).not.toContain('https://');
+    expect(htmlResponse.text).toContain(`${API_BASE}/docs/assets/swagger-ui.css`);
+    expect(htmlResponse.text).toContain(`${API_BASE}/docs.yaml`);
+
+    const cssResponse = await request(app)
+      .get(`${API_BASE}/docs/assets/swagger-ui.css`)
+      .expect(200);
+    expect(cssResponse.headers['content-type']).toContain('text/css');
+
+    const jsResponse = await request(app)
+      .get(`${API_BASE}/docs/assets/swagger-ui-bundle.js`)
+      .expect(200);
+    expect(jsResponse.headers['content-type']).toContain('javascript');
+    expect(jsResponse.text).toContain('SwaggerUIBundle');
+
+    await request(app).get(`${API_BASE}/docs/assets/index.html`).expect(404);
+    await request(app).get(`${API_BASE}/docs.yaml`).expect(200);
   });
 
   it('documents required list pages and the public process routes', () => {

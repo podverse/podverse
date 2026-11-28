@@ -88,7 +88,7 @@ make local_test_api
 
 The API exposes endpoints at `{host}:{port}/api/v2/`:
 
-- OpenAPI UI: `/api/v2/docs`
+- OpenAPI UI: `/api/v2/docs` (this API serves the page and its scripts; no session)
 - OpenAPI YAML: `/api/v2/docs.yaml`
 
 - `/auth/*` - Authentication

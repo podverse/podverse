@@ -6960,7 +6960,9 @@ paths:
       tags:
         - meta
       summary: GET /docs
-      description: Interactive API docs (HTML). The page loads the spec from this server's `/docs.yaml`.
+      description: >
+        Interactive API docs (HTML). This server serves the page and its scripts. The page loads
+        the spec from this server's `/docs.yaml`.
       security: []
       responses:
         "200":

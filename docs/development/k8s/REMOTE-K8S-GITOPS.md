@@ -54,6 +54,20 @@ This document is intentionally domain-agnostic for open source use:
 - **Management API:** Readiness checks **management database and app database only**—no KeyValDB probe (see [`apps/management-api/src/lib/health/registerHealthRoutes.ts`](/apps/management-api/src/lib/health/registerHealthRoutes.ts)). Base manifests wait for Postgres and management migrations; there is **no** KeyVal wait init on management-api.
 - **Metaboost:** Management-api readiness there also requires **Valkey** unless the app is configured to skip that check; base manifests include a Valkey TCP wait init before migrations. When copying mental models or runbooks between products, do not assume identical management-api readiness semantics.
 
+## Management network access
+
+A management session is required for management API routes, including `/docs` and `/docs.yaml`.
+That session is the application check. It does not hide the host.
+
+Beta and production publish the management web and the management API only on a VPN, or on an
+equivalent private network. The public API and the public website stay on the public internet.
+Alpha currently publishes its management hostnames on the public internet. Beta and production
+do not copy that.
+
+A public management hostname lets anyone open the admin origin. Routes still reject an anonymous
+request, and the docs page runs in that origin, so the VPN is what keeps the admin host off the
+internet.
+
 ## Encrypted secrets (GitOps repository)
 
 Workload secrets, registry pull secrets, and other cluster credentials live **only** in your GitOps repository (commonly under `secrets/`; exact paths and filenames depend on how that repo is organized).

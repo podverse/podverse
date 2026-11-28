@@ -45,6 +45,7 @@
     "passport-local": "^1.0.0",
     "pg": "^8.23.0",
     "reflect-metadata": "^0.2.2",
+    "swagger-ui-dist": "^5.36.0",
     "typeorm": "^1.1.2"
   },
   "devDependencies": {
