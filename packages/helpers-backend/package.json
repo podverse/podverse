@@ -25,6 +25,7 @@
     "@podverse/helpers": "*",
     "@podverse/observability": "*",
     "bignumber.js": "^11.1.5",
+    "qrcode": "^1.5.4",
     "winston": "^3.17.0",
     "winston-daily-rotate-file": "^5.0.0",
     "winston-transport": "^4.9.0"

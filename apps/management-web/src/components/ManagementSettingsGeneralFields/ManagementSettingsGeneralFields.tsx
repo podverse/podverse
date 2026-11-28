@@ -6,6 +6,7 @@ import { Divider } from '@podverse/ui';
 
 import { ManagementLocaleSelector } from '../ManagementLocaleSelector/ManagementLocaleSelector';
 import { ManagementThemeSwitcher } from '../ManagementThemeSwitcher/ManagementThemeSwitcher';
+import { ManagementSettingsSecondFactor } from './ManagementSettingsSecondFactor';
 
 import styles from './ManagementSettingsGeneralFields.module.scss';
 
@@ -21,6 +22,7 @@ export function ManagementSettingsGeneralFields() {
       <ManagementLocaleSelector id="settings-locale" eyebrow={t('language.label')} />
       <Divider withSpacing />
       <ManagementThemeSwitcher id="settings-ui-theme" />
+      <ManagementSettingsSecondFactor />
     </div>
   );
 }

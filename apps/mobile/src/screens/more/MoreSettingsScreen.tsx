@@ -70,6 +70,13 @@ export function MoreSettingsScreen() {
       },
       {
         onPress: () => {
+          navigation.navigate(MORE_STACK_ROUTES.MoreSettingsSecondFactor);
+        },
+        testID: 'more-settings-second-factor',
+        title: t('authentication.second_factor_settings'),
+      },
+      {
+        onPress: () => {
           navigation.navigate(MORE_STACK_ROUTES.MoreSettingsChangePassword);
         },
         subtitle: t('settings.account.change_password.description'),

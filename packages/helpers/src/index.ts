@@ -33,6 +33,7 @@ export type {
 export * from './lib/followChannelsBulk.js';
 export * from './lib/accountTrust.js';
 export * from './lib/accountSignupMode.js';
+export * from './lib/secondFactor.js';
 export * from './lib/adminAccountCredentialsLimits.js';
 export * from './lib/adminNotificationCampaign.js';
 export * from './lib/appRoutes.js';

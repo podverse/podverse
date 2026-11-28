@@ -58,13 +58,21 @@ fi
 if [ "$AUTO_GEN" = true ]; then
 	echo "Auto-generating secrets..."
 	AUTH_JWT_SECRET=$(generate_password)
+	MANAGEMENT_AUTH_SECOND_FACTOR_KEY=$(openssl rand -hex 32 | tr -d '\n')
 	echo "  AUTH_JWT_SECRET: [generated]"
+	echo "  MANAGEMENT_AUTH_SECOND_FACTOR_KEY: [generated]"
 else
 	echo "--- AUTHENTICATION ---"
 	read -r -s -p "Enter AUTH_JWT_SECRET (Random String): " AUTH_JWT_SECRET
 	echo ""
 	if [ -z "$AUTH_JWT_SECRET" ]; then
 		echo "Error: JWT Secret required."
+		exit 1
+	fi
+	read -r -s -p "Enter MANAGEMENT_AUTH_SECOND_FACTOR_KEY (64 hex characters): " MANAGEMENT_AUTH_SECOND_FACTOR_KEY
+	echo ""
+	if [ -z "$MANAGEMENT_AUTH_SECOND_FACTOR_KEY" ]; then
+		echo "Error: MANAGEMENT_AUTH_SECOND_FACTOR_KEY is required."
 		exit 1
 	fi
 
@@ -81,6 +89,7 @@ mv "$TMP_FILE_BASE" "$TMP_FILE"
 kubectl create secret generic "${SECRET_NAME}" \
 	--namespace "${NAMESPACE}" \
 	--from-literal=AUTH_JWT_SECRET="${AUTH_JWT_SECRET}" \
+	--from-literal=MANAGEMENT_AUTH_SECOND_FACTOR_KEY="${MANAGEMENT_AUTH_SECOND_FACTOR_KEY}" \
 	--dry-run=client -o yaml >"$TMP_FILE"
 
 sops --encrypt --encrypted-regex '^(data|stringData)$' \

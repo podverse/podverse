@@ -7,6 +7,7 @@ import {
   resolvePodverseManagementAdminRole,
 } from '@management-api/lib/adminRoles.js';
 import { endAdminSessions } from '@management-api/lib/auth/adminSessionStore.js';
+import { clearOtherAdminSecondFactor } from '@management-api/lib/auth/secondFactorHttp.js';
 import { ensureAuthenticated } from '@management-api/lib/auth/index.js';
 import { requireCrud } from '@management-api/lib/authz/requireCrud.js';
 import { requireSuperuser } from '@management-api/lib/authz/requireSuperuser.js';
@@ -571,6 +572,39 @@ router.delete(
         res.status(403).json({ message: error.message });
         return;
       }
+      next(error);
+    }
+  }
+);
+
+router.post(
+  '/:id/second-factor/clear',
+  ensureAuthenticated,
+  requireSuperuser,
+  async (req, res, next) => {
+    try {
+      const actor = req.user;
+      if (!actor) {
+        res.status(401).json({ message: 'Authentication required' });
+        return;
+      }
+      const targetId = parseAdminIdParam(req.params.id);
+      if (targetId === null) {
+        res.status(400).json({ message: 'Invalid id' });
+        return;
+      }
+      if (actor.id === targetId) {
+        res.status(400).json({ message: 'Cannot clear your own second factor' });
+        return;
+      }
+      const target = await new AdminAccountService().getWithRoleAndPermissions(targetId);
+      if (!target) {
+        res.status(404).json({ message: 'Admin account not found' });
+        return;
+      }
+      await clearOtherAdminSecondFactor(targetId);
+      res.json({ message: 'Second factor removed' });
+    } catch (error) {
       next(error);
     }
   }

@@ -195,3 +195,23 @@
 - Who notices: anyone who opened the management API docs without signing in. Public API
   readers still can.
 - Operator steps: none
+
+## An account can require an authenticator at sign-in
+
+- Surfaces: api, management-api, web, management-web, mobile, k8s
+- Change: Sign-in can ask for a code from an authenticator app. The app is required to turn
+  the factor on. After it is on, a rate-limited email code or one of ten backup codes can
+  finish sign-in. Email is not a way to turn the factor on. `AUTH_SECOND_FACTOR_MODE` and
+  `MANAGEMENT_AUTH_SECOND_FACTOR_MODE` are each `optional` or `required`. Optional is the
+  default: an account without the factor still signs in with a password. Required stops
+  sign-in after a correct password until that account finishes setup. Turning the factor
+  off, or a management superuser clearing another admin's factor, ends that account's
+  sessions. Existing sessions keep working until they end on their own.
+- Who notices: people who turn on an authenticator, and anyone signing in on a deployment
+  that sets the mode to required. Management admins and listener accounts are separate.
+- Operator steps: put `AUTH_SECOND_FACTOR_KEY` in `podverse-api-opaque` and
+  `MANAGEMENT_AUTH_SECOND_FACTOR_KEY` in `podverse-management-api-opaque` before those pods
+  start. Both are 64 hex characters. For management email codes, mount the existing
+  `podverse-mailer-opaque` values. Apply the new database migrations. Ship the API and web
+  images together. On alpha (`k.podcastdj.com`), set both modes to `optional` in `api.env`
+  and the management env. Do not put the keys in git.

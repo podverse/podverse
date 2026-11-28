@@ -57,6 +57,11 @@ const DENIED_ROUTES: DeniedRoute[] = [
   { method: 'get', path: '/auth/api-keys' },
   { method: 'post', path: '/auth/api-keys' },
   { method: 'delete', path: '/auth/api-keys/pvtestid01' },
+  { method: 'get', path: '/auth/second-factor' },
+  { method: 'post', path: '/auth/second-factor/enroll' },
+  { method: 'post', path: '/auth/second-factor/enroll/confirm' },
+  { method: 'post', path: '/auth/second-factor/disable' },
+  { method: 'post', path: '/auth/second-factor/backup-codes' },
   { method: 'post', path: '/account/change-password' },
   { method: 'post', path: '/account/send-change-email-address-email', emailFlows: true },
   { method: 'delete', path: '/account/delete' },
@@ -150,7 +155,7 @@ describe('routes that never accept an API key', () => {
   }
 
   it('covers every route that stays closed to a key', () => {
-    expect(DENIED_ROUTES).toHaveLength(28);
+    expect(DENIED_ROUTES).toHaveLength(33);
   });
 
   it.each(DENIED_ROUTES)('$method $path refuses a full-access key', async (route) => {

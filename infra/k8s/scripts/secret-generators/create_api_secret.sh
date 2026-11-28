@@ -47,7 +47,9 @@ fi
 if [ "$AUTO_GEN" = true ]; then
 	echo "Auto-generating AUTH_JWT_SECRET..."
 	AUTH_JWT_SECRET=$(uuidgen | tr '[:upper:]' '[:lower:]' | tr -d '\n')
+	AUTH_SECOND_FACTOR_KEY=$(openssl rand -hex 32 | tr -d '\n')
 	echo "  AUTH_JWT_SECRET: [generated]"
+	echo "  AUTH_SECOND_FACTOR_KEY: [generated]"
 	echo "  Mailer credentials: run ${SCRIPT_DIR}/create_mailer_secret.sh"
 	echo "  Metaboost App Assertion: run ${SCRIPT_DIR}/create_metaboost_secret.sh"
 else
@@ -56,6 +58,12 @@ else
 	echo ""
 	if [ -z "$AUTH_JWT_SECRET" ]; then
 		echo "Error: AUTH_JWT_SECRET is required." >&2
+		exit 1
+	fi
+	read -r -s -p "Enter AUTH_SECOND_FACTOR_KEY (64 hex characters): " AUTH_SECOND_FACTOR_KEY
+	echo ""
+	if [ -z "$AUTH_SECOND_FACTOR_KEY" ]; then
+		echo "Error: AUTH_SECOND_FACTOR_KEY is required." >&2
 		exit 1
 	fi
 fi
@@ -70,6 +78,7 @@ trap 'rm -rf "$TMP_YAML_DIR"' EXIT
 kubectl create secret generic "${SECRET_NAME}" \
 	--namespace "${NAMESPACE}" \
 	--from-literal=AUTH_JWT_SECRET="${AUTH_JWT_SECRET}" \
+	--from-literal=AUTH_SECOND_FACTOR_KEY="${AUTH_SECOND_FACTOR_KEY}" \
 	--dry-run=client -o yaml >"${TMP_FILE}"
 
 sops --encrypt --encrypted-regex '^(data|stringData)$' \

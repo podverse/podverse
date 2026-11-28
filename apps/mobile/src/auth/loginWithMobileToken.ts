@@ -22,6 +22,13 @@ type LoginWithMobileTokenResult =
   | {
       error: 'account_not_verified' | 'invalid_credentials' | 'mobile_api_not_configured';
       ok: false;
+    }
+  | {
+      challengeToken?: string;
+      error: 'second_factor';
+      ok: false;
+      setupToken?: string;
+      step: 'code' | 'setup';
     };
 
 export const loginWithMobileToken = async ({
@@ -42,6 +49,28 @@ export const loginWithMobileToken = async ({
       password,
       device_label: readMobileSessionDeviceLabel() ?? undefined,
     });
+    if (mobileToken.step === 'setup' && typeof mobileToken.setupToken === 'string') {
+      return {
+        error: 'second_factor',
+        ok: false,
+        setupToken: mobileToken.setupToken,
+        step: 'setup',
+      };
+    }
+    if (mobileToken.step === 'code' && typeof mobileToken.challengeToken === 'string') {
+      return {
+        challengeToken: mobileToken.challengeToken,
+        error: 'second_factor',
+        ok: false,
+        step: 'code',
+      };
+    }
+    if (
+      typeof mobileToken.access_token !== 'string' ||
+      typeof mobileToken.refresh_token !== 'string'
+    ) {
+      return { error: 'invalid_credentials', ok: false };
+    }
     await setTokens({
       accessToken: mobileToken.access_token,
       refreshToken: mobileToken.refresh_token,

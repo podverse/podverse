@@ -227,6 +227,32 @@ describe('auth routes', () => {
       );
     });
 
+    it('returns a setup step and does not start a session when a second factor is required', async () => {
+      const previous = process.env.AUTH_SECOND_FACTOR_MODE;
+      process.env.AUTH_SECOND_FACTOR_MODE = 'required';
+      getByEmailMock.mockResolvedValueOnce({
+        id: TEST_USER_ID,
+        id_text: TEST_ACCOUNT_ID_TEXT,
+        verified: true,
+        account_credentials: { email: TEST_EMAIL, password: 'hashed-password' },
+      });
+      verifyPasswordMock.mockResolvedValueOnce(true);
+
+      try {
+        const res = await request(app)
+          .post(`${authBase}/login`)
+          .send({ email: TEST_EMAIL, password: TEST_PASSWORD });
+
+        expect(res.status).toBe(200);
+        expect(res.body.step).toBe('setup');
+        expect(typeof res.body.setupToken).toBe('string');
+        expect(res.headers['set-cookie']).toBeUndefined();
+        expect(accountSessionStoreStub.startAccountSession).not.toHaveBeenCalled();
+      } finally {
+        process.env.AUTH_SECOND_FACTOR_MODE = previous;
+      }
+    });
+
     it('returns 200 when logging in with username (username-only account)', async () => {
       const username = 'auth-test-username-only';
       getByUsernameMock.mockResolvedValueOnce({

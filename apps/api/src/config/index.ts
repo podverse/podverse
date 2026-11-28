@@ -1,7 +1,8 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion -- env vars validated at startup in lib/startup/validation.ts */
 
-import type { AccountSignupMode } from '@podverse/helpers';
+import type { AccountSignupMode, SecondFactorMode } from '@podverse/helpers';
 import {
+  isSecondFactorMode,
   DEFAULT_AUTH_ACCESS_TOKEN_EXPIRATION,
   DEFAULT_AUTH_SESSION_IDLE_EXPIRATION,
   DEFAULT_FREE_TRIAL_EXPIRATION,
@@ -96,6 +97,13 @@ type Config = {
     accessTokenExpiration: number;
     /** When true, login may include JWT in JSON if the client sends includeTokenInResponseBody (non-cookie clients only). */
     allowTokenInResponseBody: boolean;
+  };
+  secondFactor: {
+    mode: () => SecondFactorMode;
+    keyHex: () => string;
+    emailPerAccountHour: () => number;
+    emailPerAccountDay: () => number;
+    emailPerIpHour: () => number;
   };
   api: {
     port: string;
@@ -460,6 +468,39 @@ export const config: Config = {
       allowTokenInResponseBody: process.env.AUTH_ALLOW_TOKEN_IN_RESPONSE_BODY === 'true',
     };
   })(),
+  secondFactor: {
+    mode(): SecondFactorMode {
+      const value = process.env.AUTH_SECOND_FACTOR_MODE;
+      if (!isSecondFactorMode(value)) {
+        throw new Error('AUTH_SECOND_FACTOR_MODE must be optional or required');
+      }
+      return value;
+    },
+    keyHex(): string {
+      return process.env.AUTH_SECOND_FACTOR_KEY ?? '';
+    },
+    emailPerAccountHour(): number {
+      return parseCountPerWindowEnvFromKey({
+        envValue: process.env.AUTH_SECOND_FACTOR_EMAIL_MAX_PER_HOUR,
+        key: 'AUTH_SECOND_FACTOR_EMAIL_MAX_PER_HOUR',
+        defaultMax: 3,
+      }).max;
+    },
+    emailPerAccountDay(): number {
+      return parseCountPerWindowEnvFromKey({
+        envValue: process.env.AUTH_SECOND_FACTOR_EMAIL_MAX_PER_DAY,
+        key: 'AUTH_SECOND_FACTOR_EMAIL_MAX_PER_DAY',
+        defaultMax: 5,
+      }).max;
+    },
+    emailPerIpHour(): number {
+      return parseCountPerWindowEnvFromKey({
+        envValue: process.env.AUTH_SECOND_FACTOR_EMAIL_IP_MAX_PER_HOUR,
+        key: 'AUTH_SECOND_FACTOR_EMAIL_IP_MAX_PER_HOUR',
+        defaultMax: 5,
+      }).max;
+    },
+  },
   api: {
     port: process.env.API_PORT!,
     prefix: process.env.API_PREFIX!,

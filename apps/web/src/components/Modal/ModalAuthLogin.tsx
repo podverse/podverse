@@ -10,6 +10,7 @@ import {
   getAccountSignupModeCapabilities,
   getErrorResponseBodyCode,
   getErrorResponseStatus,
+  isSecondFactorLoginStep,
 } from '@podverse/helpers';
 import {
   Button,
@@ -38,6 +39,14 @@ export const ModalAuthLogin: React.FC = () => {
   const [accountNotVerified, setAccountNotVerified] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [verificationEmailSent, setVerificationEmailSent] = useState(false);
+  const [factorCode, setFactorCode] = useState('');
+  const [factorNotice, setFactorNotice] = useState<string | null>(null);
+  const [factor, setFactor] = useState<
+    | { kind: 'code'; challengeToken: string }
+    | { kind: 'setup'; setupToken: string; qrDataUrl: string; manualKey: string }
+    | { kind: 'backup'; codes: string[] }
+    | null
+  >(null);
   const [verificationEmailNotSent, setVerificationEmailNotSent] = useState(false);
   const tAuthentication = useTranslations('authentication');
   const tMisc = useTranslations('misc');
@@ -57,7 +66,61 @@ export const ModalAuthLogin: React.FC = () => {
       setShowErrorMessage(false);
       setAccountNotVerified(false);
       setVerificationEmailSent(false);
-      await getApiRequestService().reqAuthLogin({ email, password });
+      if (factor?.kind === 'backup') {
+        markSignInPushPromptPending();
+        window.location.reload();
+        return;
+      }
+      if (factor?.kind === 'code' || factor?.kind === 'setup') {
+        const confirmed =
+          factor.kind === 'code'
+            ? await getApiRequestService().reqAuthSecondFactorCode({
+                challengeToken: factor.challengeToken,
+                code: factorCode,
+              })
+            : await getApiRequestService().reqAuthSecondFactorSetupConfirm({
+                setupToken: factor.setupToken,
+                code: factorCode,
+              });
+        if (confirmed.challenge === 'expired') {
+          setFactor(null);
+          setFactorNotice(tAuthentication('second_factor_expired'));
+          return;
+        }
+        if (factor.kind === 'setup' && Array.isArray(confirmed.backupCodes)) {
+          setFactor({ kind: 'backup', codes: confirmed.backupCodes });
+          return;
+        }
+        markSignInPushPromptPending();
+        window.location.reload();
+        return;
+      }
+      const result = await getApiRequestService().reqAuthLogin({ email, password });
+      if (isSecondFactorLoginStep(result)) {
+        if (result.step === 'code') {
+          setFactor({ kind: 'code', challengeToken: result.challengeToken });
+          setFactorCode('');
+          return;
+        }
+        const started = await getApiRequestService().reqAuthSecondFactorSetup({
+          setupToken: result.setupToken,
+        });
+        if (
+          typeof started.setupToken === 'string' &&
+          typeof started.qrDataUrl === 'string' &&
+          typeof started.manualKey === 'string'
+        ) {
+          setFactor({
+            kind: 'setup',
+            setupToken: started.setupToken,
+            qrDataUrl: started.qrDataUrl,
+            manualKey: started.manualKey,
+          });
+          setFactorCode('');
+          setFactorNotice(tAuthentication('second_factor_required'));
+        }
+        return;
+      }
       markSignInPushPromptPending();
       window.location.reload();
     } catch (err: unknown) {
@@ -97,6 +160,23 @@ export const ModalAuthLogin: React.FC = () => {
     }
   };
 
+  const sendFactorEmail = async () => {
+    if (factor?.kind !== 'code') {
+      return;
+    }
+    try {
+      await getApiRequestService().reqAuthSecondFactorEmail({
+        challengeToken: factor.challengeToken,
+      });
+      setFactorNotice(tAuthentication('second_factor_email_sent'));
+    } catch (err) {
+      const rateLimitErrorHandled = await handleRateLimitAlert(err, locale, tMisc);
+      if (!rateLimitErrorHandled) {
+        setShowErrorMessage(true);
+      }
+    }
+  };
+
   const handleNavAndClose = (path: string) => {
     setModalAuthLogin({ isOpen: false });
     router.push(path);
@@ -112,6 +192,24 @@ export const ModalAuthLogin: React.FC = () => {
         ariaLabel={tAuthentication('login')}
       >
         <StackForm onSubmit={handleSubmit}>
+          {factor?.kind === 'backup' ? (
+            <>
+              <FormInfoMessageText message={tAuthentication('second_factor_backup_help')} />
+              <p data-testid="second-factor-backup-codes">{factor.codes.join('\n')}</p>
+            </>
+          ) : null}
+          {factor?.kind === 'setup' ? (
+            <>
+              <FormInfoMessageText message={factorNotice ?? tAuthentication('second_factor_setup_help')} />
+              <img alt="" src={factor.qrDataUrl} />
+              <p data-testid="second-factor-manual-key">{factor.manualKey}</p>
+            </>
+          ) : null}
+          {factor?.kind === 'code' ? (
+            <FormInfoMessageText message={factorNotice ?? tAuthentication('second_factor_code_help')} />
+          ) : null}
+          {factor === null ? (
+            <>
           <TextInput
             type="text"
             name="email"
@@ -129,6 +227,19 @@ export const ModalAuthLogin: React.FC = () => {
             placeholder={tAuthentication('password_hint')}
             eyebrow={tAuthentication('password')}
           />
+            </>
+          ) : null}
+          {factor?.kind === 'code' || factor?.kind === 'setup' ? (
+            <TextInput
+              type="text"
+              name="code"
+              value={factorCode}
+              onChange={(e) => setFactorCode(e.target.value)}
+              autoFocus
+              eyebrow={tAuthentication('second_factor_code')}
+              id="second-factor-code"
+            />
+          ) : null}
           {accountNotVerified && (
             <div className={styles.verificationSection}>
               {!verificationEmailSent ? (
@@ -144,8 +255,19 @@ export const ModalAuthLogin: React.FC = () => {
             </div>
           )}
           {!accountNotVerified && showErrorMessage && (
-            <FormErrorMessageText message={tAuthentication('invalid_email_or_password')} />
+            <FormErrorMessageText
+              message={
+                factor === null
+                  ? tAuthentication('invalid_email_or_password')
+                  : tAuthentication('invalid_password')
+              }
+            />
           )}
+          {factor?.kind === 'code' ? (
+            <Button id="second-factor-email" type="button" variant="link" onClick={sendFactorEmail}>
+              {tAuthentication('second_factor_email')}
+            </Button>
+          ) : null}
           <ModalActions>
             <Button
               type="button"

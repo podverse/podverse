@@ -58,6 +58,7 @@ describe('GET /config', () => {
     expect(instance.brandName).toBe(config.brandName);
     expect(isAccountSignupMode(instance.signupMode)).toBe(true);
     expect(instance.signupMode).toBe(config.premium.signupMode);
+    expect(instance.secondFactorMode).toBe(config.secondFactor.mode());
     expect(instance.statsRetentionDays).toEqual(expect.any(Number));
     expect(instance.statsRetentionDays).toBeGreaterThan(0);
     expect(Number.isInteger(instance.statsRetentionDays)).toBe(true);

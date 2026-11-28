@@ -49,6 +49,13 @@ export type CompleteMobilePasswordLoginError =
 export type CompleteMobilePasswordLoginResult =
   | { followLimit?: number; ok: true }
   | { error: 'rate_limited'; ok: false; rateLimitError: unknown }
+  | {
+      challengeToken?: string;
+      error: 'second_factor';
+      ok: false;
+      setupToken?: string;
+      step: 'code' | 'setup';
+    }
   | { error: CompleteMobilePasswordLoginError; ok: false };
 
 export type CompleteMobilePasswordLoginParams = {
@@ -78,6 +85,9 @@ export const completeMobilePasswordLogin = async ({
   try {
     const result = await loginWithMobileToken({ email, password, setTokens });
     if (!result.ok) {
+      if (result.error === 'second_factor') {
+        return result;
+      }
       return { error: result.error, ok: false };
     }
 

@@ -20,6 +20,7 @@ export class PublicClientConfigController {
           legalName: config.legal.name,
           contactEmail: config.terms.contactEmail,
           signupMode: config.premium.signupMode,
+          secondFactorMode: config.secondFactor.mode(),
           termsVersion: config.terms.version,
           tasteProfileAgreementVersion: config.tasteProfileAgreement.version,
           statsRetentionDays: resolveStatsTrackEventRetentionDays(),

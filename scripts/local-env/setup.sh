@@ -460,6 +460,17 @@ for file in "$MANAGEMENT_API_APP_ENV" "$MANAGEMENT_API_INFRA_ENV"; do
 	upsert_var "$file" "AUTH_JWT_SECRET" "$AUTH_JWT_SECRET_MANAGEMENT"
 done
 
+SECOND_FACTOR_KEY_API="$(generate_hex_32)"
+SECOND_FACTOR_KEY_MANAGEMENT="$(generate_hex_32)"
+for file in "$API_APP_ENV" "$API_INFRA_ENV"; do
+	set_if_empty "$file" "AUTH_SECOND_FACTOR_MODE" "optional"
+	set_if_empty "$file" "AUTH_SECOND_FACTOR_KEY" "$SECOND_FACTOR_KEY_API"
+done
+for file in "$MANAGEMENT_API_APP_ENV" "$MANAGEMENT_API_INFRA_ENV"; do
+	set_if_empty "$file" "MANAGEMENT_AUTH_SECOND_FACTOR_MODE" "optional"
+	set_if_empty "$file" "MANAGEMENT_AUTH_SECOND_FACTOR_KEY" "$SECOND_FACTOR_KEY_MANAGEMENT"
+done
+
 for file in "$WORKERS_APP_ENV" "$WORKERS_INFRA_ENV"; do
 	set_if_empty "$file" "WEBPUSH_VAPID_SUBJECT" "mailto:contact@example.com"
 done
@@ -570,7 +581,7 @@ fi
 
 # From mailer.env + paypal.env
 for v in MAILER_HOST MAILER_PORT MAILER_USERNAME MAILER_PASSWORD MAILER_FROM; do
-	apply_override "$v" "${API_ENV_FILES[@]}"
+	apply_override "$v" "${API_ENV_FILES[@]}" "${MANAGEMENT_API_ENV_FILES[@]}"
 done
 for v in BILLING_PAYPAL_ENABLED PAYPAL_CLIENT_ID PAYPAL_CLIENT_SECRET PAYPAL_ENVIRONMENT PAYPAL_WEBHOOK_ID; do
 	apply_override "$v" "${API_AND_WORKERS_ENV_FILES[@]}" "${MANAGEMENT_API_ENV_FILES[@]}"

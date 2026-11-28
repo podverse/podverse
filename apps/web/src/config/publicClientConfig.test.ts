@@ -66,6 +66,7 @@ function remoteConfig(
       legalName: 'Api Legal',
       contactEmail: 'api@example.com',
       signupMode,
+      secondFactorMode: 'optional',
       termsVersion: 'api-terms',
       tasteProfileAgreementVersion: 'api-taste',
       statsRetentionDays: 14,

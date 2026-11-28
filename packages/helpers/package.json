@@ -27,6 +27,10 @@
       "types": "./dist/lib/authSessionNotice.d.ts",
       "default": "./dist/lib/authSessionNotice.js"
     },
+    "./secondFactor": {
+      "types": "./dist/lib/secondFactor.d.ts",
+      "default": "./dist/lib/secondFactor.js"
+    },
     "./notificationPush": {
       "types": "./dist/lib/notificationPush.d.ts",
       "default": "./dist/lib/notificationPush.js"

@@ -167,6 +167,30 @@ describe('management-api auth routes', () => {
       );
     });
 
+    it('returns a setup step and does not start a session when a second factor is required', async () => {
+      const previous = process.env.MANAGEMENT_AUTH_SECOND_FACTOR_MODE;
+      process.env.MANAGEMENT_AUTH_SECOND_FACTOR_MODE = 'required';
+      verifyPasswordMock.mockResolvedValueOnce({
+        id: 1,
+        id_text: 'pvMgtAu001',
+        created_at: new Date('2020-01-01T00:00:00.000Z'),
+      });
+
+      try {
+        const res = await request(app)
+          .post(`${authBase}/login`)
+          .send({ email: 'admin@example.com', password: 'test-password' });
+
+        expect(res.status).toBe(200);
+        expect(res.body.step).toBe('setup');
+        expect(typeof res.body.setupToken).toBe('string');
+        expect(authCookieValue(res)).toBeNull();
+        expect(adminSessionStoreStub.startAdminSession).not.toHaveBeenCalled();
+      } finally {
+        process.env.MANAGEMENT_AUTH_SECOND_FACTOR_MODE = previous;
+      }
+    });
+
     it('ends the session in a validly signed cookie the browser already carries', async () => {
       const previousCookie = jwt.sign(
         { id: 1, id_text: 'pvMgtAu001', sid: 'pvMgtSesOld1', token_use: 'web' },

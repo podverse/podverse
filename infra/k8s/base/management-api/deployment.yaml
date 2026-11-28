@@ -80,6 +80,9 @@ spec:
             - secretRef:
                 name: podverse-management-api-opaque
             - secretRef:
+                name: podverse-mailer-opaque
+                optional: true
+            - secretRef:
                 name: podverse-management-db-opaque
             - secretRef:
                 name: podverse-db-opaque

@@ -15,6 +15,7 @@ import {
   createMobileApiRequestService,
   useAuth,
 } from '../../auth';
+import { accountRepository } from '../../data/repositories/accountRepository';
 import { resolveLocalDevLoginPrefill } from '../../auth/localDevLoginPrefill';
 import { VerificationEmailNotSentMessage } from '../../auth/VerificationEmailNotSentMessage';
 import { CustomApiNotice } from '../../components/feedback/CustomApiNotice';
@@ -54,6 +55,13 @@ export function LoginScreen({
   const [accountNotVerified, setAccountNotVerified] = useState(false);
   const [verificationEmailSent, setVerificationEmailSent] = useState(false);
   const [verificationEmailNotSent, setVerificationEmailNotSent] = useState(false);
+  const [factorCode, setFactorCode] = useState('');
+  const [factor, setFactor] = useState<
+    | { challengeToken: string; kind: 'code' }
+    | { kind: 'setup'; manualKey: string; qrDataUrl: string; setupToken: string }
+    | { codes: string[]; kind: 'backup' }
+    | null
+  >(null);
   const { styles: themeStyles, tokens } = useTheme();
   const { clearSession, setAccount, setError: setAuthError, setTokens } = useAuth();
 
@@ -109,6 +117,60 @@ export function LoginScreen({
     setError(null);
     hideUnverifiedNotice();
     try {
+      const api = createMobileApiRequestService();
+      if (factor?.kind === 'backup') {
+        onDismiss();
+        return;
+      }
+      if ((factor?.kind === 'code' || factor?.kind === 'setup') && api !== null) {
+        const confirmed =
+          factor.kind === 'code'
+            ? await api.reqAuthSecondFactorCode({
+                challengeToken: factor.challengeToken,
+                code: factorCode,
+              })
+            : await api.reqAuthSecondFactorSetupConfirm({
+                code: factorCode,
+                setupToken: factor.setupToken,
+              });
+        if (confirmed.challenge === 'expired') {
+          setFactor(null);
+          setError(t('authentication.second_factor_expired'));
+          return;
+        }
+        if (factor.kind === 'setup' && Array.isArray(confirmed.backupCodes)) {
+          if (typeof confirmed.access_token === 'string' && typeof confirmed.refresh_token === 'string') {
+            await setTokens({
+              accessToken: confirmed.access_token,
+              refreshToken: confirmed.refresh_token,
+            });
+            const account = await accountRepository.refreshSnapshot({
+              accessToken: confirmed.access_token,
+              clearSession,
+              refreshToken: confirmed.refresh_token,
+              setTokens,
+            });
+            setAccount(account);
+          }
+          setFactor({ codes: confirmed.backupCodes, kind: 'backup' });
+          return;
+        }
+        if (typeof confirmed.access_token === 'string' && typeof confirmed.refresh_token === 'string') {
+          await setTokens({
+            accessToken: confirmed.access_token,
+            refreshToken: confirmed.refresh_token,
+          });
+          const account = await accountRepository.refreshSnapshot({
+            accessToken: confirmed.access_token,
+            clearSession,
+            refreshToken: confirmed.refresh_token,
+            setTokens,
+          });
+          setAccount(account);
+          onDismiss();
+        }
+        return;
+      }
       const result = await completeMobilePasswordLogin({
         clearSession,
         email,
@@ -118,6 +180,25 @@ export function LoginScreen({
         setTokens,
       });
       if (!result.ok) {
+        if (result.error === 'second_factor' && result.step === 'code' && result.challengeToken) {
+          setFactor({ challengeToken: result.challengeToken, kind: 'code' });
+          return;
+        }
+        if (result.error === 'second_factor' && result.step === 'setup' && result.setupToken && api) {
+          const started = await api.reqAuthSecondFactorSetup({ setupToken: result.setupToken });
+          if (typeof started.manualKey === 'string' && typeof started.setupToken === 'string') {
+            setFactor({
+              kind: 'setup',
+              manualKey: started.manualKey,
+              qrDataUrl: typeof started.qrDataUrl === 'string' ? started.qrDataUrl : '',
+              setupToken: started.setupToken,
+            });
+          }
+          return;
+        }
+        if (result.error === 'second_factor') {
+          return;
+        }
         if (result.error === 'rate_limited') {
           setError(handleRateLimitMessage(result.rateLimitError, t) ?? t('errors.generic'));
           return;
@@ -185,6 +266,14 @@ export function LoginScreen({
         <MobileScreenContainer testID="login-form">
           <CustomApiNotice />
           <View style={styles.fields}>
+            {factor?.kind === 'setup' ? (
+              <Text testID="second-factor-manual-key">{factor.manualKey}</Text>
+            ) : null}
+            {factor?.kind === 'backup' ? (
+              <Text testID="second-factor-backup-codes">{factor.codes.join('\n')}</Text>
+            ) : null}
+            {factor === null ? (
+            <>
             <TextField
               accessibilityLabel={t('authentication.email_or_username')}
               autoCapitalize="none"
@@ -218,7 +307,38 @@ export function LoginScreen({
               textContentType={isE2e ? 'none' : 'password'}
               value={password}
             />
-            {showForgotPassword ? (
+            </>
+            ) : (
+            <TextField
+              accessibilityLabel={t('authentication.second_factor_code')}
+              autoCapitalize="none"
+              autoCorrect={false}
+              eyebrow={t('authentication.second_factor_code')}
+              onChangeText={setFactorCode}
+              testID="second-factor-code"
+              value={factorCode}
+            />
+            )}
+            {factor?.kind === 'code' ? (
+              <Pressable
+                accessibilityRole="link"
+                onPress={() => {
+                  const api = createMobileApiRequestService();
+                  if (api === null) {
+                    return;
+                  }
+                  void api
+                    .reqAuthSecondFactorEmail({ challengeToken: factor.challengeToken })
+                    .then(() => {
+                      setError(t('authentication.second_factor_email_sent'));
+                    });
+                }}
+                testID="second-factor-email"
+              >
+                <Text style={styles.link}>{t('authentication.second_factor_email')}</Text>
+              </Pressable>
+            ) : null}
+            {showForgotPassword && factor === null ? (
               <Pressable
                 accessibilityLabel={t('authentication.forgot_password')}
                 accessibilityRole="link"

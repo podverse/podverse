@@ -12,6 +12,7 @@ import { getApiRequestService } from '../../../../factories/apiRequestService';
 import { handleRateLimitAlert } from '../../../../utils/rateLimit/rateLimitAlert';
 import { dismissToast, showToast, showToastLoading } from '../../../Toast/Toast';
 import { SettingsSection } from '../../SettingsSection';
+import { SettingsSecondFactor } from './SettingsSecondFactor';
 import { ModalChangeEmail } from './ModalChangeEmail';
 import { ModalChangePassword } from './ModalChangePassword';
 import { ModalDeleteAccount } from './ModalDeleteAccount';
@@ -75,6 +76,8 @@ export function SettingsAccount() {
 
   return (
     <>
+      <SettingsSecondFactor />
+      <Divider withSpacing />
       <SettingsMembership />
       <Divider withSpacing />
       <SettingsTerms />

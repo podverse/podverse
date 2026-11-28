@@ -12,11 +12,31 @@ import {
   refreshMobileToken,
   revokeMobileToken,
 } from '@management-api/lib/auth/index.js';
+import {
+  beginSecondFactorEnroll,
+  beginSecondFactorSetup,
+  confirmSecondFactorEnroll,
+  confirmSecondFactorSetup,
+  disableAdminSecondFactor,
+  readSecondFactorSettings,
+  regenerateAdminBackupCodes,
+  sendSecondFactorEmail,
+  submitSecondFactorCode,
+} from '@management-api/lib/auth/secondFactorHttp.js';
 import express from 'express';
 
 const router = express.Router();
 
 router.post('/login', authenticate);
+router.post('/second-factor/code', submitSecondFactorCode);
+router.post('/second-factor/email', sendSecondFactorEmail);
+router.post('/second-factor/setup', beginSecondFactorSetup);
+router.post('/second-factor/setup/confirm', confirmSecondFactorSetup);
+router.get('/second-factor', ensureAuthenticated, readSecondFactorSettings);
+router.post('/second-factor/enroll', ensureAuthenticated, beginSecondFactorEnroll);
+router.post('/second-factor/enroll/confirm', ensureAuthenticated, confirmSecondFactorEnroll);
+router.post('/second-factor/disable', ensureAuthenticated, disableAdminSecondFactor);
+router.post('/second-factor/backup-codes', ensureAuthenticated, regenerateAdminBackupCodes);
 
 router.post('/logout', logout);
 router.post('/mobile/token', issueMobileToken);

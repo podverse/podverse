@@ -171,6 +171,15 @@ import {
   reqAuthMobileRefresh,
   reqAuthMobileRevoke,
   reqAuthMobileToken,
+  reqAuthSecondFactorBackupCodes,
+  reqAuthSecondFactorCode,
+  reqAuthSecondFactorDisable,
+  reqAuthSecondFactorEmail,
+  reqAuthSecondFactorEnroll,
+  reqAuthSecondFactorEnrollConfirm,
+  reqAuthSecondFactorSetup,
+  reqAuthSecondFactorSetupConfirm,
+  reqAuthSecondFactorStatus,
 } from './auth/auth.js';
 import {
   reqAuthSessionRevoke,
@@ -1177,6 +1186,42 @@ export class ApiRequestService {
 
   reqAuthLogin(params: { email: string; password: string; includeTokenInResponseBody?: boolean }) {
     return reqAuthLogin(this, params);
+  }
+
+  reqAuthSecondFactorCode(params: { challengeToken: string; code: string }) {
+    return reqAuthSecondFactorCode(this, params);
+  }
+
+  reqAuthSecondFactorEmail(params: { challengeToken: string }) {
+    return reqAuthSecondFactorEmail(this, params);
+  }
+
+  reqAuthSecondFactorSetup(params: { setupToken: string }) {
+    return reqAuthSecondFactorSetup(this, params);
+  }
+
+  reqAuthSecondFactorSetupConfirm(params: { setupToken: string; code: string }) {
+    return reqAuthSecondFactorSetupConfirm(this, params);
+  }
+
+  reqAuthSecondFactorStatus() {
+    return reqAuthSecondFactorStatus(this);
+  }
+
+  reqAuthSecondFactorEnroll() {
+    return reqAuthSecondFactorEnroll(this);
+  }
+
+  reqAuthSecondFactorEnrollConfirm(params: { code: string }) {
+    return reqAuthSecondFactorEnrollConfirm(this, params);
+  }
+
+  reqAuthSecondFactorDisable(params: { password: string; code: string }) {
+    return reqAuthSecondFactorDisable(this, params);
+  }
+
+  reqAuthSecondFactorBackupCodes(params: { code: string }) {
+    return reqAuthSecondFactorBackupCodes(this, params);
   }
 
   reqAuthLogout() {

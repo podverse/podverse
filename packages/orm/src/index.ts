@@ -261,6 +261,7 @@ export * from './services/account/accountNotificationPreference.js';
 export * from './services/account/accountProfile.js';
 export * from './services/account/accountResetPassword.js';
 export * from './services/account/accountSession.js';
+export * from './services/account/accountSecondFactorStore.js';
 export * from './services/account/accountSessionSignal.js';
 export * from './services/account/accountApiKey.js';
 export * from './services/account/accountSetPassword.js';

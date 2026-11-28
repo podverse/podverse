@@ -1,4 +1,5 @@
 import type { AccountSignupMode } from '../../lib/accountSignupMode.js';
+import type { SecondFactorMode } from '../../lib/secondFactor.js';
 import type { ResolvedProductMembership } from '../../lib/productMembershipDefaultsFromEnv.js';
 
 export type PublicClientConfigMembership = ResolvedProductMembership & {
@@ -17,6 +18,7 @@ export type PublicClientConfigInstance = {
   legalName: string;
   contactEmail: string;
   signupMode: AccountSignupMode;
+  secondFactorMode: SecondFactorMode;
   termsVersion: string;
   tasteProfileAgreementVersion: string;
   statsRetentionDays: number;

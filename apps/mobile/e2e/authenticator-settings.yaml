@@ -1,0 +1,25 @@
+appId: com.podverse.app.next
+name: Authenticator Settings
+---
+# Opens More settings and shows the authenticator setup control.
+# Enrollment itself stays in the API tests; this checks the screen is reachable.
+
+- runFlow: shared/launch-and-connect.yaml
+- runFlow: shared/login-seeded-user-ui.yaml
+- tapOn:
+    id: tab-more
+- tapOn:
+    id: more-settings
+- scrollUntilVisible:
+    element:
+      id: more-settings-second-factor
+    direction: DOWN
+    timeout: ${TIMEOUT_SLOW}
+    centerElement: true
+- tapOn:
+    id: more-settings-second-factor
+- assertVisible:
+    id: second-factor-settings
+- assertVisible:
+    id: second-factor-enable
+- takeScreenshot: authenticator-settings

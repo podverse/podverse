@@ -8,6 +8,7 @@ import type { AccountSignupMode } from '@podverse/helpers';
 import {
   ACCOUNT_SIGNUP_MODE_VALUES,
   DEFAULT_STATS_TRACK_EVENT_RETENTION_DAYS,
+  isSecondFactorMode,
   isValidServerEnv,
   isValidUUID,
   parseOptionalNonNegativeInt,
@@ -264,7 +265,30 @@ const validateAllEnvironmentVariables = (): ValidationSummary => {
       'Blank/false: omit token from login JSON; true: allow token when client sends includeTokenInResponseBody'
     )
   );
+  results.push(validateSecondFactorMode());
+  results.push(validateSecondFactorKey());
   results.push(validateOptional('AUTH_LOGIN_MAX_PER_MINUTE', 'Auth & Security', 'Use Default (5)'));
+  results.push(
+    validateOptional(
+      'AUTH_SECOND_FACTOR_EMAIL_MAX_PER_HOUR',
+      'Auth & Security',
+      'Use Default (3)'
+    )
+  );
+  results.push(
+    validateOptional(
+      'AUTH_SECOND_FACTOR_EMAIL_MAX_PER_DAY',
+      'Auth & Security',
+      'Use Default (5)'
+    )
+  );
+  results.push(
+    validateOptional(
+      'AUTH_SECOND_FACTOR_EMAIL_IP_MAX_PER_HOUR',
+      'Auth & Security',
+      'Use Default (5)'
+    )
+  );
   results.push(validateRequired('BRAND_NAME', 'Auth & Security'));
   results.push(validateUserAgent());
 
@@ -715,6 +739,50 @@ const validateAllEnvironmentVariables = (): ValidationSummary => {
  * Validates the AUTH_JWT_SECRET environment variable.
  * The JWT secret MUST be a valid UUID to ensure secure token generation.
  */
+const validateSecondFactorMode = (): ValidationResult => {
+  const mode = process.env.AUTH_SECOND_FACTOR_MODE ?? '';
+  if (!isSecondFactorMode(mode)) {
+    return {
+      name: 'AUTH_SECOND_FACTOR_MODE',
+      isSet: mode !== '',
+      isValid: false,
+      isRequired: true,
+      message: 'Must be optional or required',
+      category: 'Auth & Security',
+    };
+  }
+  return {
+    name: 'AUTH_SECOND_FACTOR_MODE',
+    isSet: true,
+    isValid: true,
+    isRequired: true,
+    message: 'Valid',
+    category: 'Auth & Security',
+  };
+};
+
+const validateSecondFactorKey = (): ValidationResult => {
+  const key = process.env.AUTH_SECOND_FACTOR_KEY ?? '';
+  if (!/^[0-9a-fA-F]{64}$/u.test(key)) {
+    return {
+      name: 'AUTH_SECOND_FACTOR_KEY',
+      isSet: key !== '',
+      isValid: false,
+      isRequired: true,
+      message: 'Must be 64 hex characters',
+      category: 'Auth & Security',
+    };
+  }
+  return {
+    name: 'AUTH_SECOND_FACTOR_KEY',
+    isSet: true,
+    isValid: true,
+    isRequired: true,
+    message: 'Valid',
+    category: 'Auth & Security',
+  };
+};
+
 const validateJwtSecret = (): ValidationResult => {
   const jwtSecret = process.env.AUTH_JWT_SECRET || '';
 

@@ -269,8 +269,29 @@ components:
         token:
           type: string
           format: jwt
-          description: JWT token (if configured to return in body)
+          description: JWT token when the body may include it and no second-factor step is required
           example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+        step:
+          type: string
+          enum:
+            - setup
+            - code
+        setupToken:
+          type: string
+        challengeToken:
+          type: string
+        backupCodes:
+          type: array
+          items:
+            type: string
+        qrDataUrl:
+          type: string
+        manualKey:
+          type: string
+        challenge:
+          type: string
+          enum:
+            - expired
     AuthLogoutResponse:
       type: object
       properties:
@@ -4275,10 +4296,10 @@ paths:
         - auth
       summary: POST /auth/login
       description: >
-        Public endpoint for admin web sign-in. Checks the credentials, starts a web admin session
-        labeled from the User-Agent, and sets the `pv_mgmt_auth` cookie with a JWT that names it.
-        When the request already carries a validly signed session cookie, that earlier session is
-        ended first. The JWT is also returned as `token` only when
+        Public endpoint for admin web sign-in. Checks the credentials. A session starts, and the
+        `pv_mgmt_auth` cookie is set, only when no second-factor step is required. When the request
+        already carries a validly signed session cookie, that earlier session is ended only after
+        the factor succeeds. The JWT is also returned as `token` only when
         AUTH_ALLOW_TOKEN_IN_RESPONSE_BODY=true and the client sends includeTokenInResponseBody.
       security: []
       requestBody:

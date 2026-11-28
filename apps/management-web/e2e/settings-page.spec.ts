@@ -26,6 +26,8 @@ test.describe('Management-web settings page', () => {
 
     await expect(page.getByLabel('Theme')).toBeVisible();
     await expect(page.getByLabel('Language')).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Authenticator App' })).toBeVisible();
+    await expect(page.locator('#second-factor-enable')).toBeVisible();
 
     await capturePageLoad(
       page,

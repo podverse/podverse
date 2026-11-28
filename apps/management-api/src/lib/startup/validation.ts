@@ -13,6 +13,7 @@ import {
   SUPPORTED_BUCKET_PROVIDERS,
 } from '@podverse/external-services-object-storage';
 import {
+  isSecondFactorMode,
   isValidUUID,
   validateAbsoluteHttpUrlValue,
   validateBooleanValue,
@@ -147,6 +148,37 @@ const validateAllEnvironmentVariables = (env: StartupEnv, command?: string): Val
       'Blank/false: omit token from login JSON; true: allow token when client sends includeTokenInResponseBody'
     )
   );
+  results.push(validateManagementSecondFactorMode(env, command !== ADMIN_SESSION_PURGE_COMMAND));
+  results.push(validateManagementSecondFactorKey(env, command !== ADMIN_SESSION_PURGE_COMMAND));
+  results.push(
+    validateOptional(
+      env,
+      'MANAGEMENT_AUTH_SECOND_FACTOR_EMAIL_MAX_PER_HOUR',
+      'Auth & Security',
+      'Use Default (3)'
+    )
+  );
+  results.push(
+    validateOptional(
+      env,
+      'MANAGEMENT_AUTH_SECOND_FACTOR_EMAIL_MAX_PER_DAY',
+      'Auth & Security',
+      'Use Default (5)'
+    )
+  );
+  results.push(
+    validateOptional(
+      env,
+      'MANAGEMENT_AUTH_SECOND_FACTOR_EMAIL_IP_MAX_PER_HOUR',
+      'Auth & Security',
+      'Use Default (5)'
+    )
+  );
+  results.push(validateOptional(env, 'MAILER_HOST', 'Mailer', 'Blank: email codes are unavailable'));
+  results.push(validateOptional(env, 'MAILER_PORT', 'Mailer', 'Blank: email codes are unavailable'));
+  results.push(validateOptional(env, 'MAILER_USERNAME', 'Mailer', 'Blank: email codes are unavailable'));
+  results.push(validateOptional(env, 'MAILER_PASSWORD', 'Mailer', 'Blank: email codes are unavailable'));
+  results.push(validateOptional(env, 'MAILER_FROM', 'Mailer', 'Blank: email codes are unavailable'));
   results.push(validateRequired(env, 'BRAND_NAME', 'Auth & Security'));
   results.push(validateUserAgent(env));
   results.push(validateAdminSessionRetentionDays(env));
@@ -350,6 +382,76 @@ const validateAllEnvironmentVariables = (env: StartupEnv, command?: string): Val
  * Validates the AUTH_JWT_SECRET environment variable.
  * The JWT secret MUST be a valid UUID to ensure secure token generation.
  */
+const validateManagementSecondFactorMode = (
+  env: StartupEnv,
+  required: boolean
+): ValidationResult => {
+  const mode = env.MANAGEMENT_AUTH_SECOND_FACTOR_MODE ?? '';
+  if (!required) {
+    return {
+      name: 'MANAGEMENT_AUTH_SECOND_FACTOR_MODE',
+      isSet: mode !== '',
+      isValid: mode === '' || isSecondFactorMode(mode),
+      isRequired: false,
+      message: `Skipped (${ADMIN_SESSION_PURGE_COMMAND})`,
+      category: 'Auth & Security',
+    };
+  }
+  if (!isSecondFactorMode(mode)) {
+    return {
+      name: 'MANAGEMENT_AUTH_SECOND_FACTOR_MODE',
+      isSet: mode !== '',
+      isValid: false,
+      isRequired: true,
+      message: 'Must be optional or required',
+      category: 'Auth & Security',
+    };
+  }
+  return {
+    name: 'MANAGEMENT_AUTH_SECOND_FACTOR_MODE',
+    isSet: true,
+    isValid: true,
+    isRequired: true,
+    message: 'Valid',
+    category: 'Auth & Security',
+  };
+};
+
+const validateManagementSecondFactorKey = (
+  env: StartupEnv,
+  required: boolean
+): ValidationResult => {
+  const key = env.MANAGEMENT_AUTH_SECOND_FACTOR_KEY ?? '';
+  if (!required) {
+    return {
+      name: 'MANAGEMENT_AUTH_SECOND_FACTOR_KEY',
+      isSet: key !== '',
+      isValid: true,
+      isRequired: false,
+      message: `Skipped (${ADMIN_SESSION_PURGE_COMMAND})`,
+      category: 'Auth & Security',
+    };
+  }
+  if (!/^[0-9a-fA-F]{64}$/u.test(key)) {
+    return {
+      name: 'MANAGEMENT_AUTH_SECOND_FACTOR_KEY',
+      isSet: key !== '',
+      isValid: false,
+      isRequired: true,
+      message: 'Must be 64 hex characters',
+      category: 'Auth & Security',
+    };
+  }
+  return {
+    name: 'MANAGEMENT_AUTH_SECOND_FACTOR_KEY',
+    isSet: true,
+    isValid: true,
+    isRequired: true,
+    message: 'Valid',
+    category: 'Auth & Security',
+  };
+};
+
 const validateJwtSecret = (env: StartupEnv): ValidationResult => {
   const jwtSecret = env.AUTH_JWT_SECRET || '';
 

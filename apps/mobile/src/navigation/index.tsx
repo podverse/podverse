@@ -104,6 +104,7 @@ import { MoreSettingsLocaleScreen } from '../screens/more/MoreSettingsLocaleScre
 import { MoreSettingsNotificationsScreen } from '../screens/more/MoreSettingsNotificationsScreen';
 import { MoreSettingsPlaybackScreen } from '../screens/more/MoreSettingsPlaybackScreen';
 import { MoreSettingsScreen } from '../screens/more/MoreSettingsScreen';
+import { MoreSettingsSecondFactorScreen } from '../screens/more/MoreSettingsSecondFactorScreen';
 import { MoreSettingsSessionsScreen } from '../screens/more/MoreSettingsSessionsScreen';
 import { MoreSettingsTabBarScreen } from '../screens/more/MoreSettingsTabBarScreen';
 import { MoreSettingsTasteProfileScreen } from '../screens/more/MoreSettingsTasteProfileScreen';
@@ -292,6 +293,7 @@ export const MORE_STACK_ROUTES = {
   MoreSettingsAppearance: 'MoreSettingsAppearance',
   MoreSettingsAutoDownloadCatchUp: 'MoreSettingsAutoDownloadCatchUp',
   MoreSettingsChangePassword: 'MoreSettingsChangePassword',
+  MoreSettingsSecondFactor: 'MoreSettingsSecondFactor',
   MoreSettingsDownloadLimit: 'MoreSettingsDownloadLimit',
   MoreSettingsDownloads: 'MoreSettingsDownloads',
   MoreSettingsLocale: 'MoreSettingsLocale',
@@ -380,6 +382,7 @@ const moreTabLinkScreens = {
   MoreSettingsAppearance: `more${APP_ROUTES.SETTINGS}/appearance`,
   MoreSettingsAutoDownloadCatchUp: `more${APP_ROUTES.SETTINGS}/downloads/catch-up`,
   MoreSettingsChangePassword: `more${APP_ROUTES.SETTINGS}/change-password`,
+  MoreSettingsSecondFactor: `more${APP_ROUTES.SETTINGS}/authenticator`,
   MoreSettingsDownloadLimit: `more${APP_ROUTES.SETTINGS}/downloads/limit`,
   MoreSettingsDownloads: `more${APP_ROUTES.SETTINGS}/downloads`,
   MoreSettingsLocale: `more${APP_ROUTES.SETTINGS}/locale`,
@@ -648,6 +651,7 @@ export type MoreStackParamList = {
   MoreSettingsAppearance: undefined;
   MoreSettingsAutoDownloadCatchUp: undefined;
   MoreSettingsChangePassword: undefined;
+  MoreSettingsSecondFactor: undefined;
   MoreSettingsDownloadLimit: undefined;
   MoreSettingsDownloads: undefined;
   MoreSettingsLocale: undefined;
@@ -1807,6 +1811,11 @@ function MoreStackNavigator({
         component={MoreSettingsChangePasswordScreen}
         name={MORE_STACK_ROUTES.MoreSettingsChangePassword}
         options={{ title: t('settings.account.change_password.heading') }}
+      />
+      <MoreStack.Screen
+        component={MoreSettingsSecondFactorScreen}
+        name={MORE_STACK_ROUTES.MoreSettingsSecondFactor}
+        options={{ title: t('authentication.second_factor_settings') }}
       />
       <MoreStack.Screen
         component={MoreSettingsSessionsScreen}

@@ -6,8 +6,15 @@ export type LoginParams = {
 };
 
 export type LoginResponse = {
-  message: string;
+  message?: string;
   token?: string;
+  step?: 'setup' | 'code';
+  setupToken?: string;
+  challengeToken?: string;
+  backupCodes?: string[];
+  qrDataUrl?: string;
+  manualKey?: string;
+  challenge?: 'expired';
 };
 
 export type CrudPermissions = {
@@ -41,6 +48,57 @@ export async function login(params: LoginParams): Promise<LoginResponse> {
     method: 'POST',
     data: params,
   });
+}
+
+async function postAuth(path: string, data?: object): Promise<LoginResponse> {
+  const service = new ManagementApiRequestService();
+  return service.apiRequest<LoginResponse>({
+    path,
+    method: 'POST',
+    ...(data === undefined ? {} : { data }),
+  });
+}
+
+export function secondFactorCode(params: { challengeToken: string; code: string }) {
+  return postAuth('/auth/second-factor/code', params);
+}
+
+export function secondFactorEmail(params: { challengeToken: string }) {
+  return postAuth('/auth/second-factor/email', params);
+}
+
+export function secondFactorSetup(params: { setupToken: string }) {
+  return postAuth('/auth/second-factor/setup', params);
+}
+
+export function secondFactorSetupConfirm(params: { setupToken: string; code: string }) {
+  return postAuth('/auth/second-factor/setup/confirm', params);
+}
+
+export type SecondFactorStatus = {
+  mode: 'optional' | 'required';
+  enrolled: boolean;
+  backupCodesRemaining: number;
+};
+
+export async function secondFactorStatus(): Promise<SecondFactorStatus> {
+  const service = new ManagementApiRequestService();
+  return service.apiRequest<SecondFactorStatus>({
+    path: '/auth/second-factor',
+    method: 'GET',
+  });
+}
+
+export function secondFactorEnroll() {
+  return postAuth('/auth/second-factor/enroll');
+}
+
+export function secondFactorEnrollConfirm(params: { code: string }) {
+  return postAuth('/auth/second-factor/enroll/confirm', params);
+}
+
+export function secondFactorDisable(params: { password: string; code: string }) {
+  return postAuth('/auth/second-factor/disable', params);
 }
 
 export async function getCurrentUser(): Promise<CurrentUser | null> {

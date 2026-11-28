@@ -44,6 +44,7 @@ import type { ApiKeyCheck } from './apiKeyStore.js';
 import { checkApiKey, recordApiKeyUse } from './apiKeyStore.js';
 import { deviceLabelForMobile, deviceLabelFromUserAgent } from './deviceLabel.js';
 import { verifyPassword } from './password.js';
+import { gatePasswordLogin, SecondFactorUnavailableError } from './secondFactorGate.js';
 import type { RequestToken } from './sessionTokens.js';
 import {
   classifyAccessJwt,
@@ -287,10 +288,11 @@ async function endSessionInPresentedCookie(req: Request): Promise<void> {
   }
 }
 
-async function completeWebLogin(
+export async function completeWebLogin(
   req: Request,
   res: Response,
-  account: { id: number; id_text: string }
+  account: { id: number; id_text: string },
+  extras?: { backupCodes: string[] }
 ): Promise<void> {
   await endSessionInPresentedCookie(req);
 
@@ -308,9 +310,12 @@ async function completeWebLogin(
 
   setAuthCookie(res, token);
 
-  const response: { message: string; token?: string } = {
+  const response: { message: string; token?: string; backupCodes?: string[] } = {
     message: 'Authenticated successfully',
   };
+  if (extras !== undefined) {
+    response.backupCodes = extras.backupCodes;
+  }
   const body = req.body as { includeTokenInResponseBody?: unknown } | undefined;
   if (config.auth.allowTokenInResponseBody && Boolean(body?.includeTokenInResponseBody)) {
     response.token = token;
@@ -337,6 +342,24 @@ export const authenticate = async (req: Request, res: Response): Promise<void> =
   if (authResult.kind !== 'authenticated') {
     res.status(401).json({ message: 'Unauthorized' });
     return;
+  }
+
+  try {
+    const step = await gatePasswordLogin({
+      ownerId: authResult.id,
+      client: 'web',
+      deviceLabel: deviceLabelFromUserAgent(req.get('user-agent')),
+    });
+    if (step !== null) {
+      res.json(step);
+      return;
+    }
+  } catch (error) {
+    if (error instanceof SecondFactorUnavailableError) {
+      res.status(503).json({ message: 'Second factor is unavailable' });
+      return;
+    }
+    throw error;
   }
 
   await completeWebLogin(req, res, { id: authResult.id, id_text: authResult.id_text });
@@ -802,13 +825,32 @@ export const issueMobileToken = async (req: Request, res: Response): Promise<voi
     return;
   }
 
+  const deviceLabel = deviceLabelForMobile({
+    bodyLabel: body?.device_label,
+    platformHeader: req.get(BILLING_CLIENT_PLATFORM_HEADER),
+  });
+  try {
+    const step = await gatePasswordLogin({
+      ownerId: authResult.id,
+      client: 'mobile',
+      deviceLabel,
+    });
+    if (step !== null) {
+      res.json(step);
+      return;
+    }
+  } catch (error) {
+    if (error instanceof SecondFactorUnavailableError) {
+      res.status(503).json({ message: 'Second factor is unavailable' });
+      return;
+    }
+    throw error;
+  }
+
   const { sessionIdText, refreshTokenId } = await startAccountSession({
     accountId: authResult.id,
     clientType: 'mobile',
-    deviceLabel: deviceLabelForMobile({
-      bodyLabel: body?.device_label,
-      platformHeader: req.get(BILLING_CLIENT_PLATFORM_HEADER),
-    }),
+    deviceLabel,
     withRefreshToken: true,
   });
   if (refreshTokenId === null) {

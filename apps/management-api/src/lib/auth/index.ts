@@ -40,6 +40,7 @@ import {
   startAdminSession,
 } from './adminSessionStore.js';
 import { deviceLabelForMobile, deviceLabelFromUserAgent } from './deviceLabel.js';
+import { gatePasswordLogin, SecondFactorUnavailableError } from './secondFactorGate.js';
 import type { RequestToken } from './sessionTokens.js';
 import {
   ADMIN_AUTH_COOKIE_NAME,
@@ -157,7 +158,7 @@ async function getAdminMatchingJwtIdentity(claims: {
  * One browser holds one session: a login made while the browser still carries a validly signed
  * session cookie ends that earlier session first.
  */
-async function endSessionInPresentedCookie(req: Request): Promise<void> {
+export async function endSessionInPresentedCookie(req: Request): Promise<void> {
   const cookieToken = readAuthCookie(req);
   if (cookieToken === null) {
     return;
@@ -184,7 +185,7 @@ passport.use(
       passwordField: 'password',
       passReqToCallback: true,
     },
-    async (req, email, password, done) => {
+    async (_req, email, password, done) => {
       try {
         if (!password) {
           return done(null, false, { message: 'Password missing.' });
@@ -204,15 +205,7 @@ passport.use(
           return done(null, false, { message: 'Invalid credentials.' });
         }
 
-        await endSessionInPresentedCookie(req);
-        const { sessionIdText } = await startAdminSession({
-          adminAccountId: identity.id,
-          clientType: 'web',
-          deviceLabel: deviceLabelFromUserAgent(req.get('user-agent')),
-          withRefreshToken: false,
-        });
-
-        return done(null, { ...identity, session_id_text: sessionIdText });
+        return done(null, { ...identity, session_id_text: '' });
       } catch (error) {
         return done(error);
       }
@@ -222,36 +215,77 @@ passport.use(
 
 export const initializePassport = () => passport.initialize();
 
-/** Web login: the password check starts a web session, carried in the `pv_mgmt_auth` cookie. */
+export async function completeManagementWebLogin(
+  req: Request,
+  res: Response,
+  admin: { id: number; id_text: string },
+  extras?: { backupCodes: string[] }
+): Promise<void> {
+  await endSessionInPresentedCookie(req);
+  const { sessionIdText } = await startAdminSession({
+    adminAccountId: admin.id,
+    clientType: 'web',
+    deviceLabel: deviceLabelFromUserAgent(req.get('user-agent')),
+    withRefreshToken: false,
+  });
+  const token = signWebSessionToken({
+    adminId: admin.id,
+    adminIdText: admin.id_text,
+    sessionIdText,
+  });
+  setAuthCookie(res, token);
+  const response: { message: string; token?: string; backupCodes?: string[] } = {
+    message: 'Authenticated successfully',
+  };
+  if (extras !== undefined) {
+    response.backupCodes = extras.backupCodes;
+  }
+  const body: unknown = req.body;
+  const includeToken =
+    typeof body === 'object' &&
+    body !== null &&
+    Reflect.get(body, 'includeTokenInResponseBody') === true;
+  if (config.auth.allowTokenInResponseBody && includeToken) {
+    response.token = token;
+  }
+  res.json(response);
+}
+
+/** Web login: a correct password starts a session only when no second-factor step remains. */
 export const authenticate = (req: Request, res: Response, next: NextFunction) => {
   passport.authenticate(
     'local',
     { session: false },
     (err: Error | null, user: Express.User | false, info: { message: string } | undefined) => {
       if (err) {
-        return next(err);
+        next(err);
+        return;
       }
       if (!user) {
-        return res.status(401).json({ message: info?.message || 'Unauthorized' });
+        res.status(401).json({ message: info?.message || 'Unauthorized' });
+        return;
       }
 
-      const token = signWebSessionToken({
-        adminId: user.id,
-        adminIdText: user.id_text,
-        sessionIdText: user.session_id_text,
-      });
-
-      setAuthCookie(res, token);
-
-      const response: { message: string; token?: string } = {
-        message: 'Authenticated successfully',
-      };
-      const body = req.body as { includeTokenInResponseBody?: unknown } | undefined;
-      if (config.auth.allowTokenInResponseBody && Boolean(body?.includeTokenInResponseBody)) {
-        response.token = token;
-      }
-
-      return res.json(response);
+      void (async () => {
+        try {
+          const step = await gatePasswordLogin({
+            ownerId: user.id,
+            client: 'web',
+            deviceLabel: deviceLabelFromUserAgent(req.get('user-agent')),
+          });
+          if (step !== null) {
+            res.json(step);
+            return;
+          }
+          await completeManagementWebLogin(req, res, { id: user.id, id_text: user.id_text });
+        } catch (error) {
+          if (error instanceof SecondFactorUnavailableError) {
+            res.status(503).json({ message: 'Second factor is unavailable' });
+            return;
+          }
+          next(error);
+        }
+      })();
     }
   )(req, res, next);
 };
@@ -408,13 +442,32 @@ export const issueMobileToken = async (req: Request, res: Response): Promise<voi
     return;
   }
 
+  const deviceLabel = deviceLabelForMobile({
+    bodyLabel: body?.device_label,
+    platformHeader: req.get(BILLING_CLIENT_PLATFORM_HEADER),
+  });
+  try {
+    const step = await gatePasswordLogin({
+      ownerId: admin.id,
+      client: 'mobile',
+      deviceLabel,
+    });
+    if (step !== null) {
+      res.json(step);
+      return;
+    }
+  } catch (error) {
+    if (error instanceof SecondFactorUnavailableError) {
+      res.status(503).json({ message: 'Second factor is unavailable' });
+      return;
+    }
+    throw error;
+  }
+
   const { sessionIdText, refreshTokenId } = await startAdminSession({
     adminAccountId: admin.id,
     clientType: 'mobile',
-    deviceLabel: deviceLabelForMobile({
-      bodyLabel: body?.device_label,
-      platformHeader: req.get(BILLING_CLIENT_PLATFORM_HEADER),
-    }),
+    deviceLabel,
     withRefreshToken: true,
   });
   if (refreshTokenId === null) {

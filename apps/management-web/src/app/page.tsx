@@ -5,6 +5,7 @@ import { useTranslations } from 'next-intl';
 import type { FormEvent } from 'react';
 import { Suspense, useEffect, useState } from 'react';
 
+import { isSecondFactorLoginStep } from '@podverse/helpers';
 import type { AuthSessionEndedNotice } from '@podverse/helpers/authSessionNotice';
 import {
   Alert,
@@ -12,6 +13,7 @@ import {
   AuthCardHeader,
   Button,
   CenterContainer,
+  FormInfoMessageText,
   StackForm,
   TextInput,
 } from '@podverse/ui';
@@ -22,7 +24,14 @@ import {
   isAuthSessionEndedNotice,
   sessionEndedNoticeMessageKey,
 } from '../lib/auth/sessionEndedNotice';
-import { getManagementAuthResult, login } from '../lib/requests/auth';
+import {
+  getManagementAuthResult,
+  login,
+  secondFactorCode,
+  secondFactorEmail,
+  secondFactorSetup,
+  secondFactorSetupConfirm,
+} from '../lib/requests/auth';
 import { ROUTES } from '../lib/routes';
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -62,6 +71,14 @@ function LoginPage() {
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [factorCode, setFactorCode] = useState('');
+  const [factorNotice, setFactorNotice] = useState<string | null>(null);
+  const [factor, setFactor] = useState<
+    | { kind: 'code'; challengeToken: string }
+    | { kind: 'setup'; setupToken: string; qrDataUrl: string; manualKey: string }
+    | { kind: 'backup'; codes: string[] }
+    | null
+  >(null);
   const [loading, setLoading] = useState(false);
   const [checkingAuth, setCheckingAuth] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -97,7 +114,50 @@ function LoginPage() {
     setError(null);
 
     try {
-      await login({ email, password });
+      if (factor?.kind === 'backup') {
+        router.push(ROUTES.DASHBOARD);
+        return;
+      }
+      if (factor?.kind === 'code' || factor?.kind === 'setup') {
+        const confirmed =
+          factor.kind === 'code'
+            ? await secondFactorCode({ challengeToken: factor.challengeToken, code: factorCode })
+            : await secondFactorSetupConfirm({ setupToken: factor.setupToken, code: factorCode });
+        if (confirmed.challenge === 'expired') {
+          setFactor(null);
+          setFactorNotice(t('secondFactorExpired'));
+          return;
+        }
+        if (factor.kind === 'setup' && Array.isArray(confirmed.backupCodes)) {
+          setFactor({ kind: 'backup', codes: confirmed.backupCodes });
+          return;
+        }
+        router.push(ROUTES.DASHBOARD);
+        return;
+      }
+      const result = await login({ email, password });
+      if (isSecondFactorLoginStep(result)) {
+        if (result.step === 'code') {
+          setFactor({ kind: 'code', challengeToken: result.challengeToken });
+          setFactorCode('');
+          return;
+        }
+        const started = await secondFactorSetup({ setupToken: result.setupToken });
+        if (
+          typeof started.setupToken === 'string' &&
+          typeof started.qrDataUrl === 'string' &&
+          typeof started.manualKey === 'string'
+        ) {
+          setFactor({
+            kind: 'setup',
+            setupToken: started.setupToken,
+            qrDataUrl: started.qrDataUrl,
+            manualKey: started.manualKey,
+          });
+          setFactorNotice(t('secondFactorRequired'));
+        }
+        return;
+      }
       router.push(ROUTES.DASHBOARD);
     } catch (err: unknown) {
       setError(loginFailureMessage(err, t('invalidCredentialsDefault')));
@@ -129,7 +189,18 @@ function LoginPage() {
 
         <StackForm onSubmit={handleSubmit}>
           <Alert>{error}</Alert>
-
+          {factorNotice !== null ? <FormInfoMessageText message={factorNotice} /> : null}
+          {factor?.kind === 'setup' ? (
+            <>
+              <img alt="" src={factor.qrDataUrl} />
+              <p id="second-factor-manual-key">{factor.manualKey}</p>
+            </>
+          ) : null}
+          {factor?.kind === 'backup' ? (
+            <p id="second-factor-backup-codes">{factor.codes.join('\n')}</p>
+          ) : null}
+          {factor === null ? (
+            <>
           <TextInput
             id="email"
             eyebrow={t('usernameOrEmail')}
@@ -149,6 +220,32 @@ function LoginPage() {
             required
             disabled={loading}
           />
+            </>
+          ) : null}
+          {factor?.kind === 'code' || factor?.kind === 'setup' ? (
+            <TextInput
+              id="second-factor-code"
+              eyebrow={t('secondFactorCode')}
+              type="text"
+              value={factorCode}
+              onChange={(e) => setFactorCode(e.target.value)}
+              disabled={loading}
+            />
+          ) : null}
+          {factor?.kind === 'code' ? (
+            <Button
+              id="second-factor-email"
+              type="button"
+              variant="link"
+              onClick={() => {
+                void secondFactorEmail({ challengeToken: factor.challengeToken }).then(() => {
+                  setFactorNotice(t('secondFactorEmailSent'));
+                });
+              }}
+            >
+              {t('secondFactorEmail')}
+            </Button>
+          ) : null}
 
           <Button block type="submit" disabled={loading}>
             {loading ? t('signingIn') : t('signIn')}

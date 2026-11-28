@@ -2,11 +2,14 @@
 
 import { resolveAdminSessionRetentionDays } from '@management-api/lib/auth/adminSessionPurge.js';
 
+import type { SecondFactorMode } from '@podverse/helpers';
 import {
   DEFAULT_AUTH_ACCESS_TOKEN_EXPIRATION,
   DEFAULT_AUTH_SESSION_IDLE_EXPIRATION,
   DEFAULT_SET_PASSWORD_EXPIRATION,
+  isSecondFactorMode,
   MS_PER_SECOND,
+  parseCountPerWindowEnvFromKey,
   readOptionalPositiveExpirationEnv,
 } from '@podverse/helpers';
 import type { BillingProcessorEnv, CatalogConfig } from '@podverse/helpers-config';
@@ -18,6 +21,20 @@ type Config = {
   nodeEnv: string;
   userAgent: string;
   brandName: string;
+  secondFactor: {
+    mode: () => SecondFactorMode;
+    keyHex: () => string;
+    emailPerAccountHour: () => number;
+    emailPerAccountDay: () => number;
+    emailPerIpHour: () => number;
+  };
+  mailer: {
+    host: string;
+    port: string;
+    username: string;
+    password: string;
+    from: string;
+  };
   log: {
     level: string;
     dir: string;
@@ -112,6 +129,46 @@ export const config: Config = {
   nodeEnv: process.env.NODE_ENV!,
   userAgent: process.env.USER_AGENT!,
   brandName: process.env.BRAND_NAME!,
+  secondFactor: {
+    mode(): SecondFactorMode {
+      const value = process.env.MANAGEMENT_AUTH_SECOND_FACTOR_MODE;
+      if (!isSecondFactorMode(value)) {
+        throw new Error('MANAGEMENT_AUTH_SECOND_FACTOR_MODE must be optional or required');
+      }
+      return value;
+    },
+    keyHex(): string {
+      return process.env.MANAGEMENT_AUTH_SECOND_FACTOR_KEY ?? '';
+    },
+    emailPerAccountHour(): number {
+      return parseCountPerWindowEnvFromKey({
+        envValue: process.env.MANAGEMENT_AUTH_SECOND_FACTOR_EMAIL_MAX_PER_HOUR,
+        key: 'MANAGEMENT_AUTH_SECOND_FACTOR_EMAIL_MAX_PER_HOUR',
+        defaultMax: 3,
+      }).max;
+    },
+    emailPerAccountDay(): number {
+      return parseCountPerWindowEnvFromKey({
+        envValue: process.env.MANAGEMENT_AUTH_SECOND_FACTOR_EMAIL_MAX_PER_DAY,
+        key: 'MANAGEMENT_AUTH_SECOND_FACTOR_EMAIL_MAX_PER_DAY',
+        defaultMax: 5,
+      }).max;
+    },
+    emailPerIpHour(): number {
+      return parseCountPerWindowEnvFromKey({
+        envValue: process.env.MANAGEMENT_AUTH_SECOND_FACTOR_EMAIL_IP_MAX_PER_HOUR,
+        key: 'MANAGEMENT_AUTH_SECOND_FACTOR_EMAIL_IP_MAX_PER_HOUR',
+        defaultMax: 5,
+      }).max;
+    },
+  },
+  mailer: {
+    host: process.env.MAILER_HOST ?? '',
+    port: process.env.MAILER_PORT ?? '',
+    username: process.env.MAILER_USERNAME ?? '',
+    password: process.env.MAILER_PASSWORD ?? '',
+    from: process.env.MAILER_FROM ?? '',
+  },
   log: {
     level: process.env.LOG_LEVEL!,
     dir: process.env.LOG_DIR ?? '',

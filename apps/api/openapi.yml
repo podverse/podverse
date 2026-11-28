@@ -418,8 +418,30 @@ components:
         token:
           type: string
           format: jwt
-          description: JWT token (only present if includeTokenInResponseBody was true)
+          description: JWT token (only present if includeTokenInResponseBody was true and no second-factor step is required)
           example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+        step:
+          type: string
+          enum:
+            - setup
+            - code
+          description: Present when sign-in must finish an authenticator setup or a code before a session starts
+        setupToken:
+          type: string
+        challengeToken:
+          type: string
+        backupCodes:
+          type: array
+          items:
+            type: string
+        qrDataUrl:
+          type: string
+        manualKey:
+          type: string
+        challenge:
+          type: string
+          enum:
+            - expired
     AuthLogoutResponse:
       type: object
       properties:
@@ -13044,10 +13066,11 @@ paths:
         - auth
       summary: POST /auth/login
       description: >
-        Public endpoint. Checks the credentials, starts a web session, and sets the `jwt` cookie
-        (cookieAuth). When the browser already carries a session cookie, that earlier session is
-        ended first, so one browser holds one session. The JSON includes `token` only when
-        AUTH_ALLOW_TOKEN_IN_RESPONSE_BODY is true and the request sets includeTokenInResponseBody.
+        Public endpoint. Checks the credentials. A session starts, and the `jwt` cookie is set,
+        only when no second-factor step is required. When the browser already carries a session
+        cookie, that earlier session is ended first, so one browser holds one session. The JSON
+        includes `token` only when AUTH_ALLOW_TOKEN_IN_RESPONSE_BODY is true and the request sets
+        includeTokenInResponseBody.
       security: []
       requestBody:
         required: true
