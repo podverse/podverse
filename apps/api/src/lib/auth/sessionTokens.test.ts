@@ -18,7 +18,9 @@ const identity = { accountId: 7, accountIdText: ACCOUNT_ID_TEXT, sessionIdText: 
 
 describe('signed session tokens', () => {
   it('a web token classifies as an access session and not as a refresh session', () => {
-    const decoded = verifySessionJwt(signWebSessionToken(identity));
+    const token = signWebSessionToken(identity);
+    expect(jwt.decode(token, { complete: true })?.header.alg).toBe('HS256');
+    const decoded = verifySessionJwt(token);
 
     expect(classifyAccessJwt(decoded)).toEqual({
       kind: 'session',
@@ -34,6 +36,8 @@ describe('signed session tokens', () => {
 
   it('a mobile pair carries the session in both tokens and the refresh id in the refresh token', () => {
     const pair = signMobileTokenPair({ ...identity, refreshTokenId: 'raw-refresh-id' });
+    expect(jwt.decode(pair.access_token, { complete: true })?.header.alg).toBe('HS256');
+    expect(jwt.decode(pair.refresh_token, { complete: true })?.header.alg).toBe('HS256');
     const access = verifySessionJwt(pair.access_token);
     const refresh = verifySessionJwt(pair.refresh_token);
 
@@ -71,6 +75,15 @@ describe('signed session tokens', () => {
       { expiresIn: -10 }
     );
     expect(verifySessionJwt(expired)).toBeNull();
+  });
+
+  it('rejects a token signed with a method other than HS256', () => {
+    const otherMethod = jwt.sign(
+      { id: 7, id_text: ACCOUNT_ID_TEXT, sid: SESSION_ID_TEXT, token_use: 'web' },
+      JWT_SECRET,
+      { algorithm: 'HS384' }
+    );
+    expect(verifySessionJwt(otherMethod)).toBeNull();
   });
 });
 

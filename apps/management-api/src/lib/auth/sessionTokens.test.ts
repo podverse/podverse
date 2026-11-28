@@ -20,7 +20,9 @@ const rejected = { kind: 'rejected' };
 
 describe('signed admin session tokens', () => {
   it('a web token names the session, carries no scope, and classifies only as access', () => {
-    const decoded = verifySessionJwt(signWebSessionToken(identity));
+    const token = signWebSessionToken(identity);
+    expect(jwt.decode(token, { complete: true })?.header.alg).toBe('HS256');
+    const decoded = verifySessionJwt(token);
 
     expect(decoded).not.toHaveProperty('scope');
     expect(classifyAccessJwt(decoded)).toEqual({
@@ -37,6 +39,8 @@ describe('signed admin session tokens', () => {
 
   it('a mobile pair carries the session and the mobile scope in both tokens', () => {
     const pair = signMobileTokenPair({ ...identity, refreshTokenId: 'raw-refresh-id' });
+    expect(jwt.decode(pair.access_token, { complete: true })?.header.alg).toBe('HS256');
+    expect(jwt.decode(pair.refresh_token, { complete: true })?.header.alg).toBe('HS256');
     const access = verifySessionJwt(pair.access_token);
     const refresh = verifySessionJwt(pair.refresh_token);
 
@@ -79,6 +83,15 @@ describe('signed admin session tokens', () => {
     expect(verifySessionJwt('not-a-jwt')).toBeNull();
     expect(verifySessionJwt(expired)).toBeNull();
     expect(classifyAccessJwt(verifySessionJwt(forged))).toEqual(rejected);
+  });
+
+  it('rejects a token signed with a method other than HS256', () => {
+    const otherMethod = jwt.sign(
+      { id: 7, id_text: ADMIN_ID_TEXT, sid: SESSION_ID_TEXT, token_use: 'web' },
+      JWT_SECRET,
+      { algorithm: 'HS384' }
+    );
+    expect(verifySessionJwt(otherMethod)).toBeNull();
   });
 });
 

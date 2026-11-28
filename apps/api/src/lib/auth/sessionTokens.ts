@@ -13,6 +13,9 @@ import { isValidNanoIdV2IdText } from '@podverse/orm';
 const MOBILE_TOKEN_SCOPE = 'podverse_app_mobile';
 const BEARER_HEADER_PATTERN = /^Bearer\s+(\S+)$/i;
 
+/** Session tokens are HMAC-SHA256. Sign and verify both name this method. */
+const SESSION_JWT_ALGORITHM = 'HS256' as const;
+
 /** `api_key` is a Bearer value with the key prefix; it never goes through JWT verification. */
 export type RequestToken = { token: string; source: 'cookie' | 'bearer' | 'api_key' };
 
@@ -46,7 +49,7 @@ export function signWebSessionToken(identity: SessionTokenIdentity): string {
       token_use: 'web',
     },
     config.auth.jwtSecret,
-    { expiresIn: config.auth.sessionIdleExpiration }
+    { algorithm: SESSION_JWT_ALGORITHM, expiresIn: config.auth.sessionIdleExpiration }
   );
 }
 
@@ -69,7 +72,7 @@ export function signMobileTokenPair(
       token_use: 'access',
     },
     config.auth.jwtSecret,
-    { expiresIn: accessExpiresIn }
+    { algorithm: SESSION_JWT_ALGORITHM, expiresIn: accessExpiresIn }
   );
 
   const refreshToken = jwt.sign(
@@ -82,7 +85,7 @@ export function signMobileTokenPair(
       token_use: 'refresh',
     },
     config.auth.jwtSecret,
-    { expiresIn: refreshExpiresIn }
+    { algorithm: SESSION_JWT_ALGORITHM, expiresIn: refreshExpiresIn }
   );
 
   return {
@@ -121,10 +124,10 @@ export function readRequestToken(req: {
   return { token: bearerToken, source: hasApiKeyTokenPrefix(bearerToken) ? 'api_key' : 'bearer' };
 }
 
-/** The decoded payload when the signature and expiry check out; null otherwise. */
+/** The decoded payload when the HMAC-SHA256 signature and expiry check out; null otherwise. */
 export function verifySessionJwt(token: string): unknown {
   try {
-    return jwt.verify(token, config.auth.jwtSecret);
+    return jwt.verify(token, config.auth.jwtSecret, { algorithms: [SESSION_JWT_ALGORITHM] });
   } catch {
     return null;
   }
