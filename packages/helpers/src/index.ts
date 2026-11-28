@@ -1,4 +1,5 @@
 export * from './dtos/index.js';
+export * from './dtos/config/publicClientConfig.js';
 
 export * from './lib/accountSession.js';
 export * from './lib/apiKey.js';
@@ -139,6 +140,8 @@ export * from './lib/popularityListen.js';
 export * from './lib/termsAcceptance.js';
 export * from './lib/copyMarkdown.js';
 export * from './lib/playlist.js';
+export * from './lib/playlistTag.js';
+export * from './lib/playlistTagLine.js';
 export * from './lib/primitives.js';
 export * from './lib/parserMaxFeedBodyBytes.js';
 export type { PremiumBillingCadence } from './lib/premiumBillingCadence.js';

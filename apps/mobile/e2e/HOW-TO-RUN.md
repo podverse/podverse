@@ -272,6 +272,7 @@ npm run mobile:e2e:test -- --platform ios playback-multi-device-handoff
 npm run mobile:e2e:test -- --platform ios playback-offline-reconciliation
 npm run mobile:e2e:test -- --platform ios playback-resume-on-relaunch
 npm run mobile:e2e:test -- --platform ios player-screen
+npm run mobile:e2e:test -- --platform ios playlist-detail-tags
 npm run mobile:e2e:test -- --platform ios podcast-episode
 npm run mobile:e2e:test -- --platform ios push
 npm run mobile:e2e:test -- --platform ios queue-add
@@ -350,6 +351,7 @@ npm run mobile:e2e:test -- --platform android playback-multi-device-handoff
 npm run mobile:e2e:test -- --platform android playback-offline-reconciliation
 npm run mobile:e2e:test -- --platform android playback-resume-on-relaunch
 npm run mobile:e2e:test -- --platform android player-screen
+npm run mobile:e2e:test -- --platform android playlist-detail-tags
 npm run mobile:e2e:test -- --platform android podcast-episode
 npm run mobile:e2e:test -- --platform android push
 npm run mobile:e2e:test -- --platform android queue-add
@@ -481,6 +483,7 @@ npm run mobile:e2e:test -- home
 npm run mobile:e2e:test -- identity-remap
 npm run mobile:e2e:test -- history-screen
 npm run mobile:e2e:test -- library-playlists
+npm run mobile:e2e:test -- playlist-detail-tags
 npm run mobile:e2e:test -- membership-checkout
 npm run mobile:e2e:test -- notifications-inbox
 npm run mobile:e2e:test -- offline-mode

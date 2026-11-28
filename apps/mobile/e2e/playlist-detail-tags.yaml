@@ -1,0 +1,35 @@
+appId: com.podverse.app.next
+name: Playlist Detail Tags
+---
+# Public playlist tags on the detail card. Signed out. Needs the E2E API.
+
+- runFlow: shared/launch-and-connect.yaml
+
+- openLink: podverse-next://playlist/e2eEmbPlList01
+- runFlow: shared/confirm-ios-open-dialog.yaml
+- extendedWaitUntil:
+    visible:
+      id: library-playlist-detail-screen
+    timeout: ${TIMEOUT_SLOWEST}
+- assertVisible: "Playlist (audio)"
+- assertVisible:
+    id: library-playlist-detail-tags
+- assertVisible:
+    id: library-playlist-detail-tags-tag-0
+- assertVisible: "adam curry"
+- assertVisible:
+    id: library-playlist-detail-tags-tag-1
+- assertVisible: "podcasting"
+- assertNotVisible:
+    id: library-playlist-detail-tags-tag-0-remove
+- takeScreenshot: playlist-detail-tags
+
+- openLink: podverse-next://playlist/e2eEmbPlMix01
+- runFlow: shared/confirm-ios-open-dialog.yaml
+- extendedWaitUntil:
+    visible:
+      text: "Playlist (mixed)"
+    timeout: ${TIMEOUT_SLOW}
+- assertNotVisible:
+    id: library-playlist-detail-tags
+- takeScreenshot: playlist-detail-no-tags

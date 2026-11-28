@@ -106,6 +106,8 @@ export const EMBED_FIXTURE_ALBUM_LIST_VIDEO_ID_TEXT = 'e2eEmbAlbVid01';
 export const EMBED_FIXTURE_ALBUM_VIDEO_TRACK_ID_TEXT = 'e2eEmbAlbTrk01';
 
 export const EMBED_FIXTURE_PLAYLIST_ID_TEXT = 'e2eEmbPlList01';
+export const EMBED_FIXTURE_PLAYLIST_TAG_ADAM = 'adam curry';
+export const EMBED_FIXTURE_PLAYLIST_TAG_PODCASTING = 'podcasting';
 export const EMBED_FIXTURE_PLAYLIST_MIXED_ID_TEXT = 'e2eEmbPlMix01';
 
 export const EMBED_FIXTURE_VIDEO_CHANNEL_ID_TEXT = 'e2eEmbedVidCh01';

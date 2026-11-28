@@ -69,4 +69,24 @@ describe('playlistToJson', () => {
       sharable_status_id: 1,
     });
   });
+
+  it('keeps a tags array, including an empty one', () => {
+    expect(playlistToJson({ id: 1, id_text: 'pl1', tags: [] })).toEqual({
+      id: 1,
+      id_text: 'pl1',
+      tags: [],
+    });
+    expect(playlistToJson({ id: 1, id_text: 'pl1', tags: ['morning'] })).toEqual({
+      id: 1,
+      id_text: 'pl1',
+      tags: ['morning'],
+    });
+  });
+
+  it('omits tags when the field is unset', () => {
+    expect(playlistToJson({ id: 1, id_text: 'pl1', tags: undefined })).toEqual({
+      id: 1,
+      id_text: 'pl1',
+    });
+  });
 });

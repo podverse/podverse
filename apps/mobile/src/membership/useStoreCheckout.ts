@@ -8,7 +8,6 @@ import { deriveMembershipState } from '@podverse/helpers';
 
 import { useAuth } from '../auth/AuthProvider';
 import type { AuthRequestDeps } from '../auth/authRequestWithRefresh';
-import { createMobileApiRequestService } from '../auth/mobileApi';
 import { createBillingApi } from '../billing/billingApi';
 import type {
   BillingClient,
@@ -17,6 +16,7 @@ import type {
 } from '../billing/BillingClient';
 import { createBillingClient } from '../billing/createBillingClient';
 import { accountWithBillingStatus } from '../billing/purchaseStanding';
+import { loadPublicClientConfig } from '../config/publicClientConfig';
 import { accountRepository } from '../data/repositories/accountRepository';
 import type { MoreStackParamList } from '../navigation';
 import { MORE_STACK_ROUTES } from '../navigation';
@@ -174,11 +174,7 @@ export const useStoreCheckout = (): UseStoreCheckoutResult => {
 
     const load = async () => {
       setLoading(true);
-      const pricingApi = createMobileApiRequestService();
-      const pricingRequest =
-        pricingApi === null
-          ? Promise.resolve(null)
-          : pricingApi.reqProductMembershipGet().catch(() => null);
+      const pricingRequest = loadPublicClientConfig();
       try {
         if (client.backend !== 'unavailable') {
           await client.syncUnfinishedTransactions().catch(() => undefined);
@@ -212,18 +208,18 @@ export const useStoreCheckout = (): UseStoreCheckoutResult => {
         } catch {
           nextStatus = null;
         }
-        const pricingResponse = await pricingRequest;
+        const publicConfig = await pricingRequest;
         if (!active) {
           return;
         }
         const nextCatalog =
-          pricingResponse !== null && 'data' in pricingResponse
-            ? {
-                annuallySavingsPercent: pricingResponse.data.annuallySavingsPercent,
-                costAnnually: pricingResponse.data.premiumMembershipCostAnnually,
-                costMonthly: pricingResponse.data.premiumMembershipCostMonthly,
-              }
-            : null;
+          publicConfig === null
+            ? null
+            : {
+                annuallySavingsPercent: publicConfig.membership.annuallySavingsPercent,
+                costAnnually: publicConfig.membership.premiumMembershipCostAnnually,
+                costMonthly: publicConfig.membership.premiumMembershipCostMonthly,
+              };
         const catalogReady =
           nextCatalog !== null &&
           Number.isFinite(nextCatalog.costMonthly) &&

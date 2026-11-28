@@ -9,6 +9,7 @@ import type { FindOptionsRelations, FindOptionsSelect } from 'typeorm';
 export const PUBLIC_PLAYLIST_LIST_SELECT: FindOptionsSelect<Playlist> = {
   id: true,
   id_text: true,
+  sharable_status_id: true,
   title: true,
   description: true,
   is_default_likes: true,

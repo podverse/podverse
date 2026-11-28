@@ -10,6 +10,7 @@ import {
   normalizeChannelRows,
   normalizeClipRows,
 } from '../home/homeFeedData';
+import { browsePlaylistListParams } from './browsePlaylistQuery';
 import type { BrowseMediaType, BrowseRangeOption, BrowseSortOption } from './browseTypes';
 import { browseSortToApiRange, isBrowseCategoryMediaType } from './browseTypes';
 
@@ -21,6 +22,8 @@ export type BrowseFeedOptions = {
   q?: string;
   range: BrowseRangeOption;
   sort: BrowseSortOption;
+  /** Applied playlist tag. Other media types pass null and the request ignores it. */
+  tag: string | null;
 };
 
 export type BrowseFeedResult =
@@ -82,7 +85,7 @@ const itemMedium = (mediaType: BrowseMediaType): QueryParamsMedium => {
  * response, before mapping, because livestream mapping drops stale rows from a full page.
  *
  * Playlists and users stay as their DTOs so the catalog rows can show item count, description,
- * creator, and bio. Those types have no artwork.
+ * creator, and bio. Those types have no artwork. Playlists include the applied tag when one is set.
  */
 export const fetchBrowseFeedRows = async (
   mediaType: BrowseMediaType,
@@ -102,13 +105,14 @@ export const fetchBrowseFeedRows = async (
 
   if (mediaType === 'playlists') {
     const response = await requestWithMobileAuthRefresh(authDeps, async (api) =>
-      api.reqPlaylistGetMany({
-        medium: 'all',
-        page: options.page,
-        range,
-        sort,
-        type: 'public',
-      })
+      api.reqPlaylistGetMany(
+        browsePlaylistListParams({
+          page: options.page,
+          range: options.range,
+          sort,
+          tag: options.tag,
+        })
+      )
     );
     return browseFeedPage({ kind: 'playlists', playlists: response.data }, response);
   }
@@ -208,4 +212,18 @@ export const fetchBrowseFeedRows = async (
     },
     response
   );
+};
+
+/**
+ * Tag names that match `query` on public playlists.
+ * The caller skips an empty query. A failed request throws.
+ */
+export const searchBrowsePlaylistTags = async (
+  authDeps: BrowseFeedAuthDeps,
+  query: string
+): Promise<string[]> => {
+  const response = await requestWithMobileAuthRefresh(authDeps, async (api) =>
+    api.reqPlaylistTagSearch(query)
+  );
+  return response.data;
 };

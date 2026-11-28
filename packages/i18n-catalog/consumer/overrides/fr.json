@@ -201,6 +201,13 @@
       "add_to_liked": "",
       "remove_from_liked": "",
       "no_playlists_found": "",
+      "tags": "",
+      "tag_placeholder": "",
+      "tag_suggestions": "",
+      "clear_tag_text": "",
+      "remove_tag": "",
+      "tag_searching": "",
+      "tag_limit": "",
       "login_prompt": ""
     },
     "clip": {
@@ -725,6 +732,15 @@
       "subscribed": "",
       "category": ""
     },
+    "tag": {
+      "tag": "",
+      "placeholder": "",
+      "suggestions": "",
+      "searching": "",
+      "too_long": "",
+      "selected": "",
+      "clear_text": ""
+    },
     "sort": {
       "recent": "",
       "oldest": "",
@@ -739,6 +755,14 @@
       "week": "",
       "month": "",
       "all_time": ""
+    },
+    "playlist_tag": {
+      "label": "",
+      "placeholder": "",
+      "suggestions": "",
+      "clear_text": "",
+      "clear": "",
+      "selected": ""
     },
     "list": {
       "title_label": "",

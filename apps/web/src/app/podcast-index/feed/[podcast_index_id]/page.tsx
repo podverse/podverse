@@ -3,6 +3,7 @@ import { notFound } from 'next/navigation';
 
 import { primaryBlockReasonForUi } from '@podverse/helpers';
 
+import { getConfigResolved } from '../../../../config/loadPublicClientConfig.server';
 import { buildContentMetadata } from '../../../../lib/seo/buildContentMetadata';
 import {
   getChannelByPodcastIndexIdForSeoPage,
@@ -47,11 +48,13 @@ export async function generateMetadata({ params }: PodcastIndexFeedPageProps): P
         ? getChannelPathByMedium(ssrChannel.medium_id, ssrChannel.id_text)
         : null;
 
+    const brandName = (await getConfigResolved()).public.brand.name;
     return buildContentMetadata({
       title: ssrFeed.title,
       descriptionPlain,
       pathname: redirectPath || `/podcast-index/feed/${podcast_index_id}`,
       imageUrl: getPodcastIndexFeedHeroImageUrl(ssrFeed),
+      brandName,
     });
   } catch {
     return {};

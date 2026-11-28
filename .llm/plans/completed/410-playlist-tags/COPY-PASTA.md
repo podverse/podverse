@@ -58,7 +58,7 @@ Prompts 10, 20, 30, and 60 run at once. 10 owns the tag tables and the name help
 AutocompleteDropdown. 30 owns the phone tag field. 60 owns the playlists-page type and medium
 defaults.
 
-- [ ] **10 — Playlist tag storage**
+- [x] **10 — Playlist tag storage**
 
 **Cursor model:** Cursor Grok 4.7 · **Reasoning:** extra high
 
@@ -74,7 +74,7 @@ under "## Release notes entry".
 Do not run tests.
 ```
 
-- [ ] **20 — Autocomplete dropdown**
+- [x] **20 — Autocomplete dropdown**
 
 **Cursor model:** Cursor Grok 4.7 · **Reasoning:** high
 
@@ -89,7 +89,7 @@ Your release scratchpad is none. The "## Release notes entry" section is the wor
 Do not run tests.
 ```
 
-- [ ] **30 — Mobile tag field**
+- [x] **30 — Mobile tag field**
 
 **Cursor model:** Cursor Grok 4.7 · **Reasoning:** high
 
@@ -103,7 +103,7 @@ Your release scratchpad is none. The "## Release notes entry" section is the wor
 Do not run tests.
 ```
 
-- [ ] **60 — Playlists page type and medium defaults**
+- [x] **60 — Playlists page type and medium defaults**
 
 **Cursor model:** Cursor Grok 4.7 · **Reasoning:** high
 
@@ -124,7 +124,7 @@ Do not run tests.
 Prompts 11 and 21 run at once. 11 owns playlist read and write and the API tag limits. 21 owns
 TagField.
 
-- [ ] **11 — Playlist tags on read and write**
+- [x] **11 — Playlist tags on read and write**
 
 **Cursor model:** Cursor Grok 4.7 · **Reasoning:** extra high
 
@@ -142,7 +142,7 @@ under "## Release notes entry".
 Do not run tests.
 ```
 
-- [ ] **21 — Tag field**
+- [x] **21 — Tag field**
 
 **Cursor model:** Cursor Grok 4.7 · **Reasoning:** high
 
@@ -161,7 +161,7 @@ Do not run tests.
 
 Prompts 12 and 90 run at once. 12 owns tag-name search. 90 owns the web playlist page chips.
 
-- [ ] **12 — Playlist tag autocomplete search**
+- [x] **12 — Playlist tag autocomplete search**
 
 **Cursor model:** Cursor Grok 4.7 · **Reasoning:** extra high
 
@@ -178,7 +178,7 @@ under "## Release notes entry".
 Do not run tests.
 ```
 
-- [ ] **90 — Tag chips on the web playlist page**
+- [x] **90 — Tag chips on the web playlist page**
 
 **Cursor model:** Cursor Grok 4.7 · **Reasoning:** high
 
@@ -199,7 +199,7 @@ Do not run tests.
 Prompts 13, 80, and 91 run at once. 13 owns the public tag query. 80 owns the row tag line.
 91 owns the phone playlist detail chips.
 
-- [ ] **13 — Public playlist list tag filter**
+- [x] **13 — Public playlist list tag filter**
 
 **Cursor model:** Cursor Grok 4.7 · **Reasoning:** extra high
 
@@ -216,7 +216,7 @@ under "## Release notes entry".
 Do not run tests.
 ```
 
-- [ ] **80 — Playlist list row tag line**
+- [x] **80 — Playlist list row tag line**
 
 **Cursor model:** Cursor Grok 4.7 · **Reasoning:** high
 
@@ -235,7 +235,7 @@ under "## Release notes entry".
 Do not run tests.
 ```
 
-- [ ] **91 — Tag chips on the phone playlist detail screen**
+- [x] **91 — Tag chips on the phone playlist detail screen**
 
 **Cursor model:** Cursor Grok 4.7 · **Reasoning:** high
 
@@ -254,7 +254,7 @@ Do not run tests.
 
 Prompts 100 and 70 run at once. 100 owns GET /config. 70 owns the Browse playlists tag filter.
 
-- [ ] **100 — Public client config route**
+- [x] **100 — Public client config route**
 
 **Cursor model:** Cursor Grok 4.7 · **Reasoning:** extra high
 
@@ -273,7 +273,7 @@ Your release scratchpad is none. The "## Release notes entry" section is the wor
 Do not run tests.
 ```
 
-- [ ] **70 — Mobile Browse playlists tag filter**
+- [x] **70 — Mobile Browse playlists tag filter**
 
 **Cursor model:** Cursor Grok 4.7 · **Reasoning:** high
 
@@ -295,7 +295,7 @@ Do not run tests.
 Prompts 101, 102, and 61 run at once. 101 owns the web config readers. 102 owns the phone
 config readers. 61 owns the web public tag filter.
 
-- [ ] **101 — Web reads public client config**
+- [x] **101 — Web reads public client config**
 
 **Cursor model:** Cursor Grok 4.7 · **Reasoning:** high
 
@@ -310,7 +310,7 @@ Your release scratchpad is none. The "## Release notes entry" section is the wor
 Do not run tests.
 ```
 
-- [ ] **102 — Mobile reads public client config**
+- [x] **102 — Mobile reads public client config**
 
 **Cursor model:** Cursor Grok 4.7 · **Reasoning:** high
 
@@ -324,7 +324,7 @@ Your release scratchpad is none. The "## Release notes entry" section is the wor
 Do not run tests.
 ```
 
-- [ ] **61 — Public playlist tag filter**
+- [x] **61 — Public playlist tag filter**
 
 **Cursor model:** Cursor Grok 4.7 · **Reasoning:** high
 
@@ -347,7 +347,7 @@ Do not run tests.
 Prompts 103 and 40 run at once. 103 owns removal of public GET /product/membership. 40 owns
 web playlist create and edit.
 
-- [ ] **103 — Remove public membership GET**
+- [x] **103 — Remove public membership GET**
 
 **Cursor model:** Cursor Grok 4.7 · **Reasoning:** extra high
 
@@ -364,7 +364,7 @@ Your release scratchpad is none. The "## Release notes entry" section is the wor
 Do not run tests.
 ```
 
-- [ ] **40 — Web playlist create and edit tags**
+- [x] **40 — Web playlist create and edit tags**
 
 **Cursor model:** Cursor Grok 4.7 · **Reasoning:** high
 
@@ -387,7 +387,7 @@ Do not run tests.
 Prompts 104 and 50 run at once. 104 owns docs, local env, and GitOps. 50 owns phone playlist
 create and edit.
 
-- [ ] **104 — Record public client config in docs, local env, and GitOps**
+- [x] **104 — Record public client config in docs, local env, and GitOps**
 
 **Cursor model:** Cursor Grok 4.7 · **Reasoning:** high
 
@@ -406,7 +406,7 @@ under "## Release notes entry".
 Do not run tests.
 ```
 
-- [ ] **50 — Mobile playlist form tags**
+- [x] **50 — Mobile playlist form tags**
 
 **Cursor model:** Cursor Grok 4.7 · **Reasoning:** high
 
@@ -426,7 +426,7 @@ Do not run tests.
 
 ## Phase 9
 
-- [ ] **Close — Archive, reply, and verify**
+- [x] **Close — Archive, reply, and verify**
 
 **Cursor model:** Cursor Grok 4.7 · **Reasoning:** low
 

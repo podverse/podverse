@@ -3,6 +3,7 @@ import { notFound } from 'next/navigation';
 
 import { buildOfficialClipPath } from '@podverse/helpers';
 
+import { getConfigResolved } from '../../../config/loadPublicClientConfig.server';
 import { buildContentMetadata } from '../../../lib/seo/buildContentMetadata';
 import {
   getChannelForSeoPage,
@@ -33,12 +34,14 @@ export async function generateMetadata({ params }: OfficialClipPageProps): Promi
       toSeoPlainText(item.item_description?.value || item.title)
     );
 
+    const brandName = (await getConfigResolved()).public.brand.name;
     return buildContentMetadata({
       title: itemSoundbite.title || item.title,
       descriptionPlain,
       pathname: buildOfficialClipPath(itemSoundbite.id_text),
       imageUrl: getItemThenChannelHeroImageUrl(item.item_images, channel.channel_images),
       type: 'article',
+      brandName,
     });
   } catch {
     return {};

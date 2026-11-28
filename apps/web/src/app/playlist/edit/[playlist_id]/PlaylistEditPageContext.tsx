@@ -18,6 +18,8 @@ interface PlaylistEditPageContextType {
   setTitle: (title: string) => void;
   description: string;
   setDescription: (description: string) => void;
+  tags: string[];
+  setTags: (tags: string[]) => void;
   isUpdating: boolean;
   setIsUpdating: (isUpdating: boolean) => void;
   isLoading: boolean;
@@ -42,6 +44,7 @@ export const PlaylistEditPageContextProvider = ({
   const [sharableStatus, setSharableStatus] = useState<string>(`${ssrPlaylist.sharable_status_id}`);
   const [title, setTitle] = useState<string>(ssrPlaylist.title || '');
   const [description, setDescription] = useState<string>(ssrPlaylist.description || '');
+  const [tags, setTags] = useState<string[]>(ssrPlaylist.tags ?? []);
   const [isUpdating, setIsUpdating] = useState<boolean>(false);
   const [playlistResources, setPlaylistResources] = useState<DTOPlaylistResource[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -74,6 +77,8 @@ export const PlaylistEditPageContextProvider = ({
         setTitle,
         description,
         setDescription,
+        tags,
+        setTags,
         sharableStatus,
         setSharableStatus,
         isUpdating,

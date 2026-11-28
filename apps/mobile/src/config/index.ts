@@ -20,6 +20,7 @@ import {
 } from './env';
 import type { MobileApiConnection } from './parseApiConnection';
 import { parseMobileApiConnection } from './parseApiConnection';
+import { getPublicClientConfigSnapshot } from './publicClientConfig';
 import { assertMobileApiEnvOrWarn } from './validateMobileEnv';
 
 export type { MobileApiConnection } from './parseApiConnection';
@@ -68,6 +69,8 @@ export const getBuiltInMobileApiBaseUrl = (): string | null => selectMobileApiBa
  * Outside `src/config/`, import `getMobileConfig()` — do not read `process.env.EXPO_PUBLIC_*`.
  * A saved custom API address replaces `api` until Reset. `webBaseUrl` stays on the build.
  * `customApiBaseUrl` and `customApiWebOrigin` follow the saved override.
+ * `accountSignupMode` and `contactEmail` follow the public client config snapshot when one
+ * is set, and the build's env values when it is not.
  */
 const mobileListScreens = (): ListScreenDefaults => {
   const env = getMobileListScreenEnv();
@@ -92,8 +95,13 @@ export const getMobileConfig = (): MobileConfig => {
   const webBaseUrl = getMobilePublicWebBaseUrlFromEnv();
   const customApiBaseUrl = readCustomApiBaseUrlOverride();
   const customApiWebOrigin = readCustomApiWebOrigin();
-  const contactEmail = getMobileContactEmailFromEnv();
-  const accountSignupMode = getMobileAccountSignupModeFromEnv();
+  const publicClientConfig = getPublicClientConfigSnapshot();
+  const contactEmail =
+    publicClientConfig === null ? getMobileContactEmailFromEnv() : publicClientConfig.contactEmail;
+  const accountSignupMode =
+    publicClientConfig === null
+      ? getMobileAccountSignupModeFromEnv()
+      : publicClientConfig.signupMode;
   const alby = getMobileAlbyConfigFromEnv();
 
   const shared = {

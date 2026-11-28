@@ -99,6 +99,11 @@ vi.mock('@podverse/orm', async (importOriginal) => {
     getManyByAccountIdTextAndCount = clipGetManyAndCountMock;
   }
 
+  class MockPlaylistTagService {
+    loadTagNamesByPlaylistIdText = vi.fn(async () => new Map<string, string[]>());
+    replaceForPlaylist = vi.fn(async () => undefined);
+  }
+
   return {
     ...actual,
     CategoryService: MockCategoryService,
@@ -106,6 +111,7 @@ vi.mock('@podverse/orm', async (importOriginal) => {
     AccountFollowingChannelService: MockAccountFollowingChannelService,
     PlaylistService: MockPlaylistService,
     ClipService: MockClipService,
+    PlaylistTagService: MockPlaylistTagService,
   };
 });
 

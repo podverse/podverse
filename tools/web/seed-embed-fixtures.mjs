@@ -27,6 +27,8 @@ import {
   EMBED_FIXTURE_MUSIC_TRACK_VIDEO_ID_TEXT,
   EMBED_FIXTURE_PLAYLIST_ID_TEXT,
   EMBED_FIXTURE_PLAYLIST_MIXED_ID_TEXT,
+  EMBED_FIXTURE_PLAYLIST_TAG_ADAM,
+  EMBED_FIXTURE_PLAYLIST_TAG_PODCASTING,
   EMBED_FIXTURE_PODCAST_CHANNEL_ID_TEXT,
   EMBED_FIXTURE_PODCAST_EPISODE_AUDIO_ID_TEXT,
   EMBED_FIXTURE_PODCAST_EPISODE_NEAR_END_ID_TEXT,
@@ -1163,6 +1165,23 @@ export async function seedEmbedFixtures(client, options) {
     [EMBED_FIXTURE_PLAYLIST_ID_TEXT, accountId, EMBED_SAMPLE_PLAYLIST_PUBLIC_TITLE]
   );
   const publicPlaylistId = publicPlaylistResult.rows[0].id;
+
+  await client.query(`INSERT INTO playlist_tag (name) VALUES ($1) ON CONFLICT (name) DO NOTHING`, [
+    EMBED_FIXTURE_PLAYLIST_TAG_ADAM,
+  ]);
+  await client.query(`INSERT INTO playlist_tag (name) VALUES ($1) ON CONFLICT (name) DO NOTHING`, [
+    EMBED_FIXTURE_PLAYLIST_TAG_PODCASTING,
+  ]);
+  await client.query(
+    `INSERT INTO playlist_tag_assignment (playlist_id, playlist_tag_id, list_position)
+     SELECT $1, id, $2 FROM playlist_tag WHERE name = $3`,
+    [publicPlaylistId, 1, EMBED_FIXTURE_PLAYLIST_TAG_ADAM]
+  );
+  await client.query(
+    `INSERT INTO playlist_tag_assignment (playlist_id, playlist_tag_id, list_position)
+     SELECT $1, id, $2 FROM playlist_tag WHERE name = $3`,
+    [publicPlaylistId, 2, EMBED_FIXTURE_PLAYLIST_TAG_PODCASTING]
+  );
 
   await client.query(
     `INSERT INTO playlist_resource (playlist_id, list_position, item_id)

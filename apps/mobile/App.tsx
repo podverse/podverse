@@ -19,6 +19,7 @@ import {
   hydrateCustomApiEndpoint,
   refreshSavedCustomApiWebOrigin,
 } from './src/config/customApiEndpoint';
+import { loadPublicClientConfig } from './src/config/publicClientConfig';
 import { AutoQueueProvider } from './src/contexts/AutoQueueProvider';
 import { QueuesProvider } from './src/contexts/QueuesProvider';
 import { initializeDatabase } from './src/data/db';
@@ -310,6 +311,20 @@ function AppBody({ onConsumePendingDeepLink, pendingDeepLinkUrl }: AppBodyProps)
   >('anonymous');
   const [signUpLimitAccepted, setSignUpLimitAccepted] = useState(false);
   const [authModalAnimation, setAuthModalAnimation] = useState<'none' | 'slide'>('slide');
+  // Bumped when public client config settles so this tree reads signup, contact, and brand.
+  const [, setPublicClientConfigGeneration] = useState(0);
+
+  useEffect(() => {
+    let active = true;
+    void loadPublicClientConfig().then(() => {
+      if (active) {
+        setPublicClientConfigGeneration((generation) => generation + 1);
+      }
+    });
+    return () => {
+      active = false;
+    };
+  }, []);
 
   useEffect(() => {
     if (status === 'authenticated') {

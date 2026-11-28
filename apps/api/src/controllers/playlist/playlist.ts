@@ -1,3 +1,4 @@
+import { config } from '@api/config/index.js';
 import { normalizeAddByRSSResourceData } from '@api/lib/addByRSSResourceData.js';
 import {
   ensureAuthenticated,
@@ -11,12 +12,17 @@ import {
   playlistsToJson,
   playlistToJson,
 } from '@api/lib/playlistApiSerialization.js';
+import type { PlaylistTagVisibilityRow } from '@api/lib/playlistTags.js';
+import { applyPlaylistTags } from '@api/lib/playlistTags.js';
 import { resolveSharableStatusId } from '@api/lib/resolveSharableStatusId.js';
 import { getStatsOrder } from '@api/lib/stats.js';
 import {
   mediumPageQuerySchema,
   mediumPageRangeQuerySchema,
   playlistIdTextParamSchema,
+  playlistPublicRecentQuerySchema,
+  playlistPublicTopQuerySchema,
+  playlistTagSearchQuerySchema,
   validateBodyObject,
   validateParamsObject,
   validateQueryObject,
@@ -29,8 +35,12 @@ import {
   getAddByRSSHashIdsForResourceData,
   getQueueMediumIdFromType,
   MediumEnum,
+  normalizePlaylistTagList,
+  normalizePlaylistTagName,
   pageLookaheadTake,
   PLAYLIST_LIKES_MEMBERSHIP_MAX_IDS,
+  playlistTagCountLimitMessage,
+  playlistTagNameLengthLimitMessage,
   QUERY_PARAMS_QUEUE_MEDIUMS,
   resolvePageLookahead,
   SharableStatusEnum,
@@ -50,6 +60,7 @@ import {
   ItemService,
   PlaylistResourceService,
   PlaylistService,
+  PlaylistTagService,
   StatsPopularityPlaylistService,
 } from '@podverse/orm';
 
@@ -57,6 +68,102 @@ import { handleGenericErrorResponse } from '../helpers/error.js';
 import { getPaginationParams } from '../helpers/pagination.js';
 
 const playlistService = new PlaylistService();
+const playlistTagService = new PlaylistTagService();
+
+function playlistTagLimits(): { maxCount: number; maxLength: number } {
+  return {
+    maxCount: config.playlistTags.maxPerPlaylist,
+    maxLength: config.playlistTags.nameMaxLength,
+  };
+}
+
+/** The query string when it folds to a name, or null when the list should not filter. */
+function publicListTagArgument(tag: unknown): string | null {
+  if (typeof tag !== 'string') {
+    return null;
+  }
+  const normalized = normalizePlaylistTagName(tag);
+  if (!normalized.ok) {
+    return null;
+  }
+  return tag;
+}
+
+function playlistTagsField() {
+  const limits = playlistTagLimits();
+  return Joi.array()
+    .items(
+      Joi.string()
+        .allow('')
+        .max(limits.maxLength)
+        .messages({
+          'string.max': playlistTagNameLengthLimitMessage(limits.maxLength),
+        })
+    )
+    .max(limits.maxCount)
+    .messages({
+      'array.max': playlistTagCountLimitMessage(limits.maxCount),
+    })
+    .optional();
+}
+
+function rejectInvalidPlaylistTags(res: Response, rawTags: readonly string[]): boolean {
+  const limits = playlistTagLimits();
+  const normalized = normalizePlaylistTagList(rawTags, limits);
+  if (normalized.ok) {
+    return false;
+  }
+  const message =
+    normalized.reason === 'too_many'
+      ? playlistTagCountLimitMessage(limits.maxCount)
+      : playlistTagNameLengthLimitMessage(limits.maxLength);
+  res.status(400).json({ message });
+  return true;
+}
+
+/**
+ * Own-playlist lists are already limited to the signed-in account. Those rows often have no
+ * `account.id_text`, and a private playlist without that id drops `tags`. The id is attached
+ * for the visibility check and removed again so the response does not gain an account object.
+ */
+async function applyOwnedPlaylistTags(
+  playlists: PlaylistTagVisibilityRow[],
+  ownerIdTextValue: string
+): Promise<void> {
+  const stamped: PlaylistTagVisibilityRow[] = [];
+  for (const playlist of playlists) {
+    const existingIdText = playlist.account?.id_text;
+    if (typeof existingIdText === 'string' && existingIdText.length > 0) {
+      continue;
+    }
+    if (playlist.account === undefined || playlist.account === null) {
+      playlist.account = { id_text: ownerIdTextValue };
+      stamped.push(playlist);
+    }
+  }
+
+  try {
+    await applyPlaylistTags(playlists, ownerIdTextValue);
+  } finally {
+    for (const playlist of stamped) {
+      playlist.account = undefined;
+    }
+  }
+}
+
+async function playlistIdForTagReplace(
+  playlist: { id?: number },
+  playlistIdText: string
+): Promise<number | null> {
+  if (typeof playlist.id === 'number') {
+    return playlist.id;
+  }
+  const row = await playlistService.getByIdText(playlistIdText);
+  if (row === null || typeof row.id !== 'number') {
+    return null;
+  }
+  return row.id;
+}
 
 function preparePlaylistForJson(playlist: Playlist): PlaylistApiJson {
   return playlistToJson(playlist);
@@ -164,22 +271,28 @@ class PlaylistController {
             .valid(...QUERY_PARAMS_QUEUE_MEDIUMS)
             .required(),
           sharable_status_id: Joi.number().min(1).required(),
+          tags: playlistTagsField(),
         });
 
         validateBodyObject(schema, req, res, async () => {
           const account = getAuthenticatedUser(req);
 
-          const { title, description, medium, sharable_status_id } = req.body as {
+          const { title, description, medium, sharable_status_id, tags } = req.body as {
             title: string;
             description: string;
             medium: QueryParamsQueueMedium;
             sharable_status_id: number;
+            tags?: string[];
           };
 
           const medium_id = getQueueMediumIdFromType(medium);
 
           if (!medium_id) {
             res.status(400).json({ message: 'Invalid medium type' });
+            return;
+          }
+
+          if (tags !== undefined && rejectInvalidPlaylistTags(res, tags)) {
             return;
           }
 
@@ -192,11 +305,20 @@ class PlaylistController {
 
           try {
             const created = await playlistService.create(account.id, dto);
+            if (tags !== undefined) {
+              const playlistId = await playlistIdForTagReplace(created, created.id_text);
+              if (playlistId === null) {
+                res.status(404).json({ message: 'Playlist not found' });
+                return;
+              }
+              await playlistTagService.replaceForPlaylist(playlistId, tags, playlistTagLimits());
+            }
             const playlist = await loadOwnerPlaylistForResponse(account.id_text, created.id_text);
             if (playlist === null) {
               res.status(404).json({ message: 'Playlist not found' });
               return;
             }
+            await applyPlaylistTags([playlist], account.id_text);
             res.status(201).json(preparePlaylistForJson(playlist));
           } catch (err) {
             handleGenericErrorResponse(res, err);
@@ -218,17 +340,23 @@ class PlaylistController {
               title: Joi.string().allow(null, ''),
               description: Joi.string().allow(null, ''),
               sharable_status_id: Joi.number().min(1).required(),
+              tags: playlistTagsField(),
             });
 
             validateBodyObject(schema, req, res, async () => {
               const account = getAuthenticatedUser(req);
               const playlist_id_text = getParamRequired(req, 'playlist_id_text');
 
-              const { title, description, sharable_status_id } = req.body as {
+              const { title, description, sharable_status_id, tags } = req.body as {
                 title: string;
                 description: string;
                 sharable_status_id: number;
+                tags?: string[];
               };
+
+              if (tags !== undefined && rejectInvalidPlaylistTags(res, tags)) {
+                return;
+              }
 
               const dto = {
                 title,
@@ -237,7 +365,19 @@ class PlaylistController {
               };
 
               try {
-                await playlistService.update(account.id, playlist_id_text, dto);
+                const updated = await playlistService.update(account.id, playlist_id_text, dto);
+                if (tags !== undefined) {
+                  const playlistId = await playlistIdForTagReplace(updated, playlist_id_text);
+                  if (playlistId === null) {
+                    res.status(404).json({ message: 'Playlist not found' });
+                    return;
+                  }
+                  await playlistTagService.replaceForPlaylist(
+                    playlistId,
+                    tags,
+                    playlistTagLimits()
+                  );
+                }
                 const playlist = await loadOwnerPlaylistForResponse(
                   account.id_text,
                   playlist_id_text
@@ -246,6 +386,7 @@ class PlaylistController {
                   res.status(404).json({ message: 'Playlist not found' });
                   return;
                 }
+                await applyPlaylistTags([playlist], account.id_text);
                 res.status(200).json(preparePlaylistForJson(playlist));
               } catch (err) {
                 handleGenericErrorResponse(res, err);
@@ -282,11 +423,12 @@ class PlaylistController {
   }
 
   static async getManyPublicTop(req: Request, res: Response): Promise<void> {
-    validateQueryObject(Joi.object(mediumPageRangeQuerySchema), req, res, async () => {
+    validateQueryObject(Joi.object(playlistPublicTopQuerySchema), req, res, async () => {
       try {
-        const { medium, range } = req.query as {
+        const { medium, range, tag } = req.query as {
           medium: QueryParamsQueueMedium;
           range: QueryParamsStatsRange;
+          tag?: string;
         };
         const { page, limit, offset } = getPaginationParams(req);
 
@@ -300,12 +442,14 @@ class PlaylistController {
         const statsResults = await PlaylistController.statsPopularityPlaylistService.getManyPublic(
           config,
           medium,
-          order
+          order,
+          publicListTagArgument(tag)
         );
         const playlists = statsResults
           .map((stat: { playlist: Playlist }) => stat.playlist)
           .filter(Boolean);
         const lookahead = resolvePageLookahead(playlists, limit, offset);
+        await applyPlaylistTags(lookahead.rows, null);
 
         const response: ApiListResponse<PlaylistApiJson> = {
           data: preparePlaylistsForJson(lookahead.rows),
@@ -318,20 +462,38 @@ class PlaylistController {
     });
   }
 
-  static async getManyPublicRecent(req: Request, res: Response): Promise<void> {
-    validateQueryObject(Joi.object(mediumPageQuerySchema), req, res, async () => {
+  static async searchPlaylistTags(req: Request, res: Response): Promise<void> {
+    validateQueryObject(Joi.object(playlistTagSearchQuerySchema), req, res, async () => {
       try {
-        const { medium } = req.query as {
+        const { q } = req.query as { q: string };
+        const data = await playlistTagService.searchVisiblePrefix(q);
+        res.status(200).json({ data });
+      } catch (err) {
+        handleGenericErrorResponse(res, err);
+      }
+    });
+  }
+
+  static async getManyPublicRecent(req: Request, res: Response): Promise<void> {
+    validateQueryObject(Joi.object(playlistPublicRecentQuerySchema), req, res, async () => {
+      try {
+        const { medium, tag } = req.query as {
           medium: QueryParamsQueueMedium;
+          tag?: string;
         };
         const { page, limit, offset } = getPaginationParams(req);
 
-        const playlists = await playlistService.getManyPublicForList(medium, {
-          order: { last_updated: 'DESC', id_text: 'ASC' },
-          skip: offset,
-          take: pageLookaheadTake(limit),
-        });
+        const playlists = await playlistService.getManyPublicForList(
+          medium,
+          {
+            order: { last_updated: 'DESC', id_text: 'ASC' },
+            skip: offset,
+            take: pageLookaheadTake(limit),
+          },
+          publicListTagArgument(tag)
+        );
         const lookahead = resolvePageLookahead(playlists, limit, offset);
+        await applyPlaylistTags(lookahead.rows, null);
         const response: ApiListResponse<PlaylistApiJson> = {
           data: preparePlaylistsForJson(lookahead.rows),
           meta: { page, count: lookahead.count, limit },
@@ -372,9 +534,11 @@ class PlaylistController {
                 account.id,
                 medium
               );
-            const data = preparePlaylistsForJson(
-              statsResults[0].map((stat: { playlist: Playlist }) => stat.playlist).filter(Boolean)
-            );
+            const privateTopPlaylists = statsResults[0]
+              .map((stat: { playlist: Playlist }) => stat.playlist)
+              .filter(Boolean);
+            await applyOwnedPlaylistTags(privateTopPlaylists, account.id_text);
+            const data = preparePlaylistsForJson(privateTopPlaylists);
             const count = statsResults[1];
 
             const response: ApiListResponse<PlaylistApiJson> = {
@@ -412,6 +576,7 @@ class PlaylistController {
             };
 
             const results = await playlistService.getManyPrivate(account.id, medium, config);
+            await applyOwnedPlaylistTags(results[0], account.id_text);
 
             const response: ApiListResponse<PlaylistApiJson> = {
               data: preparePlaylistsForJson(results[0]),
@@ -448,6 +613,7 @@ class PlaylistController {
             };
 
             const results = await playlistService.getManyPrivate(account.id, medium, config);
+            await applyOwnedPlaylistTags(results[0], account.id_text);
 
             const response: ApiListResponse<PlaylistApiJson> = {
               data: preparePlaylistsForJson(results[0]),
@@ -484,6 +650,7 @@ class PlaylistController {
             };
 
             const results = await playlistService.getManyPrivate(account.id, medium, config);
+            await applyOwnedPlaylistTags(results[0], account.id_text);
 
             const response: ApiListResponse<PlaylistApiJson> = {
               data: preparePlaylistsForJson(results[0]),
@@ -528,9 +695,11 @@ class PlaylistController {
               config
             );
 
-          const playlists = preparePlaylistsForJson(
-            statsResults[0].map((stat: { playlist: Playlist }) => stat.playlist).filter(Boolean)
-          );
+          const followedTopPlaylists = statsResults[0]
+            .map((stat: { playlist: Playlist }) => stat.playlist)
+            .filter(Boolean);
+          await applyPlaylistTags(followedTopPlaylists, jwtUser.id_text);
+          const playlists = preparePlaylistsForJson(followedTopPlaylists);
           const count = statsResults[1];
 
           const response: ApiListResponse<PlaylistApiJson> = {
@@ -570,14 +739,14 @@ class PlaylistController {
               medium,
               config
             );
-          const playlists = preparePlaylistsForJson(
-            results[0]
-              .map(
-                (account_following_playlist: { playlist: Playlist }) =>
-                  account_following_playlist.playlist
-              )
-              .filter(Boolean)
-          );
+          const followedRecentPlaylists = results[0]
+            .map(
+              (account_following_playlist: { playlist: Playlist }) =>
+                account_following_playlist.playlist
+            )
+            .filter(Boolean);
+          await applyPlaylistTags(followedRecentPlaylists, jwtUser.id_text);
+          const playlists = preparePlaylistsForJson(followedRecentPlaylists);
           const count = results[1];
 
           const response: ApiListResponse<PlaylistApiJson> = {
@@ -617,14 +786,14 @@ class PlaylistController {
               medium,
               config
             );
-          const playlists = preparePlaylistsForJson(
-            results[0]
-              .map(
-                (account_following_playlist: { playlist: Playlist }) =>
-                  account_following_playlist.playlist
-              )
-              .filter(Boolean)
-          );
+          const followedOldestPlaylists = results[0]
+            .map(
+              (account_following_playlist: { playlist: Playlist }) =>
+                account_following_playlist.playlist
+            )
+            .filter(Boolean);
+          await applyPlaylistTags(followedOldestPlaylists, jwtUser.id_text);
+          const playlists = preparePlaylistsForJson(followedOldestPlaylists);
           const count = results[1];
 
           const response: ApiListResponse<PlaylistApiJson> = {
@@ -664,14 +833,14 @@ class PlaylistController {
               medium,
               config
             );
-          const playlists = preparePlaylistsForJson(
-            results[0]
-              .map(
-                (account_following_playlist: { playlist: Playlist }) =>
-                  account_following_playlist.playlist
-              )
-              .filter(Boolean)
-          );
+          const followedAzPlaylists = results[0]
+            .map(
+              (account_following_playlist: { playlist: Playlist }) =>
+                account_following_playlist.playlist
+            )
+            .filter(Boolean);
+          await applyPlaylistTags(followedAzPlaylists, jwtUser.id_text);
+          const playlists = preparePlaylistsForJson(followedAzPlaylists);
           const count = results[1];
 
           const response: ApiListResponse<PlaylistApiJson> = {
@@ -694,6 +863,7 @@ class PlaylistController {
           const account = getAuthenticatedUser(req);
           const includeResources = req.query['include_resources'] !== '0';
           const likes = await playlistService.getAllLikesPrivate(account.id, includeResources);
+          await applyOwnedPlaylistTags(likes, account.id_text);
           res.status(200).json(likes);
         } catch (err) {
           handleGenericErrorResponse(res, err);
@@ -918,7 +1088,9 @@ class PlaylistController {
                 return;
               }
 
-              res.status(200).json(preparePlaylistForJson(omitAccountNumericId(playlist)));
+              const visiblePlaylist = omitAccountNumericId(playlist);
+              await applyPlaylistTags([visiblePlaylist], account?.id_text ?? null);
+              res.status(200).json(preparePlaylistForJson(visiblePlaylist));
             } catch (err) {
               handleGenericErrorResponse(res, err);
             }

@@ -1,0 +1,28 @@
+.wrapper {
+  display: inline-flex;
+  flex: none;
+  position: relative;
+}
+
+.face {
+  align-items: center;
+  display: inline-flex;
+  gap: var(--spacing-xs);
+}
+
+.clear {
+  color: var(--text-color-secondary);
+  padding: var(--spacing-xs);
+}
+
+.clearIcon {
+  display: block;
+  font-size: var(--font-size-sm);
+}
+
+// The chip row clips overflow, so the editor is portaled and fixed to the chip's bottom-left.
+.panel {
+  position: fixed;
+  width: 16rem;
+  z-index: 1000;
+}

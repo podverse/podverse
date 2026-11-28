@@ -5,6 +5,7 @@ import { notFound } from 'next/navigation';
 import { buildClipPath, isRemovedSource } from '@podverse/helpers';
 
 import { RemovedClipPage } from '../../../components/Clip/RemovedClipPage';
+import { getConfigResolved } from '../../../config/loadPublicClientConfig.server';
 import { CLIP_REMOVED_REQUEST_HEADER, isRemovedClipHttpError } from '../../../lib/clip/removedClip';
 import { buildContentMetadata } from '../../../lib/seo/buildContentMetadata';
 import { buildNoindexMetadata } from '../../../lib/seo/buildNoindexMetadata';
@@ -47,12 +48,14 @@ export async function generateMetadata({ params }: ClipPageProps): Promise<Metad
       toSeoPlainText(clip.description || item.item_description?.value || item.title)
     );
 
+    const brandName = (await getConfigResolved()).public.brand.name;
     return buildContentMetadata({
       title: clip.title || item.title,
       descriptionPlain,
       pathname: buildClipPath(clip.id_text),
       imageUrl: getItemThenChannelHeroImageUrl(item.item_images, channel.channel_images),
       type: 'article',
+      brandName,
     });
   } catch (error) {
     if (isRemovedClipHttpError(error)) {

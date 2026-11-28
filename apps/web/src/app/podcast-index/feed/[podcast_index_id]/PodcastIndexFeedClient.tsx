@@ -7,7 +7,6 @@ import { MainColumnStack, MainSidebarLayout } from '@podverse/ui';
 
 import { MainWrapper } from '../../../../components/Main/MainWrapper';
 import { PodcastIndexFeedInfo } from '../../../../components/PodcastIndex/PodcastIndexFeedInfo';
-import { getContactEmail } from '../../../../constants/contact';
 import { useConfig } from '../../../../contexts/Config';
 import { PodcastIndexFeedHeader } from './PodcastIndexFeedHeader';
 
@@ -41,7 +40,7 @@ export function PodcastIndexFeedClient({
 }: PodcastIndexFeedClientProps) {
   const t = useTranslations('features.add_feed');
   const config = useConfig();
-  const contactEmail = getContactEmail();
+  const contactEmail = config.public.contact.email;
   const showBlockedBanner = blockedReasonForUi !== null;
 
   return (

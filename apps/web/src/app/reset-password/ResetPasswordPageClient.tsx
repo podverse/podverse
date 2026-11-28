@@ -9,7 +9,7 @@ import { MainColumnStack, MainHeader, MainSidebarLayout } from '@podverse/ui';
 
 import { AuthResetPasswordForm } from '../../components/Auth/AuthResetPasswordForm';
 import { MainWrapper } from '../../components/Main/MainWrapper';
-import { getConfig } from '../../config';
+import { useConfig } from '../../contexts/Config';
 
 type ResetPasswordPageClientProps = {
   token?: string;
@@ -19,7 +19,7 @@ export function ResetPasswordPageClient({ token }: ResetPasswordPageClientProps)
   const tAuthentication = useTranslations('authentication');
   const router = useRouter();
 
-  const config = getConfig();
+  const config = useConfig();
   const signupMode = config.public.account.signupMode;
   const capabilities = getAccountSignupModeCapabilities(signupMode);
 

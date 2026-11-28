@@ -13,6 +13,7 @@ import {
 } from '@podverse/helpers';
 
 import { useAuth } from '../../auth/AuthProvider';
+import { PlaylistTagField } from '../../components/form';
 import { Button, FillList, SwipeActionRow } from '../../components/primitives';
 import type { ReorderDropEvent } from '../../components/reorder/ReorderableSections';
 import { ReorderableSections } from '../../components/reorder/ReorderableSections';
@@ -37,6 +38,7 @@ import { HomeFeedRow } from '../home/HomeFeedRow';
 import type { QueueActionPosition } from '../home/useHomeRowPlayback';
 import { useHomeRowPlayback } from '../home/useHomeRowPlayback';
 
+const EMPTY_PLAYLIST_TAGS: readonly string[] = [];
 const FIRST_PAGE = 1;
 const ACTION_MOVE_DOWN = 'moveDown';
 const ACTION_MOVE_UP = 'moveUp';
@@ -240,6 +242,9 @@ export function PlaylistDetailScreen({ navigation, route }: PlaylistDetailScreen
         notice: {
           color: themeStyles.textSecondary.color,
           fontSize: 13,
+          marginTop: tokens.spacing.sm,
+        },
+        tags: {
           marginTop: tokens.spacing.sm,
         },
       }),
@@ -842,6 +847,7 @@ export function PlaylistDetailScreen({ navigation, route }: PlaylistDetailScreen
         })
       : null;
   const playlistTitle = playlist?.title ?? t('features.playlist.playlist');
+  const playlistTags = playlist?.tags ?? EMPTY_PLAYLIST_TAGS;
   const itemCount = playlist?.item_count ?? resourceRowCount;
   const canReorder = rowEntries.length > 1;
 
@@ -852,6 +858,15 @@ export function PlaylistDetailScreen({ navigation, route }: PlaylistDetailScreen
         <SectionCard heading={playlistTitle}>
           {playlist?.description ? (
             <Text style={styles.cardText}>{playlist.description}</Text>
+          ) : null}
+          {playlistTags.length > 0 ? (
+            <View style={styles.tags}>
+              <PlaylistTagField
+                editable={false}
+                tags={playlistTags}
+                testID="library-playlist-detail-tags"
+              />
+            </View>
           ) : null}
           <Text style={styles.cardText}>
             {t('features.playlist.item_count', {
@@ -926,6 +941,8 @@ export function PlaylistDetailScreen({ navigation, route }: PlaylistDetailScreen
       itemCount,
       mediumLabel,
       playlist?.description,
+      playlist?.tags,
+      playlistTags,
       playlistTitle,
       reorderErrorKey,
       reorderList,
@@ -934,6 +951,7 @@ export function PlaylistDetailScreen({ navigation, route }: PlaylistDetailScreen
       styles.headerActions,
       styles.heading,
       styles.notice,
+      styles.tags,
       t,
       updatedLabel,
     ]

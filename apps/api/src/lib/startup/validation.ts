@@ -11,6 +11,9 @@ import {
   isValidServerEnv,
   isValidUUID,
   parseOptionalNonNegativeInt,
+  PLAYLIST_TAG_MAX_PER_PLAYLIST,
+  PLAYLIST_TAG_MAX_PER_PLAYLIST_ENV_CEILING,
+  PLAYLIST_TAG_NAME_MAX_LENGTH,
   POPULARITY_DEFAULT_ALL_TIME_RECOUNT_DAYS,
   SERVER_ENV_VALUES,
 } from '@podverse/helpers';
@@ -130,6 +133,47 @@ const validateAllTimeRecountWithinRetention = (): ValidationResult => {
     category: 'Popularity',
   };
 };
+
+function validatePlaylistTagLimitEnv(
+  name: string,
+  fallback: number,
+  min: number,
+  max: number
+): ValidationResult {
+  const raw = process.env[name];
+  const trimmed = raw === undefined ? '' : raw.trim();
+  if (trimmed === '') {
+    return {
+      name,
+      isSet: false,
+      isValid: true,
+      isRequired: false,
+      message: `Use Default (${fallback})`,
+      category: 'Playlist tags',
+    };
+  }
+
+  const parsed = parseOptionalNonNegativeInt(trimmed);
+  if (parsed === undefined || parsed < min || parsed > max) {
+    return {
+      name,
+      isSet: true,
+      isValid: false,
+      isRequired: false,
+      message: `${name} must be an integer from ${min} through ${max}`,
+      category: 'Playlist tags',
+    };
+  }
+
+  return {
+    name,
+    isSet: true,
+    isValid: true,
+    isRequired: false,
+    message: `Set to ${parsed}`,
+    category: 'Playlist tags',
+  };
+}
 
 /** Required with no code fallback, and a whole number of milliseconds, since a timer reads it. */
 const validatePlaybackPresenceLeaveGraceMs = (): ValidationResult => {
@@ -367,6 +411,24 @@ const validateAllEnvironmentVariables = (): ValidationSummary => {
   );
   results.push(
     validateOptional('ACCOUNT_OPML_EXPORT_MAX_PER_HOUR', 'OPML Import', 'Use Default (10)')
+  );
+
+  // Playlist tags (optional; unset uses the helper constants)
+  results.push(
+    validatePlaylistTagLimitEnv(
+      'PLAYLIST_TAG_MAX_PER_PLAYLIST',
+      PLAYLIST_TAG_MAX_PER_PLAYLIST,
+      1,
+      PLAYLIST_TAG_MAX_PER_PLAYLIST_ENV_CEILING
+    )
+  );
+  results.push(
+    validatePlaylistTagLimitEnv(
+      'PLAYLIST_TAG_NAME_MAX_LENGTH',
+      PLAYLIST_TAG_NAME_MAX_LENGTH,
+      1,
+      PLAYLIST_TAG_NAME_MAX_LENGTH
+    )
   );
 
   // Account rate limits (optional)

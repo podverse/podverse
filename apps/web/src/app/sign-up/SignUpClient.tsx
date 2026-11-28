@@ -1,3 +1,5 @@
+'use client';
+
 import { useTranslations } from 'next-intl';
 
 import { MainColumnStack, MainHeader, MainSidebarLayout } from '@podverse/ui';
@@ -5,10 +7,10 @@ import { MainColumnStack, MainHeader, MainSidebarLayout } from '@podverse/ui';
 import { AuthContactOnlyMessage } from '../../components/Auth/AuthContactOnlyMessage';
 import { AuthSignUpForm } from '../../components/Auth/AuthSignUpForm';
 import { MainWrapper } from '../../components/Main/MainWrapper';
-import { getConfig } from '../../config';
+import { useConfig } from '../../contexts/Config';
 
 export function SignUpClient() {
-  const config = getConfig();
+  const config = useConfig();
   const tAuthentication = useTranslations('authentication');
   const signupMode = config.public.account.signupMode;
   const contactEmail = config.public.account.contactEmail;

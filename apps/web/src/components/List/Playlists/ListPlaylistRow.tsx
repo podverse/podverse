@@ -4,6 +4,7 @@ import { useTranslations } from 'next-intl';
 import React from 'react';
 
 import type { DTOPlaylist } from '@podverse/helpers';
+import { formatPlaylistTagLine } from '@podverse/helpers';
 
 import { ROUTES } from '../../../constants/routes';
 import { Link } from '../../Link/Link';
@@ -21,6 +22,7 @@ export const ListPlaylistRow: React.FC<Props> = ({ playlist, showCreator, onClic
   const tFeatures = useTranslations('features');
   const url = `${ROUTES.PLAYLIST}/${playlist.id_text}`;
   const creator = playlist?.account?.account_profile?.display_name || tMisc('anonymous');
+  const tagLine = formatPlaylistTagLine(playlist.tags);
 
   return (
     <Link href={!onClick ? url : undefined} className={styles.link} onClick={onClick}>
@@ -37,6 +39,11 @@ export const ListPlaylistRow: React.FC<Props> = ({ playlist, showCreator, onClic
             )}
           </div>
           {showCreator && <div className={styles.creator}>{creator}</div>}
+          {tagLine !== null ? (
+            <div className={styles.tags} data-testid={`playlist-row-tags-${playlist.id_text}`}>
+              {tagLine}
+            </div>
+          ) : null}
         </div>
       </div>
     </Link>

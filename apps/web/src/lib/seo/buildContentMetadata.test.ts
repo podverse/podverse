@@ -20,6 +20,7 @@ describe('buildContentMetadata', () => {
       descriptionPlain: 'A deterministic channel for regression checks.',
       pathname: '/podcast/e2ePodChnl001',
       imageUrl: 'https://img.example/podcast.png',
+      brandName: 'Podverse',
     });
 
     expect(metadata).toMatchObject({

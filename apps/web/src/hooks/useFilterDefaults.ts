@@ -11,7 +11,15 @@ import {
  * The controls a global list remembers. Page number is absent on purpose: where someone had got to
  * in a list is not a preference, and restoring it would open the list somewhere they did not choose.
  */
-const PERSISTED_PARAMS = ['type', 'sort', 'range', 'category', 'medium', 'liveItemType'] as const;
+const PERSISTED_PARAMS = [
+  'type',
+  'sort',
+  'range',
+  'category',
+  'medium',
+  'liveItemType',
+  'tag',
+] as const;
 
 const toRecord = (value: object): Record<string, unknown> =>
   Object.fromEntries(Object.entries(value));

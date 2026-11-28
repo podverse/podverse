@@ -4,6 +4,7 @@ import { z } from 'zod';
 import { buildArtistPath } from '@podverse/helpers';
 import { QUERY_PARAMS_CHANNEL_MUSIC_ARTIST_TYPE_VALUES } from '@podverse/helpers-requests';
 
+import { getConfigResolved } from '../../../config/loadPublicClientConfig.server';
 import { loadChannelItemList } from '../../../lib/channel/loadChannelItemList';
 import { buildContentMetadata } from '../../../lib/seo/buildContentMetadata';
 import {
@@ -53,11 +54,13 @@ export async function generateMetadata({
       toSeoPlainText(channel.channel_description?.value || channel.title)
     );
 
+    const brandName = (await getConfigResolved()).public.brand.name;
     return buildContentMetadata({
       title: channel.title,
       descriptionPlain,
       pathname: buildArtistPath(channel.id_text),
       imageUrl: getChannelHeroImageUrl(channel.channel_images),
+      brandName,
     });
   } catch {
     return {};

@@ -1,4 +1,4 @@
-import { getConfig } from '../../config';
+import { getConfigResolved } from '../../config/loadPublicClientConfig.server';
 import { getSSRApiRequestService } from '../../factories/apiRequestService';
 import { buildNoindexMetadata } from '../../lib/seo/buildNoindexMetadata';
 import { CheckoutPageClient } from './CheckoutPageClient';
@@ -19,7 +19,7 @@ export async function generateMetadata() {
 }
 
 export default async function CheckoutPage() {
-  const config = getConfig();
+  const config = await getConfigResolved();
   const ssrApiRequestService = getSSRApiRequestService();
   const signupMode = config.public.account.signupMode;
   const isContactOnlyMode = signupMode !== 'user_signup_email';

@@ -333,6 +333,7 @@ export default defineConfig({
       'src/screens/home/homeItemMerge.test.ts',
       'src/screens/home/homeItemRowActions.test.ts',
       'src/screens/home/addByRssHomeDetailData.test.ts',
+      'src/screens/library/playlistFormTags.test.ts',
       'src/screens/artist/artistDetailSections.test.ts',
       'src/screens/artist/artistUnsubscribeTargets.test.ts',
       'src/screens/episode/episodeSectionPaneLoaders.test.ts',

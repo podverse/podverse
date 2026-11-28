@@ -1,4 +1,5 @@
 @use '../../../mixins/lineClamp' as *;
+@use '../../../mixins/ellipsis' as *;
 
 .link {
   text-decoration: none !important;
@@ -22,6 +23,9 @@
   display: flex;
   flex-direction: column;
   align-items: flex-start;
+  flex: 1 1 auto;
+  width: 100%;
+  @include ellipsisSingleLineParent;
 }
 
 .title {
@@ -44,4 +48,13 @@
   font-weight: var(--font-weight-medium);
   color: var(--text-color-link);
   margin-top: var(--spacing-sm);
+}
+
+.tags {
+  @include ellipsisSingleLineChild;
+  width: 100%;
+  margin-top: var(--spacing-sm);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-light);
+  color: var(--text-color-secondary);
 }

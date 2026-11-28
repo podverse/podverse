@@ -51,7 +51,7 @@ import {
 } from './browseCategories';
 import { BrowseCategoryRow } from './BrowseCategoryRow';
 import type { BrowseFeedResult } from './browseFeedData';
-import { emptyBrowseFeed, fetchBrowseFeedRows } from './browseFeedData';
+import { emptyBrowseFeed, fetchBrowseFeedRows, searchBrowsePlaylistTags } from './browseFeedData';
 import { appendBrowseFeedPage } from './browseFeedPages';
 import type { BrowseListPrefs } from './browseListPrefs';
 import {
@@ -60,11 +60,13 @@ import {
   subscribeBrowseListPrefs,
   writeBrowseCategory,
   writeBrowseMediaType,
+  writeBrowsePlaylistTag,
   writeBrowseRange,
   writeBrowseSort,
   writeBrowseViewMode,
 } from './browseListPrefs';
 import { BrowseOverflowMenu } from './BrowseOverflowMenu';
+import { BrowsePlaylistTagChip } from './BrowsePlaylistTagChip';
 import { BrowseSortChip } from './BrowseSortChip';
 import type { BrowseMediaType, BrowseRangeOption, BrowseSortOption } from './browseTypes';
 import {
@@ -473,6 +475,28 @@ export function BrowseScreen() {
     [selectedMediaType]
   );
 
+  const handlePlaylistTagChange = useCallback(
+    (tag: string | null) => {
+      void writeBrowsePlaylistTag(selectedMediaType, tag);
+    },
+    [selectedMediaType]
+  );
+
+  const searchPlaylistTags = useCallback(
+    (query: string) => {
+      return searchBrowsePlaylistTags(
+        {
+          accessToken,
+          clearSession,
+          refreshToken,
+          setTokens,
+        },
+        query
+      );
+    },
+    [accessToken, clearSession, refreshToken, setTokens]
+  );
+
   const handleViewModeChange = useCallback(
     (nextViewMode: HomeViewMode) => {
       setListPrefs((current) =>
@@ -586,6 +610,7 @@ export function BrowseScreen() {
             q: peopleQuery,
             range: activePrefs.range,
             sort: activePrefs.sort,
+            tag: activePrefs.mediaType === 'playlists' ? activePrefs.tag : null,
           }
         );
         perfMark('browse.repo.end', selectedMediaType);
@@ -653,6 +678,7 @@ export function BrowseScreen() {
           q: peopleQuery,
           range: activePrefs.range,
           sort: activePrefs.sort,
+          tag: activePrefs.mediaType === 'playlists' ? activePrefs.tag : null,
         }
       );
       if (requestId !== feedRequestIdRef.current) {
@@ -767,6 +793,7 @@ export function BrowseScreen() {
     activePrefs?.mediaType,
     activePrefs?.range,
     activePrefs?.sort,
+    activePrefs?.tag,
     isCategoryView,
     offlineModeEnabled,
     selectedMediaType,
@@ -1380,6 +1407,13 @@ export function BrowseScreen() {
                     selected={isCategoryView || selectedCategory !== null}
                     testID="browse-category-button"
                     variant="filter"
+                  />
+                ) : null}
+                {displayedMediaType === 'playlists' ? (
+                  <BrowsePlaylistTagChip
+                    onChange={handlePlaylistTagChange}
+                    onSearch={searchPlaylistTags}
+                    tag={sortChipPrefs?.mediaType === 'playlists' ? sortChipPrefs.tag : null}
                   />
                 ) : null}
                 {showSortChip ? (

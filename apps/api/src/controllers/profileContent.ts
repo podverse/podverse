@@ -2,6 +2,7 @@ import { handleGenericErrorResponse } from '@api/controllers/helpers/error.js';
 import { getPaginationParams } from '@api/controllers/helpers/pagination.js';
 import { ensureAuthenticated, getAuthenticatedUser } from '@api/lib/auth/index.js';
 import { getParamRequired } from '@api/lib/params.js';
+import { applyPlaylistTags } from '@api/lib/playlistTags.js';
 import {
   accountIdTextParamSchema,
   pageQuerySchema,
@@ -142,6 +143,7 @@ export class ProfileContentController {
               account_id_text,
               config
             );
+          await applyPlaylistTags(playlists, req.user?.id_text ?? null);
 
           const response: ApiListResponse<Playlist> = {
             data: playlists,
@@ -324,6 +326,7 @@ export class ProfileContentController {
                 account.id_text,
                 config
               );
+            await applyPlaylistTags(playlists, account.id_text);
 
             const response: ApiListResponse<Playlist> = {
               data: playlists,

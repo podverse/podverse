@@ -100,6 +100,12 @@ const FALLBACK_CONTACT_EMAIL = 'contact@podverse.fm';
  */
 const CONTACT_EMAIL_PATTERN = /^[^\s@/?#&]+@[^\s@/?#&]+$/;
 
+/** True when `value` trims to one mailbox, with no spaces or mailto query characters. */
+export const isMobileContactMailbox = (value: string): boolean => {
+  const trimmed = trimToNull(value);
+  return trimmed !== null && CONTACT_EMAIL_PATTERN.test(trimmed);
+};
+
 /**
  * Contact address for in-app support (the error log and Trial limitations).
  * Forks set `EXPO_PUBLIC_CONTACT_EMAIL`.
@@ -107,7 +113,7 @@ const CONTACT_EMAIL_PATTERN = /^[^\s@/?#&]+@[^\s@/?#&]+$/;
  */
 export const getMobileContactEmailFromEnv = (): string => {
   const configured = trimToNull(process.env.EXPO_PUBLIC_CONTACT_EMAIL);
-  if (configured !== null && CONTACT_EMAIL_PATTERN.test(configured)) {
+  if (configured !== null && isMobileContactMailbox(configured)) {
     return configured;
   }
   return FALLBACK_CONTACT_EMAIL;

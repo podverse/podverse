@@ -5,6 +5,7 @@ apps/web/e2e/focus-states.spec.ts
 apps/web/e2e/media-list-chips.spec.ts
 apps/web/e2e/browse-directory-top.spec.ts
 apps/web/e2e/playlists-profiles-chips.spec.ts
+apps/web/e2e/playlist-row-tags.spec.ts
 apps/web/e2e/detail-section-chips.spec.ts
 apps/web/e2e/membership-page-trial-limitations.spec.ts
 apps/web/e2e/podcast-index-feed-add-trial-blocked.spec.ts
@@ -21,6 +22,7 @@ apps/web/e2e/media-player-alt-enclosure-load.spec.ts
 apps/web/e2e/media-player-artist-line.spec.ts
 apps/web/e2e/track-artist-byline.spec.ts
 apps/web/e2e/playlist-edit-play.spec.ts
+apps/web/e2e/playlist-tags.spec.ts
 apps/web/e2e/download-affordance.spec.ts
 apps/web/e2e/media-player-seek-after-video.spec.ts
 apps/web/e2e/media-player-cross-device-remote.spec.ts
@@ -29,6 +31,7 @@ apps/web/e2e/media-player-livestream-live-controls.spec.ts
 apps/web/e2e/medium-canonical-route-redirect.spec.ts
 apps/web/e2e/detail-route-not-found.spec.ts
 apps/web/e2e/playlist-and-edit-route-not-found.spec.ts
+apps/web/e2e/playlist-page-tags.spec.ts
 apps/web/e2e/artist-page-albums-and-tracks.spec.ts
 apps/web/e2e/podcast-podroll-stubs.spec.ts
 apps/web/e2e/boost-signed-out-form.spec.ts

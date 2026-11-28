@@ -5,6 +5,7 @@ import {
   readBrowseListPrefs,
   subscribeBrowseListPrefs,
   writeBrowseMediaType,
+  writeBrowsePlaylistTag,
   writeBrowseRange,
   writeBrowseSort,
   writeBrowseViewMode,
@@ -115,6 +116,50 @@ describe('browseListPrefs', () => {
       mediaType: 'playlists',
       range: 'week',
       sort: 'recent',
+      tag: null,
+    });
+  });
+
+  it('stores a folded playlist tag and keeps the sort already on that entry', async () => {
+    await writeBrowseSort('playlists', 'top');
+    await writeBrowsePlaylistTag('playlists', '  ADAM   CURRY ');
+
+    expect(JSON.parse(inMemoryStore.get('sort.browse-playlists') ?? '{}')).toEqual({
+      sort: 'top',
+      tag: 'adam curry',
+    });
+  });
+
+  it('clears the playlist tag and keeps the sort', async () => {
+    await writeBrowseSort('playlists', 'recent');
+    await writeBrowsePlaylistTag('playlists', 'news');
+    await writeBrowsePlaylistTag('playlists', null);
+
+    expect(JSON.parse(inMemoryStore.get('sort.browse-playlists') ?? '{}')).toEqual({
+      sort: 'recent',
+    });
+  });
+
+  it('does not write a playlist tag onto another media type', async () => {
+    await writeBrowsePlaylistTag('podcasts', 'adam curry');
+
+    expect(inMemoryStore.has('sort.browse-podcasts')).toBe(false);
+  });
+
+  it('reads a stored tag longer than a playlist tag name as no tag', async () => {
+    inMemoryStore.set('sort.browse-playlists', JSON.stringify({ tag: 'a'.repeat(51) }));
+    await writeBrowseMediaType('playlists');
+
+    await expect(readBrowseListPrefs()).resolves.toMatchObject({ tag: null });
+  });
+
+  it('reads no tag while another media type is selected', async () => {
+    inMemoryStore.set('sort.browse-playlists', JSON.stringify({ tag: 'adam curry' }));
+    await writeBrowseMediaType('podcasts');
+
+    await expect(readBrowseListPrefs()).resolves.toMatchObject({
+      mediaType: 'podcasts',
+      tag: null,
     });
   });
 

@@ -22,6 +22,14 @@ export { OptionListGroup } from './OptionListGroup';
 export type { OptionListGroupProps } from './OptionListGroup';
 export { OptionListScreen } from './OptionListScreen';
 export type { OptionListItem, OptionListScreenProps } from './OptionListScreen';
+export { PlaylistTagField } from './PlaylistTagField';
+export type { PlaylistTagFieldProps } from './PlaylistTagField';
+export {
+  commitPlaylistTagDraft,
+  playlistTagSearchQuery,
+  TAG_SEARCH_DEBOUNCE_MS,
+} from './playlistTagDraft';
+export type { PlaylistTagCommitStatus, PlaylistTagDraftResult } from './playlistTagDraft';
 export { SearchField } from './SearchField';
 export type { SearchFieldProps } from './SearchField';
 export { SectionChip, SectionChipRow } from './SectionChipRow';

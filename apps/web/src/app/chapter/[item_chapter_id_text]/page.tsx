@@ -3,6 +3,7 @@ import { notFound } from 'next/navigation';
 
 import { buildChapterPath } from '@podverse/helpers';
 
+import { getConfigResolved } from '../../../config/loadPublicClientConfig.server';
 import { buildContentMetadata } from '../../../lib/seo/buildContentMetadata';
 import {
   getChannelForSeoPage,
@@ -35,12 +36,14 @@ export async function generateMetadata({ params }: ChapterPageProps): Promise<Me
       )
     );
 
+    const brandName = (await getConfigResolved()).public.brand.name;
     return buildContentMetadata({
       title: `${itemChapter.title || item.title} · ${item.title}`,
       descriptionPlain,
       pathname: buildChapterPath(itemChapter.id_text),
       imageUrl: getItemThenChannelHeroImageUrl(item.item_images, channel.channel_images),
       type: 'article',
+      brandName,
     });
   } catch {
     return {};

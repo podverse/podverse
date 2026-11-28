@@ -50,6 +50,22 @@ const expectStartupToRejectRecountWindow = (recountDays: number, retentionDays: 
   }
 };
 
+const expectStartupToRejectPlaylistTagEnv = (envName: string): void => {
+  const consoleError = vi.spyOn(console, 'error').mockImplementation(() => undefined);
+  const loggerError = vi.spyOn(loggerService, 'error').mockImplementation(() => undefined);
+  try {
+    expect(() => validateStartupRequirements()).toThrow(startupFailureMessage);
+    const printed = consoleError.mock.calls
+      .map((call) => call.map((part) => String(part)).join(' '))
+      .join('\n');
+    expect(printed).toContain(envName);
+    expect(loggerError).toHaveBeenCalledWith(startupFailureMessage);
+  } finally {
+    consoleError.mockRestore();
+    loggerError.mockRestore();
+  }
+};
+
 describe('podverse test env startup validation', () => {
   let envSnapshot: Record<string, string | undefined>;
 
@@ -91,6 +107,55 @@ describe('podverse test env startup validation', () => {
     process.env.STATS_TRACK_EVENT_RETENTION_DAYS = '60';
     process.env.STATS_ALL_TIME_RECOUNT_DAYS = '60';
     expect(() => validateStartupRequirements()).not.toThrow();
+  });
+
+  it('passes startup when both playlist tag limits are unset', () => {
+    applyPodverseTestEnv(buildPodverseApiTestEnv({ profile: 'apiVitest' }));
+    delete process.env.PLAYLIST_TAG_MAX_PER_PLAYLIST;
+    delete process.env.PLAYLIST_TAG_NAME_MAX_LENGTH;
+    expect(() => validateStartupRequirements()).not.toThrow();
+  });
+
+  it('fails startup when PLAYLIST_TAG_NAME_MAX_LENGTH is above 50', () => {
+    applyPodverseTestEnv(buildPodverseApiTestEnv({ profile: 'apiVitest' }));
+    process.env.PLAYLIST_TAG_NAME_MAX_LENGTH = '51';
+    expectStartupToRejectPlaylistTagEnv('PLAYLIST_TAG_NAME_MAX_LENGTH');
+  });
+
+  it('passes startup when PLAYLIST_TAG_NAME_MAX_LENGTH is 50', () => {
+    applyPodverseTestEnv(buildPodverseApiTestEnv({ profile: 'apiVitest' }));
+    process.env.PLAYLIST_TAG_NAME_MAX_LENGTH = '50';
+    expect(() => validateStartupRequirements()).not.toThrow();
+  });
+
+  it('fails startup when PLAYLIST_TAG_NAME_MAX_LENGTH is 0', () => {
+    applyPodverseTestEnv(buildPodverseApiTestEnv({ profile: 'apiVitest' }));
+    process.env.PLAYLIST_TAG_NAME_MAX_LENGTH = '0';
+    expectStartupToRejectPlaylistTagEnv('PLAYLIST_TAG_NAME_MAX_LENGTH');
+  });
+
+  it('fails startup when PLAYLIST_TAG_NAME_MAX_LENGTH is not an integer', () => {
+    applyPodverseTestEnv(buildPodverseApiTestEnv({ profile: 'apiVitest' }));
+    process.env.PLAYLIST_TAG_NAME_MAX_LENGTH = 'abc';
+    expectStartupToRejectPlaylistTagEnv('PLAYLIST_TAG_NAME_MAX_LENGTH');
+  });
+
+  it('passes startup when PLAYLIST_TAG_MAX_PER_PLAYLIST is 8', () => {
+    applyPodverseTestEnv(buildPodverseApiTestEnv({ profile: 'apiVitest' }));
+    process.env.PLAYLIST_TAG_MAX_PER_PLAYLIST = '8';
+    expect(() => validateStartupRequirements()).not.toThrow();
+  });
+
+  it('fails startup when PLAYLIST_TAG_MAX_PER_PLAYLIST is 0', () => {
+    applyPodverseTestEnv(buildPodverseApiTestEnv({ profile: 'apiVitest' }));
+    process.env.PLAYLIST_TAG_MAX_PER_PLAYLIST = '0';
+    expectStartupToRejectPlaylistTagEnv('PLAYLIST_TAG_MAX_PER_PLAYLIST');
+  });
+
+  it('fails startup when PLAYLIST_TAG_MAX_PER_PLAYLIST is above 32767', () => {
+    applyPodverseTestEnv(buildPodverseApiTestEnv({ profile: 'apiVitest' }));
+    process.env.PLAYLIST_TAG_MAX_PER_PLAYLIST = '32768';
+    expectStartupToRejectPlaylistTagEnv('PLAYLIST_TAG_MAX_PER_PLAYLIST');
   });
 
   it('turns off both botted-listener signals in the web and mobile E2E API profiles', () => {

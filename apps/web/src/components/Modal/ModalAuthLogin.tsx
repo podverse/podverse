@@ -21,7 +21,7 @@ import {
   TextInput,
 } from '@podverse/ui';
 
-import { getConfig } from '../../config';
+import { useConfig } from '../../contexts/Config';
 import { useModals } from '../../contexts/Modals';
 import { getApiRequestService } from '../../factories/apiRequestService';
 import { markSignInPushPromptPending } from '../../lib/notifications/signInPushPrompt';
@@ -44,7 +44,7 @@ export const ModalAuthLogin: React.FC = () => {
   const router = useRouter();
   const locale = useLocale();
 
-  const config = getConfig();
+  const config = useConfig();
   const signupMode = config.public.account.signupMode;
   const capabilities = getAccountSignupModeCapabilities(signupMode);
 

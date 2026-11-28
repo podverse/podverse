@@ -4,6 +4,7 @@ import { z } from 'zod';
 import { buildMusicLivestreamPath } from '@podverse/helpers';
 import { QUERY_PARAMS_LIVE_ITEM_TYPE_VALUES } from '@podverse/helpers-requests';
 
+import { getConfigResolved } from '../../../../config/loadPublicClientConfig.server';
 import { buildContentMetadata } from '../../../../lib/seo/buildContentMetadata';
 import {
   getChannelForSeoPage,
@@ -36,12 +37,14 @@ export async function generateMetadata({ params }: LivestreamPageProps): Promise
       toSeoPlainText(item.item_description?.value || item.title)
     );
 
+    const brandName = (await getConfigResolved()).public.brand.name;
     return buildContentMetadata({
       title: item.title,
       descriptionPlain,
       pathname: buildMusicLivestreamPath(item.id_text),
       imageUrl: getItemThenChannelHeroImageUrl(item.item_images, channel.channel_images),
       type: 'article',
+      brandName,
     });
   } catch {
     return {};

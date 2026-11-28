@@ -6,8 +6,8 @@ import { useEffect, useRef, useState } from 'react';
 import type { QueueHistoryLimitNotice } from '@podverse/helpers';
 import { Button, Modal } from '@podverse/ui';
 
-import { getContactEmail } from '../../constants/contact';
 import { useAccount } from '../../contexts/Account';
+import { useConfig } from '../../contexts/Config';
 import { getApiRequestService } from '../../factories/apiRequestService';
 
 function responseStatus(error: unknown): number | undefined {
@@ -25,6 +25,7 @@ function responseStatus(error: unknown): number | undefined {
 export function QueueHistoryLimitNotice() {
   const t = useTranslations('membership');
   const { loggedInAccount } = useAccount();
+  const contactEmail = useConfig().public.contact.email;
   const accountId = loggedInAccount?.id ?? null;
   const [notice, setNotice] = useState<QueueHistoryLimitNotice | null>(null);
   const [dismissed, setDismissed] = useState(false);
@@ -98,11 +99,11 @@ export function QueueHistoryLimitNotice() {
 
   const message = notice.at_limit
     ? t('queue_history_limit_notice.at_limit', {
-        contactEmail: getContactEmail(),
+        contactEmail,
         limit: notice.limit,
       })
     : t('queue_history_limit_notice.within', {
-        contactEmail: getContactEmail(),
+        contactEmail,
         limit: notice.limit,
       });
   const title = t('queue_history_limit_notice.title');

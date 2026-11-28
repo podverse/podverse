@@ -60,9 +60,26 @@ name: Library Playlists Authoring
 - inputText: "E2E Playlist"
 - tapOn:
     id: playlist-form-sharable-unlisted
-- takeScreenshot: library-playlists-create-form
-# The title field keeps the keyboard over Save. Return dismisses it.
+- scrollUntilVisible:
+    element:
+      id: playlist-form-tags-input
+    direction: DOWN
+    timeout: ${TIMEOUT_FAST}
+- tapOn:
+    id: playlist-form-tags-input
+- inputText: "Morning Set"
 - pressKey: Enter
+- assertVisible:
+    id: playlist-form-tags-tag-0
+- assertVisible:
+    text: "Morning Set"
+- hideKeyboard
+- scrollUntilVisible:
+    element:
+      id: playlist-form-submit
+    direction: DOWN
+    timeout: ${TIMEOUT_FAST}
+- takeScreenshot: library-playlists-create-form
 - tapOn:
     id: playlist-form-submit
 # create replaces the form with the new playlist's detail (navigation.replace).
@@ -98,6 +115,29 @@ name: Library Playlists Authoring
     id: playlist-form-screen
 - assertVisible:
     id: playlist-form-medium-readonly
+- scrollUntilVisible:
+    element:
+      id: playlist-form-tags-tag-0
+    direction: DOWN
+    timeout: ${TIMEOUT_FAST}
+- assertVisible:
+    text: "morning set"
+- tapOn:
+    id: playlist-form-tags-input
+- inputText: "morn"
+- hideKeyboard
+- extendedWaitUntil:
+    visible:
+      id: playlist-form-tags-suggestion-0
+    timeout: ${TIMEOUT_SLOW}
+- tapOn:
+    id: playlist-form-tags-suggestion-0
+- assertNotVisible:
+    id: playlist-form-tags-tag-1
+- tapOn:
+    id: playlist-form-tags-tag-0-remove
+- assertNotVisible:
+    id: playlist-form-tags-tag-0
 - tapOn:
     id: playlist-form-title
 - inputText: " Edited"
@@ -117,6 +157,8 @@ name: Library Playlists Authoring
     id: library-playlist-detail-edit
 - assertVisible:
     id: playlist-form-screen
+- assertNotVisible:
+    id: playlist-form-tags-tag-0
 - tapOn:
     id: playlist-form-delete
 - assertVisible:

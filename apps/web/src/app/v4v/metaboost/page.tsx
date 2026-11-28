@@ -3,7 +3,7 @@ import { getTranslations } from 'next-intl/server';
 import { MainColumnStack, MainHeader, MainSidebarLayout } from '@podverse/ui';
 
 import { MainWrapper } from '../../../components/Main/MainWrapper';
-import { getConfig } from '../../../config';
+import { getConfigResolved } from '../../../config/loadPublicClientConfig.server';
 import { getCuratedStaticPageMetadata } from '../../../lib/seo/curatedPageMetadata';
 
 import styles from '../../../styles/app/v4v/BoostMessages.module.scss';
@@ -14,7 +14,7 @@ export async function generateMetadata() {
 
 export default async function MetaboostPage() {
   const t = await getTranslations('v4v');
-  const config = getConfig();
+  const brandName = (await getConfigResolved()).public.brand.name;
 
   return (
     <>
@@ -26,7 +26,7 @@ export default async function MetaboostPage() {
               <p className={styles.paragraph}>{t('boost_messages.page_intro')}</p>
               <p className={styles.paragraph}>
                 {t.rich('boost_messages.page_signup', {
-                  brand_name: config.public.brand.name,
+                  brand_name: brandName,
                   link: (chunks) => (
                     <a
                       href="https://metaboost.cc"
@@ -51,7 +51,7 @@ export default async function MetaboostPage() {
                 })}
               </p>
               <p className={styles.paragraph}>
-                {t('boost_messages.page_open_standard', { brand_name: config.public.brand.name })}
+                {t('boost_messages.page_open_standard', { brand_name: brandName })}
               </p>
               <nav className={styles.howToSection} aria-labelledby="metaboost-how-to-heading">
                 <h2 id="metaboost-how-to-heading" className={styles.howToHeading}>

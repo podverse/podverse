@@ -103,6 +103,9 @@ const buildConfig = () => {
         parsePlaylistsPageDefaults({
           sort: env.NEXT_PUBLIC_PLAYLISTS_DEFAULT_SORT,
           range: env.NEXT_PUBLIC_PLAYLISTS_DEFAULT_RANGE,
+          type: env.NEXT_PUBLIC_PLAYLISTS_DEFAULT_TYPE,
+          medium: env.NEXT_PUBLIC_PLAYLISTS_DEFAULT_MEDIUM,
+          tag: env.NEXT_PUBLIC_PLAYLISTS_DEFAULT_TAG,
         }).defaults
       ),
       theme: {

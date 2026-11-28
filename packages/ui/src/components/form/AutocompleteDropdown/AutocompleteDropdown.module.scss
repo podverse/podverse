@@ -1,0 +1,137 @@
+@use '../../../styles/mixins/flexShrink' as *;
+@use '../../../styles/mixins/form' as *;
+
+.root {
+  @include flexItemAllowShrink;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  position: relative;
+  width: 100%;
+}
+
+.anchor {
+  min-width: 0;
+  position: relative;
+  width: 100%;
+}
+
+.box {
+  @include formInputWrapper;
+  align-items: center;
+  display: flex;
+  gap: var(--spacing-sm);
+  min-width: 0;
+  width: 100%;
+}
+
+.boxWrap {
+  flex-wrap: wrap;
+}
+
+.boxDisabled {
+  background-color: color-mix(
+    in srgb,
+    var(--background-color-tertiary) 55%,
+    var(--background-color-primary)
+  );
+  cursor: not-allowed;
+
+  .eyebrow {
+    color: var(--text-color-secondary);
+  }
+
+  .input {
+    color: var(--text-color-secondary);
+    cursor: not-allowed;
+  }
+}
+
+// The field name occupies its own row. Leading content and the text sit on the next row.
+.eyebrow {
+  @include formFieldEyebrow;
+  flex: 1 0 100%;
+}
+
+.cluster {
+  align-items: center;
+  display: flex;
+  flex: 1 1 8rem;
+  min-width: 8rem;
+}
+
+.input {
+  all: unset;
+  box-sizing: border-box;
+  flex: 1 1 auto;
+  font-size: var(--font-size-md);
+  min-width: 0;
+  padding: var(--spacing-form-input-inner);
+  width: 100%;
+
+  &:focus,
+  &:focus-visible {
+    outline: none;
+  }
+}
+
+.clearHitTarget {
+  display: flex;
+  flex: none;
+}
+
+.clearButton {
+  color: var(--text-color-secondary);
+  height: 28px;
+  margin-left: var(--spacing-md);
+  width: 28px;
+
+  &:hover,
+  &:focus-visible {
+    color: var(--text-color-primary);
+  }
+}
+
+.clearButtonIcon {
+  font-size: var(--font-size-md);
+}
+
+.list {
+  background: var(--background-color-primary);
+  border: 1px solid var(--border-color-opaque);
+  border-radius: var(--border-radius);
+  left: 0;
+  list-style: none;
+  margin-bottom: 0;
+  margin-top: 0.25rem;
+  max-width: 100%;
+  padding: var(--spacing-form-input-vertical);
+  position: absolute;
+  top: 100%;
+  width: 100%;
+  z-index: 1000000;
+}
+
+.option {
+  border-radius: var(--border-radius);
+  color: var(--text-color-primary);
+  cursor: pointer;
+  margin: var(--spacing-md);
+  padding: var(--spacing-md) var(--spacing-xl);
+  text-align: left;
+
+  &:hover,
+  &:focus,
+  &[aria-selected='true'] {
+    background: var(--background-color-opaque);
+    outline: none;
+  }
+}
+
+.info {
+  @include formInfoText;
+}
+
+.infoError {
+  @include formInfoTextError;
+}

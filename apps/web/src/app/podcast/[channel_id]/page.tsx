@@ -19,6 +19,7 @@ import {
   QUERY_PARAMS_STATS_RANGE_VALUES,
 } from '@podverse/helpers-requests';
 
+import { getConfigResolved } from '../../../config/loadPublicClientConfig.server';
 import { loadChannelItemList } from '../../../lib/channel/loadChannelItemList';
 import { buildContentMetadata } from '../../../lib/seo/buildContentMetadata';
 import { buildNoindexMetadata } from '../../../lib/seo/buildNoindexMetadata';
@@ -81,6 +82,7 @@ export async function generateMetadata({
       toSeoPlainText(channel.channel_description?.value || channel.title)
     );
 
+    const brandName = (await getConfigResolved()).public.brand.name;
     if (channel?.feed?.podcast_index_id && channel.feed.feed_policy?.public_visible === false) {
       // When this URL redirects, prefer metadata that matches the target path.
       return buildContentMetadata({
@@ -88,6 +90,7 @@ export async function generateMetadata({
         descriptionPlain,
         pathname: `/podcast-index/feed/${channel.feed.podcast_index_id}`,
         imageUrl: getChannelHeroImageUrl(channel.channel_images),
+        brandName,
       });
     }
 
@@ -96,6 +99,7 @@ export async function generateMetadata({
       descriptionPlain,
       pathname: buildPodcastPath(channel.id_text),
       imageUrl: getChannelHeroImageUrl(channel.channel_images),
+      brandName,
     });
   } catch {
     return buildNoindexMetadata();

@@ -31,6 +31,7 @@ router.get(
 );
 router.get('/private/followed/az', asyncHandler(PlaylistController.getManyFollowedPrivateAZ));
 
+router.get('/tag', asyncHandler(PlaylistController.searchPlaylistTags));
 router.get('/public/recent', asyncHandler(PlaylistController.getManyPublicRecent));
 router.get('/public/top', asyncHandler(PlaylistController.getManyPublicTop));
 

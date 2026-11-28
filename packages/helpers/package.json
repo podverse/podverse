@@ -143,6 +143,18 @@
       "types": "./dist/lib/listScreenDefaults.d.ts",
       "default": "./dist/lib/listScreenDefaults.js"
     },
+    "./playlistTag": {
+      "types": "./dist/lib/playlistTag.d.ts",
+      "default": "./dist/lib/playlistTag.js"
+    },
+    "./playlistTagLine": {
+      "types": "./dist/lib/playlistTagLine.d.ts",
+      "default": "./dist/lib/playlistTagLine.js"
+    },
+    "./publicClientConfig": {
+      "types": "./dist/dtos/config/publicClientConfig.d.ts",
+      "default": "./dist/dtos/config/publicClientConfig.js"
+    },
     "./sortPrefs": {
       "types": "./dist/lib/sortPrefs.d.ts",
       "default": "./dist/lib/sortPrefs.js"

@@ -75,7 +75,7 @@ Trial and Premium share one default, `MEMBERSHIP_MAX_ADD_BY_RSS_FEEDS` (100), re
 returns 403 `add_by_rss_feed_limit_reached`. Unlimited is not refused. A URL that matches a
 directory channel does not count.
 
-The public `GET /product/membership` returns that default. Authenticated
+The default is `membership.maxAddByRSSFeeds` on `GET /config`. Authenticated
 `GET /account/add-by-rss/feed-limit` returns the signed-in account's numeric tier, or the shared
 default when the stored value is unlimited. The phone reads both, so a limit change needs no app
 release.

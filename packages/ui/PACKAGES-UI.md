@@ -154,6 +154,32 @@ chrome (see [`LookupFieldGrid.tsx`](src/components/layout/LookupFieldGrid/Lookup
 - **`CheckboxFieldList`** — optional **`eyebrow`** for the same small title line as **`TextInput`** /
   **`FormDropdown`** ([`CheckboxFieldList.tsx`](src/components/form/CheckboxFieldList/CheckboxFieldList.tsx)).
 
+## Forms — autocomplete
+
+### `AutocompleteDropdown`
+
+[`AutocompleteDropdown`](src/components/form/AutocompleteDropdown/AutocompleteDropdown.tsx) is a
+text field plus a suggestion list. The app passes `search` and every visible string. The field does
+not call the network itself.
+
+The list is an in-place `listbox` under the bordered box, clamped with `useDropdownViewportClamp`.
+It uses the same tokens as `FormDropdown`'s menu. Focus stays in the text field; the highlighted
+row is `aria-activedescendant`.
+
+### `TagField`
+
+[`TagField`](src/components/form/TagField/TagField.tsx) edits a list of short labels. The app passes
+`search`, `value`, `onChange`, and `labels`. Enter adds the typed name to that list. Choosing a
+suggestion adds the stored name. Blur does not add a name. This component does not store the name.
+
+Each tag uses the unselected filter-chip face: text, border, background, and `var(--border-radius)`.
+While editing, a remove control is on the right of the tag. At `maxCount` the text field hides. A
+`limitMessage` from the app can name that cap. `readOnly` shows the tags without the text field or
+the remove control. An empty read-only value renders nothing.
+
+The suggestion list is `AutocompleteDropdown`. The tags are its `leading` content. There is no extra
+row for the typed name.
+
 ## Feedback — Toast
 
 [`Toast`](src/components/feedback/Toast/ToastImpl.tsx) integrates **react-hot-toast**: imperative helpers (**`showToast`**, **`showToastPromise`**, **`showToastCustom`**, etc.) and a **`Toast`** renderer (**`<Toaster />`**). Styling uses theme tokens (`--background-color-contrast`, `--button-warning-*`, `--button-danger-*`). Custom membership-style toasts require localized **`dismissButtonAriaLabel`** and optionally **`LinkComponent`** (e.g. Next.js `Link`). Apps may lazy-load via **`import('@podverse/ui/toast')`** (`package.json` **`exports`** entry **`./toast`**) to keep the toast bundle split.

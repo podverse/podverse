@@ -10,6 +10,7 @@ import {
   QUERY_PARAMS_STATS_RANGE_VALUES,
 } from '@podverse/helpers-requests';
 
+import { getConfigResolved } from '../../../config/loadPublicClientConfig.server';
 import { buildContentMetadata } from '../../../lib/seo/buildContentMetadata';
 import { buildNoindexMetadata } from '../../../lib/seo/buildNoindexMetadata';
 import {
@@ -75,12 +76,14 @@ export async function generateMetadata({
       toSeoPlainText(item.item_description?.value || item.title)
     );
 
+    const brandName = (await getConfigResolved()).public.brand.name;
     return buildContentMetadata({
       title: item.title,
       descriptionPlain,
       pathname: buildEpisodePath(item.id_text),
       imageUrl: getItemThenChannelHeroImageUrl(item.item_images, channel.channel_images),
       type: 'article',
+      brandName,
     });
   } catch {
     return buildNoindexMetadata();

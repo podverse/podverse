@@ -127,6 +127,7 @@ import { OnDemandParserEvent } from '@orm/entities/onDemandParserEvent.js';
 import { Person } from '@orm/entities/person/person.js';
 import { Playlist } from '@orm/entities/playlist/playlist.js';
 import { PlaylistResource } from '@orm/entities/playlist/playlistResource.js';
+import { PlaylistTag, PlaylistTagAssignment } from '@orm/entities/playlist/playlistTag.js';
 import { ProductMembershipSettings } from '@orm/entities/productMembershipSettings.js';
 import { Queue } from '@orm/entities/queue/queue.js';
 import { QueueResource } from '@orm/entities/queue/queueResource.js';
@@ -291,6 +292,8 @@ export const entities = [
   Person,
   Playlist,
   PlaylistResource,
+  PlaylistTag,
+  PlaylistTagAssignment,
   ProductMembershipSettings,
   Queue,
   QueueResource,

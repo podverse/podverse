@@ -233,6 +233,126 @@ components:
         status:
           type: string
           example: ok
+    ApiGetConfigResponse200:
+      type: object
+      required:
+        - data
+      properties:
+        data:
+          type: object
+          required:
+            - membership
+            - playlistLimits
+            - instance
+          properties:
+            membership:
+              type: object
+              additionalProperties: false
+              required:
+                - freeTrialExpirationSeconds
+                - premiumMembershipCostMonthly
+                - premiumMembershipCostAnnually
+                - maxAddByRSSFeeds
+                - trialAllowDirectoryAddByRSS
+                - trialMaxManualRefreshesPerHour
+                - trialTrackStats
+                - trialAllowNotifications
+                - premiumAllowDirectoryAddByRSS
+                - premiumMaxManualRefreshesPerHour
+                - premiumTrackStats
+                - premiumAllowNotifications
+                - freeTrialDays
+                - annuallySavingsPercent
+                - monthlyEquivalentAnnually
+              properties:
+                freeTrialExpirationSeconds:
+                  type: integer
+                  example: 2678400
+                premiumMembershipCostMonthly:
+                  type: number
+                  example: 3
+                premiumMembershipCostAnnually:
+                  type: number
+                  example: 30
+                maxAddByRSSFeeds:
+                  type: integer
+                  minimum: 0
+                  description: >-
+                    Default Add by RSS feed limit shared by Trial and Premium. An account's own
+                    limit can differ; read it from GET /account/add-by-rss/feed-limit.
+                trialAllowDirectoryAddByRSS:
+                  type: boolean
+                trialMaxManualRefreshesPerHour:
+                  type: integer
+                trialTrackStats:
+                  type: boolean
+                trialAllowNotifications:
+                  type: boolean
+                premiumAllowDirectoryAddByRSS:
+                  type: boolean
+                premiumMaxManualRefreshesPerHour:
+                  type: integer
+                premiumTrackStats:
+                  type: boolean
+                premiumAllowNotifications:
+                  type: boolean
+                freeTrialDays:
+                  type: integer
+                  example: 31
+                annuallySavingsPercent:
+                  type: integer
+                  example: 16
+                monthlyEquivalentAnnually:
+                  type: number
+                  example: 36
+            playlistLimits:
+              type: object
+              additionalProperties: false
+              required:
+                - maxPerPlaylist
+                - nameMaxLength
+              properties:
+                maxPerPlaylist:
+                  type: integer
+                  description: The resolved PLAYLIST_TAG_MAX_PER_PLAYLIST.
+                  example: 5
+                nameMaxLength:
+                  type: integer
+                  maximum: 50
+                  description: The resolved PLAYLIST_TAG_NAME_MAX_LENGTH.
+                  example: 50
+            instance:
+              type: object
+              additionalProperties: false
+              required:
+                - brandName
+                - legalName
+                - contactEmail
+                - signupMode
+                - termsVersion
+                - tasteProfileAgreementVersion
+                - statsRetentionDays
+              properties:
+                brandName:
+                  type: string
+                legalName:
+                  type: string
+                contactEmail:
+                  type: string
+                signupMode:
+                  type: string
+                  enum:
+                    - admin_only_username
+                    - admin_only_email
+                    - user_signup_email
+                termsVersion:
+                  type: string
+                tasteProfileAgreementVersion:
+                  type: string
+                statsRetentionDays:
+                  type: integer
+                  minimum: 1
+                  example: 90
     ErrorResponse:
       type: object
       required:
@@ -4604,8 +4724,20 @@ components:
       additionalProperties: true
     ApiPatchPlaylistPlaylistIdTextRequest:
       type: object
-      description: Operation-specific request payload for PATCH /playlist/{playlist_id_text}.
+      description: >-
+        Operation-specific request payload for PATCH /playlist/{playlist_id_text}. Omitting tags
+        leaves existing tags in place. An empty tags array clears them.
       additionalProperties: true
+      properties:
+        tags:
+          type: array
+          description: >-
+            Optional. Omitting tags leaves existing tags in place. An empty array clears them.
+            The API allows at most PLAYLIST_TAG_MAX_PER_PLAYLIST items (default 5) and each name
+            at most PLAYLIST_TAG_NAME_MAX_LENGTH characters (default 50, and startup refuses a
+            character env above 50).
+          items:
+            type: string
     ApiPatchPlaylistPlaylistIdTextResponse200:
       type: object
       description: Operation-specific response payload for PATCH /playlist/{playlist_id_text} (200).
@@ -4763,6 +4895,9 @@ components:
     ApiGetPlaylistPublicTopResponse200:
       allOf:
         - $ref: "#/components/schemas/PlaylistListResponse"
+    ApiGetPlaylistTagResponse200:
+      allOf:
+        - $ref: "#/components/schemas/PlaylistTagNamesResponse"
     ApiGetPodrollChannelIdoridtextResponse200:
       allOf:
         - $ref: "#/components/schemas/RemoteItemsResultResponse"
@@ -5709,6 +5844,13 @@ components:
         last_updated:
           type: string
           format: date-time
+        tags:
+          type: array
+          description: >-
+            Folded names in the owner's order. Present when the caller can see them, including an
+            empty array. Omitted on a private playlist the caller does not own.
+          items:
+            type: string
     PlaylistListResponse:
       type: object
       properties:
@@ -5718,6 +5860,19 @@ components:
             $ref: "#/components/schemas/Playlist"
         meta:
           $ref: "#/components/schemas/ListMeta"
+    PlaylistTagNamesResponse:
+      type: object
+      required:
+        - data
+      properties:
+        data:
+          type: array
+          maxItems: 10
+          description: >-
+            Folded tag names on at least one public or unlisted playlist that start with the
+            query. At most 10, ordered by name.
+          items:
+            type: string
     PlaylistResource:
       type: object
       additionalProperties: true
@@ -6500,38 +6655,6 @@ components:
                   type: array
                   items:
                     type: string
-    ProductMembershipResponse:
-      type: object
-      properties:
-        data:
-          type: object
-          description: Resolved membership product settings, prices in USD.
-          additionalProperties: true
-          properties:
-            freeTrialExpirationSeconds:
-              type: integer
-              example: 2678400
-            freeTrialDays:
-              type: integer
-              example: 31
-            premiumMembershipCostMonthly:
-              type: number
-              example: 3
-            premiumMembershipCostAnnually:
-              type: number
-              example: 30
-            annuallySavingsPercent:
-              type: integer
-              example: 16
-            monthlyEquivalentAnnually:
-              type: number
-              example: 36
-            maxAddByRSSFeeds:
-              type: integer
-              minimum: 0
-              description: >-
-                Default Add by RSS feed limit shared by Trial and Premium. An account's own limit
-                can differ; read it from GET /account/add-by-rss/feed-limit.
     ProductMembershipPricingResponse:
       type: object
       properties:
@@ -6683,6 +6806,14 @@ components:
       properties:
         title:
           type: string
+        tags:
+          type: array
+          description: >-
+            Optional. The API allows at most PLAYLIST_TAG_MAX_PER_PLAYLIST items (default 5) and
+            each name at most PLAYLIST_TAG_NAME_MAX_LENGTH characters (default 50, and startup
+            refuses a character env above 50).
+          items:
+            type: string
       additionalProperties: true
 security:
   - bearerAuth: []
@@ -6768,6 +6899,58 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ApiGetMetaResponse200"
+  /config:
+    get:
+      operationId: apiGetConfig
+      tags:
+        - meta
+      summary: GET /config
+      description: >-
+        Public client settings. Membership product numbers, playlist tag limits, and instance
+        identity. No authentication.
+      security: []
+      responses:
+        "200":
+          description: Public client config
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiGetConfigResponse200"
+              example:
+                data:
+                  membership:
+                    freeTrialExpirationSeconds: 2678400
+                    premiumMembershipCostMonthly: 3
+                    premiumMembershipCostAnnually: 30
+                    maxAddByRSSFeeds: 100
+                    trialAllowDirectoryAddByRSS: false
+                    trialMaxManualRefreshesPerHour: 5
+                    trialTrackStats: false
+                    trialAllowNotifications: true
+                    premiumAllowDirectoryAddByRSS: true
+                    premiumMaxManualRefreshesPerHour: 20
+                    premiumTrackStats: true
+                    premiumAllowNotifications: true
+                    freeTrialDays: 31
+                    annuallySavingsPercent: 16
+                    monthlyEquivalentAnnually: 36
+                  playlistLimits:
+                    maxPerPlaylist: 5
+                    nameMaxLength: 50
+                  instance:
+                    brandName: Podverse
+                    legalName: Podverse
+                    contactEmail: contact@podverse.fm
+                    signupMode: admin_only_email
+                    termsVersion: "2026-01-01"
+                    tasteProfileAgreementVersion: "2026-01-01"
+                    statsRetentionDays: 90
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InternalServerErrorResponse"
   /docs:
     get:
       operationId: apiGetDocs
@@ -19132,6 +19315,8 @@ paths:
                 summary: Create a new private playlist
                 value:
                   title: Morning Queue
+                  tags:
+                    - morning
       responses:
         "200":
           description: Successful response
@@ -19152,6 +19337,8 @@ paths:
                     medium_id: 1
                     sharable_status_id: 1
                     last_updated: "2026-05-13T12:00:00Z"
+                    tags:
+                      - morning
         "400":
           description: Bad request
           content:
@@ -19335,6 +19522,16 @@ paths:
           application/json:
             schema:
               $ref: "#/components/schemas/ApiPatchPlaylistPlaylistIdTextRequest"
+            examples:
+              replaceTags:
+                summary: Replace the playlist tags with two names
+                value:
+                  title: Morning Queue
+                  description: ""
+                  sharable_status_id: 1
+                  tags:
+                    - morning
+                    - commute
       responses:
         "200":
           description: Successful response
@@ -21320,13 +21517,59 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/InternalServerErrorResponse"
+  /playlist/tag:
+    get:
+      operationId: apiGetPlaylistTag
+      tags:
+        - playlist
+      summary: GET /playlist/tag
+      description: >-
+        Prefix search of folded tag names that are on at least one public or unlisted playlist,
+        at most 10 names.
+      security: []
+      parameters:
+        - in: query
+          name: q
+          required: true
+          schema:
+            type: string
+            minLength: 1
+            maxLength: 50
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiGetPlaylistTagResponse200"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ValidationErrorResponse"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NotFoundErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InternalServerErrorResponse"
   /playlist/public/recent:
     get:
       operationId: apiGetPlaylistPublicRecent
       tags:
         - playlist
       summary: GET /playlist/public/recent
-      description: "Public playlists, most recently created or updated first."
+      description: >-
+        Public playlists, most recently created or updated first. When tag is set, only public
+        playlists that have this folded tag, applied before paging. An unknown tag is an empty
+        page.
       security: []
       parameters:
         - in: query
@@ -21334,6 +21577,15 @@ paths:
           required: true
           schema:
             type: string
+        - in: query
+          name: tag
+          required: false
+          description: >-
+            When set, only public playlists that have this folded tag, applied before paging. An
+            unknown tag is an empty page.
+          schema:
+            type: string
+            maxLength: 50
         - $ref: "#/components/parameters/PageQueryRequired"
         - $ref: "#/components/parameters/LimitQueryOptional"
       responses:
@@ -21367,7 +21619,11 @@ paths:
       tags:
         - playlist
       summary: GET /playlist/public/top
-      description: "Public playlists ranked by the chosen range's count. Playlists with a count of zero for the range are left out, so a range with no activity returns an empty list."
+      description: >-
+        Public playlists ranked by the chosen range's count. Playlists with a count of zero for
+        the range are left out, so a range with no activity returns an empty list. When tag is
+        set, only public playlists that have this folded tag, applied before paging. An unknown
+        tag is an empty page.
       security: []
       parameters:
         - in: query
@@ -21380,6 +21636,16 @@ paths:
           required: true
           schema:
             type: string
+        - in: query
+          name: tag
+          required: false
+          description: >-
+            When set, only public playlists that have this folded tag, applied before paging. An
+            unknown tag is an empty page. Playlists with a count of zero for the range are left
+            out, so a range with no activity returns an empty list.
+          schema:
+            type: string
+            maxLength: 50
         - $ref: "#/components/parameters/PageQueryRequired"
         - $ref: "#/components/parameters/LimitQueryOptional"
       responses:
@@ -21454,36 +21720,6 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/NotFoundErrorResponse"
-        "500":
-          description: Internal server error
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/InternalServerErrorResponse"
-  /product/membership:
-    get:
-      operationId: apiGetProductMembership
-      tags:
-        - product
-      summary: GET /product/membership
-      description: >-
-        Resolved membership product settings: prices, trial length, and tier capabilities.
-      security: []
-      responses:
-        "200":
-          description: Membership product
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ProductMembershipResponse"
-              example:
-                data:
-                  freeTrialExpirationSeconds: 2678400
-                  freeTrialDays: 31
-                  premiumMembershipCostMonthly: 3
-                  premiumMembershipCostAnnually: 30
-                  annuallySavingsPercent: 16
-                  monthlyEquivalentAnnually: 36
         "500":
           description: Internal server error
           content:

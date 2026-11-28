@@ -408,6 +408,9 @@ export const E2E_EMBED_VIDEO_ITEM_ID_TEXT = 'e2eEmbVidItem01';
 export const E2E_EMBED_VIDEO_ITEM_TWO_ID_TEXT = 'e2eEmbVidItem02';
 
 export const E2E_EMBED_PLAYLIST_ID_TEXT = 'e2eEmbPlList01';
+/** Stay in sync with `tools/web/embed-fixture-constants.mjs`. */
+export const E2E_EMBED_PLAYLIST_TAG_ADAM = 'adam curry';
+export const E2E_EMBED_PLAYLIST_TAG_PODCASTING = 'podcasting';
 export const E2E_EMBED_PLAYLIST_MIXED_ID_TEXT = 'e2eEmbPlMix01';
 export const E2E_EMBED_PRIVATE_PLAYLIST_ID_TEXT = 'e2eEmbPlPriv01';
 export const E2E_EMBED_MUSIC_TRACK_VIDEO_ID_TEXT = 'e2eEmbVidTrk01';

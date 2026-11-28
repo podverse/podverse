@@ -393,28 +393,9 @@ describe('external services, feed, medium-value, membership, claim, metaboost, m
   });
 
   describe('Product membership defaults', () => {
-    it('GET / returns env-derived numbers without authentication', async () => {
+    it('GET / returns 404', async () => {
       const res = await request(app).get(productMembershipBase);
-      expect(res.status).toBe(200);
-      expect(res.body).toHaveProperty('data');
-      expect(res.body.data).toMatchObject({
-        freeTrialExpirationSeconds: expect.any(Number),
-        freeTrialDays: expect.any(Number),
-        premiumMembershipCostMonthly: expect.any(Number),
-        premiumMembershipCostAnnually: expect.any(Number),
-        maxAddByRSSFeeds: expect.any(Number),
-        trialAllowDirectoryAddByRSS: expect.any(Boolean),
-        trialMaxManualRefreshesPerHour: expect.any(Number),
-        trialTrackStats: expect.any(Boolean),
-        trialAllowNotifications: expect.any(Boolean),
-        premiumAllowDirectoryAddByRSS: expect.any(Boolean),
-        premiumMaxManualRefreshesPerHour: expect.any(Number),
-        premiumTrackStats: expect.any(Boolean),
-        premiumAllowNotifications: expect.any(Boolean),
-        annuallySavingsPercent: expect.any(Number),
-        monthlyEquivalentAnnually: expect.any(Number),
-      });
-      expect(res.body.data.freeTrialExpirationSeconds).toBeGreaterThan(0);
+      expect(res.status).toBe(404);
     });
   });
 

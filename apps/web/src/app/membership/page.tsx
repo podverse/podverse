@@ -11,7 +11,7 @@ import {
 import { MainColumnStack, MainHeader, MainSidebarLayout } from '@podverse/ui';
 
 import { MainWrapper } from '../../components/Main/MainWrapper';
-import { getConfig } from '../../config';
+import { getConfigResolved } from '../../config/loadPublicClientConfig.server';
 import { getSSRApiRequestService } from '../../factories/apiRequestService';
 import { buildNoindexMetadata } from '../../lib/seo/buildNoindexMetadata';
 import { getSSRLoggedInAccount } from '../../utils/auth/ssrAuth';
@@ -67,7 +67,7 @@ function MembershipContactMailto({
 }
 
 export default async function MembershipPage() {
-  const config = getConfig();
+  const config = await getConfigResolved();
   const locale = await getLocale();
   const t = await getTranslations('membership');
   const tCheckout = await getTranslations('checkout');

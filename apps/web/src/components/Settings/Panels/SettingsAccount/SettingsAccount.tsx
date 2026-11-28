@@ -6,8 +6,8 @@ import { useState } from 'react';
 import { getAccountSignupModeCapabilities } from '@podverse/helpers';
 import { Button, Divider } from '@podverse/ui';
 
-import { getConfig } from '../../../../config';
 import { useAccount } from '../../../../contexts/Account';
+import { useConfig } from '../../../../contexts/Config';
 import { getApiRequestService } from '../../../../factories/apiRequestService';
 import { handleRateLimitAlert } from '../../../../utils/rateLimit/rateLimitAlert';
 import { dismissToast, showToast, showToastLoading } from '../../../Toast/Toast';
@@ -29,7 +29,7 @@ export function SettingsAccount() {
   const [isChangePasswordModalOpen, setIsChangePasswordModalOpen] = useState(false);
   const [isDownloading, setIsDownloading] = useState(false);
 
-  const config = getConfig();
+  const config = useConfig();
   const signupMode = config.public.account.signupMode;
   const capabilities = getAccountSignupModeCapabilities(signupMode);
 

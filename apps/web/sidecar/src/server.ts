@@ -8,8 +8,11 @@ import {
   HOME_LIST_SCREEN_CHIPS,
   LIST_SCREEN_SORTS,
   LIST_SCREEN_VIEWS,
+  PLAYLIST_TAG_NAME_MAX_LENGTH,
   PLAYLISTS_PAGE_PUBLIC_SORTS,
   PLAYLISTS_PAGE_RANGES,
+  PLAYLISTS_PAGE_TYPES,
+  QUERY_PARAMS_QUEUE_MEDIUMS,
   parseListScreenDefaults,
   parsePlaylistsPageDefaults,
 } from '@podverse/helpers';
@@ -97,6 +100,9 @@ const optionalKeys = [
   'NEXT_PUBLIC_HOME_DEFAULT_VIEW',
   'NEXT_PUBLIC_PLAYLISTS_DEFAULT_RANGE',
   'NEXT_PUBLIC_PLAYLISTS_DEFAULT_SORT',
+  'NEXT_PUBLIC_PLAYLISTS_DEFAULT_TYPE',
+  'NEXT_PUBLIC_PLAYLISTS_DEFAULT_MEDIUM',
+  'NEXT_PUBLIC_PLAYLISTS_DEFAULT_TAG',
   'NEXT_PUBLIC_CONTACT_EMAIL',
   'NEXT_PUBLIC_CUSTOM_THEMES_URL',
   'NEXT_PUBLIC_COOKIE_CONSENT_BANNER_ENABLED',
@@ -169,6 +175,9 @@ const LIST_SCREEN_ENV_FIELDS = {
 const PLAYLISTS_PAGE_ENV_FIELDS = {
   NEXT_PUBLIC_PLAYLISTS_DEFAULT_RANGE: 'range',
   NEXT_PUBLIC_PLAYLISTS_DEFAULT_SORT: 'sort',
+  NEXT_PUBLIC_PLAYLISTS_DEFAULT_TYPE: 'type',
+  NEXT_PUBLIC_PLAYLISTS_DEFAULT_MEDIUM: 'medium',
+  NEXT_PUBLIC_PLAYLISTS_DEFAULT_TAG: 'tag',
 } as const;
 
 type PlaylistsPageEnvKey = keyof typeof PLAYLISTS_PAGE_ENV_FIELDS;
@@ -226,6 +235,23 @@ function validateListScreenDefault(key: ListScreenEnvKey): ValidationResult {
   };
 }
 
+type PlaylistsPageEnvField = (typeof PLAYLISTS_PAGE_ENV_FIELDS)[PlaylistsPageEnvKey];
+
+function playlistsPageAllowedTokens(
+  field: Exclude<PlaylistsPageEnvField, 'tag'>
+): readonly string[] {
+  switch (field) {
+    case 'sort':
+      return PLAYLISTS_PAGE_PUBLIC_SORTS;
+    case 'range':
+      return PLAYLISTS_PAGE_RANGES;
+    case 'type':
+      return PLAYLISTS_PAGE_TYPES;
+    case 'medium':
+      return QUERY_PARAMS_QUEUE_MEDIUMS;
+  }
+}
+
 function validatePlaylistsPageDefault(key: PlaylistsPageEnvKey): ValidationResult {
   const value = process.env[key] ?? '';
   if (value.trim() === '') {
@@ -239,18 +265,18 @@ function validatePlaylistsPageDefault(key: PlaylistsPageEnvKey): ValidationResul
     };
   }
   const field = PLAYLISTS_PAGE_ENV_FIELDS[key];
-  const { issues } =
-    field === 'sort'
-      ? parsePlaylistsPageDefaults({ sort: value })
-      : parsePlaylistsPageDefaults({ range: value });
+  const { issues } = parsePlaylistsPageDefaults({ [field]: value });
   if (issues.length > 0) {
-    const allowed = key.endsWith('_SORT') ? PLAYLISTS_PAGE_PUBLIC_SORTS : PLAYLISTS_PAGE_RANGES;
+    const requirement =
+      field === 'tag'
+        ? `must be at most ${PLAYLIST_TAG_NAME_MAX_LENGTH} characters`
+        : `must be ${playlistsPageAllowedTokens(field).join(', ')}`;
     return {
       name: key,
       isSet: true,
       isValid: false,
       isRequired: false,
-      message: `Invalid value: "${value.trim()}" - must be ${allowed.join(', ')}`,
+      message: `Invalid value: "${value.trim()}" - ${requirement}`,
       category: 'Lists',
     };
   }
@@ -478,6 +504,9 @@ function getCategory(key: string): string {
     NEXT_PUBLIC_HOME_DEFAULT_VIEW: 'Lists',
     NEXT_PUBLIC_PLAYLISTS_DEFAULT_RANGE: 'Lists',
     NEXT_PUBLIC_PLAYLISTS_DEFAULT_SORT: 'Lists',
+    NEXT_PUBLIC_PLAYLISTS_DEFAULT_TYPE: 'Lists',
+    NEXT_PUBLIC_PLAYLISTS_DEFAULT_MEDIUM: 'Lists',
+    NEXT_PUBLIC_PLAYLISTS_DEFAULT_TAG: 'Lists',
     NEXT_PUBLIC_CATALOG_MUSIC_DISABLED: 'Catalog',
     NEXT_PUBLIC_CATALOG_PODCAST_INDEX_ID_ALLOWLIST: 'Catalog',
     NEXT_PUBLIC_COOKIE_CONSENT_BANNER_ENABLED: 'Legal',

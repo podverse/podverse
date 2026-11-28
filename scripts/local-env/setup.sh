@@ -531,6 +531,7 @@ apply_override "GOOGLE_SERVICES_JSON" "${MOBILE_ENV_FILES[@]}"
 apply_override "LOG_DIR" "${API_ENV_FILES[@]}" "${WORKERS_ENV_FILES[@]}" "${MANAGEMENT_API_ENV_FILES[@]}"
 apply_override "ACCOUNT_SIGNUP_MODE" "${API_ENV_FILES[@]}"
 # Sync API's effective ACCOUNT_SIGNUP_MODE to web/sidecar so both use the same .config value (app.env or template default).
+# The client copies are the fallback when GET /config fails.
 ACCOUNT_SIGNUP_MODE_EFFECTIVE="$(first_non_empty_or_default "admin_only_email" "$API_APP_ENV:ACCOUNT_SIGNUP_MODE" "$API_INFRA_ENV:ACCOUNT_SIGNUP_MODE")"
 for file in "${WEB_ENV_FILES_APP_AND_SIDECAR[@]}"; do
 	upsert_var "$file" "NEXT_PUBLIC_ACCOUNT_SIGNUP_MODE" "$ACCOUNT_SIGNUP_MODE_EFFECTIVE"
@@ -545,6 +546,12 @@ for v in AUTH_LOGIN_MAX_PER_MINUTE ACCOUNT_CREATE_MAX_PER_10_MINUTES ACCOUNT_SEN
 done
 # Shared OPML soft cap for API + workers (separate from HTTP enqueue 429 knobs).
 apply_override "OPML_IMPORT_MAX_FEEDS_PER_HOUR" "${API_AND_WORKERS_ENV_FILES[@]}"
+# PLAYLIST_TAG_MAX_PER_PLAYLIST: empty uses 5. Not copied to the website or the workers.
+# PLAYLIST_TAG_NAME_MAX_LENGTH: empty uses 50. Not copied to the website or the workers. A character value above 50 is not written.
+set_if_empty "$API_APP_ENV" "PLAYLIST_TAG_MAX_PER_PLAYLIST" "5"
+set_if_empty "$API_INFRA_ENV" "PLAYLIST_TAG_MAX_PER_PLAYLIST" "5"
+set_if_empty "$API_APP_ENV" "PLAYLIST_TAG_NAME_MAX_LENGTH" "50"
+set_if_empty "$API_INFRA_ENV" "PLAYLIST_TAG_NAME_MAX_LENGTH" "50"
 
 # From storage.env (workers image shrink + management-api object storage browser share the same bucket contract)
 for v in BUCKET_PROVIDER BUCKET_ACCESS_KEY BUCKET_SECRET_KEY BUCKET_REGION BUCKET_NAME BUCKET_CDN_BASE_URL BUCKET_ENDPOINT BUCKET_FORCE_PATH_STYLE; do
@@ -624,6 +631,7 @@ for v in NEXT_PUBLIC_CONTACT_EMAIL NEXT_PUBLIC_SOCIAL_ACTIVITY_PUB NEXT_PUBLIC_S
 	apply_override "$v" "${WEB_ENV_FILES_APP_AND_SIDECAR[@]}"
 done
 # Same contact address, for the mobile error-log email action.
+# EXPO_PUBLIC_CONTACT_EMAIL is the fallback when GET /config fails.
 if [ -n "${NEXT_PUBLIC_CONTACT_EMAIL:-}" ]; then
 	upsert_var "$MOBILE_APP_ENV" "EXPO_PUBLIC_CONTACT_EMAIL" "$NEXT_PUBLIC_CONTACT_EMAIL"
 fi
@@ -649,6 +657,7 @@ done
 # From brand.env: api/web = BRAND_NAME; mgmt api/mgmt web = MANAGEMENT_BRAND_NAME. Do not set NEXT_PUBLIC_BRAND_NAME in overrides.
 apply_override "BRAND_NAME" "${API_AND_WORKERS_ENV_FILES[@]}"
 
+# Website NEXT_PUBLIC_BRAND_NAME copies are the fallback when GET /config fails.
 if [ -n "${BRAND_NAME:-}" ]; then
 	upsert_var "$API_APP_ENV" "USER_AGENT" "${BRAND_NAME} Bot Local/API/5"
 	upsert_var "$API_INFRA_ENV" "USER_AGENT" "${BRAND_NAME} Bot Local/API/5"
@@ -711,6 +720,7 @@ for v in LEGAL_NAME LEGAL_ADDRESS TERMS_OF_SERVICE_VERSION TERMS_OF_SERVICE_CONT
 	apply_override "$v" "${API_ENV_FILES[@]}"
 done
 
+# Website copies of the legal name, the terms version, and the taste-profile version are the fallback when GET /config fails.
 if [ -n "${LEGAL_NAME:-}" ]; then
 	for file in "${WEB_ENV_FILES_APP_AND_SIDECAR[@]}"; do
 		[ -f "$file" ] && upsert_var "$file" "NEXT_PUBLIC_LEGAL_NAME" "$LEGAL_NAME"
@@ -734,8 +744,7 @@ for v in STATS_TRACK_EVENT_RETENTION_DAYS NOTIFICATION_RETENTION_DAYS SCHEDULED_
 	apply_override "$v" "${WORKERS_ENV_FILES[@]}"
 done
 
-# Stats retention is the only window the web app displays (terms, signup consent, settings help),
-# so it is the only one mirrored into the web env as a NEXT_PUBLIC_ value.
+# The website reads stats retention from GET /config. This copy is the fallback when that request fails.
 if [ -n "${STATS_TRACK_EVENT_RETENTION_DAYS:-}" ]; then
 	for file in "${WEB_ENV_FILES_APP_AND_SIDECAR[@]}"; do
 		[ -f "$file" ] && upsert_var "$file" "NEXT_PUBLIC_STATS_TRACK_EVENT_RETENTION_DAYS" "$STATS_TRACK_EVENT_RETENTION_DAYS"

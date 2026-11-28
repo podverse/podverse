@@ -6,13 +6,16 @@ import { Divider, MainColumnStack, MainHeader, MainSidebarLayout } from '@podver
 
 import { Link } from '../../components/Link/Link';
 import { MainWrapper } from '../../components/Main/MainWrapper';
-import { CONTACT_EMAIL_LINKS } from '../../constants/contact';
+import { contactEmailLinks } from '../../constants/contact';
 import { SOCIALS } from '../../constants/socials';
+import { useConfig } from '../../contexts/Config';
 
 import styles from '../../styles/app/contact/Contact.module.scss';
 
 export const ContactPageClient = () => {
   const tContact = useTranslations('contact');
+  const config = useConfig();
+  const emailLinks = contactEmailLinks(config.public.contact.email, config.public.brand.name);
 
   return (
     <>
@@ -24,27 +27,27 @@ export const ContactPageClient = () => {
               <h2>{tContact('email')}</h2>
               <ul>
                 <li>
-                  <Link href={CONTACT_EMAIL_LINKS.BUG_REPORT} fullPageLoad>
+                  <Link href={emailLinks.BUG_REPORT} fullPageLoad>
                     {tContact('report_bug')}
                   </Link>
                 </li>
                 <li>
-                  <Link href={CONTACT_EMAIL_LINKS.FEATURE_REQUEST} fullPageLoad>
+                  <Link href={emailLinks.FEATURE_REQUEST} fullPageLoad>
                     {tContact('feature_request')}
                   </Link>
                 </li>
                 <li>
-                  <Link href={CONTACT_EMAIL_LINKS.PODCAST_REQUEST} fullPageLoad>
+                  <Link href={emailLinks.PODCAST_REQUEST} fullPageLoad>
                     {tContact('podcast_request')}
                   </Link>
                 </li>
                 <li>
-                  <Link href={CONTACT_EMAIL_LINKS.CONTENT_ISSUE} fullPageLoad>
+                  <Link href={emailLinks.CONTENT_ISSUE} fullPageLoad>
                     {tContact('report_content_issue')}
                   </Link>
                 </li>
                 <li>
-                  <Link href={CONTACT_EMAIL_LINKS.GENERAL} fullPageLoad>
+                  <Link href={emailLinks.GENERAL} fullPageLoad>
                     {tContact('general')}
                   </Link>
                 </li>

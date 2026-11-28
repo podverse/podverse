@@ -77,7 +77,7 @@ export function CheckoutPageClient({
       setError(null);
       const optionsRequest = getApiRequestService().reqBillingGetCheckoutOptions();
       const pricingRequest = getApiRequestService()
-        .reqProductMembershipGet()
+        .reqPublicClientConfigGet()
         .catch(() => null);
       try {
         const nextOptions = await optionsRequest;
@@ -94,10 +94,9 @@ export function CheckoutPageClient({
         if (
           !cancelled &&
           pricingResponse !== null &&
-          'data' in pricingResponse &&
-          pricingResponse.data !== undefined
+          pricingResponse.data?.membership !== undefined
         ) {
-          const catalog = pricingResponse.data;
+          const catalog = pricingResponse.data.membership;
           const costMonthly = catalog.premiumMembershipCostMonthly;
           const costAnnually = catalog.premiumMembershipCostAnnually;
           const monthlyEquivalentAnnually = costMonthly * 12;

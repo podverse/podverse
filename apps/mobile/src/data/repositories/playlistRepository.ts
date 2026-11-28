@@ -614,6 +614,7 @@ export const playlistRepository = {
       description?: string;
       medium: QueryParamsQueueMedium;
       sharable_status_id: number;
+      tags?: string[];
     }
   ): Promise<DTOPlaylist> => {
     const generation = playlistCacheGeneration;
@@ -637,6 +638,7 @@ export const playlistRepository = {
       title: string;
       description?: string;
       sharable_status_id: number;
+      tags?: string[];
     }
   ): Promise<DTOPlaylist> => {
     const generation = playlistCacheGeneration;
@@ -650,6 +652,13 @@ export const playlistRepository = {
       await projectLibraryBrowseFromCache();
     }
     return playlist;
+  },
+
+  searchTags: async (context: MobileAuthRequestContext, q: string): Promise<readonly string[]> => {
+    const response = await requestWithMobileAuthRefresh(context, async (api) =>
+      api.reqPlaylistTagSearch(q)
+    );
+    return response.data;
   },
 
   delete: async (context: MobileAuthRequestContext, playlistIdText: string): Promise<void> => {

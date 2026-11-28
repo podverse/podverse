@@ -2,15 +2,21 @@ import type { MetadataRoute } from 'next';
 
 import { optionalEnvString } from '@podverse/helpers-config';
 
+import { getConfigResolved } from '../config/loadPublicClientConfig.server';
 import { getRuntimeConfig } from '../config/runtime-config-store';
 
 /**
- * Web app manifest. `name` and `short_name` follow `NEXT_PUBLIC_BRAND_NAME` (oss deploys rebrand
- * via runtime config). Icon/theme URLs default under /favicon/* when unset.
+ * Web app manifest. `name` and `short_name` follow the resolved public brand name. An empty
+ * name falls back to `NEXT_PUBLIC_BRAND_NAME`, then Podverse. Icon and theme URLs stay on the
+ * runtime env and default under /favicon/* when unset.
  */
-export default function manifest(): MetadataRoute.Manifest {
+export default async function manifest(): Promise<MetadataRoute.Manifest> {
   const { env } = getRuntimeConfig();
-  const name = optionalEnvString(env.NEXT_PUBLIC_BRAND_NAME) ?? 'Podverse';
+  const resolvedName = (await getConfigResolved()).public.brand.name;
+  const name =
+    resolvedName === ''
+      ? (optionalEnvString(env.NEXT_PUBLIC_BRAND_NAME) ?? 'Podverse')
+      : resolvedName;
   const shortName = name;
   const icon192 =
     optionalEnvString(env.NEXT_PUBLIC_BRAND_APP_ICON_192_URL) ??

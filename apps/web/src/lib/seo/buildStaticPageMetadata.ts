@@ -1,6 +1,5 @@
 import type { Metadata } from 'next';
 
-import { getConfig } from '../../config';
 import { buildAbsoluteWebUrl } from './buildAbsoluteWebUrl';
 import { buildOpenGraphImage } from './buildOpenGraphImage';
 import { truncateMetaDescription } from './truncateMetaDescription';
@@ -10,19 +9,20 @@ type BuildStaticPageMetadataInput = {
   descriptionPlain: string;
   pathname: string;
   imageUrl?: string;
+  brandName: string;
 };
 
-const getDescription = (descriptionPlain: string): string => {
+const getDescription = (descriptionPlain: string, brandName: string): string => {
   const description = truncateMetaDescription(descriptionPlain);
   if (description) {
     return description;
   }
 
-  return getConfig().public.brand.name;
+  return brandName;
 };
 
 export const buildStaticPageMetadata = (input: BuildStaticPageMetadataInput): Metadata => {
-  const description = getDescription(input.descriptionPlain);
+  const description = getDescription(input.descriptionPlain, input.brandName);
   const canonical = buildAbsoluteWebUrl(input.pathname);
   const image = buildOpenGraphImage(input.imageUrl);
 
