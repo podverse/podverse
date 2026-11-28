@@ -9,7 +9,11 @@ import jwt from 'jsonwebtoken';
 import request from 'supertest';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { API_KEY_TOKEN_PREFIX } from '@podverse/helpers';
+import {
+  API_KEY_TOKEN_PREFIX,
+  COOKIE_WRITE_INTENT_HEADER,
+  COOKIE_WRITE_INTENT_VALUE,
+} from '@podverse/helpers';
 
 const JWT_SECRET = process.env.AUTH_JWT_SECRET ?? '';
 const ADMIN_AUTH_COOKIE_NAME = 'pv_mgmt_auth';
@@ -232,6 +236,70 @@ describe('management-api auth routes', () => {
       expect(res.body.message).toBe('Logged out successfully');
       expect(authCookieValue(res)).toBe('');
       expect(adminSessionStoreStub.endAdminSession).not.toHaveBeenCalled();
+    });
+
+    it('rejects a cookie logout without the intent header and does not end the session', async () => {
+      const cookie = jwt.sign(
+        { id: 1, id_text: 'pvMgtAu001', sid: TEST_ADMIN_SESSION_ID_TEXT, token_use: 'web' },
+        JWT_SECRET,
+        { expiresIn: '1h' }
+      );
+      const res = await request(app)
+        .post(`${authBase}/logout`)
+        .set('Cookie', [`${ADMIN_AUTH_COOKIE_NAME}=${cookie}`]);
+
+      expect(res.status).toBe(403);
+      expect(res.body).toEqual({ message: 'Forbidden' });
+      expect(authCookieValue(res)).toBeNull();
+      expect(adminSessionStoreStub.endAdminSession).not.toHaveBeenCalled();
+    });
+
+    it('rejects a cookie logout when the intent header is wrong and does not end the session', async () => {
+      const cookie = jwt.sign(
+        { id: 1, id_text: 'pvMgtAu001', sid: TEST_ADMIN_SESSION_ID_TEXT, token_use: 'web' },
+        JWT_SECRET,
+        { expiresIn: '1h' }
+      );
+      const res = await request(app)
+        .post(`${authBase}/logout`)
+        .set('Cookie', [`${ADMIN_AUTH_COOKIE_NAME}=${cookie}`])
+        .set(COOKIE_WRITE_INTENT_HEADER, 'cross-site');
+
+      expect(res.status).toBe(403);
+      expect(res.body).toEqual({ message: 'Forbidden' });
+      expect(authCookieValue(res)).toBeNull();
+      expect(adminSessionStoreStub.endAdminSession).not.toHaveBeenCalled();
+    });
+
+    it('ends the session when a cookie logout sends the intent header', async () => {
+      const cookie = jwt.sign(
+        { id: 1, id_text: 'pvMgtAu001', sid: TEST_ADMIN_SESSION_ID_TEXT, token_use: 'web' },
+        JWT_SECRET,
+        { expiresIn: '1h' }
+      );
+      const res = await request(app)
+        .post(`${authBase}/logout`)
+        .set('Cookie', [`${ADMIN_AUTH_COOKIE_NAME}=${cookie}`])
+        .set(COOKIE_WRITE_INTENT_HEADER, COOKIE_WRITE_INTENT_VALUE);
+
+      expect(res.status).toBe(200);
+      expect(res.body.message).toBe('Logged out successfully');
+      expect(adminSessionStoreStub.endAdminSession).toHaveBeenCalledWith({
+        adminAccountId: 1,
+        sessionIdText: TEST_ADMIN_SESSION_ID_TEXT,
+        reason: 'signed_out',
+      });
+    });
+
+    it('ends the session for a bearer logout without the intent header', async () => {
+      const res = await request(app).post(`${authBase}/logout`).set(adminAuthHeaders());
+
+      expect(res.status).toBe(200);
+      expect(adminSessionStoreStub.endAdminSession).toHaveBeenCalledWith({
+        adminAccountId: 1,
+        sessionIdText: TEST_ADMIN_SESSION_ID_TEXT,
+        reason: 'signed_out',
+      });
     });
   });
 

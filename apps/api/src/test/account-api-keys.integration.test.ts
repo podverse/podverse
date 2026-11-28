@@ -11,6 +11,8 @@ import {
   API_KEY_TOKEN_HINT_LENGTH,
   apiKeyPermissionsForPreset,
   APP_ROUTES,
+  COOKIE_WRITE_INTENT_HEADER,
+  COOKIE_WRITE_INTENT_VALUE,
   CRUD_BITS,
   emptyApiKeyPermissions,
   isApiKeyTokenFormat,
@@ -214,6 +216,7 @@ function jwtCookieValue(res: request.Response): string | null {
 function withAuth(pending: request.Test, auth?: RequestAuth): request.Test {
   if (auth?.cookie !== undefined) {
     pending.set('Cookie', auth.cookie);
+    pending.set(COOKIE_WRITE_INTENT_HEADER, COOKIE_WRITE_INTENT_VALUE);
   }
   if (auth?.bearer !== undefined) {
     pending.set('Authorization', `Bearer ${auth.bearer}`);
@@ -683,6 +686,7 @@ describe('account API key create, list, and revoke (real session store)', () => 
     const changed = await request(app)
       .post(`${accountBase}/change-password`)
       .set('Cookie', cookie)
+      .set(COOKIE_WRITE_INTENT_HEADER, COOKIE_WRITE_INTENT_VALUE)
       .send({ current_password: TEST_PASSWORD, new_password: NEW_PASSWORD });
     expect(changed.status).toBe(200);
     await expectKeyStillWorks(created);

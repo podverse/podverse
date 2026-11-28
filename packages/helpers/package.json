@@ -19,6 +19,10 @@
       "types": "./dist/lib/auth.d.ts",
       "default": "./dist/lib/auth.js"
     },
+    "./cookieWriteIntent": {
+      "types": "./dist/lib/cookieWriteIntent.d.ts",
+      "default": "./dist/lib/cookieWriteIntent.js"
+    },
     "./authSessionNotice": {
       "types": "./dist/lib/authSessionNotice.d.ts",
       "default": "./dist/lib/authSessionNotice.js"

@@ -3,7 +3,11 @@ import jwt from 'jsonwebtoken';
 import request from 'supertest';
 import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
 
-import { sha256Hex } from '@podverse/helpers';
+import {
+  COOKIE_WRITE_INTENT_HEADER,
+  COOKIE_WRITE_INTENT_VALUE,
+  sha256Hex,
+} from '@podverse/helpers';
 import type { ORMContext } from '@podverse/orm';
 
 import { getBaseApiUrl, startTestApp, stopTestApp } from './helpers/index.js';
@@ -285,7 +289,10 @@ describe('account sessions (real session store)', () => {
     const account = await createVerifiedAccount();
     const { token, sid } = await webLogin(account);
 
-    const logout = await request(app).post(`${authBase}/logout`).set('Cookie', `jwt=${token}`);
+    const logout = await request(app)
+      .post(`${authBase}/logout`)
+      .set('Cookie', `jwt=${token}`)
+      .set(COOKIE_WRITE_INTENT_HEADER, COOKIE_WRITE_INTENT_VALUE);
     expect(logout.status).toBe(200);
     expect((await readSession(sid)).revoked_reason).toBe('signed_out');
 

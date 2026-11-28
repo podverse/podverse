@@ -6,6 +6,8 @@ import jwt from 'jsonwebtoken';
 import request from 'supertest';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 
+import { COOKIE_WRITE_INTENT_HEADER, COOKIE_WRITE_INTENT_VALUE } from '@podverse/helpers';
+
 const ADMIN_AUTH_COOKIE_NAME = 'pv_mgmt_auth';
 const TEST_PASSWORD = 'AdminSessionTest1!';
 const CHROME_MAC_USER_AGENT =
@@ -239,7 +241,8 @@ describe('admin session list and sign-out (real session store)', () => {
 
     const removed = await request(app)
       .delete(`${authBase}/sessions/${firefox.sid}`)
-      .set('Cookie', cookieHeader(chrome.token));
+      .set('Cookie', cookieHeader(chrome.token))
+      .set(COOKIE_WRITE_INTENT_HEADER, COOKIE_WRITE_INTENT_VALUE);
     expect(removed.status).toBe(200);
     expect(removed.body).toEqual({ message: 'Session ended' });
     expect(authCookieValue(removed)).toBeNull();
@@ -260,19 +263,22 @@ describe('admin session list and sign-out (real session store)', () => {
 
     const again = await request(app)
       .delete(`${authBase}/sessions/${firefox.sid}`)
-      .set('Cookie', cookieHeader(chrome.token));
+      .set('Cookie', cookieHeader(chrome.token))
+      .set(COOKIE_WRITE_INTENT_HEADER, COOKIE_WRITE_INTENT_VALUE);
     expect(again.status).toBe(404);
     expect(again.body).toEqual({ message: 'Session not found' });
 
     const invalid = await request(app)
       .delete(`${authBase}/sessions/not-a-valid-id`)
-      .set('Cookie', cookieHeader(chrome.token));
+      .set('Cookie', cookieHeader(chrome.token))
+      .set(COOKIE_WRITE_INTENT_HEADER, COOKIE_WRITE_INTENT_VALUE);
     expect(invalid.status).toBe(404);
     expect(invalid.body).toEqual({ message: 'Session not found' });
 
     const tooLong = await request(app)
       .delete(`${authBase}/sessions/too-long-session-id`)
-      .set('Cookie', cookieHeader(chrome.token));
+      .set('Cookie', cookieHeader(chrome.token))
+      .set(COOKIE_WRITE_INTENT_HEADER, COOKIE_WRITE_INTENT_VALUE);
     expect(tooLong.status).toBe(404);
     expect(tooLong.body).toEqual({ message: 'Session not found' });
   });
@@ -285,7 +291,8 @@ describe('admin session list and sign-out (real session store)', () => {
 
     const denied = await request(app)
       .delete(`${authBase}/sessions/${otherSession.sid}`)
-      .set('Cookie', cookieHeader(ownerSession.token));
+      .set('Cookie', cookieHeader(ownerSession.token))
+      .set(COOKIE_WRITE_INTENT_HEADER, COOKIE_WRITE_INTENT_VALUE);
     expect(denied.status).toBe(404);
     expect(denied.body).toEqual({ message: 'Session not found' });
 
@@ -301,7 +308,8 @@ describe('admin session list and sign-out (real session store)', () => {
 
     const removed = await request(app)
       .delete(`${authBase}/sessions/${session.sid}`)
-      .set('Cookie', cookieHeader(session.token));
+      .set('Cookie', cookieHeader(session.token))
+      .set(COOKIE_WRITE_INTENT_HEADER, COOKIE_WRITE_INTENT_VALUE);
     expect(removed.status).toBe(200);
     expect(removed.body).toEqual({ message: 'Logged out successfully' });
     expect(authCookieValue(removed)).toBe('');

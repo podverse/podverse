@@ -5,6 +5,8 @@ import { AdminAccountService } from '@management-api/orm/services/adminAccount.j
 import request from 'supertest';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 
+import { COOKIE_WRITE_INTENT_HEADER, COOKIE_WRITE_INTENT_VALUE } from '@podverse/helpers';
+
 const ADMIN_AUTH_COOKIE_NAME = 'pv_mgmt_auth';
 const TEST_PASSWORD = 'AdminSessionTest1!';
 const NEW_PASSWORD = 'ChangedAdminPass1';
@@ -200,6 +202,7 @@ describe('admin password changes end sessions (real session store)', () => {
     const patch = await request(app)
       .patch(`${adminsBase}/${adminB.id}`)
       .set('Cookie', [`${ADMIN_AUTH_COOKIE_NAME}=${superuserCookie}`])
+      .set(COOKIE_WRITE_INTENT_HEADER, COOKIE_WRITE_INTENT_VALUE)
       .send({ password: NEW_PASSWORD });
 
     expect(patch.status).toBe(200);

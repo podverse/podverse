@@ -30,7 +30,10 @@ components:
       description: >
         Web admin session JWT set by `POST /auth/login`. Renewed (re-set with a fresh JWT) at most
         once a day of use; ends when the session idle limit passes with no use or when the session
-        is ended. An `Authorization: Bearer` header wins over this cookie.
+        is ended. An `Authorization: Bearer` header wins over this cookie. POST, PUT, PATCH, and
+        DELETE authenticated by this cookie must also send `X-Podverse-Request-Intent: same-origin`.
+        A missing or different value is 403 and the handler does not run. Bearer tokens do not send
+        it. GET and HEAD do not.
     bearerAuth:
       type: http
       scheme: bearer

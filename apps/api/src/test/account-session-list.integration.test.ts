@@ -3,6 +3,7 @@ import jwt from 'jsonwebtoken';
 import request from 'supertest';
 import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
 
+import { COOKIE_WRITE_INTENT_HEADER, COOKIE_WRITE_INTENT_VALUE } from '@podverse/helpers';
 import type { ORMContext } from '@podverse/orm';
 
 import { getBaseApiUrl, startTestApp, stopTestApp } from './helpers/index.js';
@@ -252,7 +253,8 @@ describe('account session list and sign-out (real session store)', () => {
 
     const removed = await request(app)
       .delete(`${authBase}/sessions/${firefox.sid}`)
-      .set('Cookie', `jwt=${chrome.token}`);
+      .set('Cookie', `jwt=${chrome.token}`)
+      .set(COOKIE_WRITE_INTENT_HEADER, COOKIE_WRITE_INTENT_VALUE);
     expect(removed.status).toBe(200);
     expect(removed.body).toEqual({ message: 'Session ended' });
 
@@ -270,13 +272,15 @@ describe('account session list and sign-out (real session store)', () => {
 
     const again = await request(app)
       .delete(`${authBase}/sessions/${firefox.sid}`)
-      .set('Cookie', `jwt=${chrome.token}`);
+      .set('Cookie', `jwt=${chrome.token}`)
+      .set(COOKIE_WRITE_INTENT_HEADER, COOKIE_WRITE_INTENT_VALUE);
     expect(again.status).toBe(404);
     expect(again.body).toEqual({ message: 'Session not found' });
 
     const invalid = await request(app)
       .delete(`${authBase}/sessions/not-a-valid-id`)
-      .set('Cookie', `jwt=${chrome.token}`);
+      .set('Cookie', `jwt=${chrome.token}`)
+      .set(COOKIE_WRITE_INTENT_HEADER, COOKIE_WRITE_INTENT_VALUE);
     expect(invalid.status).toBe(404);
     expect(invalid.body).toEqual({ message: 'Session not found' });
   });
@@ -289,7 +293,8 @@ describe('account session list and sign-out (real session store)', () => {
 
     const denied = await request(app)
       .delete(`${authBase}/sessions/${otherSession.sid}`)
-      .set('Cookie', `jwt=${ownerSession.token}`);
+      .set('Cookie', `jwt=${ownerSession.token}`)
+      .set(COOKIE_WRITE_INTENT_HEADER, COOKIE_WRITE_INTENT_VALUE);
     expect(denied.status).toBe(404);
     expect(denied.body).toEqual({ message: 'Session not found' });
 
@@ -305,7 +310,8 @@ describe('account session list and sign-out (real session store)', () => {
 
     const removed = await request(app)
       .delete(`${authBase}/sessions/${session.sid}`)
-      .set('Cookie', `jwt=${session.token}`);
+      .set('Cookie', `jwt=${session.token}`)
+      .set(COOKIE_WRITE_INTENT_HEADER, COOKIE_WRITE_INTENT_VALUE);
     expect(removed.status).toBe(200);
     expect(removed.body).toEqual({ message: 'Signed out' });
     expectJwtCookieCleared(removed);

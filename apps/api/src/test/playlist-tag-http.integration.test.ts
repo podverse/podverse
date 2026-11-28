@@ -6,7 +6,11 @@ import type { Server } from 'http';
 import request from 'supertest';
 import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
 
-import { SharableStatusEnum } from '@podverse/helpers';
+import {
+  COOKIE_WRITE_INTENT_HEADER,
+  COOKIE_WRITE_INTENT_VALUE,
+  SharableStatusEnum,
+} from '@podverse/helpers';
 import type { ORMContext } from '@podverse/orm';
 
 import { createApiKeyTestAccount } from './helpers/apiKeyTestAccounts.js';
@@ -132,6 +136,7 @@ describe('playlist tag HTTP (real database)', () => {
     const res = await request(app())
       .post(`${apiBase}/playlist`)
       .set('Cookie', ownerCookie)
+      .set(COOKIE_WRITE_INTENT_HEADER, COOKIE_WRITE_INTENT_VALUE)
       .send(body);
     expect(res.status, JSON.stringify(res.body)).toBe(201);
     if (!isRecord(res.body) || typeof res.body.id_text !== 'string') {
@@ -207,6 +212,7 @@ describe('playlist tag HTTP (real database)', () => {
     const leave = await request(app())
       .patch(`${apiBase}/playlist/${idText}`)
       .set('Cookie', ownerCookie)
+      .set(COOKIE_WRITE_INTENT_HEADER, COOKIE_WRITE_INTENT_VALUE)
       .send(editBody(SharableStatusEnum.Public));
     expect(leave.status, JSON.stringify(leave.body)).toBe(200);
     const afterLeave = await request(app()).get(`${apiBase}/playlist/${idText}`);
@@ -216,6 +222,7 @@ describe('playlist tag HTTP (real database)', () => {
     const replace = await request(app())
       .patch(`${apiBase}/playlist/${idText}`)
       .set('Cookie', ownerCookie)
+      .set(COOKIE_WRITE_INTENT_HEADER, COOKIE_WRITE_INTENT_VALUE)
       .send(editBody(SharableStatusEnum.Public, [evening]));
     expect(replace.status, JSON.stringify(replace.body)).toBe(200);
     const afterReplace = await request(app()).get(`${apiBase}/playlist/${idText}`);
@@ -224,6 +231,7 @@ describe('playlist tag HTTP (real database)', () => {
     const clear = await request(app())
       .patch(`${apiBase}/playlist/${idText}`)
       .set('Cookie', ownerCookie)
+      .set(COOKIE_WRITE_INTENT_HEADER, COOKIE_WRITE_INTENT_VALUE)
       .send(editBody(SharableStatusEnum.Public, []));
     expect(clear.status, JSON.stringify(clear.body)).toBe(200);
     const afterClear = await request(app()).get(`${apiBase}/playlist/${idText}`);

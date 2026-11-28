@@ -6,7 +6,11 @@ import jwt from 'jsonwebtoken';
 import request from 'supertest';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 
-import { sha256Hex } from '@podverse/helpers';
+import {
+  COOKIE_WRITE_INTENT_HEADER,
+  COOKIE_WRITE_INTENT_VALUE,
+  sha256Hex,
+} from '@podverse/helpers';
 
 const ADMIN_AUTH_COOKIE_NAME = 'pv_mgmt_auth';
 const TEST_PASSWORD = 'AdminSessionTest1!';
@@ -259,7 +263,8 @@ describe('admin sessions (real session store)', () => {
 
     const logout = await request(app)
       .post(`${authBase}/logout`)
-      .set('Cookie', [`${ADMIN_AUTH_COOKIE_NAME}=${cookie}`]);
+      .set('Cookie', [`${ADMIN_AUTH_COOKIE_NAME}=${cookie}`])
+      .set(COOKIE_WRITE_INTENT_HEADER, COOKIE_WRITE_INTENT_VALUE);
     expect(logout.status).toBe(200);
     expect(Reflect.get(logout.body, 'message')).toBe('Logged out successfully');
     expect((await sessionRow(sessionIdText)).revoked_reason).toBe('signed_out');

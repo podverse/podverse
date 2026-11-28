@@ -165,3 +165,13 @@
   the check, and a redirect is checked the same way.
 - Who notices: an image or feed URL that pointed at a private or loopback address no longer loads through the server. Ordinary public URLs are unchanged.
 - Operator steps: none
+
+## Cookie writes send a same-origin header
+
+- Surfaces: api, management-api, web, management-web
+- Change: a state-changing request authenticated by the session cookie must send
+  `X-Podverse-Request-Intent: same-origin`. Bearer and API key calls are unchanged.
+- Who notices: a web client that posts with only the cookie is rejected until it sends
+  the header. Deploy the API, management API, web, and management web together.
+- Operator steps: bump those four alpha overlays in k.podcastdj.com in one promotion.
+  No new env key. No logout.

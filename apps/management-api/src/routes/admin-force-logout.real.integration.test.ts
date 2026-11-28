@@ -5,6 +5,8 @@ import { AdminAccountService } from '@management-api/orm/services/adminAccount.j
 import request from 'supertest';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 
+import { COOKIE_WRITE_INTENT_HEADER, COOKIE_WRITE_INTENT_VALUE } from '@podverse/helpers';
+
 const ADMIN_AUTH_COOKIE_NAME = 'pv_mgmt_auth';
 const TEST_PASSWORD = 'AdminSessionTest1!';
 const CHROME_MAC_USER_AGENT =
@@ -117,7 +119,8 @@ describe('superuser force-logout of another admin (real session store)', () => {
 
     const logout = await request(app)
       .post(`${adminsBase}/${admin.id}/force-logout`)
-      .set('Cookie', [`${ADMIN_AUTH_COOKIE_NAME}=${superuserCookie}`]);
+      .set('Cookie', [`${ADMIN_AUTH_COOKIE_NAME}=${superuserCookie}`])
+      .set(COOKIE_WRITE_INTENT_HEADER, COOKIE_WRITE_INTENT_VALUE);
 
     expect(logout.status).toBe(200);
     expect(logout.body).toEqual({ revoked_count: 1 });

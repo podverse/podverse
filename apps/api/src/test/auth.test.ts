@@ -3,7 +3,11 @@ import jwt from 'jsonwebtoken';
 import request from 'supertest';
 import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { ERROR_MESSAGES } from '@podverse/helpers';
+import {
+  COOKIE_WRITE_INTENT_HEADER,
+  COOKIE_WRITE_INTENT_VALUE,
+  ERROR_MESSAGES,
+} from '@podverse/helpers';
 import type { ORMContext } from '@podverse/orm';
 
 import {
@@ -21,6 +25,19 @@ const TEST_ACCOUNT_ID_TEXT = 'auth-test-user';
 const TEST_PASSWORD = 'test-password-123';
 const TEST_USER_ID = 1;
 const JWT_SECRET = process.env.AUTH_JWT_SECRET ?? '';
+
+function signWebSessionCookie(): string {
+  return jwt.sign(
+    {
+      id: TEST_USER_ID,
+      id_text: TEST_ACCOUNT_ID_TEXT,
+      sid: TEST_ACCOUNT_SESSION_ID_TEXT,
+      token_use: 'web',
+    },
+    JWT_SECRET,
+    { expiresIn: '1h' }
+  );
+}
 
 function signRefreshToken(claims: { id: number; id_text: string }): string {
   return jwt.sign(
@@ -383,6 +400,44 @@ describe('auth routes', () => {
       expect(res.status).toBe(200);
       expect(res.body.message).toBe('Logged out successfully');
       expect(accountSessionStoreStub.endAccountSession).not.toHaveBeenCalled();
+    });
+
+    it('rejects a cookie logout without the intent header and does not end the session', async () => {
+      const res = await request(app)
+        .post(`${authBase}/logout`)
+        .set('Cookie', `jwt=${signWebSessionCookie()}`);
+
+      expect(res.status).toBe(403);
+      expect(res.body).toEqual({ message: 'Forbidden' });
+      expect(res.headers['set-cookie']).toBeUndefined();
+      expect(accountSessionStoreStub.endAccountSession).not.toHaveBeenCalled();
+    });
+
+    it('rejects a cookie logout when the intent header is wrong and does not end the session', async () => {
+      const res = await request(app)
+        .post(`${authBase}/logout`)
+        .set('Cookie', `jwt=${signWebSessionCookie()}`)
+        .set(COOKIE_WRITE_INTENT_HEADER, 'cross-site');
+
+      expect(res.status).toBe(403);
+      expect(res.body).toEqual({ message: 'Forbidden' });
+      expect(res.headers['set-cookie']).toBeUndefined();
+      expect(accountSessionStoreStub.endAccountSession).not.toHaveBeenCalled();
+    });
+
+    it('ends the session when a cookie logout sends the intent header', async () => {
+      const res = await request(app)
+        .post(`${authBase}/logout`)
+        .set('Cookie', `jwt=${signWebSessionCookie()}`)
+        .set(COOKIE_WRITE_INTENT_HEADER, COOKIE_WRITE_INTENT_VALUE);
+
+      expect(res.status).toBe(200);
+      expect(res.body.message).toBe('Logged out successfully');
+      expect(accountSessionStoreStub.endAccountSession).toHaveBeenCalledWith({
+        accountId: TEST_USER_ID,
+        sessionIdText: TEST_ACCOUNT_SESSION_ID_TEXT,
+        reason: 'signed_out',
+      });
     });
   });
 

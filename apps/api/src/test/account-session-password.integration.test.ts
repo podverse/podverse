@@ -5,6 +5,7 @@ import jwt from 'jsonwebtoken';
 import request from 'supertest';
 import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
 
+import { COOKIE_WRITE_INTENT_HEADER, COOKIE_WRITE_INTENT_VALUE } from '@podverse/helpers';
 import type { Account, ORMContext } from '@podverse/orm';
 
 import { getBaseApiUrl, startTestApp, stopTestApp } from './helpers/index.js';
@@ -339,7 +340,8 @@ describe('password reset, invite completion, and account deletion (real session 
 
     const deleted = await request(app)
       .delete(`${accountBase}/delete`)
-      .set('Cookie', `jwt=${token}`);
+      .set('Cookie', `jwt=${token}`)
+      .set(COOKIE_WRITE_INTENT_HEADER, COOKIE_WRITE_INTENT_VALUE);
 
     expect(deleted.status).toBe(200);
     expect(deleted.body).toEqual({ message: 'Account deleted successfully' });

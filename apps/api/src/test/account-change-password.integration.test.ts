@@ -3,6 +3,7 @@ import jwt from 'jsonwebtoken';
 import request from 'supertest';
 import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
 
+import { COOKIE_WRITE_INTENT_HEADER, COOKIE_WRITE_INTENT_VALUE } from '@podverse/helpers';
 import type { ORMContext } from '@podverse/orm';
 
 import { getBaseApiUrl, startTestApp, stopTestApp } from './helpers/index.js';
@@ -193,6 +194,7 @@ describe('POST /account/change-password (real session store)', () => {
     const pending = request(app).post(`${accountBase}/change-password`).send(body);
     if (auth?.cookie !== undefined) {
       pending.set('Cookie', auth.cookie);
+      pending.set(COOKIE_WRITE_INTENT_HEADER, COOKIE_WRITE_INTENT_VALUE);
     }
     if (auth?.bearer !== undefined) {
       pending.set('Authorization', `Bearer ${auth.bearer}`);

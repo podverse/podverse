@@ -1,6 +1,12 @@
 import type { AxiosRequestConfig, AxiosResponse } from 'axios';
 import axios from 'axios';
 
+import {
+  COOKIE_WRITE_INTENT_HEADER,
+  COOKIE_WRITE_INTENT_VALUE,
+  isUnsafeHttpMethod,
+} from '@podverse/helpers/cookieWriteIntent';
+
 export type { AxiosRequestConfig, AxiosResponse } from 'axios';
 
 export type RequestConfig = AxiosRequestConfig & { userAgent?: string };
@@ -25,6 +31,14 @@ type RequestResultWithHeaders<T> = {
   headers: AxiosResponse<T>['headers'];
 };
 
+function headersAlreadyInclude(headers: unknown, name: string): boolean {
+  if (headers === null || typeof headers !== 'object') {
+    return false;
+  }
+  const target = name.toLowerCase();
+  return Object.keys(headers).some((key) => key.toLowerCase() === target);
+}
+
 const requestInternal = async <T>(
   url: string,
   requestConfig?: RequestConfig,
@@ -44,6 +58,10 @@ const requestInternal = async <T>(
     const normalizedMethod = method.toString().toUpperCase();
     const jsonMethods = options?.jsonMethods ?? ['POST', 'PUT', 'PATCH'];
     const isJSONRequest = jsonMethods.includes(normalizedMethod as 'POST' | 'PUT' | 'PATCH');
+    const sendCookieWriteIntent =
+      rest.withCredentials === true &&
+      isUnsafeHttpMethod(normalizedMethod) &&
+      !headersAlreadyInclude(rest.headers, COOKIE_WRITE_INTENT_HEADER);
 
     const axiosConfig: AxiosRequestConfig = {
       url,
@@ -52,6 +70,9 @@ const requestInternal = async <T>(
       headers: {
         ...(userAgent ? { 'User-Agent': userAgent } : {}),
         ...(isJSONRequest ? { 'Content-Type': 'application/json' } : {}),
+        ...(sendCookieWriteIntent
+          ? { [COOKIE_WRITE_INTENT_HEADER]: COOKIE_WRITE_INTENT_VALUE }
+          : {}),
         ...rest.headers,
       },
       ...(abort?.controller?.signal ? { signal: abort.controller.signal } : {}),

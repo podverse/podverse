@@ -64,6 +64,9 @@ components:
         renews it at most once a day, re-setting the cookie with a fresh idle limit
         (AUTH_SESSION_IDLE_EXPIRATION). It ends when the idle limit passes with no use or when
         the session is ended (logout, another device, a password change, or an admin).
+        POST, PUT, PATCH, and DELETE authenticated by this cookie must also send
+        `X-Podverse-Request-Intent: same-origin`. A missing or different value is 403 and the
+        handler does not run. Bearer tokens and API keys do not send it. GET and HEAD do not.
     bearerAuth:
       type: http
       scheme: bearer

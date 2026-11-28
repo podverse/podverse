@@ -24,7 +24,12 @@ import passport from 'passport';
 import { Strategy as LocalStrategy } from 'passport-local';
 
 import type { AuthSessionEndedNotice } from '@podverse/helpers';
-import { AUTH_SESSION_ENDED_CODE, BILLING_CLIENT_PLATFORM_HEADER } from '@podverse/helpers';
+import {
+  AUTH_SESSION_ENDED_CODE,
+  BILLING_CLIENT_PLATFORM_HEADER,
+  COOKIE_WRITE_INTENT_HEADER,
+  cookieAuthenticatedWriteLacksIntent,
+} from '@podverse/helpers';
 import { isValidNanoIdV2IdText } from '@podverse/orm';
 
 import {
@@ -311,6 +316,14 @@ const verifyToken = async (
     return;
   }
 
+  if (
+    requestToken.source === 'cookie' &&
+    cookieAuthenticatedWriteLacksIntent(req.method, req.get(COOKIE_WRITE_INTENT_HEADER))
+  ) {
+    res.status(403).json({ message: 'Forbidden' });
+    return;
+  }
+
   const identity = mapAdminToIdentity(adminAccount);
   if (!identity) {
     loggerService.warn('Admin account has no role relation', { adminAccountId: adminAccount.id });
@@ -346,12 +359,23 @@ export const ensureAuthenticated = (req: Request, res: Response, next: NextFunct
   runAuthCheck(verifyToken(req, res, next, requestToken), res);
 };
 
-/** Ends the calling session when the request names one. Always clears the cookie and answers 200. */
+/**
+ * Ends the calling session when the request names one. A session cookie on this POST needs
+ * `X-Podverse-Request-Intent: same-origin`; without it the session stays and the response is 403.
+ * Any other request clears the cookie and answers 200.
+ */
 export const logout = async (req: Request, res: Response): Promise<void> => {
   const requestToken = readRequestToken(req);
   if (requestToken) {
     const classified = classifyAccessJwt(verifySessionJwt(requestToken.token));
     if (classified.kind === 'session') {
+      if (
+        requestToken.source === 'cookie' &&
+        cookieAuthenticatedWriteLacksIntent(req.method, req.get(COOKIE_WRITE_INTENT_HEADER))
+      ) {
+        res.status(403).json({ message: 'Forbidden' });
+        return;
+      }
       try {
         await endAdminSession({
           adminAccountId: classified.claims.id,
