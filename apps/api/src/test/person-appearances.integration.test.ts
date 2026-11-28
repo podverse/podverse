@@ -89,10 +89,7 @@ describe('Channel person appearances', () => {
       [idText, displayName]
     );
     const row = Array.isArray(rows) ? rows[0] : null;
-    const id =
-      typeof row === 'object' && row !== null && 'id' in row
-        ? row.id
-        : null;
+    const id = typeof row === 'object' && row !== null && 'id' in row ? row.id : null;
     if (typeof id === 'number' && Number.isInteger(id)) {
       return id;
     }
