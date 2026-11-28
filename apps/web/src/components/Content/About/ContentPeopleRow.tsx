@@ -7,24 +7,42 @@ import { Link } from '../../Link/Link';
 
 import styles from '../../../styles/components/Content/About/ContentPeopleRow.module.scss';
 
+/** A credit that stays on the device. It never links to a person page. */
+export type ContentPeoplePlainCredit = {
+  appearanceCount?: number;
+  href?: string | null;
+  img?: string | null;
+  name: string;
+  role?: string | null;
+};
+
 type ContentPeopleRowProps = {
   appearance?: DTOPersonAppearance;
   channel_person?: DTOChannelPerson;
   item_person?: DTOItemPerson;
+  plain?: ContentPeoplePlainCredit;
 };
 
 export const ContentPeopleRow = ({
   appearance,
   channel_person,
   item_person,
+  plain,
 }: ContentPeopleRowProps) => {
   const tInfo = useTranslations('info');
   const credit = item_person ?? channel_person;
-  const name = appearance?.display_name ?? credit?.name ?? '';
-  const imageUrl = appearance?.img ?? credit?.img ?? null;
-  const personIdText = appearance?.id_text ?? credit?.person_id_text ?? null;
-  const website = credit?.href ?? null;
-  const role = credit?.role ?? null;
+  const name = plain?.name ?? appearance?.display_name ?? credit?.name ?? '';
+  const imageUrl = plain?.img ?? appearance?.img ?? credit?.img ?? null;
+  const personIdText =
+    plain !== undefined ? null : (appearance?.id_text ?? credit?.person_id_text ?? null);
+  const website = plain !== undefined ? (plain.href ?? null) : (credit?.href ?? null);
+  const role = plain !== undefined ? (plain.role ?? null) : (credit?.role ?? null);
+  const appearanceCount =
+    plain?.appearanceCount !== undefined
+      ? plain.appearanceCount
+      : appearance !== undefined
+        ? appearance.item_count
+        : null;
 
   if (name === '') {
     return null;
@@ -51,9 +69,9 @@ export const ContentPeopleRow = ({
       <div className={styles.textWrapper}>
         {nameNode}
         {role !== null && role !== '' ? <div className={styles.role}>{role}</div> : null}
-        {appearance !== undefined ? (
+        {appearanceCount !== null ? (
           <div className={styles.role}>
-            {tInfo('people.appearance_count', { count: appearance.item_count })}
+            {tInfo('people.appearance_count', { count: appearanceCount })}
           </div>
         ) : null}
         {website !== null && website !== '' ? (

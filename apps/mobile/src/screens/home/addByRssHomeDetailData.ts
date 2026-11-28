@@ -8,6 +8,7 @@ import {
 import type { DTOItem } from '@podverse/helpers/dto';
 import { htmlToPlainTextPreview } from '@podverse/helpers/html';
 import type { AddByRSSMappedFeed } from '@podverse/parser-mapping';
+import { localPeopleSectionsFromMappedFeed } from '@podverse/parser-mapping';
 
 import type { AboutFundingLink, AboutPerson } from '../../components/content';
 import type { ChannelAboutSource } from '../../components/content/channelAboutCells';
@@ -39,8 +40,16 @@ export type AddByRssHomeDetailData = {
   fundings: AboutFundingLink[];
   /** True when the stored bundle was readable. An omitted option follows `mappedFeed`. */
   hasParsedBundle: boolean;
+  appearances: AddByRssHomeAppearance[];
   mappedFeed: AddByRSSMappedFeed | null;
   people: AboutPerson[];
+};
+
+/** A person grouped across this feed's items and livestreams. */
+export type AddByRssHomeAppearance = {
+  img: string | null;
+  itemCount: number;
+  name: string;
 };
 
 /**
@@ -181,14 +190,17 @@ export const buildAddByRssHomeDetailData = (
           };
         });
 
+  const sections = localPeopleSectionsFromMappedFeed(mappedFeed);
+
   return {
     about: buildAddByRssAbout(feed, mappedFeed),
+    appearances: sections.appearances,
     episodeRows,
     feed,
     fundings: buildAddByRssFundings(mappedFeed),
     hasParsedBundle,
     mappedFeed,
-    people: toAddByRssAboutPeople(mappedFeed?.channel.people ?? []),
+    people: toAddByRssAboutPeople(sections.cast),
   };
 };
 

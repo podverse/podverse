@@ -67,6 +67,10 @@
       "types": "./dist/lib/pagination.d.ts",
       "default": "./dist/lib/pagination.js"
     },
+    "./person": {
+      "types": "./dist/lib/person/index.d.ts",
+      "default": "./dist/lib/person/index.js"
+    },
     "./opml": {
       "types": "./dist/lib/opml/opmlImportErrors.d.ts",
       "default": "./dist/lib/opml/opmlImportErrors.js"

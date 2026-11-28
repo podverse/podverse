@@ -13,6 +13,10 @@ import { MainColumnStack, MainSidebarLayout } from '@podverse/ui';
 
 import { AddByRSSAlbumHeader } from '../../../components/AddByRSS/Artist/Album/AddByRSSAlbumHeader';
 import { AddByRSSTrackDetailHeader } from '../../../components/AddByRSS/Artist/Album/Track/AddByRSSTrackDetailHeader';
+import {
+  addByRssItemHasPeople,
+  AddByRSSItemPeople,
+} from '../../../components/AddByRSS/People/AddByRSSPeopleSections';
 import { BoostMessagesSection } from '../../../components/Boost/messages/BoostMessagesSection';
 import { useBoostMessagesView } from '../../../components/Boost/messages/useBoostMessagesView';
 import { CommonDetailListHeader } from '../../../components/Common/List/CommonDetailListHeader';
@@ -80,16 +84,16 @@ export const AddByRSSTrackItemPageClient: React.FC<AddByRSSTrackItemPageClientPr
   const [artistLinks, setArtistLinks] = React.useState<ArtistLineLink[]>([]);
   const [artistReloadKey, setArtistReloadKey] = React.useState(0);
   const [isLoading, setIsLoading] = React.useState(true);
-  const initialType = React.useMemo<'summary' | 'boosts' | 'transcript'>(() => {
+  const initialType = React.useMemo<'summary' | 'boosts' | 'transcript' | 'people'>(() => {
     const typeParam = searchParams.get('type');
-    if (typeParam === 'boosts' || typeParam === 'transcript') {
+    if (typeParam === 'boosts' || typeParam === 'transcript' || typeParam === 'people') {
       return typeParam;
     }
     return 'summary';
   }, [searchParams]);
-  const [selectedTab, setSelectedTab] = React.useState<'summary' | 'boosts' | 'transcript'>(
-    initialType
-  );
+  const [selectedTab, setSelectedTab] = React.useState<
+    'summary' | 'boosts' | 'transcript' | 'people'
+  >(initialType);
   const [transcriptRows, setTranscriptRows] = React.useState<TranscriptRow[]>([]);
   const [transcriptLoading, setTranscriptLoading] = React.useState(false);
   const [transcriptError, setTranscriptError] = React.useState<string | null>(null);
@@ -119,7 +123,7 @@ export const AddByRSSTrackItemPageClient: React.FC<AddByRSSTrackItemPageClientPr
     });
 
   const handleTabSelect = React.useCallback(
-    (tab: 'summary' | 'boosts' | 'transcript') => {
+    (tab: 'summary' | 'boosts' | 'transcript' | 'people') => {
       setSelectedTab(tab);
       const nextParams = new URLSearchParams(searchParams.toString());
       if (tab === 'summary') {
@@ -153,7 +157,10 @@ export const AddByRSSTrackItemPageClient: React.FC<AddByRSSTrackItemPageClientPr
     if (selectedTab === 'boosts' && boostsPageFetcher === null) {
       handleTabSelect('summary');
     }
-  }, [boostsPageFetcher, handleTabSelect, selectedTab, transcriptUrl]);
+    if (selectedTab === 'people' && track !== null && !addByRssItemHasPeople(track.bundle.people)) {
+      handleTabSelect('summary');
+    }
+  }, [boostsPageFetcher, handleTabSelect, selectedTab, track, transcriptUrl]);
 
   React.useEffect(() => {
     let cancelled = false;
@@ -317,8 +324,9 @@ export const AddByRSSTrackItemPageClient: React.FC<AddByRSSTrackItemPageClientPr
     };
   }, [track, feed, selectedTab, transcriptUrl, tMisc, accountId]);
 
+  const hasItemPeople = addByRssItemHasPeople(track?.bundle.people);
   const items = React.useMemo(() => {
-    const next: ChipRowItem<'summary' | 'boosts' | 'transcript'>[] = [
+    const next: ChipRowItem<'summary' | 'boosts' | 'transcript' | 'people'>[] = [
       {
         key: 'summary',
         label: tInfo('summary.summary'),
@@ -336,8 +344,14 @@ export const AddByRSSTrackItemPageClient: React.FC<AddByRSSTrackItemPageClientPr
         label: tInfo('transcript.lyrics'),
       });
     }
+    if (hasItemPeople) {
+      next.push({
+        key: 'people',
+        label: tInfo('people.people'),
+      });
+    }
     return next;
-  }, [canShowBoostTab, tInfo, tValue, transcriptUrl]);
+  }, [canShowBoostTab, hasItemPeople, tInfo, tValue, transcriptUrl]);
 
   const clock = useDescriptionClockPlayback(
     track === null ? null : { indexItem: track, kind: 'add-by-rss' }
@@ -399,6 +413,7 @@ export const AddByRSSTrackItemPageClient: React.FC<AddByRSSTrackItemPageClientPr
                 refreshTrigger={refreshTrigger}
               />
             )}
+            {selectedTab === 'people' && <AddByRSSItemPeople people={track.bundle.people} />}
             {selectedTab === 'transcript' && (
               <>
                 {transcriptError ? (

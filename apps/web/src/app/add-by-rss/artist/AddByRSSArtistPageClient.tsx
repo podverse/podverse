@@ -6,10 +6,14 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 
 import type { AddByRSSParseStatus, DTOChannel } from '@podverse/helpers';
 import { isDescriptionTruncated } from '@podverse/helpers';
-import { buildAddByRssBoostChannel } from '@podverse/parser-mapping';
+import {
+  buildAddByRssBoostChannel,
+  localPeopleSectionsFromMappedFeed,
+} from '@podverse/parser-mapping';
 import { CallToActionMessage, MainColumnStack, MainSidebarLayout } from '@podverse/ui';
 
 import { AddByRSSArtistHeader } from '../../../components/AddByRSS/Artist/AddByRSSArtistHeader';
+import { AddByRSSChannelPeople } from '../../../components/AddByRSS/People/AddByRSSPeopleSections';
 import { AddByRSSRemoteItemList } from '../../../components/AddByRSS/RemoteItems/AddByRSSRemoteItemList';
 import { useBoostMessagesView } from '../../../components/Boost/messages/useBoostMessagesView';
 import { DetailListWrapper } from '../../../components/List/DetailListWrapper';
@@ -167,7 +171,8 @@ export const AddByRSSArtistPageClient: React.FC<AddByRSSArtistPageClientProps> =
       typeParam === 'boosts' ||
       typeParam === 'about' ||
       typeParam === 'settings' ||
-      typeParam === 'podroll'
+      typeParam === 'podroll' ||
+      typeParam === 'people'
     ) {
       return typeParam;
     }
@@ -459,6 +464,12 @@ export const AddByRSSArtistPageClient: React.FC<AddByRSSArtistPageClientProps> =
     });
   const podroll = useAddByRSSRemoteItemList(feed, 'podroll');
   const hasPodroll = podroll.hasRows;
+  const artistMappedFeed = feed?.mappedFeed;
+  const hasPeople = useMemo(
+    () => localPeopleSectionsFromMappedFeed(artistMappedFeed).hasPeople,
+    [artistMappedFeed]
+  );
+  const peopleKnown = artistMappedFeed !== undefined;
   const handleTabSelect = React.useCallback(
     (key: AddByRSSArtistPageTabKey) => {
       setActiveTab(key);
@@ -502,6 +513,9 @@ export const AddByRSSArtistPageClient: React.FC<AddByRSSArtistPageClientProps> =
     if (canShowBoostTab) {
       availableTabs.push('boosts');
     }
+    if (hasPeople || (activeTab === 'people' && !peopleKnown)) {
+      availableTabs.push('people');
+    }
     availableTabs.push('settings');
     if (availableTabs.length === 0) {
       return;
@@ -533,8 +547,10 @@ export const AddByRSSArtistPageClient: React.FC<AddByRSSArtistPageClientProps> =
     hasAlbums,
     hasDescription,
     hasLoadedRelated,
+    hasPeople,
     hasPodroll,
     hasTracks,
+    peopleKnown,
     isLoading,
   ]);
 
@@ -591,6 +607,7 @@ export const AddByRSSArtistPageClient: React.FC<AddByRSSArtistPageClientProps> =
             hasTracks={hasTracks}
             canShowBoosts={canShowBoostTab}
             hasDescription={hasDescription}
+            hasPeople={hasPeople}
             hasPodroll={hasPodroll}
             trailing={
               activeTab === 'albums' || activeTab === 'tracks' ? (
@@ -607,7 +624,11 @@ export const AddByRSSArtistPageClient: React.FC<AddByRSSArtistPageClientProps> =
               ) : null
             }
           />
-          {activeTab === 'podroll' ? (
+          {activeTab === 'people' ? (
+            <DetailListWrapper>
+              <AddByRSSChannelPeople mappedFeed={feed.mappedFeed} />
+            </DetailListWrapper>
+          ) : activeTab === 'podroll' ? (
             <DetailListWrapper>
               <AddByRSSRemoteItemList
                 rows={podroll.rows}

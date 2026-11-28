@@ -445,7 +445,8 @@ export function AddByRssHomeDetailScreen({ navigation, route }: AddByRssHomeDeta
       resolveAddByRssSections({
         hasBoosts: boostMessages.fetcher !== null,
         hasFunding: (detailForRoute?.fundings.length ?? 0) > 0,
-        hasPeople: (detailForRoute?.people.length ?? 0) > 0,
+        hasPeople:
+          (detailForRoute?.people.length ?? 0) > 0 || (detailForRoute?.appearances.length ?? 0) > 0,
         hasPodroll: getAddByRssRemoteRefsForDetail(detailForRoute, 'podroll').length > 0,
         hasRemoteItems: getAddByRssRemoteRefsForDetail(detailForRoute, 'remote_items').length > 0,
         isArtistFeed,

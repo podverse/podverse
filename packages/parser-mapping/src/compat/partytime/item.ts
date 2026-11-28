@@ -224,7 +224,7 @@ export const compatItemLocationDto = (parsedItem: Episode) => {
   };
 };
 
-export const compatItemPersonDtos = (parsedItem: Episode) => {
+export const compatItemPersonDtos = (parsedItem: { podcastPeople?: Episode['podcastPeople'] }) => {
   const dtos = [];
 
   if (Array.isArray(parsedItem.podcastPeople)) {

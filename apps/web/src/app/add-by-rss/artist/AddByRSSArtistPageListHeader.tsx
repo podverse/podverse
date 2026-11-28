@@ -8,7 +8,7 @@ import type { ChipRowItem } from '@podverse/ui';
 import { CommonDetailListHeader } from '../../../components/Common/List/CommonDetailListHeader';
 
 export type AddByRSSArtistPageTabKey =
-  'albums' | 'tracks' | 'boosts' | 'about' | 'podroll' | 'settings';
+  'albums' | 'tracks' | 'boosts' | 'about' | 'podroll' | 'people' | 'settings';
 
 type AddByRSSArtistPageListHeaderProps = {
   selectedKey: AddByRSSArtistPageTabKey;
@@ -17,6 +17,7 @@ type AddByRSSArtistPageListHeaderProps = {
   hasTracks: boolean;
   canShowBoosts?: boolean;
   hasDescription: boolean;
+  hasPeople: boolean;
   hasPodroll: boolean;
   trailing?: ReactNode;
 };
@@ -28,6 +29,7 @@ export function AddByRSSArtistPageListHeader({
   hasTracks,
   canShowBoosts = false,
   hasDescription,
+  hasPeople,
   hasPodroll,
   trailing,
 }: AddByRSSArtistPageListHeaderProps) {
@@ -70,6 +72,13 @@ export function AddByRSSArtistPageListHeader({
     items.push({
       key: 'boosts',
       label: tValue('boost'),
+    });
+  }
+
+  if (hasPeople) {
+    items.push({
+      key: 'people',
+      label: tInfo('people.people'),
     });
   }
 

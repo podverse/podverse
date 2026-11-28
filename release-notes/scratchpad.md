@@ -144,4 +144,15 @@
 - Surfaces: mobile
 - Change: Creating or editing a playlist on the phone can include tags. The count and the character cap come from public config, and are 5 and 50 until that response arrives or if the request fails. At the count, the text box hides and a sentence names that count. Typing stops at the character cap. Return adds the typed name as a chip. Save also saves text still in the box. A new name is stored only when the playlist is saved. A failed tag search shows the generic error on the field, and Return and Save still add the typed name. Removing every tag and saving clears them.
 - Who notices: someone creating or editing a playlist in the phone app
+
+## Add by RSS People lists cast and guests on the device
+
+- Surfaces: web, mobile
+- Change: Add by RSS podcast, album, and artist pages show a People chip when the stored feed
+  has channel people or people on episodes or livestreams. Cast is the channel people.
+  Appearances groups item and livestream people, counts each person once per item, and keeps
+  the latest image. A guest who exists only on an episode still opens People. Web episode,
+  track, and livestream pages list that item's people. A website link opens the website. No
+  name opens a person page, and these credits are not saved as public people.
+- Who notices: listeners who follow a feed by RSS
 - Operator steps: none

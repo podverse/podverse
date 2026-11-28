@@ -21,4 +21,5 @@ export * from './addByRSS/itemIndexPure.js';
 export * from './addByRSS/itemIndex.js';
 export * from './addByRSS/remoteItemRefs.js';
 export * from './addByRSS/liveItems.js';
+export * from './addByRSS/people.js';
 export * from './addByRSS/publisherListedFeeds.js';

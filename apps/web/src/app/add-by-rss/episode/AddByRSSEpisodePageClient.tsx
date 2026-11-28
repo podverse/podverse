@@ -12,6 +12,10 @@ import { buildAddByRssBoostChannel, buildAddByRssBoostItem } from '@podverse/par
 import type { ChipRowItem } from '@podverse/ui';
 import { MainColumnStack, MainSidebarLayout } from '@podverse/ui';
 
+import {
+  addByRssItemHasPeople,
+  AddByRSSItemPeople,
+} from '../../../components/AddByRSS/People/AddByRSSPeopleSections';
 import { AddByRSSPodcastHeader } from '../../../components/AddByRSS/Podcast/AddByRSSPodcastHeader';
 import { AddByRSSEpisodeDetailHeader } from '../../../components/AddByRSS/Podcast/Episode/AddByRSSEpisodeDetailHeader';
 import { BoostMessagesSection } from '../../../components/Boost/messages/BoostMessagesSection';
@@ -84,15 +88,22 @@ export const AddByRSSEpisodePageClient: React.FC<AddByRSSEpisodePageClientProps>
   const [feed, setFeed] = React.useState<AddByRSSFeedRecord | null>(null);
   const [episode, setEpisode] = React.useState<AddByRSSItemIndexItem | null>(null);
   const [isLoading, setIsLoading] = React.useState(true);
-  const initialType = React.useMemo<'summary' | 'boosts' | 'chapters' | 'transcript'>(() => {
+  const initialType = React.useMemo<
+    'summary' | 'boosts' | 'chapters' | 'transcript' | 'people'
+  >(() => {
     const typeParam = searchParams.get('type');
-    if (typeParam === 'boosts' || typeParam === 'chapters' || typeParam === 'transcript') {
+    if (
+      typeParam === 'boosts' ||
+      typeParam === 'chapters' ||
+      typeParam === 'transcript' ||
+      typeParam === 'people'
+    ) {
       return typeParam;
     }
     return 'summary';
   }, [searchParams]);
   const [selectedTab, setSelectedTab] = React.useState<
-    'summary' | 'boosts' | 'chapters' | 'transcript'
+    'summary' | 'boosts' | 'chapters' | 'transcript' | 'people'
   >(initialType);
   const [itemChapters, setItemChapters] = React.useState<DTOItemChapter[]>([]);
   const [transcriptRows, setTranscriptRows] = React.useState<TranscriptRow[]>([]);
@@ -127,7 +138,7 @@ export const AddByRSSEpisodePageClient: React.FC<AddByRSSEpisodePageClientProps>
     });
 
   const handleTabSelect = React.useCallback(
-    (tab: 'summary' | 'boosts' | 'chapters' | 'transcript') => {
+    (tab: 'summary' | 'boosts' | 'chapters' | 'transcript' | 'people') => {
       setSelectedTab(tab);
       const nextParams = new URLSearchParams(searchParams.toString());
       if (tab === 'summary') {
@@ -165,7 +176,14 @@ export const AddByRSSEpisodePageClient: React.FC<AddByRSSEpisodePageClientProps>
     if (selectedTab === 'boosts' && boostsPageFetcher === null) {
       handleTabSelect('summary');
     }
-  }, [boostsPageFetcher, chaptersFeedUrl, handleTabSelect, selectedTab, transcriptUrl]);
+    if (
+      selectedTab === 'people' &&
+      episode !== null &&
+      !addByRssItemHasPeople(episode.bundle.people)
+    ) {
+      handleTabSelect('summary');
+    }
+  }, [boostsPageFetcher, chaptersFeedUrl, episode, handleTabSelect, selectedTab, transcriptUrl]);
 
   React.useEffect(() => {
     if (!episode || !hasChaptersOrTranscript) return;
@@ -312,8 +330,9 @@ export const AddByRSSEpisodePageClient: React.FC<AddByRSSEpisodePageClientProps>
     };
   }, [itemIdText, loggedInAccount]);
 
+  const hasItemPeople = addByRssItemHasPeople(episode?.bundle.people);
   const items = React.useMemo(() => {
-    const next: ChipRowItem<'summary' | 'boosts' | 'chapters' | 'transcript'>[] = [
+    const next: ChipRowItem<'summary' | 'boosts' | 'chapters' | 'transcript' | 'people'>[] = [
       {
         key: 'summary',
         label: tInfo('summary.summary'),
@@ -337,8 +356,14 @@ export const AddByRSSEpisodePageClient: React.FC<AddByRSSEpisodePageClientProps>
         label: tInfo('transcript.transcript'),
       });
     }
+    if (hasItemPeople) {
+      next.push({
+        key: 'people',
+        label: tInfo('people.people'),
+      });
+    }
     return next;
-  }, [canShowBoostTab, chaptersFeedUrl, tInfo, tValue, transcriptUrl]);
+  }, [canShowBoostTab, chaptersFeedUrl, hasItemPeople, tInfo, tValue, transcriptUrl]);
 
   const handlePlayChapter = React.useCallback(
     (chapter: DTOItemChapter) => {
@@ -439,6 +464,7 @@ export const AddByRSSEpisodePageClient: React.FC<AddByRSSEpisodePageClientProps>
                 <WebLoadingSpinnerOverlay isLoading={chaptersTranscriptLoading} />
               </>
             )}
+            {selectedTab === 'people' && <AddByRSSItemPeople people={episode.bundle.people} />}
             {selectedTab === 'transcript' && (
               <>
                 {chaptersTranscriptError ? (

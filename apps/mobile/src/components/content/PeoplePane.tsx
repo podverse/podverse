@@ -20,6 +20,11 @@ export type PeoplePaneProps = {
    * Appearances. Item pages leave it unset and render `people` only.
    */
   appearanceChannelIdText?: string;
+  /**
+   * Appearances already grouped on the device. When set, the pane lists them and does not
+   * request the public channel.
+   */
+  appearancePeople?: readonly AboutPerson[];
   isLoading?: boolean;
   /** `inline` paints in a parent list footer. `fill` owns the section scroll. */
   layout?: 'fill' | 'inline';
@@ -49,10 +54,12 @@ function appearanceRows(
 
 /**
  * People chip body. Callers pass the person array that belongs to this channel or item.
- * A channel page also passes `appearanceChannelIdText` so item credits render under Appearances.
+ * A public channel passes `appearanceChannelIdText`. An Add by RSS channel passes
+ * `appearancePeople` so the list stays on the device.
  */
 export function PeoplePane({
   appearanceChannelIdText,
+  appearancePeople,
   isLoading = false,
   layout = 'fill',
   listHeader,
@@ -63,8 +70,12 @@ export function PeoplePane({
   const { t } = useTranslation();
   const { styles: themeStyles, tokens } = useTheme();
   const [appearances, setAppearances] = useState<DTOPersonAppearance[]>([]);
+  const hasPrecomputedAppearances = appearancePeople !== undefined;
 
   useEffect(() => {
+    if (hasPrecomputedAppearances) {
+      return;
+    }
     if (appearanceChannelIdText === undefined || appearanceChannelIdText === '') {
       setAppearances([]);
       return;
@@ -90,7 +101,7 @@ export function PeoplePane({
     return () => {
       cancelled = true;
     };
-  }, [appearanceChannelIdText]);
+  }, [appearanceChannelIdText, hasPrecomputedAppearances]);
 
   const styles = useMemo(
     () =>
@@ -115,13 +126,18 @@ export function PeoplePane({
     [themeStyles, tokens]
   );
 
-  const appearancePeople = useMemo(
-    () => appearanceRows(appearances, (count) => t('info.people.appearance_count', { count })),
-    [appearances, t]
+  const resolvedAppearancePeople = useMemo(
+    () =>
+      appearancePeople !== undefined
+        ? [...appearancePeople]
+        : appearanceRows(appearances, (count) => t('info.people.appearance_count', { count })),
+    [appearancePeople, appearances, t]
   );
+  const usesAppearanceSections =
+    appearancePeople !== undefined || appearanceChannelIdText !== undefined;
 
   const sectionEntries = useMemo((): PeopleEntry[] => {
-    if (appearanceChannelIdText === undefined) {
+    if (!usesAppearanceSections) {
       return [];
     }
     const entries: PeopleEntry[] = [];
@@ -135,13 +151,13 @@ export function PeoplePane({
         });
       }
     }
-    if (appearancePeople.length > 0) {
+    if (resolvedAppearancePeople.length > 0) {
       entries.push({
         key: 'appearances-title',
         kind: 'title',
         title: t('info.people.appearances'),
       });
-      for (const person of appearancePeople) {
+      for (const person of resolvedAppearancePeople) {
         entries.push({
           key: `appearance-${person.personIdText ?? person.id}`,
           kind: 'person',
@@ -150,7 +166,7 @@ export function PeoplePane({
       }
     }
     return entries;
-  }, [appearanceChannelIdText, appearancePeople, people, t]);
+  }, [people, resolvedAppearancePeople, t, usesAppearanceSections]);
 
   if (layout === 'inline') {
     if (isLoading && people.length === 0) {
@@ -173,8 +189,8 @@ export function PeoplePane({
     );
   }
 
-  if (appearanceChannelIdText !== undefined) {
-    const waiting = isLoading && people.length === 0 && appearancePeople.length === 0;
+  if (usesAppearanceSections) {
+    const waiting = isLoading && people.length === 0 && resolvedAppearancePeople.length === 0;
     return (
       <FillList
         ListEmptyComponent={

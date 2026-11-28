@@ -139,6 +139,7 @@ describe('add-by-RSS Home detail data', () => {
         id: 1,
         img: null,
         name: 'Ada',
+        personIdText: null,
         role: 'Host',
       },
       {
@@ -146,6 +147,7 @@ describe('add-by-RSS Home detail data', () => {
         id: 2,
         img: 'https://example.com/bea.png',
         name: 'Bea',
+        personIdText: null,
         role: null,
       },
     ]);
@@ -235,9 +237,34 @@ describe('add-by-RSS Home detail data', () => {
         id: 1,
         img: 'https://example.com/ada.png',
         name: 'Ada',
+        personIdText: null,
         role: 'Host',
       },
     ]);
+    expect(detail.appearances).toEqual([]);
+  });
+
+  it('offers People when guests exist only on episodes', () => {
+    const guestsOnly = convertParsedRSSFeedToCompat({
+      explicit: false,
+      items: [
+        {
+          duration: 60,
+          enclosure: { length: 100, type: 'audio/mpeg', url: 'https://example.com/one.mp3' },
+          explicit: false,
+          guid: 'guest-episode',
+          podcastPeople: [{ name: 'Grace Guest' }],
+          title: 'With a guest',
+        },
+      ],
+      link: 'https://example.com/show',
+      title: 'Example Feed',
+    });
+
+    const detail = buildAddByRssHomeDetailData(feed, guestsOnly);
+
+    expect(detail.people).toEqual([]);
+    expect(detail.appearances).toEqual([{ img: null, itemCount: 1, name: 'Grace Guest' }]);
   });
 
   it('builds an about source with only the feed url when the bundle is missing', () => {
@@ -246,6 +273,7 @@ describe('add-by-RSS Home detail data', () => {
     expect(detail.episodeRows).toEqual([]);
     expect(detail.fundings).toEqual([]);
     expect(detail.people).toEqual([]);
+    expect(detail.appearances).toEqual([]);
     expect(detail.mappedFeed).toBeNull();
     expect(detail.about).toEqual({
       channel_about: { website_link_url: null },

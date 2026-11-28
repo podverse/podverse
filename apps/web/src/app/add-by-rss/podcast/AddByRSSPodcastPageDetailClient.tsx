@@ -12,7 +12,10 @@ import {
   PAGINATION,
 } from '@podverse/helpers';
 import { getStatusCodeFromError } from '@podverse/helpers-requests';
-import { buildAddByRssBoostChannel } from '@podverse/parser-mapping';
+import {
+  buildAddByRssBoostChannel,
+  localPeopleSectionsFromMappedFeed,
+} from '@podverse/parser-mapping';
 import {
   CallToActionMessage,
   DescriptionRenderer,
@@ -22,6 +25,7 @@ import {
 } from '@podverse/ui';
 
 import { AddByRSSLivestreamNodes } from '../../../components/AddByRSS/Livestream/AddByRSSLivestreamNodes';
+import { AddByRSSChannelPeople } from '../../../components/AddByRSS/People/AddByRSSPeopleSections';
 import { AddByRSSPodcastHeader } from '../../../components/AddByRSS/Podcast/AddByRSSPodcastHeader';
 import { AddByRSSEpisodeNodes } from '../../../components/AddByRSS/Podcast/Episode/AddByRSSEpisodeNodes';
 import { AddByRSSRemoteItemList } from '../../../components/AddByRSS/RemoteItems/AddByRSSRemoteItemList';
@@ -101,7 +105,8 @@ export const AddByRSSPodcastPageDetailClient: React.FC<AddByRSSPodcastPageDetail
       typeParam === 'settings' ||
       typeParam === 'boosts' ||
       typeParam === 'podroll' ||
-      typeParam === 'remote_items'
+      typeParam === 'remote_items' ||
+      typeParam === 'people'
     ) {
       return typeParam;
     }
@@ -154,6 +159,10 @@ export const AddByRSSPodcastPageDetailClient: React.FC<AddByRSSPodcastPageDetail
   const channelImageUrl = localFeed.imageUrl ?? mappedChannel?.images?.[0]?.url ?? undefined;
   const channelDescription = mappedChannel?.description?.value ?? null;
   const items = mappedFeed?.items ?? [];
+  const hasPeople = useMemo(
+    () => localPeopleSectionsFromMappedFeed(mappedFeed).hasPeople,
+    [mappedFeed]
+  );
   const itemsPerPage = PAGINATION.DEFAULT_LIMIT;
   const sortedItems = useMemo(() => {
     const next = [...items];
@@ -350,6 +359,13 @@ export const AddByRSSPodcastPageDetailClient: React.FC<AddByRSSPodcastPageDetail
     }
   }, [activeTab, handleTabSelect, remoteItems.hasRows]);
 
+  useEffect(() => {
+    if (mappedFeed === undefined || hasPeople || activeTab !== 'people') {
+      return;
+    }
+    handleTabSelect('episodes');
+  }, [activeTab, handleTabSelect, hasPeople, mappedFeed]);
+
   return (
     <MainWrapper>
       <AddByRssSeenPageView feedUrl={localFeed.feedUrl} />
@@ -360,6 +376,7 @@ export const AddByRSSPodcastPageDetailClient: React.FC<AddByRSSPodcastPageDetail
             selectedKey={activeTab}
             onSelect={handleTabSelect}
             canShowBoosts={canShowBoostTab}
+            hasPeople={hasPeople}
             hasPodroll={podroll.hasRows}
             hasRemoteItems={remoteItems.hasRows}
             trailing={
@@ -448,6 +465,7 @@ export const AddByRSSPodcastPageDetailClient: React.FC<AddByRSSPodcastPageDetail
                 errorMessage={remoteItems.errorMessage}
               />
             )}
+            {activeTab === 'people' && <AddByRSSChannelPeople mappedFeed={mappedFeed} />}
             {activeTab === 'boosts' && boostsPageFetcher !== null && (
               <BoostMessagesSection
                 heading={tV4VBoostMessages('title')}

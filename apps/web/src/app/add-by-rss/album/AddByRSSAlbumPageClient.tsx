@@ -12,7 +12,10 @@ import {
   PAGINATION,
 } from '@podverse/helpers';
 import { getStatusCodeFromError } from '@podverse/helpers-requests';
-import { buildAddByRssBoostChannel } from '@podverse/parser-mapping';
+import {
+  buildAddByRssBoostChannel,
+  localPeopleSectionsFromMappedFeed,
+} from '@podverse/parser-mapping';
 import {
   CallToActionMessage,
   DescriptionRenderer,
@@ -24,6 +27,7 @@ import {
 import { AddByRSSAlbumHeader } from '../../../components/AddByRSS/Artist/Album/AddByRSSAlbumHeader';
 import { AddByRSSAlbumTrackNodes } from '../../../components/AddByRSS/Artist/Album/Track/AddByRSSAlbumTrackNodes';
 import { AddByRSSLivestreamNodes } from '../../../components/AddByRSS/Livestream/AddByRSSLivestreamNodes';
+import { AddByRSSChannelPeople } from '../../../components/AddByRSS/People/AddByRSSPeopleSections';
 import { AddByRSSRemoteItemList } from '../../../components/AddByRSS/RemoteItems/AddByRSSRemoteItemList';
 import { BoostMessagesSection } from '../../../components/Boost/messages/BoostMessagesSection';
 import { useBoostMessagesView } from '../../../components/Boost/messages/useBoostMessagesView';
@@ -120,7 +124,8 @@ export const AddByRSSAlbumPageClient: React.FC<AddByRSSAlbumPageClientProps> = (
       typeParam === 'settings' ||
       typeParam === 'boosts' ||
       typeParam === 'podroll' ||
-      typeParam === 'remote_items'
+      typeParam === 'remote_items' ||
+      typeParam === 'people'
     ) {
       return typeParam;
     }
@@ -185,6 +190,10 @@ export const AddByRSSAlbumPageClient: React.FC<AddByRSSAlbumPageClientProps> = (
   const channelImageUrl = localFeed.imageUrl ?? mappedChannel?.images?.[0]?.url ?? undefined;
   const channelDescription = mappedChannel?.description?.value ?? null;
   const items = mappedFeed?.items ?? [];
+  const hasPeople = useMemo(
+    () => localPeopleSectionsFromMappedFeed(mappedFeed).hasPeople,
+    [mappedFeed]
+  );
   const itemsPerPage = PAGINATION.DEFAULT_LIMIT;
   const sortedItems = useMemo(() => {
     const next = [...items];
@@ -447,6 +456,13 @@ export const AddByRSSAlbumPageClient: React.FC<AddByRSSAlbumPageClientProps> = (
     }
   }, [activeTab, handleTabSelect, remoteItems.hasRows]);
 
+  useEffect(() => {
+    if (mappedFeed === undefined || hasPeople || activeTab !== 'people') {
+      return;
+    }
+    handleTabSelect('tracks');
+  }, [activeTab, handleTabSelect, hasPeople, mappedFeed]);
+
   return (
     <MainWrapper>
       <AddByRSSAlbumHeader feed={localFeed} />
@@ -456,6 +472,7 @@ export const AddByRSSAlbumPageClient: React.FC<AddByRSSAlbumPageClientProps> = (
             selectedKey={activeTab}
             onSelect={handleTabSelect}
             canShowBoosts={canShowBoostTab}
+            hasPeople={hasPeople}
             hasPodroll={podroll.hasRows}
             hasRemoteItems={remoteItems.hasRows}
             trailing={
@@ -532,6 +549,7 @@ export const AddByRSSAlbumPageClient: React.FC<AddByRSSAlbumPageClientProps> = (
                 errorMessage={remoteItems.errorMessage}
               />
             )}
+            {activeTab === 'people' && <AddByRSSChannelPeople mappedFeed={mappedFeed} />}
             {activeTab === 'boosts' && boostsPageFetcher !== null && (
               <BoostMessagesSection
                 heading={tV4VBoostMessages('title')}

@@ -4,13 +4,18 @@ import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import React from 'react';
 
-import { buildAddByRssBoostChannel, buildAddByRssBoostItem } from '@podverse/parser-mapping';
+import {
+  buildAddByRssBoostChannel,
+  buildAddByRssBoostItem,
+  compatItemPersonDtos,
+} from '@podverse/parser-mapping';
 import type { ChipRowItem } from '@podverse/ui';
 import { MainColumnStack, MainSidebarLayout } from '@podverse/ui';
 
 import { AddByRSSArtistHeader } from '../../../components/AddByRSS/Artist/AddByRSSArtistHeader';
 import { AddByRSSAlbumHeader } from '../../../components/AddByRSS/Artist/Album/AddByRSSAlbumHeader';
 import { AddByRSSLivestreamDetailHeader } from '../../../components/AddByRSS/Livestream/AddByRSSLivestreamDetailHeader';
+import { AddByRSSItemPeople } from '../../../components/AddByRSS/People/AddByRSSPeopleSections';
 import { AddByRSSPodcastHeader } from '../../../components/AddByRSS/Podcast/AddByRSSPodcastHeader';
 import { BoostMessagesSection } from '../../../components/Boost/messages/BoostMessagesSection';
 import { useBoostMessagesView } from '../../../components/Boost/messages/useBoostMessagesView';
@@ -55,14 +60,16 @@ export const AddByRSSLivestreamItemPageClient: React.FC<AddByRSSLivestreamItemPa
   const [feed, setFeed] = React.useState<AddByRSSFeedRecord | null>(null);
   const [livestream, setLivestream] = React.useState<AddByRSSLivestreamIndexItem | null>(null);
   const [isLoading, setIsLoading] = React.useState(true);
-  const initialType = React.useMemo<'summary' | 'boosts'>(() => {
+  const initialType = React.useMemo<'summary' | 'boosts' | 'people'>(() => {
     const typeParam = searchParams.get('type');
-    if (typeParam === 'boosts') {
+    if (typeParam === 'boosts' || typeParam === 'people') {
       return typeParam;
     }
     return 'summary';
   }, [searchParams]);
-  const [selectedTab, setSelectedTab] = React.useState<'summary' | 'boosts'>(initialType);
+  const [selectedTab, setSelectedTab] = React.useState<'summary' | 'boosts' | 'people'>(
+    initialType
+  );
   const boostChannel = React.useMemo(() => (feed ? buildAddByRssBoostChannel(feed) : null), [feed]);
   const resolveChannelHref = React.useCallback(
     (channelIdText: string) => {
@@ -95,8 +102,13 @@ export const AddByRSSLivestreamItemPageClient: React.FC<AddByRSSLivestreamItemPa
       resolveItemHref: (itemIdText) => `/add-by-rss/${mediumSlug}/livestream/${itemIdText}`,
     });
 
+  const livestreamPeople = React.useMemo(
+    () => (livestream === null ? [] : compatItemPersonDtos(livestream.item)),
+    [livestream]
+  );
+
   const handleTabSelect = React.useCallback(
-    (tab: 'summary' | 'boosts') => {
+    (tab: 'summary' | 'boosts' | 'people') => {
       setSelectedTab(tab);
       const nextParams = new URLSearchParams(searchParams.toString());
       if (tab === 'summary') {
@@ -114,7 +126,10 @@ export const AddByRSSLivestreamItemPageClient: React.FC<AddByRSSLivestreamItemPa
     if (!canShowBoostTab && selectedTab === 'boosts') {
       handleTabSelect('summary');
     }
-  }, [canShowBoostTab, handleTabSelect, selectedTab]);
+    if (selectedTab === 'people' && livestream !== null && livestreamPeople.length === 0) {
+      handleTabSelect('summary');
+    }
+  }, [canShowBoostTab, handleTabSelect, livestream, livestreamPeople.length, selectedTab]);
 
   React.useEffect(() => {
     if (searchParams.has('type')) {
@@ -204,7 +219,7 @@ export const AddByRSSLivestreamItemPageClient: React.FC<AddByRSSLivestreamItemPa
   const boostItem = buildAddByRssBoostItem(livestream);
   const description = livestream.item.description ?? null;
 
-  const items: ChipRowItem<'summary' | 'boosts'>[] = [
+  const items: ChipRowItem<'summary' | 'boosts' | 'people'>[] = [
     {
       key: 'summary',
       label: tInfo('summary.summary'),
@@ -214,6 +229,12 @@ export const AddByRSSLivestreamItemPageClient: React.FC<AddByRSSLivestreamItemPa
     items.push({
       key: 'boosts',
       label: tValue('boost'),
+    });
+  }
+  if (livestreamPeople.length > 0) {
+    items.push({
+      key: 'people',
+      label: tInfo('people.people'),
     });
   }
 
@@ -252,6 +273,7 @@ export const AddByRSSLivestreamItemPageClient: React.FC<AddByRSSLivestreamItemPa
                   onDescriptionClock={clock.onDescriptionClock}
                 />
               ) : null)}
+            {selectedTab === 'people' && <AddByRSSItemPeople people={livestreamPeople} />}
             {selectedTab === 'boosts' && boostsPageFetcher !== null && (
               <BoostMessagesSection
                 heading={tV4VBoostMessages('title')}

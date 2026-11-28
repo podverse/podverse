@@ -8,12 +8,13 @@ import type { ChipRowItem } from '@podverse/ui';
 import { CommonDetailListHeader } from '../../../components/Common/List/CommonDetailListHeader';
 
 export type AddByRSSAlbumPageTabKey =
-  'tracks' | 'boosts' | 'about' | 'podroll' | 'remote_items' | 'settings';
+  'tracks' | 'boosts' | 'about' | 'podroll' | 'remote_items' | 'people' | 'settings';
 
 type AddByRSSAlbumPageListHeaderProps = {
   selectedKey: AddByRSSAlbumPageTabKey;
   onSelect: (key: AddByRSSAlbumPageTabKey) => void;
   canShowBoosts?: boolean;
+  hasPeople: boolean;
   hasPodroll: boolean;
   hasRemoteItems: boolean;
   trailing?: ReactNode;
@@ -23,6 +24,7 @@ export function AddByRSSAlbumPageListHeader({
   selectedKey,
   onSelect,
   canShowBoosts = false,
+  hasPeople,
   hasPodroll,
   hasRemoteItems,
   trailing,
@@ -54,12 +56,19 @@ export function AddByRSSAlbumPageListHeader({
       label: tValue('boost'),
     },
     {
+      key: 'people',
+      label: tInfo('people.people'),
+    },
+    {
       key: 'settings',
       label: tSettings('settings'),
     },
   ];
   const visibleItems = items.filter((item) => {
     if (item.key === 'boosts' && !canShowBoosts) {
+      return false;
+    }
+    if (item.key === 'people' && !hasPeople) {
       return false;
     }
     if (item.key === 'podroll' && !hasPodroll) {
