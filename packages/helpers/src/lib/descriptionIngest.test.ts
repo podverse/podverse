@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
+import type { DescriptionNode } from './descriptionDocument.js';
 import { readDescriptionDocument } from './descriptionDocument.js';
 import {
   pickChannelDescriptionSource,
@@ -17,6 +18,65 @@ const buildLongShowNotes = (): string => {
   });
 
   return `<h2>Show Notes</h2><ul>${items.join('')}</ul>`;
+};
+
+const keptParagraphs = (texts: string[]): DescriptionNode[] =>
+  texts.map((text) => ({ kind: 'p', children: [{ kind: 'text', text }] }));
+
+const isAllowedStoredHref = (href: string): boolean => {
+  const lower = href.trim().toLowerCase();
+  return lower.startsWith('http://') || lower.startsWith('https://') || lower.startsWith('mailto:');
+};
+
+const assertStoredAllowlist = (value: string, nodes: DescriptionNode[]): void => {
+  expect(value).not.toMatch(/<(?!\/?u>)[A-Za-z!/]/);
+  expect(value).not.toMatch(/(^|[\s"'<])on[a-z0-9_-]*\s*=/i);
+  expect(/(^|[^:])\/\//.test(value)).toBe(false);
+  const lower = value.toLowerCase();
+  expect(lower.includes('javascript:')).toBe(false);
+  expect(lower.includes('data:')).toBe(false);
+
+  for (const match of value.matchAll(/\]\(([^)]*)\)/g)) {
+    expect(isAllowedStoredHref(match[1] ?? '')).toBe(true);
+  }
+
+  const walk = (list: DescriptionNode[]): void => {
+    for (const node of list) {
+      if (node.kind === 'text') {
+        expect(node.text).not.toMatch(/<(?!\/?u>)[A-Za-z!/]/);
+        expect(node.text).not.toMatch(/(^|[\s"'<])on[a-z0-9_-]*\s*=/i);
+        expect(node.text.toLowerCase().includes('javascript:')).toBe(false);
+        continue;
+      }
+      if (node.kind === 'br') {
+        continue;
+      }
+      if (node.kind === 'a') {
+        expect(isAllowedStoredHref(node.href)).toBe(true);
+        expect(node.href.trim().startsWith('//')).toBe(false);
+        walk(node.children);
+        continue;
+      }
+      walk(node.children);
+    }
+  };
+
+  walk(nodes);
+};
+
+const expectAllowlistedDescription = (
+  source: string,
+  value: string,
+  rich: DescriptionNode[]
+): void => {
+  const prepared = prepareDescriptionForStorage(source, DescriptionLengthTierEnum.Standard);
+  expect(prepared?.value).toBe(value);
+  const readBack = readDescriptionDocument(prepared?.value).rich;
+  expect(readBack).toEqual(rich);
+  if (prepared?.value === undefined || readBack === null) {
+    return;
+  }
+  assertStoredAllowlist(prepared.value, readBack);
 };
 
 describe('prepareDescriptionForStorage', () => {
@@ -76,6 +136,87 @@ describe('prepareDescriptionForStorage', () => {
     expect(prepared?.value.includes('data:text/plain')).toBe(false);
     expect(prepared?.value.includes('[mail](mailto:test@example.com)')).toBe(true);
     expect(prepared?.value.includes('[ok](https://example.com)')).toBe(true);
+  });
+
+  it('drops an image tag with an onerror handler', () => {
+    expectAllowlistedDescription(
+      '<p>Safe</p><img src="https://evil.example/x.png" onerror="alert(1)" alt="pic"><p>Also</p>',
+      'Safe\n\nAlso',
+      keptParagraphs(['Safe', 'Also'])
+    );
+  });
+
+  it('drops an svg tag', () => {
+    expectAllowlistedDescription(
+      '<p>Safe</p><svg onload="alert(1)"><script>bad()</script></svg><p>Also</p>',
+      'Safe\n\nAlso',
+      keptParagraphs(['Safe', 'Also'])
+    );
+  });
+
+  it('drops an iframe tag', () => {
+    expectAllowlistedDescription(
+      '<p>Safe</p><iframe src="https://evil.example/embed" onload="alert(1)"></iframe><p>Also</p>',
+      'Safe\n\nAlso',
+      keptParagraphs(['Safe', 'Also'])
+    );
+  });
+
+  it('unwraps javascript links with mixed case and whitespace after the colon', () => {
+    expectAllowlistedDescription(
+      '<p><a href="JaVaScRiPt:\talert(1)">bad</a> <a href="JavaScript:\nalert(1)">worse</a> ' +
+        '<a href="https://example.com">ok</a></p>',
+      'bad worse [ok](https://example.com)',
+      [
+        {
+          kind: 'p',
+          children: [
+            { kind: 'text', text: 'bad worse ' },
+            {
+              kind: 'a',
+              href: 'https://example.com',
+              children: [{ kind: 'text', text: 'ok' }],
+            },
+          ],
+        },
+      ]
+    );
+  });
+
+  it('unwraps a protocol-relative link', () => {
+    expectAllowlistedDescription(
+      '<p><a href="//evil.example/phish">click</a> <a href="https://example.com">ok</a></p>',
+      'click [ok](https://example.com)',
+      [
+        {
+          kind: 'p',
+          children: [
+            { kind: 'text', text: 'click ' },
+            {
+              kind: 'a',
+              href: 'https://example.com',
+              children: [{ kind: 'text', text: 'ok' }],
+            },
+          ],
+        },
+      ]
+    );
+  });
+
+  it('drops a disallowed tag wrapped in an html comment', () => {
+    expectAllowlistedDescription(
+      '<p>Safe</p><!-- <script>bad()</script><img src="x" onerror="alert(1)"> --><p>Also</p>',
+      'Safe\n\nAlso',
+      keptParagraphs(['Safe', 'Also'])
+    );
+  });
+
+  it('drops a truncated tag in the lenient path', () => {
+    expectAllowlistedDescription(
+      '<p>Safe</p><img src="https://evil.example/x.png" onerror="alert(1)"',
+      'Safe',
+      keptParagraphs(['Safe'])
+    );
   });
 
   it('maps plain text line breaks to paragraphs and br tags', () => {
