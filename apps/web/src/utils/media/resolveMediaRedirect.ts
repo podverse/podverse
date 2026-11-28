@@ -1,8 +1,10 @@
 import { fetchWithTimeout } from '@podverse/helpers-backend';
+import type { OutboundConnectionTarget } from '@podverse/helpers-requests/outbound-http-policy';
 import {
   OutboundUrlBlockedError,
-  validateOutboundFetchUrl,
+  resolveOutboundFetchTarget,
 } from '@podverse/helpers-requests/outbound-http-policy';
+import { fetchForOutbound } from '@podverse/helpers-requests/outbound-requests';
 
 import { PROXY } from '../proxy/constants';
 import { validateProxyUrl } from '../proxy/urlValidator';
@@ -49,11 +51,16 @@ const isLoopbackHostname = (hostname: string): boolean => {
 
 const hasUserinfo = (url: URL): boolean => url.username !== '' || url.password !== '';
 
+type PreparedHop =
+  | { kind: 'loopback' }
+  | { kind: 'guarded'; connection: OutboundConnectionTarget };
+
 /**
  * Format, userinfo, and SSRF, including DNS for every host that is not an allowed loopback hop.
- * Throws when the hop must not be requested.
+ * Throws when the hop must not be requested. A guarded hop carries the addresses the check
+ * accepted.
  */
-const assertHopAllowed = async (hop: string): Promise<void> => {
+const prepareHop = async (hop: string): Promise<PreparedHop> => {
   let parsed: URL;
   try {
     parsed = new URL(hop);
@@ -67,33 +74,50 @@ const assertHopAllowed = async (hop: string): Promise<void> => {
     throw new OutboundUrlBlockedError('Hop URL is not allowed');
   }
   if (isLoopbackHostname(parsed.hostname) && proxyAllowsLoopback()) {
-    return;
+    return { kind: 'loopback' };
   }
   const validation = validateProxyUrl(hop);
   if (!validation.isValid) {
     throw new OutboundUrlBlockedError(validation.error ?? 'Hop URL is not allowed');
   }
-  await validateOutboundFetchUrl(hop);
+  const connection = await resolveOutboundFetchTarget(hop);
+  return { kind: 'guarded', connection };
 };
 
-const requestHop = async (hop: string, userAgent: string): Promise<Response> => {
-  const headers = { 'User-Agent': userAgent };
-  const head = await fetchWithTimeout(hop, {
-    headers,
+const requestPrepared = async (
+  hop: string,
+  prepared: PreparedHop,
+  init: {
+    headers: Record<string, string>;
+    method: 'GET' | 'HEAD';
+  }
+): Promise<Response> => {
+  const options = {
+    headers: init.headers,
     maxBodyBytes: 0,
-    method: 'HEAD',
-    redirect: 'manual',
+    method: init.method,
+    redirect: 'manual' as const,
     timeoutMs: PROXY.TIMEOUT_MS,
-  });
+  };
+  if (prepared.kind === 'loopback') {
+    return fetchWithTimeout(hop, options);
+  }
+  return fetchForOutbound(hop, { ...options, connection: prepared.connection });
+};
+
+const requestHop = async (
+  hop: string,
+  userAgent: string,
+  prepared: PreparedHop
+): Promise<Response> => {
+  const headers = { 'User-Agent': userAgent };
+  const head = await requestPrepared(hop, prepared, { headers, method: 'HEAD' });
   if (head.status !== 405 && head.status !== 501) {
     return head;
   }
-  return fetchWithTimeout(hop, {
+  return requestPrepared(hop, prepared, {
     headers: { ...headers, Range: 'bytes=0-0' },
-    maxBodyBytes: 0,
     method: 'GET',
-    redirect: 'manual',
-    timeoutMs: PROXY.TIMEOUT_MS,
   });
 };
 
@@ -142,8 +166,9 @@ export const resolveMediaRedirectChain = async (
   let followed = 0;
 
   while (followed <= MAX_REDIRECTS) {
+    let prepared: PreparedHop;
     try {
-      await assertHopAllowed(current);
+      prepared = await prepareHop(current);
     } catch (error) {
       if (error instanceof OutboundUrlBlockedError) {
         return invalid();
@@ -154,8 +179,11 @@ export const resolveMediaRedirectChain = async (
 
     let response: Response;
     try {
-      response = await requestHop(current, userAgent);
-    } catch {
+      response = await requestHop(current, userAgent, prepared);
+    } catch (error) {
+      if (error instanceof OutboundUrlBlockedError) {
+        return invalid();
+      }
       logResolveFailure(current);
       return network();
     }

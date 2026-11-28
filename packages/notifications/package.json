@@ -25,6 +25,7 @@
     "@podverse/external-services-firebase": "*",
     "@podverse/helpers": "*",
     "@podverse/helpers-backend": "*",
+    "@podverse/helpers-requests": "*",
     "@podverse/helpers-validation": "*",
     "web-push": "^4.0.0"
   },

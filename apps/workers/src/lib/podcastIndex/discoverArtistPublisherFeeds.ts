@@ -13,7 +13,7 @@ import {
 import { sleepRateLimit } from '@workers/lib/podcastIndex/collectTrendingFeedIds.js';
 import { podcastIndexFeedId } from '@workers/lib/podcastIndex/podcastIndexFeedId.js';
 
-import { fetchWithTimeout } from '@podverse/helpers-backend';
+import { fetchForOutbound } from '@podverse/helpers-requests/outbound-requests';
 
 export const DEFAULT_MAX_ARTIST_PUBLISHER_DISCOVER = 50;
 export const HARD_MAX_ARTIST_PUBLISHER_DISCOVER = 1000;
@@ -447,7 +447,7 @@ async function resolvePublisherParentToPodcastIndexId(
 
 async function fetchRssText(url: string): Promise<string | null> {
   try {
-    const response = await fetchWithTimeout(url, { timeoutMs: RSS_FETCH_TIMEOUT_MS });
+    const response = await fetchForOutbound(url, { timeoutMs: RSS_FETCH_TIMEOUT_MS });
     if (!response.ok) {
       return null;
     }

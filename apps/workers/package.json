@@ -82,6 +82,7 @@
     "@podverse/external-services-podcast-index": "*",
     "@podverse/helpers": "*",
     "@podverse/helpers-backend": "*",
+    "@podverse/helpers-requests": "*",
     "@podverse/helpers-validation": "*",
     "@podverse/helpers-config": "*",
     "@podverse/mq": "*",

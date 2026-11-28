@@ -1,11 +1,11 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-const fetchWithTimeoutMock = vi.hoisted(() =>
+const fetchForOutboundMock = vi.hoisted(() =>
   vi.fn(async () => new Response(null, { status: 200 }))
 );
 
-vi.mock('@podverse/helpers-backend', () => ({
-  fetchWithTimeout: fetchWithTimeoutMock,
+vi.mock('@podverse/helpers-requests/outbound-requests', () => ({
+  fetchForOutbound: fetchForOutboundMock,
 }));
 
 import type { NotificationsContext } from '../../../../notifications/src/factory.js';
@@ -44,7 +44,7 @@ describe('UnifiedPush send timeout', () => {
       { title: 'Live' }
     );
 
-    expect(fetchWithTimeoutMock).toHaveBeenCalledWith(
+    expect(fetchForOutboundMock).toHaveBeenCalledWith(
       'https://push.example/topic',
       expect.objectContaining({
         method: 'POST',
@@ -61,7 +61,7 @@ describe('UnifiedPush send timeout', () => {
       { kind: 'auto-download' }
     );
 
-    expect(fetchWithTimeoutMock).toHaveBeenCalledWith(
+    expect(fetchForOutboundMock).toHaveBeenCalledWith(
       'https://push.example/data',
       expect.objectContaining({
         method: 'POST',

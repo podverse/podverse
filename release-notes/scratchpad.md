@@ -156,3 +156,12 @@
   name opens a person page, and these credits are not saved as public people.
 - Who notices: listeners who follow a feed by RSS
 - Operator steps: none
+
+## Untrusted server fetches use one outbound check
+
+- Surfaces: web, workers
+- Change: the image proxy, image shrink, feed probe, publisher-feed discovery, and media URL
+  resolution use the DNS-checked outbound policy. The connection stays on an address that passed
+  the check, and a redirect is checked the same way.
+- Who notices: an image or feed URL that pointed at a private or loopback address no longer loads through the server. Ordinary public URLs are unchanged.
+- Operator steps: none

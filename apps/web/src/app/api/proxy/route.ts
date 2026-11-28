@@ -2,11 +2,42 @@ import type { NextRequest } from 'next/server';
 
 import { isEnvLogLevelDebug, truncateForLog } from '@podverse/helpers';
 import { fetchWithTimeout } from '@podverse/helpers-backend';
+import { OutboundUrlBlockedError } from '@podverse/helpers-requests/outbound-http-policy';
+import { fetchForOutbound } from '@podverse/helpers-requests/outbound-requests';
 
 import { getConfig } from '../../../config';
 import { PROXY } from '../../../utils/proxy/constants';
 import { checkRateLimit } from '../../../utils/proxy/rateLimiter';
 import { validateProxyUrl } from '../../../utils/proxy/urlValidator';
+
+/**
+ * Loopback the string checker already allows in local dev and when ALLOW_LOCALHOST_PROXY is set.
+ * Every other host uses the guarded client.
+ */
+const loopbackFetchAllowed = (): boolean =>
+  process.env.NODE_ENV !== 'production' || process.env.ALLOW_LOCALHOST_PROXY === 'true';
+
+const isLoopbackHostname = (hostname: string): boolean => {
+  const host = hostname.toLowerCase();
+  if (host === 'localhost' || host.endsWith('.localhost')) {
+    return true;
+  }
+  if (host === '::1') {
+    return true;
+  }
+  return host.startsWith('127.');
+};
+
+const useDirectLoopbackFetch = (url: string): boolean => {
+  if (!loopbackFetchAllowed()) {
+    return false;
+  }
+  try {
+    return isLoopbackHostname(new URL(url).hostname);
+  } catch {
+    return false;
+  }
+};
 
 /** Only when `LOG_LEVEL=debug` on the Next server (same convention as apps/api; see `isEnvLogLevelDebug` in helpers). */
 const logProxyFailureDiagnostics = (message: string, details?: Record<string, unknown>): void => {
@@ -59,12 +90,17 @@ export async function GET(req: NextRequest) {
   }
 
   try {
-    const response = await fetchWithTimeout(url, {
+    const fetchOptions = {
       headers: {
         'User-Agent': config.proxy.userAgent,
       },
+      // One byte past the cap so the read loop can still answer 413.
+      maxBodyBytes: PROXY.SIZE_LIMITS.MAX_RESPONSE_SIZE_BYTES + 1,
       timeoutMs: PROXY.TIMEOUT_MS,
-    });
+    };
+    const response = useDirectLoopbackFetch(url)
+      ? await fetchWithTimeout(url, fetchOptions)
+      : await fetchForOutbound(url, fetchOptions);
 
     if (!response.ok) {
       logProxyFailureDiagnostics('upstream fetch not ok', {
@@ -170,6 +206,13 @@ export async function GET(req: NextRequest) {
       },
     });
   } catch (error) {
+    if (error instanceof OutboundUrlBlockedError) {
+      logProxyFailureDiagnostics('outbound URL blocked', {
+        url: truncateForLog(url, 512),
+        errorMessage: truncateForLog(error.message, 512),
+      });
+      return new Response('Invalid URL', { status: 400 });
+    }
     if (error instanceof Error && error.name === 'AbortError') {
       logProxyFailureDiagnostics('request timeout', { url: truncateForLog(url, 512) });
       return new Response('Request timeout', { status: 504 });

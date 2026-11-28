@@ -1,9 +1,14 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { fetchWithTimeout } from '@podverse/helpers-backend';
+import { fetchForOutbound } from '@podverse/helpers-requests/outbound-requests';
 
 vi.mock('@podverse/helpers-backend', () => ({
   fetchWithTimeout: vi.fn(),
+}));
+
+vi.mock('@podverse/helpers-requests/outbound-requests', () => ({
+  fetchForOutbound: vi.fn(),
 }));
 
 vi.mock('node:dns', () => {
@@ -19,13 +24,15 @@ vi.mock('node:dns', () => {
 
 import { resolveMediaRedirectChain } from './resolveMediaRedirect';
 
-const fetchMock = vi.mocked(fetchWithTimeout);
+const directFetch = vi.mocked(fetchWithTimeout);
+const fetchMock = vi.mocked(fetchForOutbound);
 
 const hopResponse = (status: number, headers?: Record<string, string>): Response =>
   new Response(null, { status, headers });
 
 describe('resolveMediaRedirectChain', () => {
   beforeEach(() => {
+    directFetch.mockReset();
     fetchMock.mockReset();
   });
 
@@ -60,6 +67,7 @@ describe('resolveMediaRedirectChain', () => {
       reason: 'invalid',
     });
     expect(fetchMock).not.toHaveBeenCalled();
+    expect(directFetch).not.toHaveBeenCalled();
   });
 
   it('rejects a hostname that resolves to a private address', async () => {
@@ -68,6 +76,7 @@ describe('resolveMediaRedirectChain', () => {
       reason: 'invalid',
     });
     expect(fetchMock).not.toHaveBeenCalled();
+    expect(directFetch).not.toHaveBeenCalled();
   });
 
   it('rejects a URL that embeds credentials', async () => {
@@ -75,6 +84,7 @@ describe('resolveMediaRedirectChain', () => {
       resolveMediaRedirectChain('https://user:secret@cdn.example/file', 'agent')
     ).resolves.toEqual({ url: null, reason: 'invalid' });
     expect(fetchMock).not.toHaveBeenCalled();
+    expect(directFetch).not.toHaveBeenCalled();
   });
 
   it('stops when a redirect lands on a private address', async () => {
@@ -88,7 +98,7 @@ describe('resolveMediaRedirectChain', () => {
   });
 
   it('follows a redirect onto the other loopback host when loopback fetches are allowed', async () => {
-    fetchMock.mockImplementation(async (url) => {
+    directFetch.mockImplementation(async (url) => {
       if (String(url).includes('127.0.0.1')) {
         return hopResponse(200);
       }
@@ -107,6 +117,7 @@ describe('resolveMediaRedirectChain', () => {
       url: 'http://127.0.0.1:2111/e2e/images/art.png',
       reason: 'resolved',
     });
+    expect(fetchMock).not.toHaveBeenCalled();
   });
 
   it('stops after five redirects', async () => {

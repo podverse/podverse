@@ -1,6 +1,6 @@
 import { getBaseConfig } from '@workers/config/index.js';
 
-import { fetchWithTimeout } from '@podverse/helpers-backend';
+import { fetchForOutbound } from '@podverse/helpers-requests/outbound-requests';
 import type { FeedProbe } from '@podverse/orm';
 
 export type { FeedProbe };
@@ -14,7 +14,7 @@ const PROBE_MAX_BODY_BYTES = 65_536;
  */
 export const probeFeedUrl: FeedProbe = async (feedUrl: string): Promise<boolean> => {
   try {
-    const response = await fetchWithTimeout(feedUrl, {
+    const response = await fetchForOutbound(feedUrl, {
       headers: { 'User-Agent': getBaseConfig().userAgent },
       maxBodyBytes: PROBE_MAX_BODY_BYTES,
       method: 'GET',

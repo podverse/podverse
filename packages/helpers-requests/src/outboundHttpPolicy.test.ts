@@ -1,12 +1,25 @@
-import { describe, expect, it } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import {
   OutboundUrlBlockedError,
+  resolveOutboundFetchTarget,
   validateOutboundFetchUrl,
   validateOutboundRedirectLocation,
 } from './outboundHttpPolicy.js';
 
+const lookup = vi.hoisted(() => vi.fn(async () => [{ address: '1.1.1.1', family: 4 }]));
+
+vi.mock('node:dns', () => ({
+  default: { promises: { lookup } },
+  promises: { lookup },
+}));
+
 describe('validateOutboundFetchUrl', () => {
+  beforeEach(() => {
+    lookup.mockReset();
+    lookup.mockImplementation(async () => [{ address: '1.1.1.1', family: 4 }]);
+  });
+
   it('allows a public IPv4 literal', async () => {
     await expect(validateOutboundFetchUrl('http://1.1.1.1/path')).resolves.toBeUndefined();
   });
@@ -73,9 +86,21 @@ describe('validateOutboundFetchUrl', () => {
       OutboundUrlBlockedError
     );
   });
+
+  it('blocks a hostname that resolves to loopback', async () => {
+    lookup.mockResolvedValueOnce([{ address: '127.0.0.1', family: 4 }]);
+    await expect(validateOutboundFetchUrl('https://public.example/cover.png')).rejects.toThrow(
+      OutboundUrlBlockedError
+    );
+  });
 });
 
 describe('validateOutboundRedirectLocation', () => {
+  beforeEach(() => {
+    lookup.mockReset();
+    lookup.mockImplementation(async () => [{ address: '1.1.1.1', family: 4 }]);
+  });
+
   it('allows a public redirect target', () => {
     expect(() => validateOutboundRedirectLocation({ href: 'http://1.1.1.1/next' })).not.toThrow();
   });
@@ -96,9 +121,25 @@ describe('validateOutboundRedirectLocation', () => {
     expect(() => validateOutboundRedirectLocation({})).toThrow(OutboundUrlBlockedError);
   });
 
-  it('allows hostname redirects (DNS cannot be checked synchronously in axios hook)', () => {
+  it('accepts a hostname in the synchronous redirect check', () => {
+    lookup.mockClear();
     expect(() =>
       validateOutboundRedirectLocation({ href: 'http://cdn.example.net/feed.xml' })
     ).not.toThrow();
+    expect(lookup).not.toHaveBeenCalled();
+  });
+
+  it('blocks a redirect hostname when DNS is a private address', async () => {
+    lookup.mockResolvedValueOnce([{ address: '10.0.0.1', family: 4 }]);
+    await expect(resolveOutboundFetchTarget('http://cdn.example.net/feed.xml')).rejects.toThrow(
+      OutboundUrlBlockedError
+    );
+  });
+
+  it('returns the looked-up address for a public redirect hostname', async () => {
+    const target = await resolveOutboundFetchTarget('http://cdn.example.net/feed.xml');
+    expect(target.hostname).toBe('cdn.example.net');
+    expect(target.addresses).toEqual([{ address: '1.1.1.1', family: 4 }]);
+    expect(lookup).toHaveBeenCalledTimes(1);
   });
 });

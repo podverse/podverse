@@ -24,10 +24,10 @@ import {
 } from '@podverse/helpers';
 import {
   buildConditionalRequestHeaders,
-  fetchWithTimeout,
   getHttpCacheMetadata,
   sanitizeHttpCacheMetadata,
 } from '@podverse/helpers-backend';
+import { fetchForOutbound } from '@podverse/helpers-requests/outbound-requests';
 import type { ChannelImage, ItemImage } from '@podverse/orm';
 import {
   Channel,
@@ -111,8 +111,9 @@ const fetchImageResult = async (
   requestHeaders: Record<string, string> | undefined,
   maxSourceBytes: number
 ): Promise<FetchImageResult> => {
-  const response = await fetchWithTimeout(url, {
+  const response = await fetchForOutbound(url, {
     headers: requestHeaders,
+    maxBodyBytes: maxSourceBytes + 1,
     timeoutMs: FETCH_TIMEOUT_MS,
   });
   if (response.status === 304) {
@@ -156,9 +157,10 @@ const fetchHead = async (
   requestHeaders: Record<string, string>
 ): Promise<Response | null> => {
   try {
-    return await fetchWithTimeout(url, {
-      method: 'HEAD',
+    return await fetchForOutbound(url, {
       headers: requestHeaders,
+      maxBodyBytes: 0,
+      method: 'HEAD',
       timeoutMs: FETCH_TIMEOUT_MS,
     });
   } catch {
