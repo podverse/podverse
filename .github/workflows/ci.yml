@@ -28,7 +28,7 @@ jobs:
     steps:
       - name: Add reaction to comment
         if: github.event_name == 'issue_comment'
-        uses: actions/github-script@v9
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9
         with:
           script: |
             await github.rest.reactions.createForIssueComment({
@@ -40,7 +40,7 @@ jobs:
 
       - name: Get PR details
         id: pr-comment
-        uses: actions/github-script@v9
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9
         with:
           script: |
             const pr = await github.rest.pulls.get({
@@ -52,7 +52,7 @@ jobs:
             core.setOutput('head_sha', pr.data.head.sha);
             core.setOutput('pr_number', context.issue.number);
 
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           ref: ${{ steps.pr-comment.outputs.head_sha }}
 
@@ -93,7 +93,7 @@ jobs:
         run: bash infra/k8s/scripts/check_cronjob_contract.sh
 
       - name: Setup Node.js
-        uses: actions/setup-node@v7
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
         with:
           node-version: "24"
           cache: "npm"
@@ -160,7 +160,7 @@ jobs:
 
       - name: Report success
         if: success()
-        uses: actions/github-script@v9
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9
         env:
           RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
           PR_NUMBER: ${{ steps.pr-comment.outputs.pr_number }}
@@ -235,7 +235,7 @@ jobs:
 
       - name: Set success commit status
         if: success()
-        uses: actions/github-script@v9
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9
         env:
           HEAD_SHA: ${{ steps.pr-comment.outputs.head_sha }}
           RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
@@ -253,7 +253,7 @@ jobs:
 
       - name: Report failure
         if: failure()
-        uses: actions/github-script@v9
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9
         env:
           RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
           PR_NUMBER: ${{ steps.pr-comment.outputs.pr_number }}
@@ -326,7 +326,7 @@ jobs:
 
       - name: Set failure commit status
         if: failure()
-        uses: actions/github-script@v9
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9
         env:
           HEAD_SHA: ${{ steps.pr-comment.outputs.head_sha }}
           RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}

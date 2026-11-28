@@ -27,7 +27,7 @@ jobs:
       base_version: ${{ steps.version.outputs.base_version }}
       staging_n: ${{ steps.promote.outputs.staging_n }}
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
 
       - name: Require release notes
         run: bash scripts/publish/require-release-notes.sh HEAD
@@ -194,10 +194,10 @@ jobs:
       contents: write
       packages: read
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
 
       - name: Create Git tag and production release
-        uses: actions/github-script@v9
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9
         with:
           script: |
             const fs = require("fs");
